@@ -42,12 +42,13 @@ def verify_frozen(root,run_dir):
 def prepare_run(root,config=None,head_manifest=None,checkpoint_callback=None,target_ids=None):
     root=resolve_root(root);cfg=config or PipelineConfig();cfg.validate();started=time.perf_counter()
     train=load_rows(root,cfg.dataset,'train',labels=True);targets=load_rows(root,cfg.dataset,cfg.split)
+    tx,tm=load_embeddings(root,cfg.dataset,'train',train);qx,qm=load_embeddings(root,cfg.dataset,cfg.split,targets)
     if target_ids is not None:
         wanted=set(target_ids)
         if len(wanted)!=len(target_ids) or not wanted.issubset({r['record_id'] for r in targets}): raise ValueError('Invalid inspect IDs')
-        targets=[r for r in targets if r['record_id'] in wanted]
+        positions=[i for i,r in enumerate(targets) if r['record_id'] in wanted]
+        targets=[targets[i] for i in positions];qx=np.asarray(qx[positions],dtype=np.float32)
         if not targets: raise ValueError('Empty inspect cohort must bypass prepare_run')
-    tx,tm=load_embeddings(root,cfg.dataset,'train',train);qx,qm=load_embeddings(root,cfg.dataset,cfg.split,targets)
     recipe=embedding_recipe(tm)
     if embedding_recipe(qm)!=recipe: raise ValueError('Query/train encoder recipe mismatch')
     if cfg.arm!='baseline_whitening':
@@ -70,6 +71,7 @@ def prepare_run(root,config=None,head_manifest=None,checkpoint_callback=None,tar
     output.mkdir(parents=True,exist_ok=True)
     common=common_candidates(root,cfg.dataset,cfg.split,targets,train)
     vkey=fingerprint({'train':tm['files'],'query':qm['files'],'arm':cfg.arm,'head':spec['head'],
+                     'query_identity':row_identity(targets),
                      'whitening_dimension':cfg.whitening_dimension,'projection_source':sources['projection.py']})
     vdir=root/'cache'/'projected'/vkey;vdir.mkdir(parents=True,exist_ok=True)
     vmeta=vdir/'manifest.json'

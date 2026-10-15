@@ -34,6 +34,7 @@ def main():
     summary={'source':str(source),'files':len(records),'bytes':sum(r['bytes'] for r in records),
              'graph_features':sum(r['path'].startswith('cache/graphs/') for r in records),
              'index_sha256':digest(index),'index':'cache/import_manifest.json','independent_copies':True}
+    (ROOT/'provenance').mkdir(exist_ok=True)
     (ROOT/'provenance'/'cache_import.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8')
     runtime=ROOT/'bundles'/'grace-h3-joern-runtime.zip';runtime.parent.mkdir(exist_ok=True)
     old=source/'bundles'/'grace-h1-joern-runtime.zip'
