@@ -1,0 +1,88 @@
+contract_version: evaluation_contract_v2
+contract_revision: evaluation_contract_v2_graph40x80_20261013
+
+dataset_split:
+  devign:
+    dataset_version: DetectVul/devign@db50acfa25d02fe99e9d50064b613fae3e934b11
+    source_revision: db50acfa25d02fe99e9d50064b613fae3e934b11
+    local_snapshot: ../Grace-with-filters-v2/[CONTRACT]/datasets/hf/DetectVul__devign@main
+    canonical_adapter: devign_v1
+    canonical_schema: ../Grace-with-filters-v2/[CONTRACT]/datasets/canonical_schema.yaml
+    train: hf://datasets/DetectVul/devign@db50acfa25d02fe99e9d50064b613fae3e934b11#train
+    valid: hf://datasets/DetectVul/devign@db50acfa25d02fe99e9d50064b613fae3e934b11#validation
+    test: hf://datasets/DetectVul/devign@db50acfa25d02fe99e9d50064b613fae3e934b11#test
+
+  reveal:
+    dataset_version: claudios/ReVeal@71f62e1e6e2053173e7de31a342d2c38b3fe2dcc
+    source_revision: 71f62e1e6e2053173e7de31a342d2c38b3fe2dcc
+    local_snapshot: ../Grace-with-filters-v2/[CONTRACT]/datasets/hf/claudios__ReVeal@main
+    canonical_adapter: reveal_v1
+    canonical_schema: ../Grace-with-filters-v2/[CONTRACT]/datasets/canonical_schema.yaml
+    train: hf://datasets/claudios/ReVeal@71f62e1e6e2053173e7de31a342d2c38b3fe2dcc#train
+    valid: hf://datasets/claudios/ReVeal@71f62e1e6e2053173e7de31a342d2c38b3fe2dcc#validation
+    test: hf://datasets/claudios/ReVeal@71f62e1e6e2053173e7de31a342d2c38b3fe2dcc#test
+
+  bigvul:
+    dataset_version: bstee615/bigvul@c0042b97d208a0338634fad28693446e830adad1
+    source_revision: c0042b97d208a0338634fad28693446e830adad1
+    local_snapshot: ../Grace-with-filters-v2/[CONTRACT]/datasets/hf/bstee615__bigvul@c0042b97d208a0338634fad28693446e830adad1
+    canonical_adapter: bigvul_v1
+    canonical_schema: ../Grace-with-filters-v2/[CONTRACT]/datasets/canonical_schema.yaml
+    train: hf://datasets/bstee615/bigvul@c0042b97d208a0338634fad28693446e830adad1#train
+    valid: hf://datasets/bstee615/bigvul@c0042b97d208a0338634fad28693446e830adad1#validation
+    test: hf://datasets/bstee615/bigvul@c0042b97d208a0338634fad28693446e830adad1#test
+
+retrieval_pool:
+  source: train
+  candidate_pool_size: 50
+  demonstration_policy: same_initial_top_50_candidates_for_all_methods
+  keep_full_train_pool_when_running_subset: true
+
+backbone_llm:
+  model: publishers/qwen/models/qwen3-coder-480b-a35b-instruct-maas
+  provider: Vertex AI
+
+inference_config:
+  temperature: 0.0
+  seed: 42
+  max_tokens: 256
+  retry_policy: max_attempts=5; exponential_backoff=5s..120s; exhausted_request=invalid
+  parser: ../Grace-with-filters-v2/[CONTRACT]/parser/parse_prediction.py::parse_prediction
+  parser_contract: exact_last_line_binary_v1
+
+prompt_context_policy:
+  graph: true
+  context_limit: 8192
+  truncation_policy:
+    target_code_max_chars: 3000
+    standard_demo_max_chars: 1500
+    contrastive_demo_max_chars: 1200
+    graph_nodes_max: 40
+    graph_edges_max: 80
+    preserve_prefix: true
+  template: ../Grace-with-filters-v2/[CONTRACT]/prompt/prompt_template.txt
+  output_contract: last_non_empty_line_must_be_exactly_0_or_1
+
+evaluation_metrics:
+  metrics:
+    - confusion_matrix
+    - precision
+    - recall
+    - f1
+    - mcc
+    - balanced_accuracy
+    - predicted_positive_rate
+    - invalid_rate
+  trivial_baselines:
+    - always_predict_vulnerable
+    - always_predict_non_vulnerable
+
+run_tracking:
+  commit: git_commit_sha
+  config: evaluation_contract.yaml
+  target_ids: id_and_canonical_split_ids
+  demonstration_ids: demonstration_id_per_target
+  raw_response: llm_raw_response
+  parsed_prediction: prediction_and_parse_metadata
+  prompt_sha256: rendered_prompt_hash
+  dataset_manifest: ../Grace-with-filters-v2/[CONTRACT]/datasets/dataset_manifest.json
