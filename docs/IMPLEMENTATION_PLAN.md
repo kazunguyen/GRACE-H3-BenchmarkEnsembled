@@ -6,3 +6,7 @@
 4. Notebook local/Colab CPU, input/output/checkpoint bundles, tài liệu và provenance.
 
 Không điều tra/sửa implementation lịch sử. Không chạy tests, training hoặc API trong lượt authoring.
+
+## Trạng thái
+
+Đã triển khai bốn nhóm ở trên. Mở notebooks/full-pipeline.ipynb trước; chuyển Colab CPU tại điểm dừng, nhập cpu-output về local để inference. Xem METHOD/RUNBOOK và provenance. Chưa thực thi notebook/gate/LLM/tests; chưa có benchmark mới.
