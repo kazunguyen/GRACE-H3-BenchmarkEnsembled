@@ -7,6 +7,22 @@ from grace_h1.data import load_rows, load_embeddings, embedding_recipe
 from grace_h1.metrics import binary_metrics
 
 
+def inside(root, path):
+    canonical = lambda p: Path(str(Path(p).resolve()).removeprefix(chr(92)*2+'?'+chr(92)))
+    canonical(path).relative_to(canonical(root))
+
+
+def resource_usage():
+    import os
+    import sys
+    if os.name == 'nt':
+        return {'process_lifetime_peak_rss_bytes': None, 'scope': 'Not collected on Windows'}
+    import resource
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return {'process_lifetime_peak_rss_bytes': peak*(1 if sys.platform == 'darwin' else 1024),
+            'scope': 'Process lifetime peak, not isolated stage or Joern child JVM memory'}
+
+
 def sources(root):
     return {p.relative_to(root).as_posix(): file_hash(p)
             for package in ('grace_h1', 'grace_h3v2')
@@ -128,7 +144,7 @@ def verify(root, folder):
         raise ValueError('H3-v2 source changed; create a new experiment')
     for rel, expected in frozen['files'].items():
         p = (root / rel).resolve()
-        p.relative_to(root)
+        inside(root, p)
         if file_hash(p) != expected:
             raise ValueError(f'Frozen artifact changed: {rel}')
     return frozen

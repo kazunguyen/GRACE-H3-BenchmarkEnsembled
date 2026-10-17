@@ -8,7 +8,7 @@ from sklearn.exceptions import ConvergenceWarning
 from grace_h1.io import read_json, write_json, file_hash, fingerprint, row_identity
 from grace_h1.data import load_rows, load_embeddings, embedding_recipe
 from .common import (training_data, folds, sources, metrics, best_threshold,
-                     choose, freeze, verify, versions)
+                     choose, freeze, verify, versions, inside, resource_usage)
 from .features import View, VIEWS, ARMS, fusion_input, fusion_model
 
 
@@ -21,7 +21,7 @@ def save_model(path, obj):
 
 def load_model(root, entry):
     path = (root / entry['path']).resolve()
-    path.relative_to(root)
+    inside(root, path)
     if file_hash(path) != entry['sha256']:
         raise ValueError('Model checksum mismatch')
     if entry['versions'] != versions():
@@ -161,6 +161,7 @@ def train_base(root, dataset, seed, cfg, callback=None):
                 'folder': folder.relative_to(root).as_posix(), 'models': models,
                 'winner': winner, 'candidates': candidates, 'view_columns': list(VIEWS),
                 'arm_columns': list(ARMS), 'fit_seconds': time.perf_counter()-started,
+                'resources': resource_usage(),
                 'selection_scope': 'train nested OOF; thresholds tuned on aggregated OOF for development only'}
     write_json(folder / 'manifest.json', manifest)
     files += [folder / n for n in ('manifest.json', 'validation_views.npy',
