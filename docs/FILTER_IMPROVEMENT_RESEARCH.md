@@ -2,16 +2,13 @@
 
 Ngày: 17/10/2026 (Asia/Bangkok). Trạng thái: nghiên cứu và phân tích artifact hiện có; chưa triển khai H3 phiên bản mới.
 
-## 1. Quyết định đề xuất
+## 1. Quyết định cập nhật: benchmark là chính
 
-**Ưu tiên H3-v2: bộ phân loại CPU nhiều view, sau đó bổ sung router học lợi ích tương đối của GRACE.** Thực hiện hai giai đoạn để tách giá trị của biểu diễn và routing:
+Theo chỉ đạo mới 17/10/2026, [BENCHMARK_IMPROVEMENT_PLAN.md](D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/docs/BENCHMARK_IMPROVEMENT_PLAN.md) là kế hoạch đang áp dụng. MCC là tiêu chí chính, F1 là tiêu chí thứ hai, chi phí là tiêu chí phụ. Ưu tiên classifier nhiều view và học selector/router/stacking với full GRACE; policy có thể tự trả safe/vulnerable hoặc gọi GRACE cho mọi query.
 
-1. **Giai đoạn A, chưa cần gọi LLM:** so sánh semantic Logistic Regression hiện tại với MLP nhỏ, nhánh từ vựng tuyến tính, và fusion các nhánh bằng dự đoán ngoài fold. Đánh giá vùng điểm thấp ở cùng ràng buộc bỏ sót; xử lý thiếu mẫu chọn ngưỡng trước khi kỳ vọng tiết kiệm trên ReVeal.
-2. **Giai đoạn B, cần dự đoán GRACE trên dữ liệu ngoài test:** học quyết định giữ kết quả của bộ phân loại hay chuyển GRACE theo lợi ích dự kiến và chi phí. Bộ phân loại có thể tự trả cả safe và vulnerable khi policy cho phép. Có đối chứng confidence routing và gate-only.
+Các ràng buộc chứng nhận missed-positive 1%, power 517 positive và giảm calls không chặn nhánh benchmark. Phần 2-6 giữ làm bằng chứng/phân tích phương pháp; các kết luận cỡ mẫu áp dụng riêng protocol CP cũ. Không kết luận ReVeal không thể cải thiện benchmark vì thiếu 517 positive.
 
-Các nhánh A/B có thể chồng lên nhau. Giai đoạn B có cơ sở phù hợp với kết quả hiện tại hơn giả định mọi mẫu khó của bộ phân loại đều được LLM sửa đúng. Chưa có bằng chứng H3-v2 đạt gain; đây là phương án cần kiểm chứng.
-
-**Phạm vi:** nghiên cứu cơ chế bộ lọc. Không truy tìm hay sửa sai lệch của implementation GRACE cũ. Không chạy huấn luyện, suy luận mới, notebook, hoặc tests trong lượt nghiên cứu này.
+Phạm vi: nghiên cứu cơ chế mới; việc sửa sai lệch implementation GRACE lịch sử để sau. Chưa implement hoặc chạy thí nghiệm H3-v2.
 
 ## 2. Những gì kết quả hiện tại thực sự cho biết
 
@@ -50,7 +47,7 @@ Bảng này không phải hiệu quả của một router khả thi. Không lấ
 
 Với 592 vulnerable trong phần chọn ngưỡng Devign:
 
-| Cutoff p < t | Mẫu skip trên selection | Vulnerable bị skip | Cận trên CP sau Bonferroni | Đủ điều kiện <=1% |
+| Cutoff p < t | Mẫu skip trên selection | Vulnerable bị skip | Cận trên CP sau Bonferroni | Đủ điều kiện <= 1% |
 |---:|---:|---:|---:|:---:|
 | 0,05 | 3 | 0 | 0,8734% | Có |
 | **0,075** | **5** | **0** | **0,8734%** | **Có, được chọn** |
@@ -114,7 +111,7 @@ Các benchmark dưới đây thuộc detector/task của nguồn; không dự b�
 
 Gate hiện tại là một siêu phẳng trên CodeT5 frozen. Platt có slope dương chỉ biến đổi đơn điệu score: không tạo thông tin mới, không thay thứ tự mẫu. Chuyển từ Platt sang calibrator khác không tự khắc phục representation hoặc ranking yếu ở đuôi.
 
-Một mô hình có F1/MCC tốt hơn ở cutoff0,5 vẫn có thể không có vùng skip ở recall99%; model selection cần nhắm operating region thực sự dùng.
+Một mô hình có F1/MCC tốt hơn ở cutoff 0,5 vẫn có thể không có vùng skip ở recall99%; model selection cần nhắm operating region thực sự dùng.
 
 ### 4.2 Kiến trúc đề xuất
 
@@ -132,19 +129,19 @@ Code ── CodeT5 cache768 ── semantic LR hoặc MLP nhỏ ─── s_sem 
 
 Đây là thiết kế nhiều view tiết kiệm mượn nguyên tắc của paper nhóm khác. Chưa sao chép hay tái lập mạng token/AST/fusion của họ.
 
-**Semantic controls:** giữ LR768 hiện tại; thử MLP768->128->1, ReLU, regularization, early stopping trên inner train holdout. MLP này có98.561 tham số với bias; đây là phép đếm thiết kế, không phải đo tốc độ hay RAM. Có thể huấn luyện CPU; chỉ chuyển Kaggle nếu thời gian thực đo yêu cầu.
+**Semantic controls:** giữ LR768 hiện tại; thử MLP 768->128->1, ReLU, regularization, early stopping trên inner train holdout. MLP này có98.561 tham số với bias; đây là phép đếm thiết kế, không phải đo tốc độ hay RAM. Có thể huấn luyện CPU; chỉ chuyển Kaggle nếu thời gian thực đo yêu cầu.
 
 **Lexical branch:** token n-grams và character n-grams; giữ operator, literal, tên API quan trọng; không coi xóa mọi identifier hoặc lowercase toàn bộ code là vô hại. Dùng TF-IDF + linear classifier, fit vocabulary/IDF trên train. Đặt trần vocabulary và dùng sparse float32; dự toán RAM theo nnz thực đo, không densify toàn ma trận từ vựng. So token-only, char-only trước khi ghép.
 
 **Numeric branch:** độ dài, số nhánh/vòng lặp/return, phép toán con trỏ/mảng, operator, lời gọi allocation/free/copy, mẫu guard. Feature regex chỉ là chỉ báo quan sát; có guard không chứng minh guard đúng hay đủ. Không hard-skip code thiếu keyword. Dùng feature extraction rẻ; stage đầu chưa bắt buộc Joern.
 
-**Fusion:** LR trên s_sem, s_lex, s_num hoặc logits và một số metadata. Dự đoán học fusion phải ngoài fold theo code/project group. Với3fold, mỗi mẫu dùng các base models không fit nhãn của mẫu đó; sau khi chọn cấu hình bằng inner train CV, refit base models và fusion theo protocol đã chốt. Kiểm tra chênh phân phối giữa OOF scores và final-model scores; dùng calibration riêng, báo nếu fusion mất ổn định.
+**Fusion:** LR trên s_sem, s_lex, s_num hoặc logits và một số metadata. Dự đoán học fusion phải ngoài fold theo code/project group. Với3 fold, mỗi mẫu dùng các base models không fit nhãn của mẫu đó; sau khi chọn cấu hình bằng inner train CV, refit base models và fusion theo protocol đã chốt. Kiểm tra chênh phân phối giữa OOF scores và final-model scores; dùng calibration riêng, báo nếu fusion mất ổn định.
 
 **Đối chứng bắt buộc:** semantic LR, semantic MLP, lexical-only, semantic+lexical, semantic+lexical+numeric. Đánh giá ở cùng split, policy, số positive selection và downstream. Gain do thêm view phải tách khỏi gain do nới risk budget.
 
 ### 4.3 Loss và hard examples là nhánh bổ sung
 
-Bắt đầu CE hoặc BCE. So WCE với trọng số train; chọn một control LA hoặc CB-Focal theo P057 khi cần. Calibrate ở prevalence tự nhiên sau weighting/sampling. Điểm tăng recall tại cutoff0,5 không chứng minh skip coverage tăng.
+Bắt đầu CE hoặc BCE. So WCE với trọng số train; chọn một control LA hoặc CB-Focal theo P057 khi cần. Calibrate ở prevalence tự nhiên sau weighting/sampling. Điểm tăng recall tại cutoff 0,5 không chứng minh skip coverage tăng.
 
 Nếu thêm SupCon/hard negatives theo SCL-CVD/COCL, so với cùng MLP chỉ CE. Hard mining dùng train; ưu tiên code tương đồng khác nhãn, loại code giống hệt có nhãn mâu thuẫn. Mining cực đoan có thể học mạnh nhãn nhiễu. Chưa cần augmentation bỏ guard, sửa toán tử hay thêm dead code không kiểm chứng.
 
@@ -217,7 +214,7 @@ Với routing hai phía, có thể đo cả lỗi tăng mới và lỗi sửa đ
 
 ### 6.1 Fixed-sequence thay Bonferroni cho skip-only
 
-Theo Learn then Test, có thể kiểm định một chuỗi cutoff tăng dần đã ấn định trước; dừng ngay ở kiểm định đầu tiên không đủ bằng chứng risk<=1%. Một chuỗi hợp lệ dùng mức5% thay vì5%/9, làm cỡ mẫu zero-FN tối thiểu giảm517->299. Chưa áp dụng lại vào manifest Devign hoặc chọn cutoff test mới.
+Theo Learn then Test, có thể kiểm định một chuỗi cutoff tăng dần đã ấn định trước; dừng ngay ở kiểm định đầu tiên không đủ bằng chứng risk <= 1%. Một chuỗi hợp lệ dùng mức5% thay vì5%/9, làm cỡ mẫu zero-FN tối thiểu giảm517->299. Chưa áp dụng lại vào manifest Devign hoặc chọn cutoff test mới.
 
 Không sắp xếp lại chuỗi bằng chính selection labels. Nếu thử nhiều model rồi chọn model thắng trên cùng selection, hoặc có nhiều nhánh rủi ro, phải kiểm soát cả family đó hoặc dùng split độc lập. Không dùng fixed-sequence1D cho một lưới high/low hai chiều mà bỏ qua các điều kiện multiple testing. Giảm độ bảo thủ không làm model phân biệt tốt hơn.
 
@@ -225,7 +222,7 @@ Không sắp xếp lại chuỗi bằng chính selection labels. Nếu thử nhi
 
 Muốn giữ budget1% theo Bonferroni9, cần tối thiểu517 positive ở selection, và thường cần nhiều hơn nếu có FN. Train có1.587 positive unique nên có thể dành một phần làm holdout, nhưng phải refit gate sau khi loại holdout đó. Ở prevalence khoảng8-9%, một holdout có khoảng517 positive tương đương cỡ6.000-6.500 hàm, là đánh đổi dữ liệu đáng kể; phải thiết kế group split, không hứa rẻ chỉ vì dùng CPU.
 
-Một phương án khác: calibration/model selection dùng inner train; dành validation174positive cho kiểm định cuối và bổ sung dữ liệu độc lập. Dùng cả174 vẫn chưa đủ1% ngay với một kiểm định ở5%. Nhân bản positive, SMOTE hoặc cộng các fold dự đoán lại không làm số positive độc lập tăng; không coi pooled OOF phụ thuộc là CP-binomial độc lập mặc định.
+Một phương án khác: calibration/model selection dùng inner train; dành validation174 positive cho kiểm định cuối và bổ sung dữ liệu độc lập. Dùng cả174 vẫn chưa đủ1% ngay với một kiểm định ở5%. Nhân bản positive, SMOTE hoặc cộng các fold dự đoán lại không làm số positive độc lập tăng; không coi pooled OOF phụ thuộc là CP-binomial độc lập mặc định.
 
 ### 6.3 Các protocol exploratory khác
 
@@ -233,64 +230,19 @@ Có thể đăng ký trước các budget1%,2%,5% và báo Pareto thay vì chỉ
 
 Conformal/SelectiveNet là hướng hỗ trợ uncertainty/selection; không tự giải quyết thiếu positive độc lập hoặc domain shift, và coverage trung bình không bảo đảm recall vulnerable. Bộ lọc phải được so ở cùng định nghĩa risk.
 
-## 7. Xếp hạng triển khai theo giá trị và tài nguyên
+## 7. Ưu tiên mới và protocol thực nghiệm
 
-| Thứ tự | Việc nên thử | CPU/GPU | LLM bổ sung | Giá trị cần chứng minh |
-|---|---|---|---|---|
-| 0 | Power inventory, partition và preregister policy | CPU | 0 | Protocol có khả năng chọn được vùng routing, nhất là ReVeal |
-| **1** | Semantic MLP + lexical sparse branch + fusion OOF | CPU trước | 0 khi fit/đánh giá gate; cần downstream cho benchmark cascade nếu cache thiếu | Tăng coverage ở cùng missed-positive risk; MCC/F1/P/R của gate |
-| 2 | Fixed-sequence skip-only, đối chứng Bonferroni | CPU | 0 để chọn policy | Gain do thống kê, tách khỏi gain model |
-| **3** | Router học lợi ích GRACE trên holdout ngoài test | CPU | Pilot<=1.000 unique thiếu cache, cộng retry; benchmark tách riêng | Quality/cost tốt hơn gate-only, confidence routing và full GRACE |
-| 4 | CE vs WCE/LA/CB-Focal; SupCon/hard negatives | CPU cho head nhỏ; GPU tùy thời gian | 0 khi fit | Gain ranking ở operating region và calibration sau weighting |
-| 5 | Graph summaries cho tầng khó | CPU/Joern | 0 khi fit | Gain đủ bù parse/RAM/latency cold-start |
-| 6 | Student/LoRA/distillation đầy đủ | Có thể cần GPU và encoder mới | Có thể có teacher cost | Chỉ làm khi các head rẻ không đạt, tính break-even |
+Các đề xuất cũ về giữ cùng missed-positive 1%, fixed-sequence như điều kiện tiến/lùi và minimum call saving 10% đã được thay bằng [kế hoạch benchmark](D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/docs/BENCHMARK_IMPROVEMENT_PLAN.md).
 
-**Cấu hình nên triển khai tiếp:** semantic MLP + lexical LR + fusion OOF, giữ benchmark skip-only để so với H3 hiện tại; thiết kế sẵn interface router lợi ích cho giai đoạn kế tiếp. Nếu ưu tiên đóng góp nghiên cứu về routing hơn, B là nhánh có thay đổi objective rõ nhất, đồng thời phải chấp nhận chi phí tạo dữ liệu expert ngoài test.
+Thứ tự: classifier nhiều view -> expert predictions ngoài test -> meta OOF để chọn selector/stacking/router theo MCC/F1 -> full test paired và nhiều seed -> H1 stack khi có tín hiệu. Giữ H3 skip-only cũ làm đối chứng; chứng nhận CP chỉ là ablation phụ.
 
-## 8. Protocol thực nghiệm đề xuất
+## 8. Những điều vẫn cần giữ khi đánh giá
 
-### 8.1 Dữ liệu và khóa lựa chọn
-
-1. Giữ snapshot Devign/ReVeal đang có để so sánh; ghi recipe encoder, code hash, source hash. Test đã được xem trong lịch sử nên kết quả tiếp theo là iterative benchmark; thêm holdout mới/project/time split nếu có để xác nhận.
-2. Group theo code hash, ưu tiên project/commit groups nếu metadata có. Không claim clone filtering giải quyết toàn bộ dependence. Giữ full test cohort và nhãn invalid.
-3. Model/hyperparameter/early stopping chọn trong inner train. Phần calibration độc lập với chọn weights và policy selection. Khi số positive không đủ, báo không thể chứng nhận theo protocol đã chọn.
-4. Chọn một gate thắng từ inner train trước khi policy selection để tránh ngầm nhân số kiểm định. Hoặc khai báo family bao gồm tất cả model/cutoff/branch được xét.
-5. Router học ngoài test; dự đoán gate ngoài mẫu và downstream cùng retrieval/model contract, bao gồm loại cohort held-out khỏi pool demo. Không dùng test responses như teacher labels.
-
-### 8.2 Ma trận ablation
-
-| ID | Gate | Routing | Mục đích |
-|---|---|---|---|
-| A0 | LR768 hiện tại | Skip-only Bonferroni9 | Giữ mốc H3 đã có |
-| A1 | MLP semantic | Cùng A0 | Tách gain phi tuyến |
-| A2 | Lexical LR | Cùng A0 | Giá trị lexical riêng |
-| A3 | Semantic + lexical | Cùng A0 | Giá trị fusion |
-| A4 | A3 + numeric | Cùng A0 | View code rẻ có ích không |
-| P1 | Gate thắng đã khóa | Fixed-sequence skip-only | Giá trị lựa chọn thống kê |
-| P2 | Cùng gate | Hai phía, constraint đã khai báo | Giá trị direct-high; không tối đa F1 rồi bỏ qua FP |
-| R0 | Cùng gate | Confidence routing | Đối chứng router đơn giản |
-| R1 | Cùng gate | Learned-benefit routing | Giá trị học expert strengths/weaknesses |
-| C0 | Cùng gate | Gate-only, cutoff0,5 và cutoff chọn trên development | LLM có đóng góp không |
-| C1 | Không gate | Full GRACE | Reference cùng cohort |
-
-Chạy một dataset/seed pilot trước, sau đó Devign/ReVeal seeds42,7,21; nếu seed thay đổi partition thì ghi rõ split variability. Không bật tất cả arm LLM ngay; chọn gate bằng development trước để hạn chế calls. Với H1+H3, full reference phải dùng chính H1 retrieval tương ứng; học lại router khi thay expert prompt/retrieval/model làm chất lượng thay đổi.
-
-### 8.3 Các trường kết quả cần lưu
-
-- Dataset/split/prevalence, n train/calibration/selection/test, n positive độc lập, danh sách group exclusions và hash.
-- Gate architecture/features/loss/seed, weights SHA; source/data/encoder lineage; OOF fold identities; raw và calibrated scores.
-- Policy family, ordering/grid, risk definition, budget, alpha allocation, thresholds, confidence bounds, coverage và lý do all-inspect.
-- Full-cohort F1/MCC/precision/recall/specificity/balanced accuracy, invalid rate; gate ROC-AUC/AP và tail coverage tại các risk targets.
-- Branch FN/FP; gate-vs-GRACE correctness contingency; additional error, recovered error, downstream conditional performance.
-- Query-call ratio, unique prompt count, actual API attempts/retries/cache hits, input/output tokens; expert-label acquisition cost và reference overhead.
-- Train/route/feature/graph/LLM wall time, CPU peak RAM, model bytes, encoder cold-start cost. Không lấy size head thay toàn pipeline memory.
-- Paired intervals; group/bootstrap theo project nếu đủ metadata, nếu chỉ query bootstrap thì ghi giới hạn. CI từ một test đã xem không loại iterative selection bias.
-
-### 8.4 Tiêu chí tiến/lùi
-
-Đề xuất engineering target cho pilot: vùng giảm calls>=10% với chất lượng trong tolerance đã chọn trước trên development, hoặc tăng MCC có ý nghĩa ở ngân sách calls cố định. **10% là mục tiêu thử nghiệm, không dự báo kết quả và không là mức an toàn đã chốt.** Không tự nới budget để đạt target.
-
-Thành công cuối phải nằm trên Pareto chất lượng-chi phí so với cả full GRACE và gate-only. Nếu classifier rẻ độc lập thắng, báo đúng kết quả. Nếu risk bound không đạt do thiếu n, tách khỏi việc model ranking kém. Nếu gain chỉ do cache hoặc nới risk, ghi đúng nguồn gain.
+- Gate-only, full GRACE, learned router và full prediction stacking là các đối chứng riêng. Chi phí không loại full GRACE 100% calls khỏi nhánh chính.
+- Train/fusion/meta dựa trên dự đoán ngoài fold; test labels/responses không học router. Model/threshold chọn bằng development, khóa trước test.
+- Báo MCC/F1/P/R/specificity, invalid handling và từng dataset; không chọn winner bằng test, không suy từ oracle contingency thành gain.
+- ReVeal dùng group-stratified CV và meta-model nhỏ; thiếu positive làm uncertainty lớn nhưng không là điều kiện CP bắt buộc của mục tiêu mới.
+- Ghi lineage/cache exact request, cost secondary và iterative test selection limitations.
 
 ## 9. Tài nguyên và notebook khi triển khai sau
 
@@ -303,4 +255,4 @@ Thành công cuối phải nằm trên Pareto chất lượng-chi phí so với 
 
 Bộ lọc cần được cải thiện ở ba tầng: **thông tin để phân loại**, **ước lượng lợi ích của chuyển GRACE**, và **độ mạnh thống kê để chọn policy**. Trên Devign, evidence hiện có hỗ trợ nghiên cứu selective routing giữa hai predictor có điểm mạnh khác nhau. Trên ReVeal, protocol1% hiện tại thiếu positive ngay từ thiết kế, nên thêm model mạnh hơn một mình chưa đủ mở vùng skip.
 
-Đề xuất thực tế nhất là A trước, B sau; C là điều kiện protocol phải xử lý rõ. Multi-view là chuyển giao từ selective GRACE, loss/metric learning lấy từ các paper detector, còn expert-aware routing lấy từ learning-to-defer. Phần đóng góp có thể kiểm chứng là cải thiện Pareto trên cùng cohort và downstream đã khóa. Không nhận gate/cascade/multi-view là ý tưởng chưa từng có, không hứa mức tiết kiệm83% của paper.
+Theo mục tiêu mới, A rồi B là nhánh benchmark chính; C chỉ cần khi làm thí nghiệm chứng nhận rủi ro riêng. Multi-view là chuyển giao từ selective GRACE, loss/metric learning lấy từ các paper detector, còn expert-aware routing lấy từ learning-to-defer. Phần đóng góp cần kiểm chứng là tăng MCC/F1 trên cùng cohort, so với cả full GRACE và classifier độc lập; chi phí là tiêu chí phụ. Không nhận gate/cascade/multi-view là ý tưởng chưa từng có, không hứa mức tiết kiệm83% của paper.
