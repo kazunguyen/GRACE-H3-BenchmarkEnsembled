@@ -1,30 +1,37 @@
-# GRACE H3 — Calibrated Cascade
+# GRACE H3-v2 — Benchmark Ensemble
 
-**Hướng cải tiến khác H1:** gate logistic CPU trên CodeT5 cache → Platt calibration → constrained skip-low / optional direct-high → GRACE cho phần inspect.
+Branch: **feat/h3-v2-benchmark**. Worktree riêng của repo H3; branch main và notebook đang sửa ở GRACE-H3-CalibratedCascade được giữ nguyên.
 
-## Bắt đầu tại đây
+## Bắt đầu
 
-- [full-pipeline.ipynb](<D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/notebooks/full-pipeline.ipynb>) — điểm vào duy nhất, hướng dẫn chuyển Colab rồi quay local.
-- [colab_cpu_prepare.ipynb](<D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/notebooks/colab_cpu_prepare.ipynb>) — fit gate/calibration/thresholds, route, graph/retrieval/prompt, không gọi LLM.
-- [METHOD.md](<D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/docs/METHOD.md>) — căn cứ review, công thức, constraints và giới hạn.
-- [RUNBOOK.md](<D:/JUNIOR/LabThayTho/GRACE-H3-CalibratedCascade/docs/RUNBOOK.md>) — upload/download, cache, CLI và H1+H3.
+Mở [notebooks/full-pipeline.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/notebooks/full-pipeline.ipynb). Đây là entry duy nhất cho full pipeline.
 
-## Pipeline và defaults
+1. Local xuất base-inputs; dừng và chạy [colab_cpu_prepare.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/notebooks/colab_cpu_prepare.ipynb) với PHASE='base', accelerator None.
+2. Nhập base-output về bundles/, Run All entry lại: local tạo GRACE predictions validation và meta-inputs.
+3. Colab lần hai PHASE='meta': fit router/selector/stacking bằng validation OOF, khóa winner và prepare test; lấy meta-output.
+4. Nhập meta-output, Run All entry: local GRACE test, kết hợp scores, đánh giá đầy đủ.
 
-Frozen CodeT5 768d → logistic CPU fit train → Platt trên calibration validation → cutoff selection trên partition riêng → skip-low=0 / inspect=GRACE. direct-high=1 tắt mặc định, chỉ mở khi đạt precision/FP constraints. Không có cutoff đạt yêu cầu thì toàn bộ inspect.
+CPU inputs và runtime Joern được đóng gói trong bundles/. Xem [RUNBOOK_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/RUNBOOK_V2.md) về upload, resume, ADC và đường dẫn output.
 
-Default: full test Devign2.732 query, skip-only, full_reference=true để so paired. full reference là benchmark overhead, có thể khiến toàn benchmark vẫn gọi gần full cohort. Cascade inference chạy trước; report tách algorithmic routing saving, response-cache reuse, requests/retries và reference incremental cost.
+## Mục tiêu và các thành phần
 
-Downstream giữ common top50, whitening256, semantic top5, lexical/AST rerank, một demo, CPG/prompt/Vertex/parser như primitive đã snapshot từ H1. Nhãn query chỉ mở khi evaluation. H1+H3 tùy chọn bằng retrieval_arm=h1_supcon_hard và head bundle từ H1; cả reference/cascade dùng cùng head.
+MCC chính, F1 thứ hai; chi phí chỉ phân xử khi hai chỉ số gần bằng nhau trên development. Default Devign + ReVeal, seed 42; thêm seeds 7,21 trong configs/benchmark_v2.json để xác nhận nhiều seed.
 
-## Bản bàn giao
+- CodeT5 cache 768d frozen: semantic LR, weighted LR, MLP768->128->1.
+- TF-IDF token/char và đặc trưng numeric code rẻ; fusion học từ OOF trong nested train CV.
+- Classifier thắng chọn bằng train nested OOF. Gate cutoff0,5, train-tuned và validation-tuned đều có control riêng.
+- Benefit-router trước expert; selector sau expert; logistic/MLP stacking. Meta-model học ngoài test bằng3 fold OOF validation rồi refit.
+- Winner cuối có thể là gate-only hoặc full GRACE; không ép ensemble thắng, không chọn lại theo test.
+- CP bỏ sót1% của H3-v1 không chặn benchmark H3-v2. H3-v1 vẫn nằm trong grace_h3/ như implementation lịch sử.
 
-- Copy độc lập **26.899 dataset/cache files**, **611.012.905 bytes (~583 MiB)**, sáu embedding sets và **26.867 graph features**; không sửa H1.
-- Hai bundle Colab đã tạo trong bundles/: grace-h3-cpu-inputs.zip và grace-h3-joern-runtime.zip. Hash/kích thước ở provenance/cloud_bundles.json.
-- Colab CPU chọn accelerator None; H3 độc lập không cần GPU/Kaggle. Local nhận cpu-output.zip rồi preflight → Vertex → full-cohort evaluation.
-- Có gate-only/full-reference controls, branch FN/FP, calibration metrics, paired CI, checkpoints/resume, strict freeze và NPZ weights không pickle.
-- Giữ provenance review/code/cache và Git commits theo từng bước, chưa origin. Data/cache/models/runs/bundles/.env không track Git.
+Xem [METHOD_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/METHOD_V2.md) và [plan](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/BENCHMARK_IMPROVEMENT_PLAN.md).
 
-Nguồn ý tưởng là H3 trong [GRACE-paper-review](<D:/JUNIOR/LabThayTho/docs/GRACE-paper-review/05_huong_cai_tien_kha_thi.md>). Scaffold cascade đã có trong dự án cũ; bản này hoàn thiện một biến thể CPU có kiểm soát, không tuyên bố tái lập toàn mô hình paper nhóm khác hay mức giảm83% calls.
+## Tái sử dụng
 
-**Chưa chạy notebook/training/preparation/LLM hoặc tests. Chưa có benchmark mới chứng minh H3 tăng F1/MCC hay tiết kiệm calls ở chất lượng chấp nhận được.** Ràng buộc1% là default thiết kế trên validation với nominal statistical bounds, không phải bảo đảm recall test.
+Đã copy độc lập cache/data/Joern từ H3 cũ, có checksum ở provenance/h3v2_cache_import.json. Không sao chép credentials; .env ignored chỉ chứa ba setting không bí mật nếu có. Response chỉ reuse theo exact prompt/model/decoding. Meta-fit không dùng response test làm nhãn học.
+
+Joblib chứa pickle thực thi được: chỉ import model bundle do project của bạn tạo. NumPy/SciPy/sklearn/joblib ghim tại requirements-v2.txt; local và Colab phải cùng phiên bản để reuse model.
+
+## Trạng thái
+
+Đã viết implementation và notebooks; chưa chạy training, notebook, LLM inference hoặc tests trong lượt authoring. Chưa có benchmark H3-v2. H1 downstream và loss LA/CB-Focal/SupCon là các ablation sau khi control CE/WCE có kết quả; mặc định hiện tại là GRACE whitening256 độc lập H1.

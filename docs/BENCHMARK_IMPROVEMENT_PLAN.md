@@ -1,6 +1,6 @@
 # Kế hoạch H3-v2: ưu tiên tăng benchmark trên Devign và ReVeal
 
-Cập nhật: 17/10/2026. Mục tiêu do người dùng chốt: benchmark là chính, chi phí là phụ. Trạng thái: kế hoạch, chưa implement hoặc chạy thí nghiệm H3-v2.
+Cập nhật: 17/10/2026. Mục tiêu do người dùng chốt: benchmark là chính, chi phí là phụ. Trạng thái: đã viết implementation H3-v2 trên branch feat/h3-v2-benchmark; chưa chạy thí nghiệm. Xem IMPLEMENTATION_PLAN.md và RUNBOOK_V2.md về phần đã làm.
 
 ## 1. Mục tiêu và quy tắc chọn phương án
 

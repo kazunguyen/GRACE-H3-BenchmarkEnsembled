@@ -128,8 +128,15 @@ def best_threshold(y, score, cfg, name='threshold'):
 
 
 def versions():
-    return {n: importlib.metadata.version(n)
-            for n in ('numpy', 'scipy', 'scikit-learn', 'joblib')}
+    result = {}
+    for name, module in (('numpy', 'numpy'), ('scipy', 'scipy'),
+                         ('scikit-learn', 'sklearn'), ('joblib', 'joblib')):
+        installed = importlib.metadata.version(name)
+        loaded = importlib.import_module(module).__version__
+        if installed != loaded:
+            raise RuntimeError('Dependencies changed after import. Restart only this notebook kernel, then rerun.')
+        result[name] = loaded
+    return result
 
 
 def freeze(root, folder, files, spec):

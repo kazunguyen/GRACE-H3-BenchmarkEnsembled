@@ -251,6 +251,7 @@ def evaluate(root, cfg):
         report['cpu_artifact_creation'] = {
             'base_fit_seconds': base['fit_seconds'], 'base_resources': base['resources'],
             'meta_fit_seconds': meta['fit_seconds'], 'meta_resources': meta['resources'],
+            'test_prepare_seconds': verify_frozen(root, root / job['test_run'])['prepare_seconds'],
             'scope': 'Stored creation timings, not fresh latency after reuse'}
         write_json(folder / 'evaluation.json', report)
         reports.append(report)
@@ -262,8 +263,19 @@ def evaluate(root, cfg):
             'sd': float(np.std([r['arms'][r['locked_development_winner']]['metrics'][name]
                                 for r in subset], ddof=1)) if len(subset)>1 else None}
             for name in ('mcc', 'f1', 'precision', 'recall', 'specificity')}
+    arm_aggregate = {}
+    for dataset in cfg['datasets']:
+        subset = [r for r in reports if r['dataset'] == dataset]
+        arm_aggregate[dataset] = {}
+        for arm in subset[0]['arms']:
+            arm_aggregate[dataset][arm] = {
+                key: {'mean': float(np.mean([r['arms'][arm]['metrics'][key] for r in subset])),
+                      'sd': float(np.std([r['arms'][arm]['metrics'][key] for r in subset], ddof=1))
+                            if len(subset) > 1 else None}
+                for key in ('mcc', 'f1', 'precision', 'recall', 'specificity')}
     summary = {'schema': 'h3v2_benchmark_summary_v1', 'config': cfg, 'status': 'complete',
                'datasets': reports, 'per_dataset_selected_mean_sd': aggregate,
+               'per_dataset_arm_mean_sd': arm_aggregate,
                'selection': 'MCC/F1 on development, winner frozen before test',
                'limitations': 'Iterative benchmark, one seed by default, query bootstrap not project-adjusted.',
                'created_unix': time.time()}

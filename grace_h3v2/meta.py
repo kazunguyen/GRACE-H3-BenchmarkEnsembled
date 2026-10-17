@@ -240,4 +240,7 @@ def predict_all(root, base, meta, rows, scores, expert):
         p = (probabilities[c['name']] >= c['threshold']).astype(int)
         result[name] = {'prediction': p.tolist(), 'expert_required': [False]*len(rows),
                         'fallback': [False]*len(rows)}
+    result['base_semantic_lr_0_5'] = {
+        'prediction': (probabilities['semantic_lr'] >= .5).astype(int).tolist(),
+        'expert_required': [False]*len(rows), 'fallback': [False]*len(rows)}
     return result, probability
