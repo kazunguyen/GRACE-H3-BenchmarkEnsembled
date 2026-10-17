@@ -31,7 +31,7 @@ Gate h(x) trong meta-training dùng cutoff chọn trong TRAIN. Cutoff tối ưu 
 
 Ba fold group-stratified validation tạo meta OOF. Chọn arm/threshold bằng MCC/F1; sau đó refit trên toàn eligible validation. Validation đã trở thành train/development của meta-model. Winner được ghi trước test; gate-only và full GRACE cũng có thể thắng. Full GRACE có parse-invalid không được chọn làm winner chỉ nhờ bỏ invalid khỏi denominator.
 
-Classifier validation/test scoring nặng và graph preparation đều trên Colab. Local final combining chỉ đọc score matrix nhỏ, model meta và expertpredictions.
+Classifier validation/test scoring nặng, graph preparation và meta-fit chạy trên CPU local. Full-pipeline local điều phối LLM inference và kết hợp score/model artifacts.
 
 ## Invalid và chi phí
 

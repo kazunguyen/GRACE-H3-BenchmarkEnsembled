@@ -6,12 +6,12 @@ Branch: **feat/h3-v2-benchmark**. Worktree riêng của repo H3; branch main và
 
 Mở [notebooks/full-pipeline.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/notebooks/full-pipeline.ipynb). Đây là entry duy nhất cho full pipeline.
 
-1. Local xuất base-inputs; dừng và chạy [colab_cpu_prepare.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/notebooks/colab_cpu_prepare.ipynb) với PHASE='base', accelerator None.
-2. Nhập base-output về bundles/, Run All entry lại: local tạo GRACE predictions validation và meta-inputs.
-3. Colab lần hai PHASE='meta': fit router/selector/stacking bằng validation OOF, khóa winner và prepare test; lấy meta-output.
-4. Nhập meta-output, Run All entry: local GRACE test, kết hợp scores, đánh giá đầy đủ.
+1. Entry tạo base-inputs local; chạy [colab_cpu_prepare.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/notebooks/colab_cpu_prepare.ipynb) trên cùng máy với PHASE='base'. Notebook giữ tên cũ để không đổi đường dẫn, nhưng không còn dùng Colab.
+2. Output tự ghi vào bundles/. Chạy lại entry để tạo GRACE predictions validation và meta-inputs.
+3. Chạy notebook CPU local lần hai với PHASE='meta': fit router/selector/stacking bằng validation OOF, khóa winner và prepare test.
+4. Chạy lại entry: GRACE test, kết hợp scores và đánh giá đầy đủ. Báo cáo nằm trong runs/h3v2/.
 
-CPU inputs và runtime Joern được đóng gói trong bundles/. Xem [RUNBOOK_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/RUNBOOK_V2.md) về upload, resume, ADC và đường dẫn output.
+CPU inputs, runtime Joern, checkpoints và outputs nằm trong bundles/. Các bước CPU chạy offline nếu dependencies và Java 21 đã có sẵn. Vertex LLM calls cần mạng, trừ khi exact response cache đã đủ. Xem [RUNBOOK_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/RUNBOOK_V2.md) về resume, ADC và đường dẫn output.
 
 ## Mục tiêu và các thành phần
 
@@ -30,7 +30,7 @@ Xem [METHOD_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/METHOD_V
 
 Đã copy độc lập cache/data/Joern từ H3 cũ, có checksum ở provenance/h3v2_cache_import.json. Không sao chép credentials; .env ignored chỉ chứa ba setting không bí mật nếu có. Response chỉ reuse theo exact prompt/model/decoding. Meta-fit không dùng response test làm nhãn học.
 
-Joblib chứa pickle thực thi được: chỉ import model bundle do project của bạn tạo. NumPy/SciPy/sklearn/joblib ghim tại requirements-v2.txt; local và Colab phải cùng phiên bản để reuse model.
+Joblib chứa pickle thực thi được: chỉ import model bundle do project của bạn tạo. NumPy/SciPy/sklearn/joblib ghim tại requirements-v2.txt; giữ cùng phiên bản trong môi trường local khi resume bundle.
 
 ## Trạng thái
 

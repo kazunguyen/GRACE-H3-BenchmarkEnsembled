@@ -9,7 +9,7 @@ Cập nhật: 17/10/2026. Mục tiêu do người dùng chốt: benchmark là ch
 3. Có thể thêm một cấu hình tối ưu F1 riêng đã đăng ký trước; công bố là arm khác. Không chọn arm thắng dựa trên test hoặc gọi một kết quả chỉ tăng MCC là tăng đồng thời mọi benchmark.
 4. Devign và ReVeal được chọn model/threshold riêng theo development của từng dataset. Báo từng dataset; macro-average chỉ để tổng hợp, không pooled confusion để che dataset kém.
 5. **Không áp điều kiện CP bỏ sót <= 1% hoặc minimum call saving vào nhánh chính.** Giới hạn 517 positive thuộc protocol H3 cũ, không là yêu cầu của benchmark plan này. Nhánh chứng nhận rủi ro giữ làm ablation phụ.
-6. Chi phí là tiêu chí phụ và vẫn được ghi nhận. Cho phép gọi GRACE cho mọi query để thử kết hợp dự đoán nếu chất lượng tăng. Giữ ưu tiên Colab CPU cho feature/head/meta-model; không mặc định train lại CodeT5.
+6. Chi phí là tiêu chí phụ và vẫn được ghi nhận. Cho phép gọi GRACE cho mọi query để thử kết hợp dự đoán nếu chất lượng tăng. Chạy feature/head/meta-model trên CPU local; không mặc định train lại CodeT5.
 
 ## 2. Cơ sở và đối chứng hiện có
 
@@ -97,11 +97,11 @@ Inventory hiện có: eligible validation Devign 2.724 hàm, ReVeal 2.196 hàm, 
 | Giai đoạn | Công việc | Nơi chạy | Đầu ra/điều kiện tiếp tục |
 |---|---|---|---|
 | 0 | Khóa mục tiêu, dữ liệu, primary metric, split/fold và arm registry | Local/CPU | Manifest kế hoạch và lineage; đối chứng cũ giữ nguyên |
-| 1 | Semantic LR/MLP, lexical, numeric và fusion OOF | Colab CPU | Gate metrics/thresholds trên development; gate-only controls |
+| 1 | Semantic LR/MLP, lexical, numeric và fusion OOF | CPU local | Gate metrics/thresholds trên development; gate-only controls |
 | 2 | Tạo GRACE predictions validation đúng contract | Local LLM | Expert response cache và bảng outcomes ngoài test |
-| 3 | Router, selector và stacking nhỏ; meta OOF selection | Colab CPU | Recipe thắng theo MCC/F1, frozen meta weights/thresholds |
+| 3 | Router, selector và stacking nhỏ; meta OOF selection | CPU local | Recipe thắng theo MCC/F1, frozen meta weights/thresholds |
 | 4 | Full test inference của các arm đã chốt | Local LLM + CPU | Paired predictions và full cohort metrics |
-| 5 | Lặp seed và báo cáo | Colab CPU/local | Mean/SD, paired intervals, per-dataset tables; cost là phụ |
+| 5 | Lặp seed và báo cáo | CPU local | Mean/SD, paired intervals, per-dataset tables; cost là phụ |
 | 6 | H1+H3-v2 nếu nhánh độc lập có tín hiệu | H1 upstream + CPU/local | Tách effect retrieval H1, gate và meta-model |
 
 GPU/Kaggle chỉ dùng khi thực đo CPU quá chậm hoặc chọn encoder/student nặng hơn. Chi phí phụ không có nghĩa bỏ qua khả năng chạy; ghi RAM/time/model bytes/calls đầy đủ.
@@ -140,7 +140,7 @@ Chọn tối đa vài gate/meta-arm thắng từ development để chạy full t
 
 ## 8. Notebook, cache và Git khi implement
 
-1. Entry vẫn là notebooks/full-pipeline.ipynb. Nó cần hướng dẫn từng handoff CPU Colab -> tạo expert validation local -> meta-fit Colab -> test inference/evaluation local.
+1. Entry vẫn là notebooks/full-pipeline.ipynb. Nó hướng dẫn từng handoff CPU local -> GRACE validation -> meta-fit CPU local -> test inference/evaluation local.
 2. Đóng gói input/output CPU cho feature/base OOF, meta OOF và frozen models; bundle LLM data chỉ chứa cohort/contract hoặc responses theo đúng scope, không credentials.
 3. Reuse embedding/canonical data/graph cache hiện có; response chỉ reuse theo exact request. H1 weights cũ là control có lịch sử chọn trên validation, không coi meta OOF độc lập nếu dùng cả model selection đã thấy held-out labels. Muốn xác nhận rigorously phải train/select trong inner train hoặc holdout mới.
 4. Config/run namespace H3-v2 riêng. H3 cũ và cache bundle cũ phục vụ tái lập đối chứng. Khóa flags để chế độ benchmark không vô tình chạy policy CP cũ.

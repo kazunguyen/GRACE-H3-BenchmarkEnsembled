@@ -1,39 +1,34 @@
-# Chạy H3-v2 từ local, Colab CPU và local LLM
+# Chạy H3-v2 local/offline
 
-## Chuẩn bị local
+## Môi trường
 
-Mở worktree D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble, branch feat/h3-v2-benchmark. WSL path: /mnt/d/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble. Mở notebooks/full-pipeline.ipynb đầu tiên. Không mở entry ở worktree H3-v1 để chạy H3-v2.
+Mở worktree `D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble`, branch `feat/h3-v2-benchmark`. Trong WSL, đường dẫn là `/mnt/d/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble`. Luôn bắt đầu tại `notebooks/full-pipeline.ipynb`.
 
-Entry tự cài requirements-v2.txt và requirements.txt nếu INSTALL_DEPENDENCIES=True. Local cần ADC hiện có và VERTEX_PROJECT/VERTEX_LOCATION; .env ignored chỉ chứa setting không bí mật. Không đưa credentials vào Colab/bundle.
+Notebook CPU vẫn tên `colab_cpu_prepare.ipynb` để giữ đường dẫn hiện tại, nhưng chạy ngay trên máy local/WSL. Nó đọc input, Joern runtime, checkpoint và ghi output trong `bundles/`; không mount Drive, upload hay download.
 
-Config mặc định configs/benchmark_v2.json: datasets devign,reveal; seeds42; nested3x3trainCV; meta3 fold; MCC->F1->cost. Khi đổi config, inputbundle và experimentnamespace phải đổi; entry kiểm tra metadata input trước reuse. Thêm seeds 7,21 trước khi export input để chạy xác nhận.
+Để chạy CPU offline, cài trước các package trong `requirements-v2.txt` và `requirements.txt`, cùng Java 21 và Joern runtime. Entry notebook có `INSTALL_DEPENDENCIES=True` theo mặc định để cài dependency nếu cần; cài package cần mạng. CPU notebook để `INSTALL_DEPENDENCIES=False` và không tự tải/cài Java. Sau khi môi trường sẵn sàng, các fit/feature stages không cần mạng.
 
-## Handoff1: base
+Các bước gọi Vertex trong full-pipeline cần mạng và cấu hình ADC cùng `VERTEX_PROJECT`/`VERTEX_LOCATION`, trừ khi exact response cache đã chứa mọi request. `RUN_INFERENCE=False` chỉ đọc cache; request thiếu thì pipeline dừng, không giả thành kết quả thành công. Không đưa credentials vào bundle hoặc commit.
 
-1. Run All entry. Nếu chưa base_selection thì tạo/reuse bundles/grace-h3v2-base-inputs.zip rồi dừng bằng RuntimeError hướng dẫn.
-2. Đưa base-inputs và bundles/grace-h3-joern-runtime.zip lên MyDrive/GRACE-H3-v2-transfer.
-3. Upload notebooks/colab_cpu_prepare.ipynb lên Colab; acceleratorNone; PHASE='base'; USE_GOOGLE_DRIVE=True; Run All.
-4. Colab trả grace-h3v2-base-output.zip. Lấy về bundles/ local, Run All entry lại.
-5. Local preflight và inference validation. RUN_INFERENCE=False chỉ dùng exactcache; thiếu request thì dừng. Với True, tạo các missingrequests theo contract. Complete run được giữ nguyên khi rerun.
+Cấu hình mặc định `configs/benchmark_v2.json`: Devign và ReVeal, seed 42, nested 3×3 train CV, 3 fold meta, ưu tiên MCC rồi F1. Thêm seed 7/21 trước khi tạo bundle nếu cần xác nhận đa seed. Thay đổi config/source sẽ làm bundle identity khác; đừng trộn artifacts của các thí nghiệm khác nhau.
 
-## Handoff2: meta
+## Luồng chạy
 
-1. Sau validation complete, entry tạo grace-h3v2-meta-inputs.zip và dừng.
-2. Đưa meta-inputs lên cùng transferfolder. Runtimezip dùng lại.
-3. Colab đổi PHASE='meta', Run All. Có thể dùng runtime cũ nếu source/config/data giống hệt; khác thì workspace mới để tránh trộn artifacts.
-4. Meta-fit học từ eligiblevalidation ngoài test, khóa winner; tính test featurematrix và prepare full testprompt. Không gọi LLM ở Colab.
-5. Lấy grace-h3v2-meta-output.zip về bundles/, Run All entry.
-6. Local preflight/inference test -> predict -> evaluate. Đọc runs/h3v2/<experiment>/benchmark_summary.json và table cuối notebook.
+1. Mở `notebooks/full-pipeline.ipynb` và Run All. Khi chưa có base output, entry tạo hoặc reuse `bundles/grace-h3v2-base-inputs.zip` rồi dừng với hướng dẫn.
+2. Mở `notebooks/colab_cpu_prepare.ipynb` **local**, đặt `PHASE='base'`, Run All. Notebook đọc base input và `bundles/grace-h3-joern-runtime.zip`, chạy CPU stages, lưu checkpoint và `bundles/grace-h3v2-base-output.zip`.
+3. Quay về entry và Run All. Nó nhập base output, chuẩn bị/infer GRACE validation. `RUN_INFERENCE=False` chỉ dùng exact cache; với `True`, các request còn thiếu cần Vertex/network. Khi validation complete, entry tạo `bundles/grace-h3v2-meta-inputs.zip`.
+4. Mở lại `notebooks/colab_cpu_prepare.ipynb`, đổi `PHASE='meta'`, Run All. Nó fit router/selector/stacking từ validation OOF, khóa winner trên development, tính test features không nhãn, và ghi checkpoint cùng `bundles/grace-h3v2-meta-output.zip`.
+5. Quay lại entry, Run All. Nó nhập meta output, chạy test inference nếu cần, rồi predict/evaluate. Xem bảng trong notebook và `runs/h3v2/<experiment>/benchmark_summary.json`.
 
-Stage names tách biệt và archive phase được kiểm tra; không nhập outputH3-v1 vào H3-v2.
+Không chuyển zip giữa dịch vụ nào: cả hai notebook cùng dùng `bundles/` trong worktree. Không nhập output H3-v1 vào H3-v2.
 
 ## Resume/checkpoint
 
-Colab lưu grace-h3v2-base-checkpoint.zip hoặc meta-checkpoint.zip lên Drive theo callback. Giữ checkpoint đúngphase cùng inputzip khi chạy lại. Source/config/runtime/data phải giống; differing content bị từ chối để không trộn thí nghiệm.
+CPU runner lưu `grace-h3v2-base-checkpoint.zip` hoặc `grace-h3v2-meta-checkpoint.zip` trực tiếp vào `bundles/`. Khi chạy lại cùng phase, cùng input/checkpoint được reuse nếu manifest/source/config/data khớp. Bundle có kiểm tra phase và checksum; không xóa checkpoint khi muốn resume.
 
-Checkpoint chứa model fits đã xong và các frozen run/artifact, candidates/projected cache và graph features mới so với input. Mất phiên có thể phải làm lại fit đang chạy hoặc graph tasks chưa kịp checkpoint. Java threadpool có thể làm Interrupt chờ; đừng assume checkpoint đã lên Drive trước khi thấy log copy hoàn tất.
+Checkpoint giữ các fit hoàn chỉnh và artifacts đã tạo. Fit đang chạy hoặc graph tasks chưa checkpoint có thể phải làm lại. Java/Joern callback có thể chờ các task đang chạy trước khi kernel kết thúc; đợi đến khi notebook báo checkpoint/output local đã lưu.
 
-LLM successful responses được lưu ngay từngrequest trong cache/responses. Request thất bại không cache thành safe. Rerun inference resume missing; khi một run complete thì giữ output đó để meta-input/output hashes ổn định.
+LLM successful responses được lưu theo từng request trong cache. Inference có thể resume các request còn thiếu; run đã complete được giữ để hash meta input/output ổn định.
 
 ## CLI tương đương
 
@@ -49,10 +44,18 @@ python -m grace_h3v2.workflow predict
 python -m grace_h3v2.workflow evaluate
 ~~~
 
-CPU stages chạy local chỉ khi bạn chủ động chọn; default notebook hướng dẫn Colab. BundleCLI: python tools/bundle_v2.py inputs --phase base --path bundles/grace-h3v2-base-inputs.zip; output/checkpoint tương tự; import dùng --kind output --phase base|meta.
+Tạo bundle thủ công khi cần:
+
+~~~text
+python tools/bundle_v2.py inputs --phase base --path bundles/grace-h3v2-base-inputs.zip
+python tools/bundle_v2.py output --phase base --path bundles/grace-h3v2-base-output.zip
+python tools/bundle_v2.py checkpoint --phase base --path bundles/grace-h3v2-base-checkpoint.zip
+~~~
+
+Import dùng `--kind output --phase base|meta`; xem `python tools/bundle_v2.py --help` để biết tùy chọn đầy đủ.
 
 ## Đọc benchmark
 
-Headline là locked_development_winner, không là hàngtest cao nhất. Đối chiếu gate_tuned và full_grace. Model gate khác, fallback khác hoặc cohort khác cần được ghi đúng. Selector/stacking ratio 1; benefit/confidence ratio là nhu cầu riêng nếu deploy độc lập. Referencebenchmark có thể vẫn gọi toàn bộ tập.
+Headline là `locked_development_winner`, không phải hàng test cao nhất. Đối chiếu `gate_tuned` và `full_grace`. Không chọn winner bằng nhãn test. Selector/stacking ratio 1; benefit/confidence ratio là nhu cầu riêng nếu deploy độc lập. Reference benchmark có thể vẫn gọi toàn bộ tập.
 
-Không có training/notebook/LLM/tests nào được chạy trong lượt authoring. Kết quả sẽ có sau khi bạn thực hiện các handoff trên.
+Notebook chưa được chạy lại sau khi chuyển CPU stages sang local; chưa có benchmark H3-v2 mới từ thay đổi này.
