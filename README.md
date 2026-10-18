@@ -11,7 +11,7 @@ Mở [notebooks/full-pipeline.ipynb](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnse
 3. Chạy notebook CPU local lần hai với PHASE='meta': fit router/selector/stacking bằng validation OOF, khóa winner và prepare test.
 4. Chạy lại entry: GRACE test, kết hợp scores và đánh giá đầy đủ. Báo cáo nằm trong runs/h3v2/.
 
-CPU inputs, runtime Joern, checkpoints và outputs nằm trong bundles/. Các bước CPU chạy offline nếu dependencies và Java 21 đã có sẵn. Vertex LLM calls cần mạng, trừ khi exact response cache đã đủ. Xem [RUNBOOK_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/RUNBOOK_V2.md) về resume, ADC và đường dẫn output.
+CPU inputs, runtime Joern và outputs nằm trong bundles/. Fit/graph cache được giữ trực tiếp trên máy để resume; checkpoint zip đầy đủ tắt mặc định vì tạo snapshot lớn rất chậm. Các bước CPU chạy offline nếu dependencies và Java 21 đã có sẵn. Vertex LLM calls cần mạng, trừ khi exact response cache đã đủ. Xem [RUNBOOK_V2.md](D:/JUNIOR/LabThayTho/GRACE-H3-BenchmarkEnsemble/docs/RUNBOOK_V2.md) về resume, ADC và đường dẫn output.
 
 ## Mục tiêu và các thành phần
 
