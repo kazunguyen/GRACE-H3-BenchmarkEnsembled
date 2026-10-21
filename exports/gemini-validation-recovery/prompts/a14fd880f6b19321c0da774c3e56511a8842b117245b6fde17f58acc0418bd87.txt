@@ -1,0 +1,330 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int tak_parse(AVCodecParserContext *s, AVCodecContext *avctx,
+
+                     const uint8_t **poutbuf, int *poutbuf_size,
+
+                     const uint8_t *buf, int buf_size)
+
+{
+
+    TAKParseContext *t = s->priv_data;
+
+    ParseContext *pc = &t->pc;
+
+    int next = END_NOT_FOUND;
+
+    GetBitContext gb;
+
+    int consumed = 0;
+
+    int needed = buf_size ? TAK_MAX_FRAME_HEADER_BYTES : 8;
+
+
+
+    if (s->flags & PARSER_FLAG_COMPLETE_FRAMES) {
+
+        TAKStreamInfo ti;
+
+        init_get_bits(&gb, buf, buf_size);
+
+        if (!ff_tak_decode_frame_header(avctx, &gb, &ti, 127))
+
+            s->duration = t->ti.last_frame_samples ? t->ti.last_frame_samples :
+
+                                                     t->ti.frame_samples;
+
+        *poutbuf      = buf;
+
+        *poutbuf_size = buf_size;
+
+        return buf_size;
+
+    }
+
+
+
+    while (buf_size || t->index + needed <= pc->index) {
+
+        if (buf_size && t->index + TAK_MAX_FRAME_HEADER_BYTES > pc->index) {
+
+            int tmp_buf_size = FFMIN(2 * TAK_MAX_FRAME_HEADER_BYTES, buf_size);
+
+            const uint8_t *tmp_buf = buf;
+
+
+
+            ff_combine_frame(pc, END_NOT_FOUND, &tmp_buf, &tmp_buf_size);
+
+            consumed += tmp_buf_size;
+
+            buf      += tmp_buf_size;
+
+            buf_size -= tmp_buf_size;
+
+        }
+
+
+
+        for (; t->index + needed <= pc->index; t->index++) {
+
+            if (pc->buffer[ t->index     ] == 0xFF &&
+
+                pc->buffer[ t->index + 1 ] == 0xA0) {
+
+                TAKStreamInfo ti;
+
+
+
+                init_get_bits(&gb, pc->buffer + t->index,
+
+                              8 * (pc->index - t->index));
+
+                if (!ff_tak_decode_frame_header(avctx, &gb,
+
+                        pc->frame_start_found ? &ti : &t->ti, 127) &&
+
+                    !ff_tak_check_crc(pc->buffer + t->index,
+
+                                      get_bits_count(&gb) / 8)) {
+
+                    if (!pc->frame_start_found) {
+
+                        pc->frame_start_found = 1;
+
+                        s->duration = t->ti.last_frame_samples ?
+
+                                      t->ti.last_frame_samples :
+
+                                      t->ti.frame_samples;
+
+                    } else {
+
+                        pc->frame_start_found = 0;
+
+                        next = t->index - pc->index;
+
+                        t->index = 0;
+
+                        goto found;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+found:
+
+
+
+    if (consumed && !buf_size && next == END_NOT_FOUND ||
+
+        ff_combine_frame(pc, next, &buf, &buf_size) < 0) {
+
+        *poutbuf      = NULL;
+
+        *poutbuf_size = 0;
+
+        return buf_size + consumed;
+
+    }
+
+
+
+    if (next != END_NOT_FOUND) {
+
+        next += consumed;
+
+        pc->overread = FFMAX(0, -next);
+
+    }
+
+
+
+    *poutbuf      = buf;
+
+    *poutbuf_size = buf_size;
+
+    return next;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+49 -> 53 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 60 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+70 -> 75 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+70 -> 77 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+61 -> 66 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+90 -> 92 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int adx_parse(AVCodecParserContext *s1,
+
+                           AVCodecContext *avctx,
+
+                           const uint8_t **poutbuf, int *poutbuf_size,
+
+                           const uint8_t *buf, int buf_size)
+
+{
+
+    ADXParseContext *s = s1->priv_data;
+
+    ParseContext *pc = &s->pc;
+
+    int next = END_NOT_FOUND;
+
+
+
+    if (!avctx->extradata_size) {
+
+        int ret;
+
+
+
+        ff_combine_frame(pc, END_NOT_FOUND, &buf, &buf_size);
+
+
+
+        if (!s->header_size && pc->index >= MIN_HEADER_SIZE) {
+
+            if (ret = avpriv_adx_decode_header(avctx, pc->buffer, pc->index,
+
+                                               &s->header_size, NULL))
+
+                return AVERROR_INVALIDDATA;
+
+            s->block_size = BLOCK_SIZE * avctx->channels;
+
+        }
+
+        if (s->header_size && s->header_size <= pc->index) {
+
+            avctx->extradata = av_mallocz(s->header_size + FF_INPUT_BUFFER_PADDING_SIZE);
+
+            if (!avctx->extradata)
+
+                return AVERROR(ENOMEM);
+
+            avctx->extradata_size = s->header_size;
+
+            memcpy(avctx->extradata, pc->buffer, s->header_size);
+
+            memmove(pc->buffer, pc->buffer + s->header_size, s->header_size);
+
+            pc->index -= s->header_size;
+
+        }
+
+        *poutbuf      = NULL;
+
+        *poutbuf_size = 0;
+
+        return buf_size;
+
+    }
+
+
+
+    if (pc->index - s->buf_pos >= s->block_size) {
+
+        *poutbuf      = &pc->buffer[s->buf_pos];
+
+        *poutbuf_size = s->bloc
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

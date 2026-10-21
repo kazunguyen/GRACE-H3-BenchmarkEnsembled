@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+PREDICTION_MODE vp9_left_block_mode ( const MODE_INFO * cur_mi , const MODE_INFO * left_mi , int b ) {
+ if ( b == 0 || b == 2 ) {
+ if ( ! left_mi || is_inter_block ( & left_mi -> mbmi ) ) return DC_PRED ;
+ return get_y_mode ( left_mi , b + 1 ) ;
+ }
+ else {
+ assert ( b == 1 || b == 3 ) ;
+ return cur_mi -> bmi [ b - 1 ] . as_mode ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( b == 0 || b == 2 ) {
+ if ( ! left_mi || is_inter_block ( & left_mi -> mbmi ) ) return DC_PRED ;
+ return get_y_mode ( left_mi , b + 1 ) ;
+ }
+ else {
+ assert ( b == 1 || b == 3 ) ;
+ return cur_mi -> bmi [ b - 1 ] . as_mode ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! left_mi || is_inter_block ( & left_mi -> mbmi ) ) return DC_PRED ;
+ return get_y_mode ( left_mi , b + 1 ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { assert ( b == 1 || b == 3 ) ; return cur_mi -> bmi [ b - 1 ] . as_mode ; }
+30064771072 | CALL | b == 0 || b == 2
+30064771073 | CALL | b == 0
+30064771074 | CALL | b == 2
+30064771075 | CALL | ! left_mi || is_inter_block ( & left_mi -> mbmi )
+30064771076 | CALL | ! left_mi
+30064771077 | CALL | is_inter_block ( & left_mi -> mbmi )
+30064771078 | CALL | & left_mi -> mbmi
+30064771079 | CALL | left_mi -> mbmi
+30064771080 | CALL | get_y_mode ( left_mi , b + 1 )
+30064771081 | CALL | b + 1
+30064771082 | CALL | assert ( b == 1 || b == 3 )
+30064771083 | CALL | b == 1 || b == 3
+30064771084 | CALL | b == 1
+30064771085 | CALL | b == 3
+30064771086 | CALL | cur_mi -> bmi [ b - 1 ] . as_mode
+30064771087 | CALL | cur_mi -> bmi [ b - 1 ]
+30064771088 | CALL | cur_mi -> bmi
+30064771089 | CALL | b - 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( b == 0 || b == 2 ) {
+ if ( ! left_mi || is_inter_block ( & left_mi -> mbmi ) ) return DC_PRED ;
+ return get_y_mode ( left_mi , b + 1 ) ;
+ }
+ else {
+ assert ( b == 1 || b == 3 ) ;
+ return cur_mi -> bmi [ b - 1 ] . as_mode ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! left_mi || is_inter_block ( & left_mi -> mbmi ) ) return DC_PRED ;
+      
+55834574848 | FIELD_IDENTIFIER | mbmi
+55834574849 | FIELD_IDENTIFIER | bmi
+55834574850 | FIELD_IDENTIFIER | as_mode
+68719476736 | IDENTIFIER | b
+68719476737 | IDENTIFIER | b
+68719476738 | IDENTIFIER | left_mi
+68719476739 | IDENTIFIER | left_mi
+68719476740 | IDENTIFIER | <unknown> DC_PRED
+68719476741 | IDENTIFIER | left_mi
+68719476742 | IDENTIFIER | b
+68719476743 | IDENTIFIER | b
+68719476744 | IDENTIFIER | b
+68719476745 | IDENTIFIER | cur_mi
+68719476746 | IDENTIFIER | b
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 2
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803779 -> 30064771082 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476743 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476743 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 90194313217 [CDG]
+30064771073 -> 68719476737 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 90194313217 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 68719476739 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 55834574848 [CDG]
+30064771076 -> 68719476739 [CFG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476739 [DOMINATE]
+30064771076 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+PREDICTION_MODE vp9_above_block_mode ( const MODE_INFO * cur_mi , const MODE_INFO * above_mi , int b ) {
+ if ( b == 0 || b == 1 ) {
+ if ( ! above_mi || is_inter_block ( & above_mi -> mbmi ) ) return DC_PRED ;
+ return get_y_mode ( above_mi , b + 2 ) ;
+ }
+ else {
+ assert ( b == 2 || b == 3 ) ;
+ return cur_mi -> bmi [ b - 2 ] . as_mode ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,204 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static char * lxc_cgroup_find_abs_path ( const char * subsystem , const char * group , bool should_be_writable , const char * suffix ) {
+ struct cgroup_meta_data * meta_data ;
+ struct cgroup_hierarchy * h ;
+ struct cgroup_mount_point * mp ;
+ char * result ;
+ int saved_errno ;
+ meta_data = lxc_cgroup_load_meta ( ) ;
+ if ( ! meta_data ) return NULL ;
+ h = lxc_cgroup_find_hierarchy ( meta_data , subsystem ) ;
+ if ( ! h ) goto out_error ;
+ mp = lxc_cgroup_find_mount_point ( h , group , should_be_writable ) ;
+ if ( ! mp ) goto out_error ;
+ result = cgroup_to_absolute_path ( mp , group , suffix ) ;
+ if ( ! result ) goto out_error ;
+ lxc_cgroup_put_meta ( meta_data ) ;
+ return result ;
+ out_error : saved_errno = errno ;
+ lxc_cgroup_put_meta ( meta_data ) ;
+ errno = saved_errno ;
+ return NULL ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct cgroup_meta_data * meta_data ;
+ struct cgroup_hierarchy * h ;
+ struct cgroup_mount_point * mp ;
+ char * result ;
+ int saved_errno ;
+ meta_data = lxc_cgroup_load_meta ( ) ;
+ if ( ! meta_data ) return NULL ;
+ h = lxc_cgroup_find_hierarchy ( meta_data , subsystem ) ;
+ if ( ! h ) goto out_error ;
+ mp = lxc_cgroup_find_mount_point ( h , group , should_be_writable ) ;
+ if ( ! mp ) goto out_error ;
+ result = cgroup_to_absolute_path ( mp , group , suffix ) ;
+ if ( ! result ) goto out_error ;
+ lxc_cgroup_put_meta ( meta_data ) ;
+ return result ;
+ out_error : saved_errno = errno ;
+ lxc_cgroup_put_meta ( meta_data ) ;
+ errno = saved_errno ;
+ return NULL ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | meta_data = lxc_cgroup_load_meta ( )
+30064771073 | CALL | lxc_cgroup_load_meta ( )
+30064771074 | CALL | ! meta_data
+30064771075 | CALL | h = lxc_cgroup_find_hierarchy ( meta_data , subsystem )
+30064771076 | CALL | lxc_cgroup_find_hierarchy ( meta_data , subsystem )
+30064771077 | CALL | ! h
+30064771078 | CALL | mp = lxc_cgroup_find_mount_point ( h , group , should_be_writable )
+30064771079 | CALL | lxc_cgroup_find_mount_point ( h , group , should_be_writable )
+30064771080 | CALL | ! mp
+30064771081 | CALL | result = cgroup_to_absolute_path ( mp , group , suffix )
+30064771082 | CALL | cgroup_to_absolute_path ( mp , group , suffix )
+30064771083 | CALL | ! result
+30064771084 | CALL | lxc_cgroup_put_meta ( meta_data )
+30064771085 | CALL | saved_errno = errno
+30064771086 | CALL | lxc_cgroup_put_meta ( meta_data )
+30064771087 | CALL | errno = saved_errno
+47244640256 | CONTROL_STRUCTURE | if ( ! meta_data ) return NULL ;
+47244640257 | CONTROL_STRUCTURE | if ( ! h ) goto out_error ;
+47244640258 | CONTROL_STRUCTURE | goto out_error;
+47244640259 | CONTROL_STRUCTURE | if ( ! mp ) goto out_error ;
+47244640260 | CONTROL_STRUCTURE | goto out_error;
+47244640261 | CONTROL_STRUCTURE | if ( ! result ) goto out_error ;
+47244640262 | CONTROL_STRUCTURE | goto out_error;
+68719476736 | IDENTIFIER | meta_data
+68719476737 | IDENTIFIER | meta_data
+68719476738 | IDENTIFIER | <unknown> NULL
+68719476739 | IDENTIFIER | h
+68719476740 | IDENTIFIER | meta_data
+68719476741 | IDENTIFIER | subsystem
+68719476742 | IDENTIFIER | h
+68719476743 | IDENTIFIER | mp
+68719476744 | IDENTIFIER | h
+68719476745 | IDENTIFIER | group
+68719476746 | IDENTIFIER | should_be_writable
+68719476747 | IDENTIFIER | mp
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 47244640261 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771087 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 47244640260 [AST]
+25769803780 -> 47244640262 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476738 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 47244640258 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 47244640258 [CFG]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 47244640258 [DOMINATE]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * lxc_cgroup_get_hierarchy_abs_path ( const char * subsystem , const char * name , const char * lxcpath ) {
+ struct cgroup_meta_data * meta ;
+ struct cgroup_process_info * base_info , * info ;
+ struct cgroup_mount_point * mp ;
+ char * result = NULL ;
+ meta = lxc_cgroup_load_meta ( ) ;
+ if ( ! meta ) return NULL ;
+ base_info = lxc_cgroup_get_container_info ( name , lxcpath , meta ) ;
+ if ( ! base_info ) goto out1 ;
+ info = find_info_for_subsystem ( base_info , subsystem ) ;
+ if ( ! info ) goto out2 ;
+ if ( info -> designated_mount_point ) {
+ mp = info -> designated_mount_point ;
+ }
+ else {
+ mp = lxc_cgroup_find_mount_point ( info -> hierarchy , info -> cgroup_path , true ) ;
+ if ( ! mp ) goto out3 ;
+ }
+ result = cgroup_to_absolute_path ( mp , info -> cgroup_path , NULL ) ;
+ out3 : out2 : lxc_cgroup_process_info_free ( base_info ) ;
+ out1 : lxc_cgroup_put_meta ( meta ) ;
+ return result ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

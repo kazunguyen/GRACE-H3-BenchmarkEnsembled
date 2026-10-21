@@ -1,0 +1,279 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void color16(WaveformContext *s, AVFrame *in, AVFrame *out,
+
+                    int component, int intensity, int offset, int column)
+
+{
+
+    const int plane = s->desc->comp[component].plane;
+
+    const int mirror = s->mirror;
+
+    const int limit = s->size - 1;
+
+    const uint16_t *c0_data = (const uint16_t *)in->data[plane + 0];
+
+    const uint16_t *c1_data = (const uint16_t *)in->data[(plane + 1) % s->ncomp];
+
+    const uint16_t *c2_data = (const uint16_t *)in->data[(plane + 2) % s->ncomp];
+
+    const int c0_linesize = in->linesize[ plane + 0 ] / 2;
+
+    const int c1_linesize = in->linesize[(plane + 1) % s->ncomp] / 2;
+
+    const int c2_linesize = in->linesize[(plane + 2) % s->ncomp] / 2;
+
+    const int d0_linesize = out->linesize[ plane + 0 ] / 2;
+
+    const int d1_linesize = out->linesize[(plane + 1) % s->ncomp] / 2;
+
+    const int d2_linesize = out->linesize[(plane + 2) % s->ncomp] / 2;
+
+    const int src_h = in->height;
+
+    const int src_w = in->width;
+
+    int x, y;
+
+
+
+    if (s->mode) {
+
+        const int d0_signed_linesize = d0_linesize * (mirror == 1 ? -1 : 1);
+
+        const int d1_signed_linesize = d1_linesize * (mirror == 1 ? -1 : 1);
+
+        const int d2_signed_linesize = d2_linesize * (mirror == 1 ? -1 : 1);
+
+        uint16_t *d0_data = (uint16_t *)out->data[plane] + offset * d0_linesize;
+
+        uint16_t *d1_data = (uint16_t *)out->data[(plane + 1) % s->ncomp] + offset * d1_linesize;
+
+        uint16_t *d2_data = (uint16_t *)out->data[(plane + 2) % s->ncomp] + offset * d2_linesize;
+
+        uint16_t * const d0_bottom_line = d0_data + d0_linesize * (s->size - 1);
+
+        uint16_t * const d0 = (mirror ? d0_bottom_line : d0_data);
+
+        uint16_t * const d1_bottom_line = d1_data + d1_linesize * (s->size - 1);
+
+        uint16_t * const d1 = (mirror ? d1_bottom_line : d1_data);
+
+        uint16_t * const d2_bottom_line = d2_data + d2_linesize * (s->size - 1);
+
+        uint16_t * const d2 = (mirror ? d2_bottom_line : d2_data);
+
+
+
+        for (y = 0; y < src_h; y++) {
+
+            for (x = 0; x < src_w; x++) {
+
+                const int c0 = FFMIN(c0_data[x], limit);
+
+                const int c1 = c1_data[x];
+
+                const int c2 = c2_data[x];
+
+
+
+                *(d0 + d0_signed_linesize * c0 + x) = c0;
+
+                *(d1 + d1_signed_linesize * c0 + x) = c1;
+
+                *(d2 + d2_signed_linesize * c0 + x) = c2;
+
+            }
+
+
+
+            c0_data += c0_linesize;
+
+            c1_data += c1_linesize;
+
+            c2_data += c2_linesize;
+
+            d0_data += d0_linesize;
+
+            d1_data += d1_linesize;
+
+            d2_data += d2_linesize;
+
+        }
+
+    } else {
+
+        uint16_t *d0_data = (uint16_t *)out->data[plane] + offset;
+
+        uint16_t *d1_data = (uint16_t *)out->data[(plane + 1) % s->ncomp] + offset;
+
+        uint16_t *d2_data = (uint16_t *)out->data[(plane + 2) % s->ncomp] + offset;
+
+
+
+        if (mirror) {
+
+            d0_data += s->size - 1;
+
+            d1_data += s->size - 1;
+
+     
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 17 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 18 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 19 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+21 -> 24 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+48 -> 52 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+67 -> 71 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void aflat(WaveformContext *s, AVFrame *in, AVFrame *out,
+
+                  int component, int intensity, int offset, int column)
+
+{
+
+    const int plane = s->desc->comp[component].plane;
+
+    const int mirror = s->mirror;
+
+    const int c0_linesize = in->linesize[ plane + 0 ];
+
+    const int c1_linesize = in->linesize[(plane + 1) % s->ncomp];
+
+    const int c2_linesize = in->linesize[(plane + 2) % s->ncomp];
+
+    const int d0_linesize = out->linesize[ plane + 0 ];
+
+    const int d1_linesize = out->linesize[(plane + 1) % s->ncomp];
+
+    const int d2_linesize = out->linesize[(plane + 2) % s->ncomp];
+
+    const int max = 255 - intensity;
+
+    const int src_h = in->height;
+
+    const int src_w = in->width;
+
+    int x, y;
+
+
+
+    if (column) {
+
+        const int d0_signed_linesize = d0_linesize * (mirror == 1 ? -1 : 1);
+
+        const int d1_signed_linesize = d1_linesize * (mirror == 1 ? -1 : 1);
+
+        const int d2_signed_linesize = d2_linesize * (mirror == 1 ? -1 : 1);
+
+
+
+        for (x = 0; x < src_w; x++) {
+
+            const uint8_t *c0_data = in->data[plane + 0];
+
+            const uint8_t *c1_data = in->data[(plane + 1) % s->ncomp];
+
+            const uint8_t *c2_data = in->data[(plane + 2) % s->ncomp];
+
+            uint8_t *d0_data = out->data[plane] + offset * d0_linesize;
+
+            uint8_t *d1_data = out->data[(plane + 1) % s->ncomp] + offset * d1_linesize;
+
+            uint8_t *d2_data = out->data[(plane + 2) % s->ncomp] + offset * d2_linesize;
+
+           
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

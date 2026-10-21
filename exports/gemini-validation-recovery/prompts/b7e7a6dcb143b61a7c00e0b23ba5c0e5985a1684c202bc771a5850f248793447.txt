@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void cpu_physical_memory_reset_dirty(ram_addr_t start, ram_addr_t end,
+
+                                     int dirty_flags)
+
+{
+
+    CPUState *env;
+
+    unsigned long length, start1;
+
+    int i;
+
+
+
+    start &= TARGET_PAGE_MASK;
+
+    end = TARGET_PAGE_ALIGN(end);
+
+
+
+    length = end - start;
+
+    if (length == 0)
+
+        return;
+
+    cpu_physical_memory_mask_dirty_range(start, length, dirty_flags);
+
+
+
+    /* we modify the TLB cache so that the dirty bit will be set again
+
+       when accessing the range */
+
+    start1 = (unsigned long)qemu_safe_ram_ptr(start);
+
+    /* Chek that we don't span multiple blocks - this breaks the
+
+       address comparisons below.  */
+
+    if ((unsigned long)qemu_safe_ram_ptr(end - 1) - start1
+
+            != (end - 1) - start) {
+
+        abort();
+
+    }
+
+
+
+    for(env = first_cpu; env != NULL; env = env->next_cpu) {
+
+        int mmu_idx;
+
+        for (mmu_idx = 0; mmu_idx < NB_MMU_MODES; mmu_idx++) {
+
+            for(i = 0; i < CPU_TLB_SIZE; i++)
+
+                tlb_reset_dirty_range(&env->tlb_table[mmu_idx][i],
+
+                                      start1, length);
+
+        }
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 44 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+49 -> 54 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 81 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+69 -> 82 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void page_set_flags(target_ulong start, target_ulong end, int flags)
+
+{
+
+    target_ulong addr, len;
+
+
+
+    /* This function should never be called with addresses outside the
+
+       guest address space.  If this assert fires, it probably indicates
+
+       a missing call to h2g_valid.  */
+
+#if TARGET_ABI_BITS > L1_MAP_ADDR_SPACE_BITS
+
+    assert(end < ((target_ulong)1 << L1_MAP_ADDR_SPACE_BITS));
+
+#endif
+
+    assert(start < end);
+
+    assert_memory_lock();
+
+
+
+    start = start & TARGET_PAGE_MASK;
+
+    end = TARGET_PAGE_ALIGN(end);
+
+
+
+    if (flags & PAGE_WRITE) {
+
+        flags |= PAGE_WRITE_ORG;
+
+    }
+
+
+
+    for (addr = start, len = end - start;
+
+         len != 0;
+
+         len -= TARGET_PAGE_SIZE, addr += TARGET_PAGE_SIZE) {
+
+        PageDesc *p = page_find_alloc(addr >> TARGET_PAGE_BITS, 1);
+
+
+
+        /* If the write protection bit is set, then we invalidate
+
+           the code inside.  */
+
+        if (!(p->flags & PAGE_WRITE) &&
+
+            (flags & PAGE_WRITE) &&
+
+            p->first_tb) {
+
+            tb_invalidate_phys_page(addr, 0);
+
+        }
+
+        p->flags = flags;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

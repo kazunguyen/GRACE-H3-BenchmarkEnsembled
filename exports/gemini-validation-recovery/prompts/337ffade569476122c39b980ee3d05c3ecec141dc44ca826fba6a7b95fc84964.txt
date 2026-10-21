@@ -1,0 +1,170 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * cmd_rule_remove_by_id ( cmd_parms * cmd , void * _dcfg , const char * p1 ) {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ rule_exception * re = apr_pcalloc ( cmd -> pool , sizeof ( rule_exception ) ) ;
+ if ( dcfg == NULL ) return NULL ;
+ re -> type = RULE_EXCEPTION_REMOVE_ID ;
+ re -> param = p1 ;
+ * ( rule_exception * * ) apr_array_push ( dcfg -> rule_exceptions ) = re ;
+ msre_ruleset_rule_remove_with_exception ( dcfg -> ruleset , re ) ;
+ return NULL ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ rule_exception * re = apr_pcalloc ( cmd -> pool , sizeof ( rule_exception ) ) ;
+ if ( dcfg == NULL ) return NULL ;
+ re -> type = RULE_EXCEPTION_REMOVE_ID ;
+ re -> param = p1 ;
+ * ( rule_exception * * ) apr_array_push ( dcfg -> rule_exceptions ) = re ;
+ msre_ruleset_rule_remove_with_exception ( dcfg -> ruleset , re ) ;
+ return NULL ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | dcfg = ( directory_config * ) _dcfg
+30064771073 | CALL | ( directory_config * ) _dcfg
+30064771074 | CALL | re = apr_pcalloc ( cmd -> pool , sizeof ( rule_exception ) )
+30064771075 | CALL | apr_pcalloc ( cmd -> pool , sizeof ( rule_exception ) )
+30064771076 | CALL | cmd -> pool
+30064771077 | CALL | sizeof ( rule_exception )
+30064771078 | CALL | dcfg == NULL
+30064771079 | CALL | re -> type = RULE_EXCEPTION_REMOVE_ID
+30064771080 | CALL | re -> type
+30064771081 | CALL | re -> param = p1
+30064771082 | CALL | re -> param
+30064771083 | CALL | * ( rule_exception * * ) apr_array_push ( dcfg -> rule_exceptions ) = re
+30064771084 | CALL | * ( rule_exception * * ) apr_array_push ( dcfg -> rule_exceptions )
+30064771085 | CALL | ( rule_exception * * ) apr_array_push ( dcfg -> rule_exceptions )
+30064771086 | CALL | apr_array_push ( dcfg -> rule_exceptions )
+30064771087 | CALL | dcfg -> rule_exceptions
+30064771088 | CALL | msre_ruleset_rule_remove_with_exception ( dcfg -> ruleset , re )
+30064771089 | CALL | dcfg -> ruleset
+47244640256 | CONTROL_STRUCTURE | if ( dcfg == NULL ) return NULL ;
+55834574848 | FIELD_IDENTIFIER | pool
+55834574849 | FIELD_IDENTIFIER | type
+55834574850 | FIELD_IDENTIFIER | param
+55834574851 | FIELD_IDENTIFIER | rule_exceptions
+55834574852 | FIELD_IDENTIFIER | ruleset
+68719476736 | IDENTIFIER | dcfg
+68719476737 | IDENTIFIER | _dcfg
+68719476738 | IDENTIFIER | re
+68719476739 | IDENTIFIER | cmd
+68719476740 | IDENTIFIER | rule_exception
+68719476741 | IDENTIFIER | dcfg
+68719476742 | IDENTIFIER | <unknown> NULL
+68719476743 | IDENTIFIER | <unknown> NULL
+68719476744 | IDENTIFIER | re
+68719476745 | IDENTIFIER | <unknown> RULE_EXCEPTION_REMOVE_ID
+68719476746 | IDENTIFIER | re
+68719476747 | IDENTIFIER | p1
+68719476748 | IDENTIFIER | dcfg
+68719476749 | IDENTIFIER | re
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771088 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 68719476745 [CDG]
+30064771078 -> 68719476746 [CDG]
+30064771078 -> 68719476747 [CDG]
+30064771078 -> 68719476748 [CDG]
+30064771078 -> 68719476743 [CDG]
+30064771078 -> 68719476744 [CDG]
+30064771078 -> 68719476749 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 55834574850 [CDG]
+30064771078 -> 55834574851 [CDG]
+30064771078 -> 55834574852 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 55834574849 [CDG]
+30064771078 -> 68719476743 [CFG]
+30064771078 -> 68719476744 [CFG]
+30064771078 -> 68719476743 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static const char * cmd_rule_update_target_by_id ( cmd_parms * cmd , void * _dcfg , const char * p1 , const char * p2 , const char * p3 ) {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ rule_exception * re = apr_pcalloc ( cmd -> pool , sizeof ( rule_exception ) ) ;
+ if ( dcfg == NULL ) return NULL ;
+ if ( p1 == NULL ) {
+ return apr_psprintf ( cmd -> pool , "Updating target by ID with no ID" ) ;
+ }
+ re -> type = RULE_EXCEPTION_REMOVE_ID ;
+ re -> param = p1 ;
+ return msre_ruleset_rule_update_target_matching_exception ( NULL , dcfg -> ruleset , re , p2 , p3 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static double var_eq_const ( VariableStatData * vardata , Oid operator , Datum constval , bool constisnull , bool varonleft ) {
+ double selec ;
+ bool isdefault ;
+ if ( constisnull ) return 0.0 ;
+ if ( vardata -> isunique && vardata -> rel && vardata -> rel -> tuples >= 1.0 ) return 1.0 / vardata -> rel -> tuples ;
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) ) {
+ Form_pg_statistic stats ;
+ Datum * values ;
+ int nvalues ;
+ float4 * numbers ;
+ int nnumbers ;
+ bool match = false ;
+ int i ;
+ stats = ( Form_pg_statistic ) GETSTRUCT ( vardata -> statsTuple ) ;
+ if ( get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ FmgrInfo eqproc ;
+ fmgr_info ( get_opcode ( operator ) , & eqproc ) ;
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ) match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) ;
+ else match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ;
+ if ( match ) break ;
+ }
+ }
+ else {
+ values = NULL ;
+ numbers = NULL ;
+ i = nvalues = nnumbers = 0 ;
+ }
+ if ( match ) {
+ selec = numbers [ i ] ;
+ }
+ else {
+ double sumcommon = 0.0 ;
+ double otherdistinct ;
+ for ( i = 0 ;
+ i < nnumbers ;
+ i ++ ) sumcommon += numbers [ i ] ;
+ selec = 1.0 - sumcommon - stats -> stanullfrac ;
+ CLAMP_PROBABILITY ( selec ) ;
+ otherdistinct = get_variable_numdistinct ( vardata , & isdefault ) - nnumbers ;
+ if ( otherdistinct > 1 ) selec /= otherdistinct ;
+ if ( nnumbers > 0 && selec > numbers [ nnumbers - 1 ] ) selec = numbers [ nnumbers - 1 ] ;
+ }
+ free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers ) ;
+ }
+ else {
+ selec = 1.0 / get_variable_numdistinct ( vardata , & isdefault ) ;
+ }
+ CLAMP_PROBABILITY ( selec ) ;
+ return selec ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ double selec ;
+ bool isdefault ;
+ if ( constisnull ) return 0.0 ;
+ if ( vardata -> isunique && vardata -> rel && vardata -> rel -> tuples >= 1.0 ) return 1.0 / vardata -> rel -> tuples ;
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) ) {
+ Form_pg_statistic stats ;
+ Datum * values ;
+ int nvalues ;
+ float4 * numbers ;
+ int nnumbers ;
+ bool match = false ;
+ int i ;
+ stats = ( Form_pg_statistic ) GETSTRUCT ( vardata -> statsTuple ) ;
+ if ( get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ FmgrInfo eqproc ;
+ fmgr_info ( get_opcode ( operator ) , & eqproc ) ;
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ) match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) ;
+ else match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ;
+ if ( match ) break ;...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ Form_pg_statistic stats ;
+ Datum * values ;
+ int nvalues ;
+ float4 * numbers ;
+ int nnumbers ;
+ bool match = false ;
+ int i ;
+ stats = ( Form_pg_statistic ) GETSTRUCT ( vardata -> statsTuple ) ;
+ if ( get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ FmgrInfo eqproc ;
+ fmgr_info ( get_opcode ( operator ) , & eqproc ) ;
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ) match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) ;
+ else match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ;
+ if ( match ) break ;
+ }
+ }
+ else {
+ values = NULL ;
+ numbers = NULL ;
+ i = nvalues = nnumbers = 0 ;
+ }
+ if ( match ) {
+ selec = numbers [ i ] ;
+ }
+ else {
+ double sumcommon = 0.0 ;
+ double otherdistinct ;
+ for ( i = 0 ;
+ i < nnumbers ;
+ i ++ ) sumcommon += numb...
+      
+25769803780 | BLOCK | 
+        {
+ FmgrInfo eqproc ;
+ fmgr_info ( get_opcode ( operator ) , & eqproc ) ;
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ) match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) ;
+ else match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ;
+ if ( match ) break ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( varonleft ) match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) ;
+ else match = DatumGetBool ( FunctionCall2Coll ( & eqproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ;
+ if ( match ) break ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { values = NULL ; numbers = NULL ; i = nvalues = nnumbers = 0 ; }
+25769803786 | BLOCK | { selec = numbers [ i ] ; }
+25769803787 | BLOCK | 
+        {
+ double sumcommon = 0.0 ;
+ double otherdistinct ;
+ for ( i = 0 ;
+ i < nnumbers ;
+ i ++ ) sumcommon += numbers [ i ] ;
+ selec = 1.0 - sumcommon - stats -> stanullfrac ;
+ CLAMP_PROBABILITY ( selec ) ;
+ otherdistinct = get_variable_numdistinct ( vardata , & isdefault ) - nnumbers ;
+ if ( otherdistinct > 1 ) selec /= otherdistinct ;
+ if ( nnumbers > 0 && selec > numbers [ nnumbers - 1 ] ) selec = numbers [ nnumbers - 1 ] ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | { selec = 1.0 / get_variable_numdistinct ( vardata , & isdefault ) ; }
+30064771072 | CALL | constisnull != 0
+30064771073 | CALL | 
+        vardata -> isunique && vardata -> rel && vardata -> rel -> tuples >= 1.0
+      
+30064771074 | CALL | vardata -> isunique && vardata -> rel
+30064771075 | CALL | vardata -> isunique
+30064771076 | CALL | vardata -> rel
+30064771077 | CALL | vardata -> rel -> tuples >= 1.0
+30064771078 | CALL | vardata -> rel -> tuples
+30064771079 | CALL | vardata -> rel
+30064771080 | CALL | 1.0 / vardata -> rel -> tuples
+30064771081 | CALL | vardata -> rel -> tuples
+30064771082 | CALL | vardata -> rel
+30064771083 | CALL | HeapTupleIsValid ( vardata -> statsTuple )
+30064771084 | CALL | vardata -> statsTuple
+30064771085 | CALL | match = false
+30064771086 | CALL | stats = ( Form_pg_statistic ) GETSTRUCT ( vardata -> statsTuple )
+30064771087 | CALL | ( Form_pg_statistic ) GETSTRUCT ( vardata -> statsTuple )
+30064771088 | CALL | GETSTRUCT ( vardata -> statsTuple )
+30064771089 | CALL | vardata -> statsTuple
+30064771090 | CALL | 
+        get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers )
+      
+30064771091 | CALL | vardata -> statsTuple
+30064771092 | CALL | vardata -> atttype
+30064771093 | CALL | vardata -> atttypmod
+30064771094 | CALL | & values
+30064771095 | CALL | & nvalues
+30064771096 | CALL | & numbers
+EDGES:
+25769803779 -> 30064771085 [AST]
+25769803779 -> 30064771086 [AST]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771081 [CDG]
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

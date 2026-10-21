@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+gpg_error_t keydb_add_resource ( const char * url , unsigned int flags ) {
+ static int any_registered ;
+ const char * resname = url ;
+ char * filename = NULL ;
+ int create ;
+ int read_only = ! ! ( flags & KEYDB_RESOURCE_FLAG_READONLY ) ;
+ int is_default = ! ! ( flags & KEYDB_RESOURCE_FLAG_DEFAULT ) ;
+ int rc = 0 ;
+ KeydbResourceType rt = KEYDB_RESOURCE_TYPE_NONE ;
+ void * token ;
+ create = ( ! read_only && ! any_registered ) ;
+ if ( strlen ( resname ) > 11 && ! strncmp ( resname , "gnupg-ring:" , 11 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYRING ;
+ resname += 11 ;
+ }
+ else if ( strlen ( resname ) > 10 && ! strncmp ( resname , "gnupg-kbx:" , 10 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ resname += 10 ;
+ }
+ # if ! defined ( HAVE_DRIVE_LETTERS ) && ! defined ( __riscos__ ) else if ( strchr ( resname , ':' ) ) {
+ log_error ( "invalid key resource URL '%s'\n" , url ) ;
+ rc = gpg_error ( GPG_ERR_GENERAL ) ;
+ goto leave ;
+ }
+ # endif if ( * resname != DIRSEP_C ) {
+ if ( strchr ( resname , DIRSEP_C ) ) filename = make_filename ( resname , NULL ) ;
+ else filename = make_filename ( opt . homedir , resname , NULL ) ;
+ }
+ else filename = xstrdup ( resname ) ;
+ if ( rt == KEYDB_RESOURCE_TYPE_NONE ) {
+ int found , openpgp_flag ;
+ int pass = 0 ;
+ size_t filenamelen ;
+ check_again : filenamelen = strlen ( filename ) ;
+ rt = rt_from_file ( filename , & found , & openpgp_flag ) ;
+ if ( found ) {
+ if ( ! pass && is_default && rt == KEYDB_RESOURCE_TYPE_KEYRING && filenamelen > 4 && ! strcmp ( filename + filenamelen - 4 , ".gpg" ) ) {
+ strcpy ( filename + filenamelen - 4 , ".kbx" ) ;
+ if ( ( rt_from_file ( filename , & found , & openpgp_flag ) == KEYDB_RESOURCE_TYPE_KEYBOX ) && found && openpgp_flag ) rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ else strcpy ( filename + filenamelen - 4 , ".gpg" ) ;
+ }
+ }
+ else if ( ! pass && is_default && create && filenamelen > 4 && ! strcmp ( filename + filenamelen - 4 , ".gpg" ) ) {
+ strcpy ( filename + filenamelen - 4 , ".kbx" ) ;
+ pass ++ ;
+ goto check_again ;
+ }
+ else rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ }
+ switch ( rt ) {
+ case KEYDB_RESOURCE_TYPE_NONE : log_error ( "unknown type of key resource '%s'\n" , url ) ;
+ rc = gpg_error ( GPG_ERR_GENERAL ) ;
+ goto leave ;
+ case KEYDB_RESOURCE_TYPE_KEYRING : rc = maybe_create_keyring_or_box ( filename , 0 , create ) ;
+ if ( rc ) goto leave ;
+ if ( keyring_register_filename ( filename , read_only , & token ) ) {
+ if ( used_resources >= MAX_KEYDB_RESOURCES ) rc = gpg_error ( GPG_ERR_RESOURCE_LIMIT ) ;
+ else {
+ if ( ( flags & KEYDB_RESOURCE_FLAG_PRIMARY ) ) primary_keyring = token ;
+ all_resources [ used_resources ] . type = rt ;
+ all_resources [ used_resources ] . u . kr = NULL ;
+ all_resources [ used_resources ] . token = token ;
+ used_resources ++ ;
+ }
+ }
+ else {
+ if ( ( flags & KEYDB_RESOURCE_FLAG_PRIMARY ) ) primary_keyring = token ;
+ }
+ break ;
+ case KEYDB_RESOURCE_TYPE_KEYBOX : {
+ rc = maybe_create_keyring_or_box ( filename , 1 , create ) ;
+ if ( rc ) goto leave ;
+ token = keybox_register_file ( filen
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static int any_registered ;
+ const char * resname = url ;
+ char * filename = NULL ;
+ int create ;
+ int read_only = ! ! ( flags & KEYDB_RESOURCE_FLAG_READONLY ) ;
+ int is_default = ! ! ( flags & KEYDB_RESOURCE_FLAG_DEFAULT ) ;
+ int rc = 0 ;
+ KeydbResourceType rt = KEYDB_RESOURCE_TYPE_NONE ;
+ void * token ;
+ create = ( ! read_only && ! any_registered ) ;
+ if ( strlen ( resname ) > 11 && ! strncmp ( resname , "gnupg-ring:" , 11 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYRING ;
+ resname += 11 ;
+ }
+ else if ( strlen ( resname ) > 10 && ! strncmp ( resname , "gnupg-kbx:" , 10 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ resname += 10 ;
+ }
+ # if ! defined ( HAVE_DRIVE_LETTERS ) && ! defined ( __riscos__ ) else if ( strchr ( resname , ':' ) ) {
+ log_error ( "invalid key resource URL '%s'\n" , url ) ;
+ rc = gpg_error ( GPG_ERR_GENERAL ) ;
+ goto leave ;
+ }
+      
+25769803777 | BLOCK | { rt = KEYDB_RESOURCE_TYPE_KEYRING ; resname += 11 ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { rt = KEYDB_RESOURCE_TYPE_KEYBOX ; resname += 10 ; }
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | resname = url
+30064771073 | CALL | filename = NULL
+30064771074 | CALL | read_only = ! ! ( flags & KEYDB_RESOURCE_FLAG_READONLY )
+30064771075 | CALL | ! ! ( flags & KEYDB_RESOURCE_FLAG_READONLY )
+30064771076 | CALL | ! ( flags & KEYDB_RESOURCE_FLAG_READONLY )
+30064771077 | CALL | flags & KEYDB_RESOURCE_FLAG_READONLY
+30064771078 | CALL | is_default = ! ! ( flags & KEYDB_RESOURCE_FLAG_DEFAULT )
+30064771079 | CALL | ! ! ( flags & KEYDB_RESOURCE_FLAG_DEFAULT )
+30064771080 | CALL | ! ( flags & KEYDB_RESOURCE_FLAG_DEFAULT )
+30064771081 | CALL | flags & KEYDB_RESOURCE_FLAG_DEFAULT
+30064771082 | CALL | rc = 0
+30064771083 | CALL | rt = KEYDB_RESOURCE_TYPE_NONE
+30064771084 | CALL | create = ( ! read_only && ! any_registered )
+30064771085 | CALL | ! read_only && ! any_registered
+30064771086 | CALL | ! read_only
+30064771087 | CALL | ! any_registered
+30064771088 | CALL | 
+        strlen ( resname ) > 11 && ! strncmp ( resname , "gnupg-ring:" , 11 )
+      
+30064771089 | CALL | strlen ( resname ) > 11
+30064771090 | CALL | strlen ( resname )
+30064771091 | CALL | ! strncmp ( resname , "gnupg-ring:" , 11 )
+30064771092 | CALL | strncmp ( resname , "gnupg-ring:" , 11 )
+30064771093 | CALL | rt = KEYDB_RESOURCE_TYPE_KEYRING
+30064771094 | CALL | resname += 11
+30064771095 | CALL | 
+        strlen ( resname ) > 10 && ! strncmp ( resname , "gnupg-kbx:" , 10 )
+      
+30064771096 | CALL | strlen ( resname ) > 10
+30064771097 | CALL | strlen ( resname )
+30064771098 | CALL | ! strncmp ( resname , "gnupg-kbx:" , 10 )
+30064771099 | CALL | strncmp ( resname , "gnupg-kbx:" , 10 )
+30064771100 | CALL | rt = KEYDB_RESOURCE_TYPE_KEYBOX
+30064771101 | CALL | resname += 10
+30064771102 | CALL | log_error ( "invalid key resource URL '%s'\n" , url )
+30064771103 | CALL | rc = gpg_error ( GPG_ERR_GENERAL )
+30064771104 | CALL | gpg_error ( GPG_ERR_GENERAL )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( strlen ( resname ) > 11 && ! strncmp ( resname , "gnupg-ring:" , 11 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYRING ;
+ resname += 11 ;
+ }
+ else if ( strlen ( resname ) > 10 && ! strncmp ( resname , "gnupg-kbx:" , 10 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ resname += 10 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( strlen ( resname ) > 10 && ! strncmp ( resname , "gnupg-kbx:" , 10 ) ) {
+ rt = KEYDB_RESOURCE_TYPE_KEYBOX ;
+ resname += 10 ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771094 [AST]
+25769803778 -> 47244640257 [AST]
+25769803779 -> 30064771100 [AST]
+25769803779 -> 30064771101 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 3
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,277 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void xhci_xfer_report ( XHCITransfer * xfer ) {
+ uint32_t edtla = 0 ;
+ unsigned int left ;
+ bool reported = 0 ;
+ bool shortpkt = 0 ;
+ XHCIEvent event = {
+ ER_TRANSFER , CC_SUCCESS }
+ ;
+ XHCIState * xhci = xfer -> epctx -> xhci ;
+ int i ;
+ left = xfer -> packet . actual_length ;
+ for ( i = 0 ;
+ i < xfer -> trb_count ;
+ i ++ ) {
+ XHCITRB * trb = & xfer -> trbs [ i ] ;
+ unsigned int chunk = 0 ;
+ switch ( TRB_TYPE ( * trb ) ) {
+ case TR_SETUP : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > 8 ) {
+ chunk = 8 ;
+ }
+ break ;
+ case TR_DATA : case TR_NORMAL : case TR_ISOCH : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > left ) {
+ chunk = left ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ shortpkt = 1 ;
+ }
+ }
+ left -= chunk ;
+ edtla += chunk ;
+ break ;
+ case TR_STATUS : reported = 0 ;
+ shortpkt = 0 ;
+ break ;
+ }
+ if ( ! reported && ( ( trb -> control & TRB_TR_IOC ) || ( shortpkt && ( trb -> control & TRB_TR_ISP ) ) || ( xfer -> status != CC_SUCCESS && left == 0 ) ) ) {
+ event . slotid = xfer -> epctx -> slotid ;
+ event . epid = xfer -> epctx -> epid ;
+ event . length = ( trb -> status & 0x1ffff ) - chunk ;
+ event . flags = 0 ;
+ event . ptr = trb -> addr ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ event . ccode = shortpkt ? CC_SHORT_PACKET : CC_SUCCESS ;
+ }
+ else {
+ event . ccode = xfer -> status ;
+ }
+ if ( TRB_TYPE ( * trb ) == TR_EVDATA ) {
+ event . ptr = trb -> parameter ;
+ event . flags |= TRB_EV_ED ;
+ event . length = edtla & 0xffffff ;
+ DPRINTF ( "xhci_xfer_data: EDTLA=%d\n" , event . length ) ;
+ edtla = 0 ;
+ }
+ xhci_event ( xhci , & event , TRB_INTR ( * trb ) ) ;
+ reported = 1 ;
+ if ( xfer -> status != CC_SUCCESS ) {
+ return ;
+ }
+ }
+ switch ( TRB_TYPE ( * trb ) ) {
+ case TR_SETUP : reported = 0 ;
+ shortpkt = 0 ;
+ break ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t edtla = 0 ;
+ unsigned int left ;
+ bool reported = 0 ;
+ bool shortpkt = 0 ;
+ XHCIEvent event = {
+ ER_TRANSFER , CC_SUCCESS }
+ ;
+ XHCIState * xhci = xfer -> epctx -> xhci ;
+ int i ;
+ left = xfer -> packet . actual_length ;
+ for ( i = 0 ;
+ i < xfer -> trb_count ;
+ i ++ ) {
+ XHCITRB * trb = & xfer -> trbs [ i ] ;
+ unsigned int chunk = 0 ;
+ switch ( TRB_TYPE ( * trb ) ) {
+ case TR_SETUP : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > 8 ) {
+ chunk = 8 ;
+ }
+ break ;
+ case TR_DATA : case TR_NORMAL : case TR_ISOCH : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > left ) {
+ chunk = left ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ shortpkt = 1 ;
+ }
+ }
+ left -= chunk ;
+ edtla += chunk ;
+ break ;
+ case TR_STATUS : reported = 0 ;
+ shortpkt = 0 ;
+ break ;
+ }
+ if ( ! reported && ( ( trb -> control & TRB_TR_IOC ) || ( shortpkt && ( trb -> control & TRB_TR_ISP ) ) || ( xfer -> status != CC_SUCCESS && left == 0 ) ) ) {
+ event . slotid = xfer -> epctx -> slotid ;
+ event . epid = xfer -> epc...
+      
+25769803777 | BLOCK | 
+        {
+ XHCITRB * trb = & xfer -> trbs [ i ] ;
+ unsigned int chunk = 0 ;
+ switch ( TRB_TYPE ( * trb ) ) {
+ case TR_SETUP : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > 8 ) {
+ chunk = 8 ;
+ }
+ break ;
+ case TR_DATA : case TR_NORMAL : case TR_ISOCH : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > left ) {
+ chunk = left ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ shortpkt = 1 ;
+ }
+ }
+ left -= chunk ;
+ edtla += chunk ;
+ break ;
+ case TR_STATUS : reported = 0 ;
+ shortpkt = 0 ;
+ break ;
+ }
+ if ( ! reported && ( ( trb -> control & TRB_TR_IOC ) || ( shortpkt && ( trb -> control & TRB_TR_ISP ) ) || ( xfer -> status != CC_SUCCESS && left == 0 ) ) ) {
+ event . slotid = xfer -> epctx -> slotid ;
+ event . epid = xfer -> epctx -> epid ;
+ event . length = ( trb -> status & 0x1ffff ) - chunk ;
+ event . flags = 0 ;
+ event . ptr = trb -> addr ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ event . ccode = shortpkt ? CC_SHORT_PACKET : CC_SUCCESS ;
+ }
+ else {
+ event . ccode = xfer -> status ;
+ }
+ if ( TRB_TYPE (...
+      
+25769803778 | BLOCK | 
+        {
+ case TR_SETUP : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > 8 ) {
+ chunk = 8 ;
+ }
+ break ;
+ case TR_DATA : case TR_NORMAL : case TR_ISOCH : chunk = trb -> status & 0x1ffff ;
+ if ( chunk > left ) {
+ chunk = left ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ shortpkt = 1 ;
+ }
+ }
+ left -= chunk ;
+ edtla += chunk ;
+ break ;
+ case TR_STATUS : reported = 0 ;
+ shortpkt = 0 ;
+ break ;
+ }
+      
+25769803779 | BLOCK | { chunk = 8 ; }
+25769803780 | BLOCK | { chunk = left ; if ( xfer -> status == CC_SUCCESS ) { shortpkt = 1 ; } }
+25769803781 | BLOCK | { shortpkt = 1 ; }
+25769803782 | BLOCK | 
+        {
+ event . slotid = xfer -> epctx -> slotid ;
+ event . epid = xfer -> epctx -> epid ;
+ event . length = ( trb -> status & 0x1ffff ) - chunk ;
+ event . flags = 0 ;
+ event . ptr = trb -> addr ;
+ if ( xfer -> status == CC_SUCCESS ) {
+ event . ccode = shortpkt ? CC_SHORT_PACKET : CC_SUCCESS ;
+ }
+ else {
+ event . ccode = xfer -> status ;
+ }
+ if ( TRB_TYPE ( * trb ) == TR_EVDATA ) {
+ event . ptr = trb -> parameter ;
+ event . flags |= TRB_EV_ED ;
+ event . length = edtla & 0xffffff ;
+ DPRINTF ( "xhci_xfer_data: EDTLA=%d\n" , event . length ) ;
+ edtla = 0 ;
+ }
+ xhci_event ( xhci , & event , TRB_INTR ( * trb ) ) ;
+ reported = 1 ;
+ if ( xfer -> status != CC_SUCCESS ) {
+ return ;
+ }
+ }
+      
+25769803783 | BLOCK | { event . ccode = shortpkt ? CC_SHORT_PACKET : CC_SUCCESS ; }
+25769803784 | BLOCK | { event . ccode = xfer -> status ; }
+25769803785 | BLOCK | 
+        {
+ event . ptr = trb -> parameter ;
+ event . flags |= TRB_EV_ED ;
+ event . length = edtla & 0xffffff ;
+ DPRINTF ( "xhci_xfer_data: EDTLA=%d\n" , event . length ) ;
+ edtla = 0 ;
+ }
+      
+25769803786 | BLOCK | { return ; }
+25769803787 | BLOCK | { case TR_SETUP : reported = 0 ; shortpkt = 0 ; break ; }
+30064771072 | CALL | edtla = 0
+30064771073 | CALL | reported = 0
+30064771074 | CALL | shortpkt = 0
+30064771075 | CALL | event = { ER_TRANSFER , CC_SUCCESS }
+30064771076 | CALL | { ER_TRANSFER , CC_SUCCESS }
+30064771077 | CALL | xhci = xfer -> epctx -> xhci
+30064771078 | CALL | xfer -> epctx -> xhci
+30064771079 | CALL | xfer -> epctx
+30064771080 | CALL | left = xfer -> packet . actual_length
+30064771081 | CALL | xfer -> packet . actual_length
+30064771082 | CALL | xfer -> packet
+30064771083 | CALL | i = 0
+30064771084 | CALL | i < xfer -> trb_count
+30064771085 | CALL | xfer -> trb_count
+30064771086 | CALL | i ++
+30064771087 | CALL | trb = & xfer -> trbs [ i ]
+30064771088 | CALL | & xfer -> trbs [ i ]
+30064771089 | CALL | xfer -> trbs [ i ]
+30064771090 | CALL | xfer -> trbs
+30064771091 | CALL | chunk = 0
+30064771092 | CALL | TRB_TYPE ( * trb )
+30064771093 | CALL | * trb
+30064771094 | CALL | chunk = trb -> status & 0x1ffff
+30064771095 | CALL | trb -> status & 0x1ffff
+30064771096 | CALL | trb -> status
+30064771097 | CALL | chunk > 8
+30064771098 | CALL | chunk = 8
+30064771099 | CALL | chunk = trb -> status & 0x1ffff
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771091 [AST]
+25769803778 -> 30064771094 [AST]
+25769803778 -> 30064771099 [AST]
+25769803779 -> 30064771098 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

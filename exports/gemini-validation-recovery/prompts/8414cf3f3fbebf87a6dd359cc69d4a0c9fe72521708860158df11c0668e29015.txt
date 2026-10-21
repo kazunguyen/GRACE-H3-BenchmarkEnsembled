@@ -1,0 +1,294 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void process_flags ( int argc , char * * argv ) {
+ int c ;
+ static struct option long_options [ ] = {
+ {
+ "command" , required_argument , NULL , 'c' }
+ , {
+ "help" , no_argument , NULL , 'h' }
+ , {
+ "login" , no_argument , NULL , 'l' }
+ , {
+ "preserve-environment" , no_argument , NULL , 'p' }
+ , {
+ "shell" , required_argument , NULL , 's' }
+ , {
+ NULL , 0 , NULL , '\0' }
+ }
+ ;
+ while ( ( c = getopt_long ( argc , argv , "c:hlmps:" , long_options , NULL ) ) != - 1 ) {
+ switch ( c ) {
+ case 'c' : command = optarg ;
+ break ;
+ case 'h' : usage ( E_SUCCESS ) ;
+ break ;
+ case 'l' : fakelogin = true ;
+ break ;
+ case 'm' : case 'p' : change_environment = false ;
+ break ;
+ case 's' : shellstr = optarg ;
+ break ;
+ default : usage ( E_USAGE ) ;
+ }
+ }
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "-" ) == 0 ) ) {
+ fakelogin = true ;
+ optind ++ ;
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 ) ) {
+ optind ++ ;
+ }
+ }
+ if ( ( optind < argc ) && ( '-' != argv [ optind ] [ 0 ] ) ) {
+ STRFCPY ( name , argv [ optind ++ ] ) ;
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 ) ) {
+ optind ++ ;
+ }
+ }
+ if ( '\0' == name [ 0 ] ) {
+ struct passwd * root_pw = getpwnam ( "root" ) ;
+ if ( ( NULL != root_pw ) && ( 0 == root_pw -> pw_uid ) ) {
+ ( void ) strcpy ( name , "root" ) ;
+ }
+ else {
+ root_pw = getpwuid ( 0 ) ;
+ if ( NULL == root_pw ) {
+ SYSLOG ( ( LOG_CRIT , "There is no UID 0 user." ) ) ;
+ su_failure ( caller_tty , true ) ;
+ }
+ ( void ) strcpy ( name , root_pw -> pw_name ) ;
+ }
+ }
+ doshell = ( argc == optind ) ;
+ if ( NULL != command ) {
+ doshell = false ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int c ;
+ static struct option long_options [ ] = {
+ {
+ "command" , required_argument , NULL , 'c' }
+ , {
+ "help" , no_argument , NULL , 'h' }
+ , {
+ "login" , no_argument , NULL , 'l' }
+ , {
+ "preserve-environment" , no_argument , NULL , 'p' }
+ , {
+ "shell" , required_argument , NULL , 's' }
+ , {
+ NULL , 0 , NULL , '\0' }
+ }
+ ;
+ while ( ( c = getopt_long ( argc , argv , "c:hlmps:" , long_options , NULL ) ) != - 1 ) {
+ switch ( c ) {
+ case 'c' : command = optarg ;
+ break ;
+ case 'h' : usage ( E_SUCCESS ) ;
+ break ;
+ case 'l' : fakelogin = true ;
+ break ;
+ case 'm' : case 'p' : change_environment = false ;
+ break ;
+ case 's' : shellstr = optarg ;
+ break ;
+ default : usage ( E_USAGE ) ;
+ }
+ }
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "-" ) == 0 ) ) {
+ fakelogin = true ;
+ optind ++ ;
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 ) ) {
+ optind ++ ;
+ }
+ }
+ if ( ( optind < argc ) && ( '-' != argv [ optind ] [ 0 ] ) ) {
+ STRFCPY ( name , argv [ optind +...
+      
+25769803777 | BLOCK | 
+        {
+ switch ( c ) {
+ case 'c' : command = optarg ;
+ break ;
+ case 'h' : usage ( E_SUCCESS ) ;
+ break ;
+ case 'l' : fakelogin = true ;
+ break ;
+ case 'm' : case 'p' : change_environment = false ;
+ break ;
+ case 's' : shellstr = optarg ;
+ break ;
+ default : usage ( E_USAGE ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case 'c' : command = optarg ;
+ break ;
+ case 'h' : usage ( E_SUCCESS ) ;
+ break ;
+ case 'l' : fakelogin = true ;
+ break ;
+ case 'm' : case 'p' : change_environment = false ;
+ break ;
+ case 's' : shellstr = optarg ;
+ break ;
+ default : usage ( E_USAGE ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ fakelogin = true ;
+ optind ++ ;
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 ) ) {
+ optind ++ ;
+ }
+ }
+      
+25769803780 | BLOCK | { optind ++ ; }
+25769803781 | BLOCK | 
+        {
+ STRFCPY ( name , argv [ optind ++ ] ) ;
+ if ( ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 ) ) {
+ optind ++ ;
+ }
+ }
+      
+25769803782 | BLOCK | { optind ++ ; }
+25769803783 | BLOCK | 
+        {
+ struct passwd * root_pw = getpwnam ( "root" ) ;
+ if ( ( NULL != root_pw ) && ( 0 == root_pw -> pw_uid ) ) {
+ ( void ) strcpy ( name , "root" ) ;
+ }
+ else {
+ root_pw = getpwuid ( 0 ) ;
+ if ( NULL == root_pw ) {
+ SYSLOG ( ( LOG_CRIT , "There is no UID 0 user." ) ) ;
+ su_failure ( caller_tty , true ) ;
+ }
+ ( void ) strcpy ( name , root_pw -> pw_name ) ;
+ }
+ }
+      
+25769803784 | BLOCK | { ( void ) strcpy ( name , "root" ) ; }
+25769803785 | BLOCK | 
+        {
+ root_pw = getpwuid ( 0 ) ;
+ if ( NULL == root_pw ) {
+ SYSLOG ( ( LOG_CRIT , "There is no UID 0 user." ) ) ;
+ su_failure ( caller_tty , true ) ;
+ }
+ ( void ) strcpy ( name , root_pw -> pw_name ) ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ SYSLOG ( ( LOG_CRIT , "There is no UID 0 user." ) ) ;
+ su_failure ( caller_tty , true ) ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | { doshell = false ; }
+30064771072 | CALL | 
+        long_options [ ] = {
+ {
+ "command" , required_argument , NULL , 'c' }
+ , {
+ "help" , no_argument , NULL , 'h' }
+ , {
+ "login" , no_argument , NULL , 'l' }
+ , {
+ "preserve-environment" , no_argument , NULL , 'p' }
+ , {
+ "shell" , required_argument , NULL , 's' }
+ , {
+ NULL , 0 , NULL , '\0' }
+ }
+      
+30064771073 | CALL | 
+        {
+ {
+ "command" , required_argument , NULL , 'c' }
+ , {
+ "help" , no_argument , NULL , 'h' }
+ , {
+ "login" , no_argument , NULL , 'l' }
+ , {
+ "preserve-environment" , no_argument , NULL , 'p' }
+ , {
+ "shell" , required_argument , NULL , 's' }
+ , {
+ NULL , 0 , NULL , '\0' }
+ }
+      
+30064771074 | CALL | { "command" , required_argument , NULL , 'c' }
+30064771075 | CALL | { "help" , no_argument , NULL , 'h' }
+30064771076 | CALL | { "login" , no_argument , NULL , 'l' }
+30064771077 | CALL | { "preserve-environment" , no_argument , NULL , 'p' }
+30064771078 | CALL | { "shell" , required_argument , NULL , 's' }
+30064771079 | CALL | { NULL , 0 , NULL , '\0' }
+30064771080 | CALL | 
+        ( c = getopt_long ( argc , argv , "c:hlmps:" , long_options , NULL ) ) != - 1
+      
+30064771081 | CALL | c = getopt_long ( argc , argv , "c:hlmps:" , long_options , NULL )
+30064771082 | CALL | getopt_long ( argc , argv , "c:hlmps:" , long_options , NULL )
+30064771083 | CALL | - 1
+30064771084 | CALL | command = optarg
+30064771085 | CALL | usage ( E_SUCCESS )
+30064771086 | CALL | fakelogin = true
+30064771087 | CALL | change_environment = false
+30064771088 | CALL | shellstr = optarg
+30064771089 | CALL | usage ( E_USAGE )
+30064771090 | CALL | ( optind < argc ) && ( strcmp ( argv [ optind ] , "-" ) == 0 )
+30064771091 | CALL | optind < argc
+30064771092 | CALL | strcmp ( argv [ optind ] , "-" ) == 0
+30064771093 | CALL | strcmp ( argv [ optind ] , "-" )
+30064771094 | CALL | argv [ optind ]
+30064771095 | CALL | fakelogin = true
+30064771096 | CALL | optind ++
+30064771097 | CALL | 
+        ( optind < argc ) && ( strcmp ( argv [ optind ] , "--" ) == 0 )
+      
+30064771098 | CALL | optind < argc
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771085 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771087 [AST]
+25769803778 -> 30064771088 [AST]
+25769803778 -> 30064771089 [AST]
+25769803779 -> 30064771095 [AST]
+25769803779 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771078 [ARGUMENT]
+30064771073 -> 30064771079 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

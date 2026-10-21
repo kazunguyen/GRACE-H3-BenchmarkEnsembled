@@ -1,0 +1,375 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void omap_mcbsp_writeh(void *opaque, target_phys_addr_t addr,
+
+                uint32_t value)
+
+{
+
+    struct omap_mcbsp_s *s = (struct omap_mcbsp_s *) opaque;
+
+    int offset = addr & OMAP_MPUI_REG_MASK;
+
+
+
+    switch (offset) {
+
+    case 0x00:	/* DRR2 */
+
+    case 0x02:	/* DRR1 */
+
+        OMAP_RO_REG(addr);
+
+        return;
+
+
+
+    case 0x04:	/* DXR2 */
+
+        if (((s->xcr[0] >> 5) & 7) < 3)			/* XWDLEN1 */
+
+            return;
+
+        /* Fall through.  */
+
+    case 0x06:	/* DXR1 */
+
+        if (s->tx_req > 1) {
+
+            s->tx_req -= 2;
+
+            if (s->codec && s->codec->cts) {
+
+                s->codec->out.fifo[s->codec->out.len ++] = (value >> 8) & 0xff;
+
+                s->codec->out.fifo[s->codec->out.len ++] = (value >> 0) & 0xff;
+
+            }
+
+            if (s->tx_req < 2)
+
+                omap_mcbsp_tx_done(s);
+
+        } else
+
+            printf("%s: Tx FIFO overrun\n", __FUNCTION__);
+
+        return;
+
+
+
+    case 0x08:	/* SPCR2 */
+
+        s->spcr[1] &= 0x0002;
+
+        s->spcr[1] |= 0x03f9 & value;
+
+        s->spcr[1] |= 0x0004 & (value << 2);		/* XEMPTY := XRST */
+
+        if (~value & 1)					/* XRST */
+
+            s->spcr[1] &= ~6;
+
+        omap_mcbsp_req_update(s);
+
+        return;
+
+    case 0x0a:	/* SPCR1 */
+
+        s->spcr[0] &= 0x0006;
+
+        s->spcr[0] |= 0xf8f9 & value;
+
+        if (value & (1 << 15))				/* DLB */
+
+            printf("%s: Digital Loopback mode enable attempt\n", __FUNCTION__);
+
+        if (~value & 1) {				/* RRST */
+
+            s->spcr[0] &= ~6;
+
+            s->rx_req = 0;
+
+            omap_mcbsp_rx_done(s);
+
+        }
+
+        omap_mcbsp_req_update(s);
+
+        return;
+
+
+
+    case 0x0c:	/* RCR2 */
+
+        s->rcr[1] = value & 0xffff;
+
+        return;
+
+    case 0x0e:	/* RCR1 */
+
+        s->rcr[0] = value & 0x7fe0;
+
+        return;
+
+    case 0x10:	/* XCR2 */
+
+        s->xcr[1] = value & 0xffff;
+
+        return;
+
+    case 0x12:	/* XCR1 */
+
+        s->xcr[0] = value & 0x7fe0;
+
+        return;
+
+    case 0x14:	/* SRGR2 */
+
+        s->srgr[1] = value & 0xffff;
+
+        omap_mcbsp_req_update(s);
+
+        return;
+
+    case 0x16:	/* SRGR1 */
+
+        s->srgr[0] = value & 0xffff;
+
+        omap_mcbsp_req_update(s);
+
+        return;
+
+    case 0x18:	/* MCR2 */
+
+        s->mcr[1] = value & 0x03e3;
+
+        if (value & 3)					/* XMCM */
+
+            printf("%s: Tx channel selection mode enable attempt\n",
+
+                            __FUNCTION__);
+
+        return;
+
+    case 0x1a:	/* MCR1 */
+
+        s->mcr[0] = value & 0x03e1;
+
+        if (value & 1)					/* RMCM */
+
+            printf("%s: Rx channel selection mode enable attempt\n",
+
+                            __FUNCTION__);
+
+        return;
+
+    case 0x1c:	/* RCERA */
+
+        s->rcer[0] = value & 0xffff;
+
+        return;
+
+    case 0x1e:	/* RCERB */
+
+        s->rcer[1] = value & 0xffff;
+
+        return;
+
+    case 0x20:	/* XCERA */
+
+        s->xcer[0] = value & 0xffff;
+
+        return;
+
+    case 0x22:	/* XCERB */
+
+        s->xcer[1] = value & 0x
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+26 -> 36 [IS_AST_PARENT]
+26 -> 37 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 47 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 48 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 49 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 50 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 51 [IS_AST_PARENT]
+26 -> 38 [IS_AST_PARENT]
+26 -> 52 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 66 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 87 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 88 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+92 -> 93 [IS_AST_PARENT]
+92 -> 94 [IS_AST_PARENT]
+91 -> 92 [IS_AST_PARENT]
+91 -> 95 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void omap_mcbsp_writeh(void *opaque, hwaddr addr,
+
+                uint32_t value)
+
+{
+
+    struct omap_mcbsp_s *s = (struct omap_mcbsp_s *) opaque;
+
+    int offset = addr & OMAP_MPUI_REG_MASK;
+
+
+
+    switch (offset) {
+
+    case 0x00:	/* DRR2 */
+
+    case 0x02:	/* DRR1 */
+
+        OMAP_RO_REG(addr);
+
+        return;
+
+
+
+    case 0x04:	/* DXR2 */
+
+        if (((s->xcr[0] >> 5) & 7) < 3)			/* XWDLEN1 */
+
+            return;
+
+        /* Fall through.  */
+
+    case 0x06:	/* DXR1 */
+
+        if (s->tx_req > 1) {
+
+            s->tx_req -= 2;
+
+            if (s->codec && s->codec->cts) {
+
+                s->codec->out.fifo[s->codec->out.len ++] = (value >> 8) & 0xff;
+
+                s->codec->out.fifo[s->codec->out.len ++] = (value >> 0) & 0xff;
+
+            }
+
+            if (s->tx_req < 2)
+
+                omap_mcbsp_tx_done(s);
+
+        } else
+
+            printf("%s: Tx FIFO overrun\n", __FUNCTION__);
+
+        return;
+
+
+
+    case 0x08:	/* SPCR2 */
+
+        s->spcr[1] &= 0x0002;
+
+        s->spcr[1] |= 0x03f9 & value;
+
+        s->spcr[1] |= 0x0004 & (value << 2);		/* XEMPTY := XRST */
+
+        if (~value & 1)					/* XRST */
+
+            s->spcr[1] &= ~6;
+
+        omap_mcbsp_req_update(s);
+
+        return;
+
+    case 0x0a:	/* SPCR1 */
+
+        s->spcr[0] &= 0x0006;
+
+        s->spcr[0] |= 0xf8f9 & value;
+
+        if (value & (1 << 15))				/* DLB */
+
+            printf("%s: Digital Loopback mode enable attempt\n", __FUNCTION__);
+
+        if (~value & 1) {				/* RRST */
+
+        
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

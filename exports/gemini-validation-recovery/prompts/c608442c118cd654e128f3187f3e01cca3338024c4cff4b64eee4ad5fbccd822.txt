@@ -1,0 +1,104 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void mkv_free(MatroskaMuxContext *mkv) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (mkv->main_seekhead) {
+
+        av_freep(&mkv->main_seekhead->entries);
+
+        av_freep(&mkv->main_seekhead);
+
+
+    if (mkv->cues) {
+
+        av_freep(&mkv->cues->entries);
+
+        av_freep(&mkv->cues);
+
+
+    if (mkv->attachments) {
+
+        av_freep(&mkv->attachments->entries);
+
+        av_freep(&mkv->attachments);
+
+
+    av_freep(&mkv->tracks);
+
+    av_freep(&mkv->stream_durations);
+
+    av_freep(&mkv->stream_duration_offsets);
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | CompoundStatement
+AST 2 | FunctionDef
+EDGES (original Joern endpoint IDs):
+3 -> 4 [IS_AST_PARENT]
+3 -> 5 [IS_AST_PARENT]
+3 -> 6 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+8 -> 10 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+3 -> 7 [IS_AST_PARENT]
+11 -> 8 [FLOWS_TO]
+8 -> 12 [FLOWS_TO]
+8 -> 13 [DEF]
+11 -> 8 [CONTROLS]
+8 -> 12 [DOM]
+11 -> 11 [DOM]
+11 -> 8 [DOM]
+12 -> 12 [POST_DOM]
+8 -> 11 [POST_DOM]
+12 -> 8 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 11 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+av_cold void ff_psy_end(FFPsyContext *ctx)
+
+{
+
+    if (ctx->model->end)
+
+        ctx->model->end(ctx);
+
+    av_freep(&ctx->bands);
+
+    av_freep(&ctx->num_bands);
+
+    av_freep(&ctx->group);
+
+    av_freep(&ctx->ch);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

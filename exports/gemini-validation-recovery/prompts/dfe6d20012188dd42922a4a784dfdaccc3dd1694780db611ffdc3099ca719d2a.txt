@@ -1,0 +1,166 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void RENAME(rgb24ToY)(uint8_t *dst, const uint8_t *src, long width, uint32_t *unused)
+
+{
+
+#if COMPILE_TEMPLATE_MMX
+
+    RENAME(bgr24ToY_mmx)(dst, src, width, PIX_FMT_RGB24);
+
+#else
+
+    int i;
+
+    for (i=0; i<width; i++) {
+
+        int r= src[i*3+0];
+
+        int g= src[i*3+1];
+
+        int b= src[i*3+2];
+
+
+
+        dst[i]= ((RY*r + GY*g + BY*b + (33<<(RGB2YUV_SHIFT-1)))>>RGB2YUV_SHIFT);
+
+    }
+
+#endif
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | Callee
+AST 3 | CallExpression
+AST 4 | Callee
+AST 5 | CallExpression
+AST 6 | ExpressionStatement
+AST 7 | CompoundStatement
+AST 8 | FunctionDef
+EDGES (original Joern endpoint IDs):
+9 -> 10 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+8 -> 11 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+14 -> 21 [IS_AST_PARENT]
+6 -> 14 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 23 [IS_AST_PARENT]
+3 -> 24 [IS_AST_PARENT]
+3 -> 25 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+26 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+26 -> 36 [IS_AST_PARENT]
+3 -> 26 [IS_AST_PARENT]
+39 -> 27 [FLOWS_TO]
+27 -> 30 [FLOWS_TO]
+30 -> 33 [FLOWS_TO]
+33 -> 36 [FLOWS_TO]
+36 -> 5 [FLOWS_TO]
+5 -> 40 [FLOWS_TO]
+27 -> 41 [DEF]
+5 -> 41 [USE]
+15 -> 41 [USE]
+5 -> 42 [USE]
+12 -> 42 [USE]
+30 -> 43 [DEF]
+5 -> 43 [USE]
+17 -> 43 [USE]
+33 -> 44 [DEF]
+5 -> 44 [USE]
+19 -> 44 [USE]
+36 -> 45 [DEF]
+5 -> 46 [USE]
+21 -> 46 [USE]
+27 -> 5 [REACHES]
+30 -> 5 [REACHES]
+33 -> 5 [REACHES]
+39 -> 27 [CONTROLS]
+39 -> 30 [CONTROLS]
+39 -> 33 [CONTROLS]
+39 -> 36 [CONTROLS]
+39 -> 5 [CONTROLS]
+33 -> 36 [DOM]
+30 -> 33 [DOM]
+5 -> 40 [DOM]
+36 -> 5 [DOM]
+39 -> 27 [DOM]
+27 -> 30 [DOM]
+39 -> 39 [DOM]
+5 -> 36 [POST_DOM]
+40 -> 40 [POST_DOM]
+36 -> 33 [POST_DOM]
+40 -> 5 [POST_DOM]
+30 -> 27 [POST_DOM]
+33 -> 30 [POST_DOM]
+27 -> 39 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 39 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static inline void RENAME(rgb24ToY)(uint8_t *dst, const uint8_t *src, int width, uint32_t *unused)
+
+{
+
+#if COMPILE_TEMPLATE_MMX
+
+    RENAME(bgr24ToY_mmx)(dst, src, width, PIX_FMT_RGB24);
+
+#else
+
+    int i;
+
+    for (i=0; i<width; i++) {
+
+        int r= src[i*3+0];
+
+        int g= src[i*3+1];
+
+        int b= src[i*3+2];
+
+
+
+        dst[i]= ((RY*r + GY*g + BY*b + (33<<(RGB2YUV_SHIFT-1)))>>RGB2YUV_SHIFT);
+
+    }
+
+#endif
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

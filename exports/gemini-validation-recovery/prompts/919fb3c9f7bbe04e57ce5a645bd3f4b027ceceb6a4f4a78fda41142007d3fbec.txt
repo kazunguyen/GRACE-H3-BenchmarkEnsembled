@@ -1,0 +1,127 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void bdrv_io_limits_disable(BlockDriverState *bs)
+
+{
+
+    bs->io_limits_enabled = false;
+
+
+
+    bdrv_start_throttled_reqs(bs);
+
+
+
+    throttle_destroy(&bs->throttle_state);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | PtrMemberAccess
+AST 3 | AssignmentExpression
+AST 4 | ExpressionStatement
+AST 5 | CompoundStatement
+AST 6 | FunctionDef
+EDGES (original Joern endpoint IDs):
+7 -> 8 [IS_AST_PARENT]
+7 -> 9 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+6 -> 10 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+4 -> 11 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 29 [IS_AST_PARENT]
+3 -> 30 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+3 -> 31 [IS_AST_PARENT]
+35 -> 32 [FLOWS_TO]
+32 -> 5 [FLOWS_TO]
+5 -> 11 [FLOWS_TO]
+11 -> 18 [FLOWS_TO]
+18 -> 36 [FLOWS_TO]
+32 -> 37 [DEF]
+5 -> 37 [USE]
+7 -> 37 [USE]
+11 -> 37 [USE]
+16 -> 37 [USE]
+18 -> 37 [USE]
+23 -> 37 [USE]
+26 -> 37 [USE]
+5 -> 38 [DEF]
+6 -> 38 [DEF]
+18 -> 39 [USE]
+23 -> 39 [USE]
+5 -> 40 [USE]
+6 -> 40 [USE]
+5 -> 41 [DEF]
+6 -> 41 [DEF]
+32 -> 5 [REACHES]
+32 -> 11 [REACHES]
+32 -> 18 [REACHES]
+5 -> 36 [REACHES]
+35 -> 32 [CONTROLS]
+35 -> 5 [CONTROLS]
+35 -> 11 [CONTROLS]
+35 -> 18 [CONTROLS]
+11 -> 18 [DOM]
+35 -> 35 [DOM]
+32 -> 5 [DOM]
+18 -> 36 [DOM]
+35 -> 32 [DOM]
+5 -> 11 [DOM]
+36 -> 18 [POST_DOM]
+32 -> 35 [POST_DOM]
+36 -> 36 [POST_DOM]
+11 -> 5 [POST_DOM]
+18 -> 11 [POST_DOM]
+5 -> 32 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 35 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void bdrv_io_limits_enable(BlockDriverState *bs)
+
+{
+
+    qemu_co_queue_init(&bs->throttled_reqs);
+
+    bs->block_timer = qemu_new_timer_ns(vm_clock, bdrv_block_timer, bs);
+
+    bs->io_limits_enabled = true;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

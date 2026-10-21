@@ -1,0 +1,163 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( HttpsEngagementPageLoadMetricsBrowserTest , AlwaysInBackground ) {
+ StartHttpsServer ( false ) ;
+ StartHttpServer ( ) ;
+ NavigateInBackgroundAndClose ( https_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ NavigateInBackgroundAndClose ( http_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpEngagementHistogram , 0 ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpsEngagementHistogram , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ StartHttpsServer ( false ) ;
+ StartHttpServer ( ) ;
+ NavigateInBackgroundAndClose ( https_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ NavigateInBackgroundAndClose ( http_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpEngagementHistogram , 0 ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpsEngagementHistogram , 0 ) ;
+ }
+      
+30064771072 | CALL | StartHttpsServer ( false )
+30064771073 | CALL | StartHttpServer ( )
+30064771074 | CALL | 
+        NavigateInBackgroundAndClose ( https_test_server_ -> GetURL ( "/simple.html" ) )
+      
+30064771075 | CALL | https_test_server_ -> GetURL ( "/simple.html" )
+30064771076 | CALL | https_test_server_ -> GetURL
+30064771077 | CALL | 
+        NavigateInBackgroundAndClose ( http_test_server_ -> GetURL ( "/simple.html" ) )
+      
+30064771078 | CALL | http_test_server_ -> GetURL ( "/simple.html" )
+30064771079 | CALL | http_test_server_ -> GetURL
+55834574848 | FIELD_IDENTIFIER | GetURL
+55834574849 | FIELD_IDENTIFIER | GetURL
+68719476736 | IDENTIFIER | <unknown> false
+68719476737 | IDENTIFIER | <unknown> https_test_server_
+68719476738 | IDENTIFIER | <unknown> http_test_server_
+90194313216 | LITERAL | "/simple.html"
+90194313217 | LITERAL | "/simple.html"
+94489280512 | LOCAL | <unknown> http_test_server_
+94489280513 | LOCAL | <unknown> https_test_server_
+94489280514 | LOCAL | <unknown> false
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( HttpsEngagementPageLoadMetricsBrowserTest , AlwaysInBackground ) {
+ StartHttpsServer ( false ) ;
+ StartHttpServer ( ) ;
+ NavigateInBackgroundAndClose ( https_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ NavigateInBackgroundAndClose ( http_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpEngagementHistogram , 0 ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpsEngagementHistogram , 0 ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | HttpsEngagementPageLoadMetricsBrowserTest
+111669149697 | METHOD_PARAMETER_IN | AlwaysInBackground
+115964116992 | METHOD_PARAMETER_OUT | HttpsEngagementPageLoadMetricsBrowserTest
+115964116993 | METHOD_PARAMETER_OUT | AlwaysInBackground
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [CFG]
+30064771072 -> 30064771073 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 30064771072 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 90194313216 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 90194313216 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 90194313216 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 90194313216 [CFG]
+30064771076 -> 90194313216 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 124554051584 [CFG]
+30064771077 -> 124554051584 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 90194313217 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 90194313217 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 90194313217 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [RECEIVER]
+30064771079 -> 68719476738 [ARGUMENT]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 68719476738 [AST]
+30064771079 -> 55834574849 [AST]
+30064771079 -> 90194313217 [CFG]
+30064771079 -> 90194313217 [DOMINATE]
+30064771079 -> 55834574849 [POST_DOMINATE]
+55834574848 -> 30064771076 [CFG]
+55834574848 -> 30064771076 [DOMINATE]
+55834574848 -> 68719476737 [POST_DOMINATE]
+55834574849 -> 30064771079 [CFG]
+55834574849 -> 30064771079 [DOMINATE]
+55834574849 -> 68719476738 [POST_DOMINATE]
+68719476736 -> 30064771072 [CFG]
+68719476736 -> 30064771072 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+68719476736 -> 124554051584 [REACHING_DEF]
+68719476736 -> 94489280514 [REF]
+68719476737 -> 55834574848 [CFG]
+68719476737 -> 55834574848 [DOMINATE]
+68719476737 -> 30064771073 [POST_DOMINATE]
+68719476737 -> 94489280513 [REF]
+68719476738 -> 55834574849 [CFG]
+68719476738 -> 55834574849 [DOMINATE]
+68719476738 -> 30064771074 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+IN_PROC_BROWSER_TEST_F ( HttpsEngagementPageLoadMetricsBrowserTest , AlwaysInBackground ) {
+ StartHttpsServer ( false ) ;
+ StartHttpServer ( ) ;
+ NavigateInBackgroundAndClose ( https_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ NavigateInBackgroundAndClose ( http_test_server_ -> GetURL ( "/simple.html" ) ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpEngagementHistogram , 0 ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpsEngagementHistogram , 0 ) ;
+ FakeUserMetricsUpload ( ) ;
+ histogram_tester_ . ExpectTotalCount ( internal : : kHttpsEngagementSessionPercentage , 0 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

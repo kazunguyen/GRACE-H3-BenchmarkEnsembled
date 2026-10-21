@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_decode_frame ( VP9Decoder * pbi , const uint8_t * data , const uint8_t * data_end , const uint8_t * * p_data_end ) {
+ VP9_COMMON * const cm = & pbi -> common ;
+ MACROBLOCKD * const xd = & pbi -> mb ;
+ struct vp9_read_bit_buffer rb = {
+ NULL , NULL , 0 , NULL , 0 }
+ ;
+ uint8_t clear_data [ MAX_VP9_HEADER_SIZE ] ;
+ const size_t first_partition_size = read_uncompressed_header ( pbi , init_read_bit_buffer ( pbi , & rb , data , data_end , clear_data ) ) ;
+ const int tile_rows = 1 << cm -> log2_tile_rows ;
+ const int tile_cols = 1 << cm -> log2_tile_cols ;
+ YV12_BUFFER_CONFIG * const new_fb = get_frame_new_buffer ( cm ) ;
+ xd -> cur_buf = new_fb ;
+ if ( ! first_partition_size ) {
+ * p_data_end = data + ( cm -> profile <= PROFILE_2 ? 1 : 2 ) ;
+ return ;
+ }
+ data += vp9_rb_bytes_read ( & rb ) ;
+ if ( ! read_is_valid ( data , first_partition_size , data_end ) ) vpx_internal_error ( & cm -> error , VPX_CODEC_CORRUPT_FRAME , "Truncated packet or corrupt header length" ) ;
+ init_macroblockd ( cm , & pbi -> mb ) ;
+ if ( ! cm -> error_resilient_mode ) set_prev_mi ( cm ) ;
+ else cm -> prev_mi = NULL ;
+ setup_plane_dequants ( cm , xd , cm -> base_qindex ) ;
+ vp9_setup_block_planes ( xd , cm -> subsampling_x , cm -> subsampling_y ) ;
+ cm -> fc = cm -> frame_contexts [ cm -> frame_context_idx ] ;
+ vp9_zero ( cm -> counts ) ;
+ vp9_zero ( xd -> dqcoeff ) ;
+ xd -> corrupted = 0 ;
+ new_fb -> corrupted = read_compressed_header ( pbi , data , first_partition_size ) ;
+ if ( pbi -> max_threads > 1 && tile_rows == 1 && tile_cols > 1 && cm -> frame_parallel_decoding_mode ) {
+ * p_data_end = decode_tiles_mt ( pbi , data + first_partition_size , data_end ) ;
+ if ( ! xd -> corrupted ) {
+ vp9_loop_filter_frame_mt ( new_fb , pbi , cm , cm -> lf . filter_level , 0 ) ;
+ }
+ }
+ else {
+ * p_data_end = decode_tiles ( pbi , data + first_partition_size , data_end ) ;
+ }
+ new_fb -> corrupted |= xd -> corrupted ;
+ if ( ! new_fb -> corrupted ) {
+ if ( ! cm -> error_resilient_mode && ! cm -> frame_parallel_decoding_mode ) {
+ vp9_adapt_coef_probs ( cm ) ;
+ if ( ! frame_is_intra_only ( cm ) ) {
+ vp9_adapt_mode_probs ( cm ) ;
+ vp9_adapt_mv_probs ( cm , cm -> allow_high_precision_mv ) ;
+ }
+ }
+ else {
+ debug_check_frame_counts ( cm ) ;
+ }
+ }
+ else {
+ vpx_internal_error ( & cm -> error , VPX_CODEC_CORRUPT_FRAME , "Decode failed. Frame data is corrupted." ) ;
+ }
+ if ( cm -> refresh_frame_context ) cm -> frame_contexts [ cm -> frame_context_idx ] = cm -> fc ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & pbi -> common ;
+ MACROBLOCKD * const xd = & pbi -> mb ;
+ struct vp9_read_bit_buffer rb = {
+ NULL , NULL , 0 , NULL , 0 }
+ ;
+ uint8_t clear_data [ MAX_VP9_HEADER_SIZE ] ;
+ const size_t first_partition_size = read_uncompressed_header ( pbi , init_read_bit_buffer ( pbi , & rb , data , data_end , clear_data ) ) ;
+ const int tile_rows = 1 << cm -> log2_tile_rows ;
+ const int tile_cols = 1 << cm -> log2_tile_cols ;
+ YV12_BUFFER_CONFIG * const new_fb = get_frame_new_buffer ( cm ) ;
+ xd -> cur_buf = new_fb ;
+ if ( ! first_partition_size ) {
+ * p_data_end = data + ( cm -> profile <= PROFILE_2 ? 1 : 2 ) ;
+ return ;
+ }
+ data += vp9_rb_bytes_read ( & rb ) ;
+ if ( ! read_is_valid ( data , first_partition_size , data_end ) ) vpx_internal_error ( & cm -> error , VPX_CODEC_CORRUPT_FRAME , "Truncated packet or corrupt header length" ) ;
+ init_macroblockd ( cm , & pbi -> mb ) ;
+ if ( ! cm -> error_resilient_mode ) set_prev_mi ( cm ) ;
+ else cm -> prev_mi = NULL ;
+ setup_p...
+      
+25769803777 | BLOCK | { * p_data_end = data + ( cm -> profile <= PROFILE_2 ? 1 : 2 ) ; return ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ * p_data_end = decode_tiles_mt ( pbi , data + first_partition_size , data_end ) ;
+ if ( ! xd -> corrupted ) {
+ vp9_loop_filter_frame_mt ( new_fb , pbi , cm , cm -> lf . filter_level , 0 ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ vp9_loop_filter_frame_mt ( new_fb , pbi , cm , cm -> lf . filter_level , 0 ) ;
+ }
+      
+25769803783 | BLOCK | { * p_data_end = decode_tiles ( pbi , data + first_partition_size , data_end ) ; }
+25769803784 | BLOCK | 
+        {
+ if ( ! cm -> error_resilient_mode && ! cm -> frame_parallel_decoding_mode ) {
+ vp9_adapt_coef_probs ( cm ) ;
+ if ( ! frame_is_intra_only ( cm ) ) {
+ vp9_adapt_mode_probs ( cm ) ;
+ vp9_adapt_mv_probs ( cm , cm -> allow_high_precision_mv ) ;
+ }
+ }
+ else {
+ debug_check_frame_counts ( cm ) ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ vp9_adapt_coef_probs ( cm ) ;
+ if ( ! frame_is_intra_only ( cm ) ) {
+ vp9_adapt_mode_probs ( cm ) ;
+ vp9_adapt_mv_probs ( cm , cm -> allow_high_precision_mv ) ;
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ vp9_adapt_mode_probs ( cm ) ;
+ vp9_adapt_mv_probs ( cm , cm -> allow_high_precision_mv ) ;
+ }
+      
+25769803787 | BLOCK | { debug_check_frame_counts ( cm ) ; }
+25769803788 | BLOCK | 
+        {
+ vpx_internal_error ( & cm -> error , VPX_CODEC_CORRUPT_FRAME , "Decode failed. Frame data is corrupted." ) ;
+ }
+      
+25769803789 | BLOCK | <empty>
+30064771072 | CALL | const cm = & pbi -> common
+30064771073 | CALL | & pbi -> common
+30064771074 | CALL | pbi -> common
+30064771075 | CALL | const xd = & pbi -> mb
+30064771076 | CALL | & pbi -> mb
+30064771077 | CALL | pbi -> mb
+30064771078 | CALL | rb = { NULL , NULL , 0 , NULL , 0 }
+30064771079 | CALL | { NULL , NULL , 0 , NULL , 0 }
+30064771080 | CALL | clear_data [ MAX_VP9_HEADER_SIZE ]
+30064771081 | CALL | clear_data [ MAX_VP9_HEADER_SIZE ]
+30064771082 | CALL | 
+        first_partition_size = read_uncompressed_header ( pbi , init_read_bit_buffer ( pbi , & rb , data , data_end , clear_data ) )
+      
+30064771083 | CALL | 
+        read_uncompressed_header ( pbi , init_read_bit_buffer ( pbi , & rb , data , data_end , clear_data ) )
+      
+30064771084 | CALL | init_read_bit_buffer ( pbi , & rb , data , data_end , clear_data )
+30064771085 | CALL | & rb
+30064771086 | CALL | tile_rows = 1 << cm -> log2_tile_rows
+30064771087 | CALL | 1 << cm -> log2_tile_rows
+30064771088 | CALL | cm -> log2_tile_rows
+30064771089 | CALL | tile_cols = 1 << cm -> log2_tile_cols
+30064771090 | CALL | 1 << cm -> log2_tile_cols
+30064771091 | CALL | cm -> log2_tile_cols
+30064771092 | CALL | const new_fb = get_frame_new_buffer ( cm )
+30064771093 | CALL | get_frame_new_buffer ( cm )
+30064771094 | CALL | xd -> cur_buf = new_fb
+30064771095 | CALL | xd -> cur_buf
+30064771096 | CALL | ! first_partition_size
+30064771097 | CALL | * p_data_end = data + ( cm -> profile <= PROFILE_2 ? 1 : 2 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

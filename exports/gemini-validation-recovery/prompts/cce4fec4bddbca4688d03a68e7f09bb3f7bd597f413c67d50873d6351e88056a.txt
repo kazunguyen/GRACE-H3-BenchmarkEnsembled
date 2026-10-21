@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int cost_segmap ( int * segcounts , vp9_prob * probs ) {
+ const int c01 = segcounts [ 0 ] + segcounts [ 1 ] ;
+ const int c23 = segcounts [ 2 ] + segcounts [ 3 ] ;
+ const int c45 = segcounts [ 4 ] + segcounts [ 5 ] ;
+ const int c67 = segcounts [ 6 ] + segcounts [ 7 ] ;
+ const int c0123 = c01 + c23 ;
+ const int c4567 = c45 + c67 ;
+ int cost = c0123 * vp9_cost_zero ( probs [ 0 ] ) + c4567 * vp9_cost_one ( probs [ 0 ] ) ;
+ if ( c0123 > 0 ) {
+ cost += c01 * vp9_cost_zero ( probs [ 1 ] ) + c23 * vp9_cost_one ( probs [ 1 ] ) ;
+ if ( c01 > 0 ) cost += segcounts [ 0 ] * vp9_cost_zero ( probs [ 3 ] ) + segcounts [ 1 ] * vp9_cost_one ( probs [ 3 ] ) ;
+ if ( c23 > 0 ) cost += segcounts [ 2 ] * vp9_cost_zero ( probs [ 4 ] ) + segcounts [ 3 ] * vp9_cost_one ( probs [ 4 ] ) ;
+ }
+ if ( c4567 > 0 ) {
+ cost += c45 * vp9_cost_zero ( probs [ 2 ] ) + c67 * vp9_cost_one ( probs [ 2 ] ) ;
+ if ( c45 > 0 ) cost += segcounts [ 4 ] * vp9_cost_zero ( probs [ 5 ] ) + segcounts [ 5 ] * vp9_cost_one ( probs [ 5 ] ) ;
+ if ( c67 > 0 ) cost += segcounts [ 6 ] * vp9_cost_zero ( probs [ 6 ] ) + segcounts [ 7 ] * vp9_cost_one ( probs [ 6 ] ) ;
+ }
+ return cost ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int c01 = segcounts [ 0 ] + segcounts [ 1 ] ;
+ const int c23 = segcounts [ 2 ] + segcounts [ 3 ] ;
+ const int c45 = segcounts [ 4 ] + segcounts [ 5 ] ;
+ const int c67 = segcounts [ 6 ] + segcounts [ 7 ] ;
+ const int c0123 = c01 + c23 ;
+ const int c4567 = c45 + c67 ;
+ int cost = c0123 * vp9_cost_zero ( probs [ 0 ] ) + c4567 * vp9_cost_one ( probs [ 0 ] ) ;
+ if ( c0123 > 0 ) {
+ cost += c01 * vp9_cost_zero ( probs [ 1 ] ) + c23 * vp9_cost_one ( probs [ 1 ] ) ;
+ if ( c01 > 0 ) cost += segcounts [ 0 ] * vp9_cost_zero ( probs [ 3 ] ) + segcounts [ 1 ] * vp9_cost_one ( probs [ 3 ] ) ;
+ if ( c23 > 0 ) cost += segcounts [ 2 ] * vp9_cost_zero ( probs [ 4 ] ) + segcounts [ 3 ] * vp9_cost_one ( probs [ 4 ] ) ;
+ }
+ if ( c4567 > 0 ) {
+ cost += c45 * vp9_cost_zero ( probs [ 2 ] ) + c67 * vp9_cost_one ( probs [ 2 ] ) ;
+ if ( c45 > 0 ) cost += segcounts [ 4 ] * vp9_cost_zero ( probs [ 5 ] ) + segcounts [ 5 ] * vp9_cost_one ( probs [ 5 ] ) ;
+ if ( c67 > 0 ) cost += segcounts [ 6 ] * vp9_cost...
+      
+25769803777 | BLOCK | 
+        {
+ cost += c01 * vp9_cost_zero ( probs [ 1 ] ) + c23 * vp9_cost_one ( probs [ 1 ] ) ;
+ if ( c01 > 0 ) cost += segcounts [ 0 ] * vp9_cost_zero ( probs [ 3 ] ) + segcounts [ 1 ] * vp9_cost_one ( probs [ 3 ] ) ;
+ if ( c23 > 0 ) cost += segcounts [ 2 ] * vp9_cost_zero ( probs [ 4 ] ) + segcounts [ 3 ] * vp9_cost_one ( probs [ 4 ] ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ cost += c45 * vp9_cost_zero ( probs [ 2 ] ) + c67 * vp9_cost_one ( probs [ 2 ] ) ;
+ if ( c45 > 0 ) cost += segcounts [ 4 ] * vp9_cost_zero ( probs [ 5 ] ) + segcounts [ 5 ] * vp9_cost_one ( probs [ 5 ] ) ;
+ if ( c67 > 0 ) cost += segcounts [ 6 ] * vp9_cost_zero ( probs [ 6 ] ) + segcounts [ 7 ] * vp9_cost_one ( probs [ 6 ] ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | c01 = segcounts [ 0 ] + segcounts [ 1 ]
+30064771073 | CALL | segcounts [ 0 ] + segcounts [ 1 ]
+30064771074 | CALL | segcounts [ 0 ]
+30064771075 | CALL | segcounts [ 1 ]
+30064771076 | CALL | c23 = segcounts [ 2 ] + segcounts [ 3 ]
+30064771077 | CALL | segcounts [ 2 ] + segcounts [ 3 ]
+30064771078 | CALL | segcounts [ 2 ]
+30064771079 | CALL | segcounts [ 3 ]
+30064771080 | CALL | c45 = segcounts [ 4 ] + segcounts [ 5 ]
+30064771081 | CALL | segcounts [ 4 ] + segcounts [ 5 ]
+30064771082 | CALL | segcounts [ 4 ]
+30064771083 | CALL | segcounts [ 5 ]
+30064771084 | CALL | c67 = segcounts [ 6 ] + segcounts [ 7 ]
+30064771085 | CALL | segcounts [ 6 ] + segcounts [ 7 ]
+30064771086 | CALL | segcounts [ 6 ]
+30064771087 | CALL | segcounts [ 7 ]
+30064771088 | CALL | c0123 = c01 + c23
+30064771089 | CALL | c01 + c23
+30064771090 | CALL | c4567 = c45 + c67
+30064771091 | CALL | c45 + c67
+30064771092 | CALL | cost = c0123 * vp9_cost_zero ( probs [ 0 ] ) + c4567 * vp9_cost_one ( probs [ 0 ] )
+30064771093 | CALL | c0123 * vp9_cost_zero ( probs [ 0 ] ) + c4567 * vp9_cost_one ( probs [ 0 ] )
+30064771094 | CALL | c0123 * vp9_cost_zero ( probs [ 0 ] )
+30064771095 | CALL | vp9_cost_zero ( probs [ 0 ] )
+30064771096 | CALL | probs [ 0 ]
+30064771097 | CALL | c4567 * vp9_cost_one ( probs [ 0 ] )
+30064771098 | CALL | vp9_cost_one ( probs [ 0 ] )
+30064771099 | CALL | probs [ 0 ]
+30064771100 | CALL | c0123 > 0
+30064771101 | CALL | cost += c01 * vp9_cost_zero ( probs [ 1 ] ) + c23 * vp9_cost_one ( probs [ 1 ] )
+30064771102 | CALL | c01 * vp9_cost_zero ( probs [ 1 ] ) + c23 * vp9_cost_one ( probs [ 1 ] )
+30064771103 | CALL | c01 * vp9_cost_zero ( probs [ 1 ] )
+30064771104 | CALL | vp9_cost_zero ( probs [ 1 ] )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,54 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_segment_unknown ( tvbuff_t * tvb , int offset , packet_info * pinfo _U_ , proto_tree * tree , int encoding ) {
+ proto_item * subtree_item = NULL ;
+ proto_tree * subtree = NULL ;
+ int datalen = 0 ;
+ int seglen = 0 ;
+ seglen = lbmpdm_get_segment_length ( tvb , offset , encoding , & datalen ) ;
+ subtree_item = proto_tree_add_none_format ( tree , hf_lbmpdm_segment , tvb , offset , seglen , "Unknown Segment" ) ;
+ subtree = proto_item_add_subtree ( subtree_item , ett_lbmpdm_segment ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_next_hdr , tvb , offset + O_LBMPDM_SEG_HDR_T_NEXT_HDR , L_LBMPDM_SEG_HDR_T_NEXT_HDR , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_flags , tvb , offset + O_LBMPDM_SEG_HDR_T_FLAGS , L_LBMPDM_SEG_HDR_T_FLAGS , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_res , tvb , offset + O_LBMPDM_SEG_HDR_T_RES , L_LBMPDM_SEG_HDR_T_RES , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_len , tvb , offset + O_LBMPDM_SEG_HDR_T_LEN , L_LBMPDM_SEG_HDR_T_LEN , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_data , tvb , offset + L_LBMPDM_SEG_HDR_T , datalen , ENC_NA ) ;
+ return ( seglen ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_segment_data ( tvbuff_t * tvb , int offset , packet_info * pinfo _U_ , proto_tree * tree , lbmpdm_msg_definition_id_t * id , int encoding ) {
+ proto_item * subtree_item = NULL ;
+ proto_tree * subtree = NULL ;
+ int datalen = 0 ;
+ int seglen = 0 ;
+ lbmpdm_definition_t * def = NULL ;
+ seglen = lbmpdm_get_segment_length ( tvb , offset , encoding , & datalen ) ;
+ subtree_item = proto_tree_add_none_format ( tree , hf_lbmpdm_segment , tvb , offset , seglen , "Data Segment" ) ;
+ subtree = proto_item_add_subtree ( subtree_item , ett_lbmpdm_segment ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_next_hdr , tvb , offset + O_LBMPDM_SEG_HDR_T_NEXT_HDR , L_LBMPDM_SEG_HDR_T_NEXT_HDR , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_flags , tvb , offset + O_LBMPDM_SEG_HDR_T_FLAGS , L_LBMPDM_SEG_HDR_T_FLAGS , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_res , tvb , offset + O_LBMPDM_SEG_HDR_T_RES , L_LBMPDM_SEG_HDR_T_RES , encoding ) ;
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_len , tvb , offset + O_LBMPDM_SEG_HDR_T_LEN , L_LBMPDM_SEG_HDR_T_LEN , encoding ) ;
+ if ( ( id != NULL ) && ( id -> offset_table != NULL ) ) {
+ def = lbmpdm_definition_find ( id -> channel , id -> msg_def_id , id -> ver_major , id -> ver_minor ) ;
+ }
+ if ( def == NULL ) {
+ proto_tree_add_item ( subtree , hf_lbmpdm_segment_data , tvb , offset + L_LBMPDM_SEG_HDR_T , datalen , ENC_NA ) ;
+ }
+ else {
+ int fld_offset = offset + L_LBMPDM_SEG_HDR_T ;
+ lbmpdm_
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

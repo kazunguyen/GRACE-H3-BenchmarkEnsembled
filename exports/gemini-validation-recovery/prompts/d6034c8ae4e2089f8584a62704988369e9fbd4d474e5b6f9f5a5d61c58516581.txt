@@ -1,0 +1,282 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+uint32_t gic_acknowledge_irq(GICState *s, int cpu, MemTxAttrs attrs)
+
+{
+
+    int ret, irq, src;
+
+    int cm = 1 << cpu;
+
+
+
+    /* gic_get_current_pending_irq() will return 1022 or 1023 appropriately
+
+     * for the case where this GIC supports grouping and the pending interrupt
+
+     * is in the wrong group.
+
+     */
+
+    irq = gic_get_current_pending_irq(s, cpu, attrs);
+
+
+
+
+    if (irq >= GIC_MAXIRQ) {
+
+        DPRINTF("ACK, no pending interrupt or it is hidden: %d\n", irq);
+
+        return irq;
+
+    }
+
+
+
+    if (GIC_GET_PRIORITY(irq, cpu) >= s->running_priority[cpu]) {
+
+        DPRINTF("ACK, pending interrupt (%d) has insufficient priority\n", irq);
+
+        return 1023;
+
+    }
+
+
+
+    if (s->revision == REV_11MPCORE || s->revision == REV_NVIC) {
+
+        /* Clear pending flags for both level and edge triggered interrupts.
+
+         * Level triggered IRQs will be reasserted once they become inactive.
+
+         */
+
+        GIC_CLEAR_PENDING(irq, GIC_TEST_MODEL(irq) ? ALL_CPU_MASK : cm);
+
+        ret = irq;
+
+    } else {
+
+        if (irq < GIC_NR_SGIS) {
+
+            /* Lookup the source CPU for the SGI and clear this in the
+
+             * sgi_pending map.  Return the src and clear the overall pending
+
+             * state on this CPU if the SGI is not pending from any CPUs.
+
+             */
+
+            assert(s->sgi_pending[irq][cpu] != 0);
+
+            src = ctz32(s->sgi_pending[irq][cpu]);
+
+            s->sgi_pending[irq][cpu] &= ~(1 << src);
+
+            if (s->sgi_pending[irq][cpu] == 0) {
+
+                GIC_CLEAR_PENDING(irq, GIC_TEST_MODEL(irq) ? ALL_CPU_MASK : cm);
+
+            }
+
+            ret = irq | ((src & 0x7) << 10);
+
+        } else {
+
+            /* Clear pending state for both level and edge triggered
+
+             * interrupts. (level triggered interrupts with an active line
+
+             * remain pending, see gic_test_pending)
+
+             */
+
+            GIC_CLEAR_PENDING(irq, GIC_TEST_MODEL(irq) ? ALL_CPU_MASK : cm);
+
+            ret = irq;
+
+        }
+
+    }
+
+
+
+    gic_activate_irq(s, cpu, irq);
+
+    gic_update(s);
+
+    DPRINTF("ACK %d\n", irq);
+
+    return ret;
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+42 -> 52 [IS_AST_PARENT]
+37 -> 42 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 69 [IS_AST_PARENT]
+56 -> 65 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+70 -> 80 [IS_AST_PARENT]
+54 -> 70 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+uint32_t gic_acknowledge_irq(GICState *s, int cpu)
+
+{
+
+    int ret, irq, src;
+
+    int cm = 1 << cpu;
+
+    irq = s->current_pending[cpu];
+
+    if (irq == 1023
+
+            || GIC_GET_PRIORITY(irq, cpu) >= s->running_priority[cpu]) {
+
+        DPRINTF("ACK no pending IRQ\n");
+
+        return 1023;
+
+    }
+
+    s->last_active[irq][cpu] = s->running_irq[cpu];
+
+
+
+    if (s->revision == REV_11MPCORE || s->revision == REV_NVIC) {
+
+        /* Clear pending flags for both level and edge triggered interrupts.
+
+         * Level triggered IRQs will be reasserted once they become inactive.
+
+         */
+
+        GIC_CLEAR_PENDING(irq, GIC_TEST_MODEL(irq) ? ALL_CPU_MASK : cm);
+
+        ret = irq;
+
+    } else {
+
+        if (irq < GIC_NR_SGIS) {
+
+            /* Lookup the source CPU for the SGI and clear this in the
+
+             * sgi_pending map.  Return the src and clear the overall pending
+
+             * state on this CPU if the SGI is not pending from any CPUs.
+
+             */
+
+            assert(s->sgi_pending[irq][cpu] != 0);
+
+            src = ctz32(s->sgi_pending[irq][cpu]);
+
+            s->sgi_pending[irq][cpu] &= ~(1 << src);
+
+            if (s->sgi_pending[irq][cpu] == 0) {
+
+                GIC_CLEAR_PENDING(irq, GIC_TEST_MODEL(irq) ? ALL_CPU_MASK : cm);
+
+            }
+
+            ret = irq | ((src & 0x7) << 10);
+
+        } else {
+
+            /* Clear pending state for both level and edge triggered
+
+             * interrupts. (level triggered interrupts with an active line
+
+   
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

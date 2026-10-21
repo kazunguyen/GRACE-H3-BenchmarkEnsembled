@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_free_ref_frame_buffers ( VP9_COMMON * cm ) {
+ int i ;
+ for ( i = 0 ;
+ i < FRAME_BUFFERS ;
+ ++ i ) {
+ vp9_free_frame_buffer ( & cm -> frame_bufs [ i ] . buf ) ;
+ if ( cm -> frame_bufs [ i ] . ref_count > 0 && cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL ) {
+ cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer ) ;
+ cm -> frame_bufs [ i ] . ref_count = 0 ;
+ }
+ }
+ vp9_free_frame_buffer ( & cm -> post_proc_buffer ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < FRAME_BUFFERS ;
+ ++ i ) {
+ vp9_free_frame_buffer ( & cm -> frame_bufs [ i ] . buf ) ;
+ if ( cm -> frame_bufs [ i ] . ref_count > 0 && cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL ) {
+ cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer ) ;
+ cm -> frame_bufs [ i ] . ref_count = 0 ;
+ }
+ }
+ vp9_free_frame_buffer ( & cm -> post_proc_buffer ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ vp9_free_frame_buffer ( & cm -> frame_bufs [ i ] . buf ) ;
+ if ( cm -> frame_bufs [ i ] . ref_count > 0 && cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL ) {
+ cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer ) ;
+ cm -> frame_bufs [ i ] . ref_count = 0 ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer ) ;
+ cm -> frame_bufs [ i ] . ref_count = 0 ;
+ }
+      
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < FRAME_BUFFERS
+30064771074 | CALL | ++ i
+30064771075 | CALL | vp9_free_frame_buffer ( & cm -> frame_bufs [ i ] . buf )
+30064771076 | CALL | & cm -> frame_bufs [ i ] . buf
+30064771077 | CALL | cm -> frame_bufs [ i ] . buf
+30064771078 | CALL | cm -> frame_bufs [ i ]
+30064771079 | CALL | cm -> frame_bufs
+30064771080 | CALL | 
+        cm -> frame_bufs [ i ] . ref_count > 0 && cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL
+      
+30064771081 | CALL | cm -> frame_bufs [ i ] . ref_count > 0
+30064771082 | CALL | cm -> frame_bufs [ i ] . ref_count
+30064771083 | CALL | cm -> frame_bufs [ i ]
+30064771084 | CALL | cm -> frame_bufs
+30064771085 | CALL | cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL
+30064771086 | CALL | cm -> frame_bufs [ i ] . raw_frame_buffer . data
+30064771087 | CALL | cm -> frame_bufs [ i ] . raw_frame_buffer
+30064771088 | CALL | cm -> frame_bufs [ i ]
+30064771089 | CALL | cm -> frame_bufs
+30064771090 | CALL | 
+        cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer )
+      
+30064771091 | CALL | cm -> release_fb_cb
+30064771092 | CALL | cm -> cb_priv
+30064771093 | CALL | & cm -> frame_bufs [ i ] . raw_frame_buffer
+30064771094 | CALL | cm -> frame_bufs [ i ] . raw_frame_buffer
+30064771095 | CALL | cm -> frame_bufs [ i ]
+30064771096 | CALL | cm -> frame_bufs
+30064771097 | CALL | cm -> frame_bufs [ i ] . ref_count = 0
+30064771098 | CALL | cm -> frame_bufs [ i ] . ref_count
+30064771099 | CALL | cm -> frame_bufs [ i ]
+30064771100 | CALL | cm -> frame_bufs
+30064771101 | CALL | vp9_free_frame_buffer ( & cm -> post_proc_buffer )
+30064771102 | CALL | & cm -> post_proc_buffer
+30064771103 | CALL | cm -> post_proc_buffer
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < FRAME_BUFFERS;++ i)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( cm -> frame_bufs [ i ] . ref_count > 0 && cm -> frame_bufs [ i ] . raw_frame_buffer . data != NULL ) {
+ cm -> release_fb_cb ( cm -> cb_priv , & cm -> frame_bufs [ i ] . raw_frame_buffer ) ;
+ cm -> frame_bufs [ i ] . ref_count = 0 ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | frame_bufs
+55834574849 | FIELD_IDENTIFIER | buf
+55834574850 | FIELD_IDENTIFIER | frame_bufs
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771101 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771097 [AST]
+30064771073 -> 55834574850 [CDG]
+30064771073 -> 55834574849 [CDG]
+30064771073 -> 55834574848 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771073 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771084 [CDG]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771077 -> 30064771088 [REACHING_DEF]
+30064771077 -> 30064771099 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771083 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574849 [CFG]
+30064771078 -> 55834574849 [DOMINATE]
+30064771079 -> 55834574848 [ARGUMENT]
+30064771079 -> 55834574848 [AST]
+30064771079 -> 55834574848 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771085 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771085 [AST]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771095 [CDG]
+30064771080 -> 30064771094 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771100 [CDG]
+30064771080 -> 30064771097 [CDG]
+30064771080 -> 30064771096 [CDG]
+30064771080 -> 30064771099 [CDG]
+30064771080 -> 30064771098 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771085 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void init_frame_bufs ( VP9_COMMON * cm ) {
+ int i ;
+ cm -> new_fb_idx = FRAME_BUFFERS - 1 ;
+ cm -> frame_bufs [ cm -> new_fb_idx ] . ref_count = 1 ;
+ for ( i = 0 ;
+ i < REF_FRAMES ;
+ ++ i ) {
+ cm -> ref_frame_map [ i ] = i ;
+ cm -> frame_bufs [ i ] . ref_count = 1 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

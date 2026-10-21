@@ -1,0 +1,326 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void xmlrpc_append_char_encode ( mowgli_string_t * s , const char * s1 ) {
+ long unsigned int i ;
+ unsigned char c ;
+ char buf2 [ 15 ] ;
+ if ( ( ! ( s1 ) || ( * ( s1 ) == '\0' ) ) ) {
+ return ;
+ }
+ for ( i = 0 ;
+ s1 [ i ] != '\0' ;
+ i ++ ) {
+ c = s1 [ i ] ;
+ if ( c > 127 ) {
+ snprintf ( buf2 , sizeof buf2 , "&#%d;
+" , c ) ;
+ s -> append ( s , buf2 , strlen ( buf2 ) ) ;
+ }
+ else if ( c == '&' ) {
+ s -> append ( s , "&amp;
+" , 5 ) ;
+ }
+ else if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ long unsigned int i ;
+ unsigned char c ;
+ char buf2 [ 15 ] ;
+ if ( ( ! ( s1 ) || ( * ( s1 ) == '\0' ) ) ) {
+ return ;
+ }
+ for ( i = 0 ;
+ s1 [ i ] != '\0' ;
+ i ++ ) {
+ c = s1 [ i ] ;
+ if ( c > 127 ) {
+ snprintf ( buf2 , sizeof buf2 , "&#%d;
+" , c ) ;
+ s -> append ( s , buf2 , strlen ( buf2 ) ) ;
+ }
+ else if ( c == '&' ) {
+ s -> append ( s , "&amp;
+" , 5 ) ;
+ }
+ else if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | { return ; }
+25769803778 | BLOCK | 
+        {
+ c = s1 [ i ] ;
+ if ( c > 127 ) {
+ snprintf ( buf2 , sizeof buf2 , "&#%d;
+" , c ) ;
+ s -> append ( s , buf2 , strlen ( buf2 ) ) ;
+ }
+ else if ( c == '&' ) {
+ s -> append ( s , "&amp;
+" , 5 ) ;
+ }
+ else if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ snprintf ( buf2 , sizeof buf2 , "&#%d;
+" , c ) ;
+ s -> append ( s , buf2 , strlen ( buf2 ) ) ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { s -> append ( s , "&amp; " , 5 ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { s -> append ( s , "&lt; " , 4 ) ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { s -> append ( s , "&gt; " , 4 ) ; }
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | { s -> append ( s , "&quot; " , 6 ) ; }
+25769803788 | BLOCK | { s -> append_char ( s , c ) ; }
+30064771072 | CALL | buf2 [ 15 ]
+30064771073 | CALL | buf2 [ 15 ]
+30064771074 | CALL | ! ( s1 ) || ( * ( s1 ) == '\0' )
+30064771075 | CALL | ! ( s1 )
+30064771076 | CALL | * ( s1 ) == '\0'
+30064771077 | CALL | * ( s1 )
+30064771078 | CALL | i = 0
+30064771079 | CALL | s1 [ i ] != '\0'
+30064771080 | CALL | s1 [ i ]
+30064771081 | CALL | i ++
+30064771082 | CALL | c = s1 [ i ]
+30064771083 | CALL | s1 [ i ]
+30064771084 | CALL | c > 127
+30064771085 | CALL | c == '&'
+30064771086 | CALL | c == '<'
+30064771087 | CALL | c == '>'
+30064771088 | CALL | c == '"'
+30064771089 | CALL | s -> append_char ( s , c )
+30064771090 | CALL | s -> append_char
+47244640256 | CONTROL_STRUCTURE | if ( ( ! ( s1 ) || ( * ( s1 ) == '\0' ) ) ) { return ; }
+47244640257 | CONTROL_STRUCTURE | for (i = 0 ;s1 [ i ] != '\0';i ++)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( c > 127 ) {
+ snprintf ( buf2 , sizeof buf2 , "&#%d;
+" , c ) ;
+ s -> append ( s , buf2 , strlen ( buf2 ) ) ;
+ }
+ else if ( c == '&' ) {
+ s -> append ( s , "&amp;
+" , 5 ) ;
+ }
+ else if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( c == '&' ) {
+ s -> append ( s , "&amp;
+" , 5 ) ;
+ }
+ else if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | 
+        if ( c == '<' ) {
+ s -> append ( s , "&lt;
+" , 4 ) ;
+ }
+ else if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+      
+47244640261 | CONTROL_STRUCTURE | 
+        if ( c == '>' ) {
+ s -> append ( s , "&gt;
+" , 4 ) ;
+ }
+ else if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+      
+47244640262 | CONTROL_STRUCTURE | 
+        if ( c == '"' ) {
+ s -> append ( s , "&quot;
+" , 6 ) ;
+ }
+ else {
+ s -> append_char ( s , c ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | append_char
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 47244640258 [AST]
+25769803780 -> 47244640259 [AST]
+25769803782 -> 47244640260 [AST]
+25769803784 -> 47244640261 [AST]
+25769803786 -> 47244640262 [AST]
+25769803788 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771080 -> 30064771083 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 55834574848 [CDG]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [RECEIVER]
+30064771090 -> 55834574848 [ARGUMENT]
+30064771090 -> 55834574848 [AST]
+30064771090 -> 55834574848 [POST_DOMINATE]
+47244640256 -> 30064771074 [AST]
+47244640256 -> 25769803777 [AST]
+47244640256 -> 30064771074 [CONDITION]
+47244640256 -> 25769803777 [TRUE_BODY]
+47244640257 -> 30064771078 [AST]
+47244640257 -> 30064771079 [AST]
+47244640257 -> 30064771081 [AST]
+47244640257 -> 25769803778 [AST]
+47244640257 -> 30064771079 [CONDITION]
+47244640257 -> 25769803778 [FOR_BODY]
+472446
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

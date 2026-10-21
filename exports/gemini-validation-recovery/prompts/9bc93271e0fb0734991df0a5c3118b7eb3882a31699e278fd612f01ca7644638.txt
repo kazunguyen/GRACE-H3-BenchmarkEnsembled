@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void config_other_modes ( config_tree * ptree ) {
+ sockaddr_u addr_sock ;
+ address_node * addr_node ;
+ if ( ptree -> broadcastclient ) proto_config ( PROTO_BROADCLIENT , ptree -> broadcastclient , 0. , NULL ) ;
+ addr_node = HEAD_PFIFO ( ptree -> manycastserver ) ;
+ while ( addr_node != NULL ) {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ sys_manycastserver = 1 ;
+ }
+ addr_node = addr_node -> link ;
+ }
+ addr_node = HEAD_PFIFO ( ptree -> multicastclient ) ;
+ if ( addr_node != NULL ) {
+ do {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ }
+ addr_node = addr_node -> link ;
+ }
+ while ( addr_node != NULL ) ;
+ proto_config ( PROTO_MULTICAST_ADD , 1 , 0. , NULL ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ sockaddr_u addr_sock ;
+ address_node * addr_node ;
+ if ( ptree -> broadcastclient ) proto_config ( PROTO_BROADCLIENT , ptree -> broadcastclient , 0. , NULL ) ;
+ addr_node = HEAD_PFIFO ( ptree -> manycastserver ) ;
+ while ( addr_node != NULL ) {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ sys_manycastserver = 1 ;
+ }
+ addr_node = addr_node -> link ;
+ }
+ addr_node = HEAD_PFIFO ( ptree -> multicastclient ) ;
+ if ( addr_node != NULL ) {
+ do {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ }
+ addr_node = addr_node -> link ;
+ }
+ while ( addr_node != NULL ) ;
+ proto_config ( PROTO_MULTICAST_ADD , 1 , 0. , NULL ) ;
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ sys_manycastserver = 1 ;
+ }
+ addr_node = addr_node -> link ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ sys_manycastserver = 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ do {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ }
+ addr_node = addr_node -> link ;
+ }
+ while ( addr_node != NULL ) ;
+ proto_config ( PROTO_MULTICAST_ADD , 1 , 0. , NULL ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ ZERO_SOCK ( & addr_sock ) ;
+ AF ( & addr_sock ) = addr_node -> type ;
+ if ( 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK ) ) {
+ proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ;
+ }
+ addr_node = addr_node -> link ;
+ }
+      
+25769803782 | BLOCK | { proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock ) ; }
+30064771072 | CALL | ptree -> broadcastclient
+30064771073 | CALL | proto_config ( PROTO_BROADCLIENT , ptree -> broadcastclient , 0. , NULL )
+30064771074 | CALL | ptree -> broadcastclient
+30064771075 | CALL | addr_node = HEAD_PFIFO ( ptree -> manycastserver )
+30064771076 | CALL | HEAD_PFIFO ( ptree -> manycastserver )
+30064771077 | CALL | ptree -> manycastserver
+30064771078 | CALL | addr_node != NULL
+30064771079 | CALL | ZERO_SOCK ( & addr_sock )
+30064771080 | CALL | & addr_sock
+30064771081 | CALL | AF ( & addr_sock ) = addr_node -> type
+30064771082 | CALL | AF ( & addr_sock )
+30064771083 | CALL | & addr_sock
+30064771084 | CALL | addr_node -> type
+30064771085 | CALL | 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK )
+30064771086 | CALL | getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK )
+30064771087 | CALL | addr_node -> address
+30064771088 | CALL | & addr_sock
+30064771089 | CALL | proto_config ( PROTO_MULTICAST_ADD , 0 , 0. , & addr_sock )
+30064771090 | CALL | & addr_sock
+30064771091 | CALL | sys_manycastserver = 1
+30064771092 | CALL | addr_node = addr_node -> link
+30064771093 | CALL | addr_node -> link
+30064771094 | CALL | addr_node = HEAD_PFIFO ( ptree -> multicastclient )
+30064771095 | CALL | HEAD_PFIFO ( ptree -> multicastclient )
+30064771096 | CALL | ptree -> multicastclient
+30064771097 | CALL | addr_node != NULL
+30064771098 | CALL | ZERO_SOCK ( & addr_sock )
+30064771099 | CALL | & addr_sock
+30064771100 | CALL | AF ( & addr_sock ) = addr_node -> type
+30064771101 | CALL | AF ( & addr_sock )
+30064771102 | CALL | & addr_sock
+30064771103 | CALL | addr_node -> type
+30064771104 | CALL | 1 == getnetnum ( addr_node -> address , & addr_sock , 1 , t_UNK )
+EDGES:
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771079 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771092 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771091 [AST]
+25769803781 -> 30064771098 [AST]
+25769803781 -> 30064771100 [AST]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771093 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771084 [AST]
+30064771081 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771088 [REACHING_DEF]
+30064771084 -> 30064771081 [CFG]
+30064771084 -> 30064771081 [DOMINATE]
+30064771084 -> 30064771103 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,377 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ppc_hash64_handle_mmu_fault(PowerPCCPU *cpu, vaddr eaddr,
+
+                                int rwx, int mmu_idx)
+
+{
+
+    CPUState *cs = CPU(cpu);
+
+    CPUPPCState *env = &cpu->env;
+
+    ppc_slb_t *slb;
+
+    unsigned apshift;
+
+    hwaddr pte_offset;
+
+    ppc_hash_pte64_t pte;
+
+    int pp_prot, amr_prot, prot;
+
+    uint64_t new_pte1, dsisr;
+
+    const int need_prot[] = {PAGE_READ, PAGE_WRITE, PAGE_EXEC};
+
+    hwaddr raddr;
+
+
+
+    assert((rwx == 0) || (rwx == 1) || (rwx == 2));
+
+
+
+    /* 1. Handle real mode accesses */
+
+    if (((rwx == 2) && (msr_ir == 0)) || ((rwx != 2) && (msr_dr == 0))) {
+
+        /* Translation is off */
+
+        /* In real mode the top 4 effective address bits are ignored */
+
+        raddr = eaddr & 0x0FFFFFFFFFFFFFFFULL;
+
+        tlb_set_page(cs, eaddr & TARGET_PAGE_MASK, raddr & TARGET_PAGE_MASK,
+
+                     PAGE_READ | PAGE_WRITE | PAGE_EXEC, mmu_idx,
+
+                     TARGET_PAGE_SIZE);
+
+        return 0;
+
+    }
+
+
+
+    /* 2. Translation is on, so look up the SLB */
+
+    slb = slb_lookup(cpu, eaddr);
+
+
+
+    if (!slb) {
+
+        if (rwx == 2) {
+
+            cs->exception_index = POWERPC_EXCP_ISEG;
+
+            env->error_code = 0;
+
+        } else {
+
+            cs->exception_index = POWERPC_EXCP_DSEG;
+
+            env->error_code = 0;
+
+            env->spr[SPR_DAR] = eaddr;
+
+        }
+
+        return 1;
+
+    }
+
+
+
+    /* 3. Check for segment level no-execute violation */
+
+    if ((rwx == 2) && (slb->vsid & SLB_VSID_N)) {
+
+        ppc_hash64_set_isi(cs, env, 0x10000000);
+
+        return 1;
+
+    }
+
+
+
+    /* 4. Locate the PTE in the hash table */
+
+    pte_offset = ppc_hash64_htab_lookup(cpu, slb, eaddr, &pte);
+
+    if (pte_offset == -1) {
+
+        dsisr = 0x40000000;
+
+        if (rwx == 2) {
+
+            ppc_hash64_set_isi(cs, env, dsisr);
+
+        } else {
+
+            if (rwx == 1) {
+
+                dsisr |= 0x02000000;
+
+            }
+
+            ppc_hash64_set_dsi(cs, env, eaddr, dsisr);
+
+        }
+
+        return 1;
+
+    }
+
+    qemu_log_mask(CPU_LOG_MMU,
+
+                "found PTE at offset %08" HWADDR_PRIx "\n", pte_offset);
+
+
+
+    /* Validate page size encoding */
+
+    apshift = hpte_page_shift(slb->sps, pte.pte0, pte.pte1);
+
+    if (!apshift) {
+
+        error_report("Bad page size encoding in HPTE 0x%"PRIx64" - 0x%"PRIx64
+
+                     " @ 0x%"HWADDR_PRIx, pte.pte0, pte.pte1, pte_offset);
+
+        /* Not entirely sure what the right action here, but machine
+
+         * check seems reasonable */
+
+        cs->exception_index = POWERPC_EXCP_MCHECK;
+
+        env->error_code = 0;
+
+        return 1;
+
+    }
+
+
+
+    /* 5. Check access permissions */
+
+
+
+    pp_prot = ppc_hash64_pte_prot(cpu, slb, pte);
+
+    amr_prot = ppc_hash64_amr_prot(cpu, pte);
+
+    prot = pp_prot & amr_prot;
+
+
+
+    if ((need_prot[rwx] & ~prot) != 0) {
+
+        /* Access right violation */
+
+        qemu_log_mask(CPU_LOG_MMU, "PTE access rejected\n");
+
+        if (rwx == 2) {
+
+            ppc_hash64_set_isi(cs, env, 0x08000000);
+
+   
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+44 -> 51 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+54 -> 58 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+89 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int ppc_hash64_translate(CPUPPCState *env, struct mmu_ctx_hash64 *ctx,
+
+                                target_ulong eaddr, int rwx)
+
+{
+
+    int ret;
+
+    ppc_slb_t *slb;
+
+    hwaddr pte_offset;
+
+    ppc_hash_pte64_t pte;
+
+    int target_page_bits;
+
+
+
+    assert((rwx == 0) || (rwx == 1) || (rwx == 2));
+
+
+
+    /* 1. Handle real mode accesses */
+
+    if (((rwx == 2) && (msr_ir == 0)) || ((rwx != 2) && (msr_dr == 0))) {
+
+        /* Translation is off */
+
+        /* In real mode the top 4 effective address bits are ignored */
+
+        ctx->raddr = eaddr & 0x0FFFFFFFFFFFFFFFULL;
+
+        ctx->prot = PAGE_READ | PAGE_EXEC | PAGE_WRITE;
+
+        return 0;
+
+    }
+
+
+
+    /* 2. Translation is on, so look up the SLB */
+
+    slb = slb_lookup(env, eaddr);
+
+
+
+    if (!slb) {
+
+        return -5;
+
+    }
+
+
+
+    /* 3. Check for segment level no-execute violation */
+
+    if ((rwx == 2) && (slb->vsid & SLB_VSID_N)) {
+
+        return -3;
+
+    }
+
+
+
+    /* 4. Locate the PTE in the hash table */
+
+    pte_offset = ppc_hash64_htab_lookup(env, slb, eaddr, &pte);
+
+    if (pte_offset == -1) {
+
+        return -1;
+
+    }
+
+    LOG_MMU("found PTE at offset %08" HWADDR_PRIx "\n", pte_offset);
+
+
+
+    /* 5. Check access permissions */
+
+    ctx->key = !!(msr_pr ? (slb->vsid & SLB_VSID_KP)
+
+                  : (slb->vsid & SLB_VSID_KS));
+
+
+
+
+
+    int access, pp;
+
+    bool nx;
+
+
+
+    pp = (pte.pte1 & HPTE64_R_PP) | ((pte.pte1 & HPTE64_R_PP0) >> 61);
+
+    /* No execute if either noexec or guarded bits set */
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

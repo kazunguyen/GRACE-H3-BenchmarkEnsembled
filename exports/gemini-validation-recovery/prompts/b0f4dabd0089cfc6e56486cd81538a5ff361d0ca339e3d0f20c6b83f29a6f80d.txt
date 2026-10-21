@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+proto_item * proto_tree_add_int64 ( proto_tree * tree , int hfindex , tvbuff_t * tvb , gint start , gint length , gint64 value ) {
+ proto_item * pi = NULL ;
+ header_field_info * hfinfo ;
+ CHECK_FOR_NULL_TREE ( tree ) ;
+ TRY_TO_FAKE_THIS_ITEM ( tree , hfindex , hfinfo ) ;
+ switch ( hfinfo -> type ) {
+ case FT_INT40 : case FT_INT48 : case FT_INT56 : case FT_INT64 : pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length ) ;
+ proto_tree_set_int64 ( PNODE_FINFO ( pi ) , value ) ;
+ break ;
+ default : DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+ return pi ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * pi = NULL ;
+ header_field_info * hfinfo ;
+ CHECK_FOR_NULL_TREE ( tree ) ;
+ TRY_TO_FAKE_THIS_ITEM ( tree , hfindex , hfinfo ) ;
+ switch ( hfinfo -> type ) {
+ case FT_INT40 : case FT_INT48 : case FT_INT56 : case FT_INT64 : pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length ) ;
+ proto_tree_set_int64 ( PNODE_FINFO ( pi ) , value ) ;
+ break ;
+ default : DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+ return pi ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case FT_INT40 : case FT_INT48 : case FT_INT56 : case FT_INT64 : pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length ) ;
+ proto_tree_set_int64 ( PNODE_FINFO ( pi ) , value ) ;
+ break ;
+ default : DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+      
+30064771072 | CALL | pi = NULL
+30064771073 | CALL | CHECK_FOR_NULL_TREE ( tree )
+30064771074 | CALL | TRY_TO_FAKE_THIS_ITEM ( tree , hfindex , hfinfo )
+30064771075 | CALL | hfinfo -> type
+30064771076 | CALL | pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length )
+30064771077 | CALL | proto_tree_add_pi ( tree , hfinfo , tvb , start , & length )
+30064771078 | CALL | & length
+30064771079 | CALL | proto_tree_set_int64 ( PNODE_FINFO ( pi ) , value )
+30064771080 | CALL | PNODE_FINFO ( pi )
+30064771081 | CALL | DISSECTOR_ASSERT_NOT_REACHED ( )
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( hfinfo -> type ) {
+ case FT_INT40 : case FT_INT48 : case FT_INT56 : case FT_INT64 : pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length ) ;
+ proto_tree_set_int64 ( PNODE_FINFO ( pi ) , value ) ;
+ break ;
+ default : DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | type
+68719476736 | IDENTIFIER | pi
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | tree
+68719476739 | IDENTIFIER | tree
+68719476740 | IDENTIFIER | hfindex
+68719476741 | IDENTIFIER | hfinfo
+68719476742 | IDENTIFIER | hfinfo
+68719476743 | IDENTIFIER | <unknown> FT_INT40
+68719476744 | IDENTIFIER | <unknown> FT_INT48
+68719476745 | IDENTIFIER | <unknown> FT_INT56
+68719476746 | IDENTIFIER | <unknown> FT_INT64
+68719476747 | IDENTIFIER | pi
+68719476748 | IDENTIFIER | tree
+68719476749 | IDENTIFIER | hfinfo
+68719476750 | IDENTIFIER | tvb
+68719476751 | IDENTIFIER | start
+68719476752 | IDENTIFIER | length
+68719476753 | IDENTIFIER | pi
+68719476754 | IDENTIFIER | value
+68719476755 | IDENTIFIER | pi
+81604378624 | JUMP_TARGET | case FT_INT40 :
+81604378625 | JUMP_TARGET | case FT_INT48 :
+81604378626 | JUMP_TARGET | case FT_INT56 :
+81604378627 | JUMP_TARGET | case FT_INT64 :
+81604378628 | JUMP_TARGET | default :
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 81604378624 [AST]
+25769803777 -> 68719476743 [AST]
+25769803777 -> 81604378625 [AST]
+25769803777 -> 68719476744 [AST]
+25769803777 -> 81604378626 [AST]
+25769803777 -> 68719476745 [AST]
+25769803777 -> 81604378627 [AST]
+25769803777 -> 68719476746 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 81604378628 [AST]
+25769803777 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476741 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [AST]
+30064771074 -> 68719476742 [CFG]
+30064771074 -> 68719476742 [DOMINATE]
+30064771074 -> 68719476741 [POST_DOMINATE]
+30064771075 -> 68719476742 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476742 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 47244640257 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476749 [CDG]
+30064771075 -> 68719476748 [CDG]
+30064771075 -> 68719476751 [CDG]
+30064771075 -> 68719476750 [CDG]
+30064771075 -> 68719476753 [CDG]
+30064771075 -> 68719476752 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 81604378624 [CDG]
+30064771075 -> 81604378626 [CDG]
+30064771075 -> 81604378625 [CDG]
+30064771075 -> 81604378628 [CDG]
+30064771075 -> 81604378627 [CDG]
+30064771075 -> 68719476754 [CDG]
+30064771075 -> 81604378624 [CFG]
+30064771075 -> 81604378625 [CFG]
+30064771075 -> 81604378626 [CFG]
+30064771075 -> 81604378627 [CFG]
+30064771075 -> 81604378628 [CFG]
+30064771075 -> 68719476755 [DOMINATE]
+30064771075 -> 81604378627 [DOMINATE]
+30064771075 -> 81604378626 [DOMINATE]
+30064771075 -> 81604378625 [DOMINATE]
+30064771075 -> 81604378624 [DOMINATE]
+30064771075 -> 81604378628 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476747 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+proto_item * proto_tree_add_int ( proto_tree * tree , int hfindex , tvbuff_t * tvb , gint start , gint length , gint32 value ) {
+ proto_item * pi = NULL ;
+ header_field_info * hfinfo ;
+ CHECK_FOR_NULL_TREE ( tree ) ;
+ TRY_TO_FAKE_THIS_ITEM ( tree , hfindex , hfinfo ) ;
+ switch ( hfinfo -> type ) {
+ case FT_INT8 : case FT_INT16 : case FT_INT24 : case FT_INT32 : pi = proto_tree_add_pi ( tree , hfinfo , tvb , start , & length ) ;
+ proto_tree_set_int ( PNODE_FINFO ( pi ) , value ) ;
+ break ;
+ default : DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+ return pi ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

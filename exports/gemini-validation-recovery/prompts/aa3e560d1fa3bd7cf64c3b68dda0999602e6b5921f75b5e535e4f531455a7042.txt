@@ -1,0 +1,91 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( TemplateURLTest , ReplaceSearchTermsInUTF8URL ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://utf-8.ru/?q={
+searchTerms}
+" ) ;
+ data . alternate_urls . push_back ( "http://utf-8.ru/#q={
+searchTerms}
+" ) ;
+ data . alternate_urls . push_back ( "http://utf-8.ru/path/{
+searchTerms}
+" ) ;
+ TemplateURL url ( data ) ;
+ TemplateURLRef : : SearchTermsArgs search_terms ( base : : WideToUTF16 ( L"\x0442\x0435\x043A\x0441\x0442" ) ) ;
+ GURL result ;
+ EXPECT_TRUE ( url . ReplaceSearchTermsInURL ( GURL ( "http://utf-8.ru/?q=a+b" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://utf-8.ru/?q=%D1%82%D0%B5%D0%BA%D1%81%D1%82" ) , result ) ;
+ EXPECT_TRUE ( url . ReplaceSearchTermsInURL ( GURL ( "http://utf-8.ru/#q=a+b" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://utf-8.ru/#q=%D1%82%D0%B5%D0%BA%D1%81%D1%82" ) , result ) ;
+ EXPECT_TRUE ( url . ReplaceSearchTermsInURL ( GURL ( "http://utf-8.ru/path/a%20b" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://utf-8.ru/path/%D1%82%D0%B5%D0%BA%D1%81%D1%82" ) , result ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | { TemplateURLData data ; data . SetURL ( "http://utf-8.ru/?q={ searchTerms}
+94489280512 | LOCAL | TemplateURLData data
+107374182400 | METHOD | 
+        TEST_F ( TemplateURLTest , ReplaceSearchTermsInUTF8URL ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://utf-8.ru/?q={
+searchTerms}
+      
+111669149696 | METHOD_PARAMETER_IN | TemplateURLTest
+111669149697 | METHOD_PARAMETER_IN | ReplaceSearchTermsInUTF8URL
+115964116992 | METHOD_PARAMETER_OUT | TemplateURLTest
+115964116993 | METHOD_PARAMETER_OUT | ReplaceSearchTermsInUTF8URL
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TEST_F ( TemplateURLTest , ExtractSearchTermsFromUTF8URL ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://utf-8.ru/?q={
+searchTerms}
+" ) ;
+ data . alternate_urls . push_back ( "http://utf-8.ru/#q={
+searchTerms}
+" ) ;
+ data . alternate_urls . push_back ( "http://utf-8.ru/path/{
+searchTerms}
+" ) ;
+ TemplateURL url ( data ) ;
+ base : : string16 result ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://utf-8.ru/?q=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82" "%D0%B2%D1%83%D0%B9,+%D0%BC%D0%B8%D1%80!" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : WideToUTF16 ( L"\x0417\x0434\x0440\x0430\x0432\x0441\x0442\x0432\x0443\x0439, " L"\x043C\x0438\x0440!" ) , result ) ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://utf-8.ru/#q=%D0%B4%D0%B2%D0%B0+%D1%81%D0%BB%D0%BE%D0%B2" "%D0%B0" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : WideToUTF16 ( L"\x0434\x0432\x0430 \x0441\x043B\x043E\x0432\x0430" ) , result ) ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://utf-8.ru/path/%D0%B1%D1%83%D0%BA%D0%B2%D1%8B%20%D0%90%20" "%D0%B8%20A" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : WideToUTF16 ( L"\x0431\x0443\x043A\x0432\x044B \x0410 \x0438 A" ) , result ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

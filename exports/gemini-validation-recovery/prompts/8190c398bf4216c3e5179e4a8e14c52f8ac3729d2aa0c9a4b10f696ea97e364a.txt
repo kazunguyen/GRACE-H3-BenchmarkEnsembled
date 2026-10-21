@@ -1,0 +1,197 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int g722_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ G722Context * c = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ int16_t * out_buf ;
+ int j , ret ;
+ const int skip = 8 - c -> bits_per_codeword ;
+ const int16_t * quantizer_table = low_inv_quants [ skip ] ;
+ GetBitContext gb ;
+ frame -> nb_samples = avpkt -> size * 2 ;
+ if ( ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ out_buf = ( int16_t * ) frame -> data [ 0 ] ;
+ init_get_bits ( & gb , avpkt -> data , avpkt -> size * 8 ) ;
+ for ( j = 0 ;
+ j < avpkt -> size ;
+ j ++ ) {
+ int ilow , ihigh , rlow , rhigh , dhigh ;
+ int xout1 , xout2 ;
+ ihigh = get_bits ( & gb , 2 ) ;
+ ilow = get_bits ( & gb , 6 - skip ) ;
+ skip_bits ( & gb , skip ) ;
+ rlow = av_clip ( ( c -> band [ 0 ] . scale_factor * quantizer_table [ ilow ] >> 10 ) + c -> band [ 0 ] . s_predictor , - 16384 , 16383 ) ;
+ ff_g722_update_low_predictor ( & c -> band [ 0 ] , ilow >> ( 2 - skip ) ) ;
+ dhigh = c -> band [ 1 ] . scale_factor * ff_g722_high_inv_quant [ ihigh ] >> 10 ;
+ rhigh = av_clip ( dhigh + c -> band [ 1 ] . s_predictor , - 16384 , 16383 ) ;
+ ff_g722_update_high_predictor ( & c -> band [ 1 ] , dhigh , ihigh ) ;
+ c -> prev_samples [ c -> prev_samples_pos ++ ] = rlow + rhigh ;
+ c -> prev_samples [ c -> prev_samples_pos ++ ] = rlow - rhigh ;
+ ff_g722_apply_qmf ( c -> prev_samples + c -> prev_samples_pos - 24 , & xout1 , & xout2 ) ;
+ * out_buf ++ = av_clip_int16 ( xout1 >> 11 ) ;
+ * out_buf ++ = av_clip_int16 ( xout2 >> 11 ) ;
+ if ( c -> prev_samples_pos >= PREV_SAMPLES_BUF_SIZE ) {
+ memmove ( c -> prev_samples , c -> prev_samples + c -> prev_samples_pos - 22 , 22 * sizeof ( c -> prev_samples [ 0 ] ) ) ;
+ c -> prev_samples_pos = 22 ;
+ }
+ }
+ * got_frame_ptr = 1 ;
+ return avpkt -> size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ G722Context * c = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ int16_t * out_buf ;
+ int j , ret ;
+ const int skip = 8 - c -> bits_per_codeword ;
+ const int16_t * quantizer_table = low_inv_quants [ skip ] ;
+ GetBitContext gb ;
+ frame -> nb_samples = avpkt -> size * 2 ;
+ if ( ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ out_buf = ( int16_t * ) frame -> data [ 0 ] ;
+ init_get_bits ( & gb , avpkt -> data , avpkt -> size * 8 ) ;
+ for ( j = 0 ;
+ j < avpkt -> size ;
+ j ++ ) {
+ int ilow , ihigh , rlow , rhigh , dhigh ;
+ int xout1 , xout2 ;
+ ihigh = get_bits ( & gb , 2 ) ;
+ ilow = get_bits ( & gb , 6 - skip ) ;
+ skip_bits ( & gb , skip ) ;
+ rlow = av_clip ( ( c -> band [ 0 ] . scale_factor * quantizer_table [ ilow ] >> 10 ) + c -> band [ 0 ] . s_predictor , - 16384 , 16383 ) ;
+ ff_g722_update_low_predictor ( & c -> band [ 0 ] , ilow >> ( 2 - skip ) ) ;
+ dhigh = c -> band [ 1 ] . scale_factor * ff_g7...
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ int ilow , ihigh , rlow , rhigh , dhigh ;
+ int xout1 , xout2 ;
+ ihigh = get_bits ( & gb , 2 ) ;
+ ilow = get_bits ( & gb , 6 - skip ) ;
+ skip_bits ( & gb , skip ) ;
+ rlow = av_clip ( ( c -> band [ 0 ] . scale_factor * quantizer_table [ ilow ] >> 10 ) + c -> band [ 0 ] . s_predictor , - 16384 , 16383 ) ;
+ ff_g722_update_low_predictor ( & c -> band [ 0 ] , ilow >> ( 2 - skip ) ) ;
+ dhigh = c -> band [ 1 ] . scale_factor * ff_g722_high_inv_quant [ ihigh ] >> 10 ;
+ rhigh = av_clip ( dhigh + c -> band [ 1 ] . s_predictor , - 16384 , 16383 ) ;
+ ff_g722_update_high_predictor ( & c -> band [ 1 ] , dhigh , ihigh ) ;
+ c -> prev_samples [ c -> prev_samples_pos ++ ] = rlow + rhigh ;
+ c -> prev_samples [ c -> prev_samples_pos ++ ] = rlow - rhigh ;
+ ff_g722_apply_qmf ( c -> prev_samples + c -> prev_samples_pos - 24 , & xout1 , & xout2 ) ;
+ * out_buf ++ = av_clip_int16 ( xout1 >> 11 ) ;
+ * out_buf ++ = av_clip_int16 ( xout2 >> 11 ) ;
+ if ( c -> prev_samples_pos >= PREV_SAMPLES_BUF_SIZE ) {
+ memm...
+      
+25769803779 | BLOCK | 
+        {
+ memmove ( c -> prev_samples , c -> prev_samples + c -> prev_samples_pos - 22 , 22 * sizeof ( c -> prev_samples [ 0 ] ) ) ;
+ c -> prev_samples_pos = 22 ;
+ }
+      
+30064771072 | CALL | c = avctx -> priv_data
+30064771073 | CALL | avctx -> priv_data
+30064771074 | CALL | frame = data
+30064771075 | CALL | skip = 8 - c -> bits_per_codeword
+30064771076 | CALL | 8 - c -> bits_per_codeword
+30064771077 | CALL | c -> bits_per_codeword
+30064771078 | CALL | quantizer_table = low_inv_quants [ skip ]
+30064771079 | CALL | low_inv_quants [ skip ]
+30064771080 | CALL | frame -> nb_samples = avpkt -> size * 2
+30064771081 | CALL | frame -> nb_samples
+30064771082 | CALL | avpkt -> size * 2
+30064771083 | CALL | avpkt -> size
+30064771084 | CALL | ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0
+30064771085 | CALL | ret = ff_get_buffer ( avctx , frame , 0 )
+30064771086 | CALL | ff_get_buffer ( avctx , frame , 0 )
+30064771087 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771088 | CALL | out_buf = ( int16_t * ) frame -> data [ 0 ]
+30064771089 | CALL | ( int16_t * ) frame -> data [ 0 ]
+30064771090 | CALL | frame -> data [ 0 ]
+30064771091 | CALL | frame -> data
+30064771092 | CALL | init_get_bits ( & gb , avpkt -> data , avpkt -> size * 8 )
+30064771093 | CALL | & gb
+30064771094 | CALL | avpkt -> data
+30064771095 | CALL | avpkt -> size * 8
+30064771096 | CALL | avpkt -> size
+30064771097 | CALL | j = 0
+30064771098 | CALL | j < avpkt -> size
+30064771099 | CALL | avpkt -> size
+30064771100 | CALL | j ++
+30064771101 | CALL | ihigh = get_bits ( & gb , 2 )
+30064771102 | CALL | get_bits ( & gb , 2 )
+30064771103 | CALL | & gb
+30064771104 | CALL | ilow = get_bits ( & gb , 6 - skip )
+30064771105 | CALL | get_bits ( & gb , 6 - skip )
+30064771106 | CALL | & gb
+30064771107 | CALL | 6 - skip
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+300
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

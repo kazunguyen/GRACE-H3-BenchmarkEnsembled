@@ -1,0 +1,298 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void compute_exp_strategy(AC3EncodeContext *s)
+
+{
+
+    int ch, blk, blk1;
+
+
+
+    for (ch = !s->cpl_on; ch <= s->fbw_channels; ch++) {
+
+        uint8_t *exp_strategy = s->exp_strategy[ch];
+
+        uint8_t *exp          = s->blocks[0].exp[ch];
+
+        int exp_diff;
+
+
+
+        /* estimate if the exponent variation & decide if they should be
+
+           reused in the next frame */
+
+        exp_strategy[0] = EXP_NEW;
+
+        exp += AC3_MAX_COEFS;
+
+        for (blk = 1; blk < AC3_MAX_BLOCKS; blk++, exp += AC3_MAX_COEFS) {
+
+            if ((ch == CPL_CH && (!s->blocks[blk].cpl_in_use || !s->blocks[blk-1].cpl_in_use)) ||
+
+                (ch  > CPL_CH && (s->blocks[blk].channel_in_cpl[ch] != s->blocks[blk-1].channel_in_cpl[ch]))) {
+
+                exp_strategy[blk] = EXP_NEW;
+
+                continue;
+
+            }
+
+            exp_diff = s->dsp.sad[0](NULL, exp, exp - AC3_MAX_COEFS, 16, 16);
+
+            exp_strategy[blk] = EXP_REUSE;
+
+            if (ch == CPL_CH && exp_diff > (EXP_DIFF_THRESHOLD * (s->blocks[blk].end_freq[ch] - s->start_freq[ch]) / AC3_MAX_COEFS))
+
+                exp_strategy[blk] = EXP_NEW;
+
+            else if (ch > CPL_CH && exp_diff > EXP_DIFF_THRESHOLD)
+
+                exp_strategy[blk] = EXP_NEW;
+
+        }
+
+
+
+        /* now select the encoding strategy type : if exponents are often
+
+           recoded, we use a coarse encoding */
+
+        blk = 0;
+
+        while (blk < AC3_MAX_BLOCKS) {
+
+            blk1 = blk + 1;
+
+            while (blk1 < AC3_MAX_BLOCKS && exp_strategy[blk1] == EXP_REUSE)
+
+                blk1++;
+
+            switch (blk1 - blk) {
+
+            case 1:  exp_strategy[blk] = EXP_D45; break;
+
+            case 2:
+
+            case 3:  exp_strategy[blk] = EXP_D25; break;
+
+            default: exp_strategy[blk] = EXP_D15; break;
+
+            }
+
+            blk = blk1;
+
+        }
+
+    }
+
+    if (s->lfe_on) {
+
+        ch = s->lfe_channel;
+
+        s->exp_strategy[ch][0] = EXP_D15;
+
+        for (blk = 1; blk < AC3_MAX_BLOCKS; blk++)
+
+            s->exp_strategy[ch][blk] = EXP_REUSE;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+15 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+15 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 57 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 58 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 59 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+33 -> 45 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+33 -> 60 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 69 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+33 -> 64 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+33 -> 70 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+74 -> 79 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void count_frame_bits(AC3EncodeContext *s)
+
+{
+
+    AC3EncOptions *opt = &s->options;
+
+    int blk, ch;
+
+    int frame_bits = 0;
+
+
+
+    /* header */
+
+    if (s->eac3) {
+
+        /* coupling */
+
+        if (s->channel_mode > AC3_CHMODE_MONO) {
+
+            frame_bits++;
+
+            for (blk = 1; blk < AC3_MAX_BLOCKS; blk++) {
+
+                AC3Block *block = &s->blocks[blk];
+
+                frame_bits++;
+
+                if (block->new_cpl_strategy)
+
+                    frame_bits++;
+
+            }
+
+        }
+
+        /* coupling exponent strategy */
+
+        for (blk = 0; blk < AC3_MAX_BLOCKS; blk++)
+
+            frame_bits += 2 * s->blocks[blk].cpl_in_use;
+
+    } else {
+
+        if (opt->audio_production_info)
+
+            frame_bits += 7;
+
+        if (s->bitstream_id == 6) {
+
+            if (opt->extended_bsi_1)
+
+                frame_bits += 14;
+
+            if (opt->extended_bsi_2)
+
+                frame_bits += 14;
+
+        }
+
+    }
+
+
+
+    /* audio blocks */
+
+    for (blk = 0; blk < AC3_MAX_BLOCKS; blk++) {
+
+        AC3Block *block = &s->blocks[blk];
+
+
+
+        /* coupling strategy */
+
+        if (!s->eac3)
+
+            frame_bits++;
+
+        if (block->new_cpl_strategy) {
+
+            if (!s->eac3)
+
+                frame_bits++;
+
+            if (block->cpl_in_use) {
+
+                if (s->eac3)
+
+                    frame_bits++;
+
+                if (!s->eac3 || s->channel_mode != AC3_CHMODE_STEREO)
+
+                    frame_bits += s->fbw_channels;
+
+        
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

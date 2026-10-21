@@ -1,0 +1,255 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qdict_crumple_test_recursive(void)
+
+{
+
+    QDict *src, *dst, *rule, *vnc, *acl, *listen;
+
+    QObject *res;
+
+    QList *rules;
+
+
+
+    src = qdict_new();
+
+    qdict_put(src, "vnc.listen.addr", qstring_from_str("127.0.0.1"));
+
+    qdict_put(src, "vnc.listen.port", qstring_from_str("5901"));
+
+    qdict_put(src, "vnc.acl.rules.0.match", qstring_from_str("fred"));
+
+    qdict_put(src, "vnc.acl.rules.0.policy", qstring_from_str("allow"));
+
+    qdict_put(src, "vnc.acl.rules.1.match", qstring_from_str("bob"));
+
+    qdict_put(src, "vnc.acl.rules.1.policy", qstring_from_str("deny"));
+
+    qdict_put(src, "vnc.acl.default", qstring_from_str("deny"));
+
+    qdict_put(src, "vnc.acl..name", qstring_from_str("acl0"));
+
+    qdict_put(src, "vnc.acl.rule..name", qstring_from_str("acl0"));
+
+
+
+    res = qdict_crumple(src, &error_abort);
+
+
+
+    g_assert_cmpint(qobject_type(res), ==, QTYPE_QDICT);
+
+
+
+    dst = qobject_to_qdict(res);
+
+
+
+    g_assert_cmpint(qdict_size(dst), ==, 1);
+
+
+
+    vnc = qdict_get_qdict(dst, "vnc");
+
+    g_assert(vnc);
+
+
+
+
+    listen = qdict_get_qdict(vnc, "listen");
+
+    g_assert(listen);
+
+
+    g_assert_cmpstr("127.0.0.1", ==, qdict_get_str(listen, "addr"));
+
+    g_assert_cmpstr("5901", ==, qdict_get_str(listen, "port"));
+
+
+
+    acl = qdict_get_qdict(vnc, "acl");
+
+    g_assert(acl);
+
+
+
+
+    rules = qdict_get_qlist(acl, "rules");
+
+    g_assert(rules);
+
+    g_assert_cmpint(qlist_size(rules), ==, 2);
+
+
+
+    rule = qobject_to_qdict(qlist_pop(rules));
+
+
+    g_assert_cmpint(qdict_size(rule), ==, 2);
+
+    g_assert_cmpstr("fred", ==, qdict_get_str(rule, "match"));
+
+    g_assert_cmpstr("allow", ==, qdict_get_str(rule, "policy"));
+
+    QDECREF(rule);
+
+
+
+    rule = qobject_to_qdict(qlist_pop(rules));
+
+
+    g_assert_cmpint(qdict_size(rule), ==, 2);
+
+    g_assert_cmpstr("bob", ==, qdict_get_str(rule, "match"));
+
+    g_assert_cmpstr("deny", ==, qdict_get_str(rule, "policy"));
+
+    QDECREF(rule);
+
+
+
+    /* With recursive crumpling, we should see all names unescaped */
+
+    g_assert_cmpstr("acl0", ==, qdict_get_str(vnc, "acl.name"));
+
+    g_assert_cmpstr("acl0", ==, qdict_get_str(acl, "rule.name"));
+
+
+
+    QDECREF(src);
+
+    QDECREF(dst);
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+5 -> 21 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+43 -> 48 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+59 -> 64 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+75 -> 80 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_dispatch_cmd(void)
+
+{
+
+    QDict *req = qdict_new();
+
+    QObject *resp;
+
+
+
+    qdict_put_obj(req, "execute", QOBJECT(qstring_from_str("user_def_cmd")));
+
+
+
+    resp = qmp_dispatch(QOBJECT(req));
+
+    assert(resp != NULL);
+
+    assert(!qdict_haskey(qobject_to_qdict(resp), "error"));
+
+    g_print("\nresp: %s\n", qstring_get_str(qobject_to_json(resp)));
+
+
+
+    qobject_decref(resp);
+
+    QDECREF(req);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

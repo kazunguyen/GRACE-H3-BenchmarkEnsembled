@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int zrestore ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ alloc_save_t * asave ;
+ bool last ;
+ vm_save_t * vmsave ;
+ int code = restore_check_operand ( op , & asave , idmemory ) ;
+ if ( code < 0 ) return code ;
+ if_debug2m ( 'u' , imemory , "[u]vmrestore 0x%lx, id = %lu\n" , ( ulong ) alloc_save_client_data ( asave ) , ( ulong ) op -> value . saveid ) ;
+ if ( I_VALIDATE_BEFORE_RESTORE ) ivalidate_clean_spaces ( i_ctx_p ) ;
+ osp -- ;
+ {
+ int code ;
+ if ( ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & d_stack , asave , false ) ) < 0 ) {
+ osp ++ ;
+ return code ;
+ }
+ }
+ restore_fix_stack ( i_ctx_p , & o_stack , asave , false ) ;
+ restore_fix_stack ( i_ctx_p , & e_stack , asave , true ) ;
+ restore_fix_stack ( i_ctx_p , & d_stack , asave , false ) ;
+ do {
+ vmsave = alloc_save_client_data ( alloc_save_current ( idmemory ) ) ;
+ gs_grestoreall_for_restore ( igs , vmsave -> gsave ) ;
+ vmsave -> gsave = 0 ;
+ code = alloc_restore_step_in ( idmemory , asave ) ;
+ if ( code < 0 ) return code ;
+ last = code ;
+ }
+ while ( ! last ) ;
+ {
+ uint space = icurrent_space ;
+ ialloc_set_space ( idmemory , avm_local ) ;
+ ifree_object ( vmsave , "zrestore" ) ;
+ ialloc_set_space ( idmemory , space ) ;
+ }
+ dict_set_top ( ) ;
+ if ( I_VALIDATE_AFTER_RESTORE ) ivalidate_clean_spaces ( i_ctx_p ) ;
+ i_ctx_p -> LockFilePermissions = false ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ os_ptr op = osp ;
+ alloc_save_t * asave ;
+ bool last ;
+ vm_save_t * vmsave ;
+ int code = restore_check_operand ( op , & asave , idmemory ) ;
+ if ( code < 0 ) return code ;
+ if_debug2m ( 'u' , imemory , "[u]vmrestore 0x%lx, id = %lu\n" , ( ulong ) alloc_save_client_data ( asave ) , ( ulong ) op -> value . saveid ) ;
+ if ( I_VALIDATE_BEFORE_RESTORE ) ivalidate_clean_spaces ( i_ctx_p ) ;
+ osp -- ;
+ {
+ int code ;
+ if ( ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & d_stack , asave , false ) ) < 0 ) {
+ osp ++ ;
+ return code ;
+ }
+ }
+ restore_fix_stack ( i_ctx_p , & o_stack , asave , false ) ;
+ restore_fix_stack ( i_ctx_p , & e_stack , asave , true ) ;
+ restore_fix_stack ( i_ctx_p , & d_stack , asave , false ) ;
+ do {
+ vmsave = alloc_save_client_data ( alloc_save_current ( idmemory ) ) ;
+ gs_grestoreall_for_restore ( igs , vmsave -> gsave...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ int code ;
+ if ( ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & d_stack , asave , false ) ) < 0 ) {
+ osp ++ ;
+ return code ;
+ }
+ }
+      
+25769803780 | BLOCK | { osp ++ ; return code ; }
+25769803781 | BLOCK | 
+        {
+ vmsave = alloc_save_client_data ( alloc_save_current ( idmemory ) ) ;
+ gs_grestoreall_for_restore ( igs , vmsave -> gsave ) ;
+ vmsave -> gsave = 0 ;
+ code = alloc_restore_step_in ( idmemory , asave ) ;
+ if ( code < 0 ) return code ;
+ last = code ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ uint space = icurrent_space ;
+ ialloc_set_space ( idmemory , avm_local ) ;
+ ifree_object ( vmsave , "zrestore" ) ;
+ ialloc_set_space ( idmemory , space ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | op = osp
+30064771073 | CALL | code = restore_check_operand ( op , & asave , idmemory )
+30064771074 | CALL | restore_check_operand ( op , & asave , idmemory )
+30064771075 | CALL | & asave
+30064771076 | CALL | code < 0
+30064771077 | CALL | 
+        if_debug2m ( 'u' , imemory , "[u]vmrestore 0x%lx, id = %lu\n" , ( ulong ) alloc_save_client_data ( asave ) , ( ulong ) op -> value . saveid )
+      
+30064771078 | CALL | ( ulong ) alloc_save_client_data ( asave )
+30064771079 | CALL | alloc_save_client_data ( asave )
+30064771080 | CALL | ( ulong ) op -> value . saveid
+30064771081 | CALL | op -> value . saveid
+30064771082 | CALL | op -> value
+30064771083 | CALL | I_VALIDATE_BEFORE_RESTORE != 0
+30064771084 | CALL | ivalidate_clean_spaces ( i_ctx_p )
+30064771085 | CALL | osp --
+30064771086 | CALL | 
+        ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & d_stack , asave , false ) ) < 0
+      
+30064771087 | CALL | 
+        ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0 || ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0
+      
+30064771088 | CALL | ( code = restore_check_stack ( i_ctx_p , & o_stack , asave , false ) ) < 0
+30064771089 | CALL | code = restore_check_stack ( i_ctx_p , & o_stack , asave , false )
+30064771090 | CALL | restore_check_stack ( i_ctx_p , & o_stack , asave , false )
+30064771091 | CALL | & o_stack
+30064771092 | CALL | ( code = restore_check_stack ( i_ctx_p , & e_stack , asave , true ) ) < 0
+30064771093 | CALL | code = restore_check_stack ( i_ctx_p , & e_stack , asave , true )
+30064771094 | CALL | restore_check_stack ( i_ctx_p , & e_stack , asave , true )
+30064771095 | CALL | & e_stack
+30064771096 | CALL | ( code = restore_check_stack ( i_ctx_p , & d_stack , asave , false ) ) < 0
+30064771097 | CALL | code = restore_check_stack ( i_ctx_p , & d_stack , asave , false )
+30064771098 | CALL | restore_check_stack ( i_ctx_p , & d_stack , asave , false )
+30064771099 | CALL | & d_stack
+30064771100 | CALL | osp ++
+30064771101 | CALL | restore_fix_stack ( i_ctx_p , & o_stack , asave , false )
+30064771102 | CALL | & o_stack
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 25769803779 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 25769803783 [AST]
+25769803778 -> 30064771084 [AST]
+25769803780 -> 30064771100 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REA
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

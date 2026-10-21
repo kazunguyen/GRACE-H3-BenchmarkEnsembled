@@ -1,0 +1,171 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+unsigned int auth_server_connection_add_request ( struct auth_server_connection * conn , struct auth_client_request * request ) {
+ unsigned int id ;
+ i_assert ( conn -> handshake_received ) ;
+ id = ++ conn -> client -> request_id_counter ;
+ if ( id == 0 ) {
+ id = ++ conn -> client -> request_id_counter ;
+ }
+ i_assert ( hash_table_lookup ( conn -> requests , POINTER_CAST ( id ) ) == NULL ) ;
+ hash_table_insert ( conn -> requests , POINTER_CAST ( id ) , request ) ;
+ return id ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int id ;
+ i_assert ( conn -> handshake_received ) ;
+ id = ++ conn -> client -> request_id_counter ;
+ if ( id == 0 ) {
+ id = ++ conn -> client -> request_id_counter ;
+ }
+ i_assert ( hash_table_lookup ( conn -> requests , POINTER_CAST ( id ) ) == NULL ) ;
+ hash_table_insert ( conn -> requests , POINTER_CAST ( id ) , request ) ;
+ return id ;
+ }
+      
+25769803777 | BLOCK | { id = ++ conn -> client -> request_id_counter ; }
+30064771072 | CALL | i_assert ( conn -> handshake_received )
+30064771073 | CALL | conn -> handshake_received
+30064771074 | CALL | id = ++ conn -> client -> request_id_counter
+30064771075 | CALL | ++ conn -> client -> request_id_counter
+30064771076 | CALL | conn -> client -> request_id_counter
+30064771077 | CALL | conn -> client
+30064771078 | CALL | id == 0
+30064771079 | CALL | id = ++ conn -> client -> request_id_counter
+30064771080 | CALL | ++ conn -> client -> request_id_counter
+30064771081 | CALL | conn -> client -> request_id_counter
+30064771082 | CALL | conn -> client
+30064771083 | CALL | 
+        i_assert ( hash_table_lookup ( conn -> requests , POINTER_CAST ( id ) ) == NULL )
+      
+30064771084 | CALL | hash_table_lookup ( conn -> requests , POINTER_CAST ( id ) ) == NULL
+30064771085 | CALL | hash_table_lookup ( conn -> requests , POINTER_CAST ( id ) )
+30064771086 | CALL | conn -> requests
+30064771087 | CALL | POINTER_CAST ( id )
+30064771088 | CALL | hash_table_insert ( conn -> requests , POINTER_CAST ( id ) , request )
+30064771089 | CALL | conn -> requests
+30064771090 | CALL | POINTER_CAST ( id )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( id == 0 ) {
+ id = ++ conn -> client -> request_id_counter ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | handshake_received
+55834574849 | FIELD_IDENTIFIER | client
+55834574850 | FIELD_IDENTIFIER | request_id_counter
+55834574851 | FIELD_IDENTIFIER | client
+55834574852 | FIELD_IDENTIFIER | request_id_counter
+55834574853 | FIELD_IDENTIFIER | requests
+55834574854 | FIELD_IDENTIFIER | requests
+68719476736 | IDENTIFIER | conn
+68719476737 | IDENTIFIER | id
+68719476738 | IDENTIFIER | conn
+68719476739 | IDENTIFIER | id
+68719476740 | IDENTIFIER | id
+68719476741 | IDENTIFIER | conn
+68719476742 | IDENTIFIER | conn
+68719476743 | IDENTIFIER | id
+68719476744 | IDENTIFIER | <unknown> NULL
+68719476745 | IDENTIFIER | conn
+68719476746 | IDENTIFIER | id
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 30064771079 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476745 [REACHING_DEF]
+30064771073 -> 68719476742 [REACHING_DEF]
+30064771073 -> 68719476741 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476738 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 55834574850 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 55834574850 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574850 [POST_DOMINATE]
+30064771076 -> 30064771081 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476738 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 68719476738 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 55834574850 [CFG]
+30064771077 -> 55834574850 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 68719476739 [ARGUMENT]
+30064771078 -> 68719476739 [AST]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 55834574851 [CDG]
+30064771078 -> 55834574852 [CDG]
+30064771078 -> 68719476740 [CDG]
+30064771078 -> 68719476741 [CDG]
+30064771078 -> 68719476740 [CFG]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 68719476742 [DOMINATE]
+30064771078 -> 68719476740 [DOMINATE]
+30064771079 -> 68719476740 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476740 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476742 [CFG]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 68719476740 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void auth_server_connection_remove_request ( struct auth_server_connection * conn , unsigned int id ) {
+ i_assert ( conn -> handshake_received ) ;
+ hash_table_remove ( conn -> requests , POINTER_CAST ( id ) ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

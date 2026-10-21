@@ -1,0 +1,213 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void DecoderProcess ( decoder_t * p_dec , block_t * p_block ) {
+ decoder_owner_sys_t * p_owner = ( decoder_owner_sys_t * ) p_dec -> p_owner ;
+ const bool b_flush_request = p_block && ( p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH ) ;
+ if ( p_dec -> b_error ) {
+ if ( p_block ) block_Release ( p_block ) ;
+ goto flush ;
+ }
+ if ( p_block && p_block -> i_buffer <= 0 ) {
+ assert ( ! b_flush_request ) ;
+ block_Release ( p_block ) ;
+ return ;
+ }
+ # ifdef ENABLE_SOUT if ( p_owner -> b_packetizer ) {
+ if ( p_block ) p_block -> i_flags &= ~ BLOCK_FLAG_CORE_PRIVATE_MASK ;
+ DecoderProcessSout ( p_dec , p_block ) ;
+ }
+ else # endif {
+ bool b_flush = false ;
+ if ( p_block ) {
+ const bool b_flushing = p_owner -> i_preroll_end == INT64_MAX ;
+ DecoderUpdatePreroll ( & p_owner -> i_preroll_end , p_block ) ;
+ b_flush = ! b_flushing && b_flush_request ;
+ p_block -> i_flags &= ~ BLOCK_FLAG_CORE_PRIVATE_MASK ;
+ }
+ if ( p_dec -> fmt_out . i_cat == AUDIO_ES ) {
+ DecoderProcessAudio ( p_dec , p_block , b_flush ) ;
+ }
+ else if ( p_dec -> fmt_out . i_cat == VIDEO_ES ) {
+ DecoderProcessVideo ( p_dec , p_block , b_flush ) ;
+ }
+ else if ( p_dec -> fmt_out . i_cat == SPU_ES ) {
+ DecoderProcessSpu ( p_dec , p_block , b_flush ) ;
+ }
+ else {
+ msg_Err ( p_dec , "unknown ES format" ) ;
+ p_dec -> b_error = true ;
+ }
+ }
+ flush : if ( b_flush_request ) DecoderProcessOnFlush ( p_dec ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decoder_owner_sys_t * p_owner = ( decoder_owner_sys_t * ) p_dec -> p_owner ;
+ const bool b_flush_request = p_block && ( p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH ) ;
+ if ( p_dec -> b_error ) {
+ if ( p_block ) block_Release ( p_block ) ;
+ goto flush ;
+ }
+ if ( p_block && p_block -> i_buffer <= 0 ) {
+ assert ( ! b_flush_request ) ;
+ block_Release ( p_block ) ;
+ return ;
+ }
+      
+25769803777 | BLOCK | { if ( p_block ) block_Release ( p_block ) ; goto flush ; }
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | p_owner = ( decoder_owner_sys_t * ) p_dec -> p_owner
+30064771073 | CALL | ( decoder_owner_sys_t * ) p_dec -> p_owner
+30064771074 | CALL | p_dec -> p_owner
+30064771075 | CALL | 
+        b_flush_request = p_block && ( p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH )
+      
+30064771076 | CALL | p_block && ( p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH )
+30064771077 | CALL | p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH
+30064771078 | CALL | p_block -> i_flags
+30064771079 | CALL | p_dec -> b_error
+30064771080 | CALL | p_block != NULL
+30064771081 | CALL | block_Release ( p_block )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( p_dec -> b_error ) {
+ if ( p_block ) block_Release ( p_block ) ;
+ goto flush ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | if ( p_block ) block_Release ( p_block ) ;
+47244640258 | CONTROL_STRUCTURE | goto flush;
+55834574848 | FIELD_IDENTIFIER | p_owner
+55834574849 | FIELD_IDENTIFIER | i_flags
+55834574850 | FIELD_IDENTIFIER | b_error
+68719476736 | IDENTIFIER | p_owner
+68719476737 | IDENTIFIER | p_dec
+68719476738 | IDENTIFIER | b_flush_request
+68719476739 | IDENTIFIER | p_block
+68719476740 | IDENTIFIER | p_block
+68719476741 | IDENTIFIER | <unknown> BLOCK_FLAG_CORE_FLUSH
+68719476742 | IDENTIFIER | p_dec
+68719476743 | IDENTIFIER | p_block
+68719476744 | IDENTIFIER | p_block
+77309411328 | JUMP_LABEL | flush
+90194313216 | LITERAL | NULL
+94489280512 | LOCAL | decoder_owner_sys_t * p_owner
+94489280513 | LOCAL | const bool b_flush_request
+94489280514 | LOCAL | <unknown> BLOCK_FLAG_CORE_FLUSH
+107374182400 | METHOD | 
+        static void DecoderProcess ( decoder_t * p_dec , block_t * p_block ) {
+ decoder_owner_sys_t * p_owner = ( decoder_owner_sys_t * ) p_dec -> p_owner ;
+ const bool b_flush_request = p_block && ( p_block -> i_flags & BLOCK_FLAG_CORE_FLUSH ) ;
+ if ( p_dec -> b_error ) {
+ if ( p_block ) block_Release ( p_block ) ;
+ goto flush ;
+ }
+ if ( p_block && p_block -> i_buffer <= 0 ) {
+ assert ( ! b_flush_request ) ;
+ block_Release ( p_block ) ;
+ return ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | decoder_t * p_dec
+111669149697 | METHOD_PARAMETER_IN | block_t * p_block
+115964116992 | METHOD_PARAMETER_OUT | decoder_t * p_dec
+115964116993 | METHOD_PARAMETER_OUT | block_t * p_block
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640258 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 115964116992 [REACHING_DEF]
+30064771074 -> 68719476742 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 68719476739 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 68719476741 [CFG]
+30064771078 -> 68719476741 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 115964116993 [REACHING_DEF]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 68719476744 [REACHING_DEF]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 55834574850 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void DecoderProcessAudio ( decoder_t * p_dec , block_t * p_block , bool b_flush ) {
+ decoder_owner_sys_t * p_owner = (
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

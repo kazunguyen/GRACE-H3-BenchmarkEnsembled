@@ -1,0 +1,48 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool agg_item_collations_for_comparison ( DTCollation & c , const char * fname , Item * * av , uint count , uint flags ) {
+ return ( agg_item_collations ( c , fname , av , count , flags | MY_COLL_DISALLOW_NONE , 1 ) ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool agg_item_collations ( DTCollation & c , const char * fname , Item * * av , uint count , uint flags , int item_sep ) {
+ uint i ;
+ Item * * arg ;
+ bool unknown_cs = 0 ;
+ c . set ( av [ 0 ] -> collation ) ;
+ for ( i = 1 , arg = & av [ item_sep ] ;
+ i < count ;
+ i ++ , arg += item_sep ) {
+ if ( c . aggregate ( ( * arg ) -> collation , flags ) ) {
+ if ( c . derivation == DERIVATION_NONE && c . collation == & my_charset_bin ) {
+ unknown_cs = 1 ;
+ continue ;
+ }
+ my_coll_agg_error ( av , count , fname , item_sep ) ;
+ return TRUE ;
+ }
+ }
+ if ( unknown_cs && c . derivation != DERIVATION_EXPLICIT ) {
+ my_coll_agg_error ( av , count , fname , item_sep ) ;
+ return TRUE ;
+ }
+ if ( ( flags & MY_COLL_DISALLOW_NONE ) && c . derivation == DERIVATION_NONE ) {
+ my_coll_agg_error ( av , count , fname , item_sep ) ;
+ return TRUE ;
+ }
+ if ( flags & MY_COLL_ALLOW_NUMERIC_CONV && c . derivation == DERIVATION_NUMERIC ) c . set ( Item : : default_charset ( ) , DERIVATION_COERCIBLE , MY_REPERTOIRE_NUMERIC ) ;
+ return FALSE ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,165 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline AIOReq *alloc_aio_req(BDRVSheepdogState *s, SheepdogAIOCB *acb,
+
+                                    uint64_t oid, unsigned int data_len,
+
+                                    uint64_t offset, uint8_t flags,
+
+                                    uint64_t base_oid, unsigned int iov_offset)
+
+{
+
+    AIOReq *aio_req;
+
+
+
+    aio_req = g_malloc(sizeof(*aio_req));
+
+    aio_req->aiocb = acb;
+
+    aio_req->iov_offset = iov_offset;
+
+    aio_req->oid = oid;
+
+    aio_req->base_oid = base_oid;
+
+    aio_req->offset = offset;
+
+    aio_req->data_len = data_len;
+
+    aio_req->flags = flags;
+
+    aio_req->id = s->aioreq_seq_num++;
+
+
+
+    acb->nr_pending++;
+
+    return aio_req;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 33 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 57 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+65 -> 69 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+4 -> 74 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+4 -> 80 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 82 [IS_AST_PARENT]
+3 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static VirtIOSCSIReq *virtio_scsi_init_req(VirtIOSCSI *s, VirtQueue *vq)
+
+{
+
+    VirtIOSCSIReq *req;
+
+    req = g_malloc(sizeof(*req));
+
+
+
+    req->vq = vq;
+
+    req->dev = s;
+
+    req->sreq = NULL;
+
+    qemu_sglist_init(&req->qsgl, DEVICE(s), 8, &address_space_memory);
+
+    return req;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

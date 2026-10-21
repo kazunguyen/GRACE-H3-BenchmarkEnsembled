@@ -1,0 +1,304 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+PCIBus *pci_apb_init(target_phys_addr_t special_base,
+
+                     target_phys_addr_t mem_base,
+
+                     qemu_irq *ivec_irqs, PCIBus **bus2, PCIBus **bus3,
+
+                     qemu_irq **pbm_irqs)
+
+{
+
+    DeviceState *dev;
+
+    SysBusDevice *s;
+
+    APBState *d;
+
+    PCIDevice *pci_dev;
+
+    PCIBridge *br;
+
+
+
+    /* Ultrasparc PBM main bus */
+
+    dev = qdev_create(NULL, "pbm");
+
+    qdev_init_nofail(dev);
+
+    s = sysbus_from_qdev(dev);
+
+    /* apb_config */
+
+    sysbus_mmio_map(s, 0, special_base);
+
+    /* PCI configuration space */
+
+    sysbus_mmio_map(s, 1, special_base + 0x1000000ULL);
+
+    /* pci_ioport */
+
+    sysbus_mmio_map(s, 2, special_base + 0x2000000ULL);
+
+    d = FROM_SYSBUS(APBState, s);
+
+
+
+    memory_region_init(&d->pci_mmio, "pci-mmio", 0x100000000ULL);
+
+    memory_region_add_subregion(get_system_memory(), mem_base, &d->pci_mmio);
+
+
+
+    d->bus = pci_register_bus(&d->busdev.qdev, "pci",
+
+                              pci_apb_set_irq, pci_pbm_map_irq, d,
+
+                              &d->pci_mmio,
+
+                              get_system_io(),
+
+                              0, 32);
+
+
+
+    *pbm_irqs = d->pbm_irqs;
+
+    d->ivec_irqs = ivec_irqs;
+
+
+
+    pci_create_simple(d->bus, 0, "pbm-pci");
+
+
+
+    /* APB secondary busses */
+
+    pci_dev = pci_create_multifunction(d->bus, PCI_DEVFN(1, 0), true,
+
+                                   "pbm-bridge");
+
+    br = DO_UPCAST(PCIBridge, dev, pci_dev);
+
+    pci_bridge_map_irq(br, "Advanced PCI Bus secondary bridge 1",
+
+                       pci_apb_map_irq);
+
+    qdev_init_nofail(&pci_dev->qdev);
+
+    *bus2 = pci_bridge_get_sec_bus(br);
+
+
+
+    pci_dev = pci_create_multifunction(d->bus, PCI_DEVFN(1, 1), true,
+
+                                   "pbm-bridge");
+
+    br = DO_UPCAST(PCIBridge, dev, pci_dev);
+
+    pci_bridge_map_irq(br, "Advanced PCI Bus secondary bridge 2",
+
+                       pci_apb_map_irq);
+
+    qdev_init_nofail(&pci_dev->qdev);
+
+    *bus3 = pci_bridge_get_sec_bus(br);
+
+
+
+    return d->bus;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+56 -> 61 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+4 -> 74 [IS_AST_PARENT]
+4 -> 75 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+4 -> 77 [IS_AST_PARENT]
+4 -> 78 [IS_AST_PARENT]
+4 -> 79 [IS_AST_PARENT]
+4 -> 80 [IS_AST_PARENT]
+4 -> 81 [IS_AST_PARENT]
+4 -> 82 [IS_AST_PARENT]
+4 -> 83 [IS_AST_PARENT]
+4 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+PCIBus *pci_apb_init(hwaddr special_base,
+
+                     hwaddr mem_base,
+
+                     qemu_irq *ivec_irqs, PCIBus **busA, PCIBus **busB,
+
+                     qemu_irq **pbm_irqs)
+
+{
+
+    DeviceState *dev;
+
+    SysBusDevice *s;
+
+    PCIHostState *phb;
+
+    APBState *d;
+
+    IOMMUState *is;
+
+    PCIDevice *pci_dev;
+
+    PCIBridge *br;
+
+
+
+    /* Ultrasparc PBM main bus */
+
+    dev = qdev_create(NULL, TYPE_APB);
+
+    d = APB_DEVICE(dev);
+
+    phb = PCI_HOST_BRIDGE(dev);
+
+    phb->bus = pci_register_bus(DEVICE(phb), "pci",
+
+                                pci_apb_set_irq, pci_pbm_map_irq, d,
+
+                                &d->pci_mmio,
+
+                                get_system_io(),
+
+                                0, 32, TYPE_PCI_BUS);
+
+    qdev_init_nofail(dev);
+
+    s = SYS_BUS_DEVICE(dev);
+
+    /* apb_config */
+
+    sysbus_mmio_map(s, 0, special_base);
+
+    /* PCI configuration space */
+
+    sysbus_mmio_map(s, 1, special_base + 0x1000000ULL);
+
+    /* pci_ioport */
+
+    sysbus_mmio_map(s, 2, special_base + 0x2000000ULL);
+
+
+
+    memory_region_init(&d->pci_mmio, OBJECT(s), "pci-mmio", 0x100000000ULL);
+
+    memory_region_add_subregion(get_system_memory(), mem_base, &d->pci_mmio);
+
+
+
+    *pbm_irqs = d->pbm_irqs;
+
+    d->ivec_irqs = ivec_irqs;
+
+
+
+    pci_create_simple(phb->bus, 0, "pbm-pci");
+
+
+
+    /* APB IOMMU */
+
+    is = &d->iommu;
+
+    memset(is, 0, sizeof(IOMMUState));
+
+
+
+    memory_region_init_iommu(&is->iommu, sizeof(is->iommu),
+
+                       
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

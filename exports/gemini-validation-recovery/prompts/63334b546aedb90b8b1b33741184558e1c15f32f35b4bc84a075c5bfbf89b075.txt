@@ -1,0 +1,149 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nppscale_query_formats(AVFilterContext *ctx)
+
+{
+
+    static const enum AVPixelFormat pixel_formats[] = {
+
+        AV_PIX_FMT_CUDA, AV_PIX_FMT_NONE,
+
+    };
+
+    AVFilterFormats *pix_fmts  = ff_make_format_list(pixel_formats);
+
+
+
+    ff_set_common_formats(ctx, pix_fmts);
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Statement
+AST 2 | CompoundStatement
+AST 3 | FunctionDef
+EDGES (original Joern endpoint IDs):
+4 -> 5 [IS_AST_PARENT]
+4 -> 6 [IS_AST_PARENT]
+4 -> 7 [IS_AST_PARENT]
+4 -> 8 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+4 -> 10 [IS_AST_PARENT]
+4 -> 11 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+13 -> 17 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 42 [IS_AST_PARENT]
+3 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+3 -> 44 [IS_AST_PARENT]
+48 -> 45 [FLOWS_TO]
+45 -> 5 [FLOWS_TO]
+5 -> 6 [FLOWS_TO]
+6 -> 7 [FLOWS_TO]
+7 -> 8 [FLOWS_TO]
+8 -> 9 [FLOWS_TO]
+9 -> 10 [FLOWS_TO]
+10 -> 11 [FLOWS_TO]
+11 -> 12 [FLOWS_TO]
+12 -> 14 [FLOWS_TO]
+14 -> 15 [FLOWS_TO]
+15 -> 16 [FLOWS_TO]
+16 -> 17 [FLOWS_TO]
+17 -> 18 [FLOWS_TO]
+18 -> 19 [FLOWS_TO]
+19 -> 31 [FLOWS_TO]
+31 -> 40 [FLOWS_TO]
+40 -> 49 [FLOWS_TO]
+19 -> 50 [DEF]
+23 -> 50 [DEF]
+20 -> 50 [DEF]
+31 -> 50 [USE]
+38 -> 50 [USE]
+45 -> 51 [DEF]
+31 -> 51 [USE]
+36 -> 51 [USE]
+19 -> 52 [USE]
+29 -> 52 [USE]
+19 -> 53 [USE]
+23 -> 53 [USE]
+19 -> 31 [REACHES]
+45 -> 31 [REACHES]
+48 -> 45 [CONTROLS]
+48 -> 5 [CONTROLS]
+48 -> 6 [CONTROLS]
+48 -> 7 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int scale_vaapi_query_formats(AVFilterContext *avctx)
+
+{
+
+    enum AVPixelFormat pix_fmts[] = {
+
+        AV_PIX_FMT_VAAPI, AV_PIX_FMT_NONE,
+
+    };
+
+
+
+    ff_formats_ref(ff_make_format_list(pix_fmts),
+
+                   &avctx->inputs[0]->out_formats);
+
+    ff_formats_ref(ff_make_format_list(pix_fmts),
+
+                   &avctx->outputs[0]->in_formats);
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

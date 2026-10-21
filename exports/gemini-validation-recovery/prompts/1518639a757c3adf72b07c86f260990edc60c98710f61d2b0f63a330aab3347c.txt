@@ -1,0 +1,142 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void aio_notify(AioContext *ctx)
+
+{
+
+    /* Write e.g. bh->scheduled before reading ctx->notify_me.  Pairs
+
+     * with atomic_or in aio_ctx_prepare or atomic_add in aio_poll.
+
+     */
+
+    smp_mb();
+
+    if (ctx->notify_me) {
+
+        event_notifier_set(&ctx->notifier);
+
+        atomic_mb_set(&ctx->notified, true);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | Callee
+AST 3 | CallExpression
+AST 4 | ExpressionStatement
+AST 5 | CompoundStatement
+AST 6 | FunctionDef
+EDGES (original Joern endpoint IDs):
+7 -> 8 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+31 -> 38 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+15 -> 27 [IS_AST_PARENT]
+10 -> 15 [IS_AST_PARENT]
+4 -> 10 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 40 [IS_AST_PARENT]
+3 -> 41 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+3 -> 42 [IS_AST_PARENT]
+46 -> 43 [FLOWS_TO]
+43 -> 5 [FLOWS_TO]
+5 -> 11 [FLOWS_TO]
+11 -> 16 [FLOWS_TO]
+11 -> 47 [FLOWS_TO]
+16 -> 27 [FLOWS_TO]
+27 -> 47 [FLOWS_TO]
+27 -> 48 [USE]
+32 -> 48 [USE]
+43 -> 49 [DEF]
+11 -> 49 [USE]
+12 -> 49 [USE]
+16 -> 49 [USE]
+24 -> 49 [USE]
+21 -> 49 [USE]
+27 -> 49 [USE]
+35 -> 49 [USE]
+32 -> 49 [USE]
+16 -> 50 [USE]
+21 -> 50 [USE]
+27 -> 51 [USE]
+38 -> 51 [USE]
+11 -> 52 [USE]
+11 -> 53 [USE]
+43 -> 11 [REACHES]
+43 -> 16 [REACHES]
+43 -> 27 [REACHES]
+46 -> 43 [CONTROLS]
+46 -> 5 [CONTROLS]
+46 -> 11 [CONTROLS]
+11 -> 16 [CONTROLS]
+11 -> 27 [CONTROLS]
+43 -> 5 [DOM]
+46 -> 46 [DOM]
+46 -> 43 [DOM]
+5 -> 11 [DOM]
+16 -> 27 [DOM]
+11 -> 16 [DOM]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void aio_notify(AioContext *ctx)
+
+{
+
+    /* Write e.g. bh->scheduled before reading ctx->dispatching.  */
+
+    smp_mb();
+
+    if (!ctx->dispatching) {
+
+        event_notifier_set(&ctx->notifier);
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

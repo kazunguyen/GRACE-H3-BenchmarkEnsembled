@@ -1,0 +1,233 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_frame ( WmallDecodeCtx * s ) {
+ GetBitContext * gb = & s -> gb ;
+ int more_frames = 0 , len = 0 , i , ret ;
+ s -> frame . nb_samples = s -> samples_per_frame ;
+ if ( ( ret = ff_get_buffer ( s -> avctx , & s -> frame , 0 ) ) < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "not enough space for the output samples\n" ) ;
+ s -> packet_loss = 1 ;
+ return ret ;
+ }
+ for ( i = 0 ;
+ i < s -> num_channels ;
+ i ++ ) {
+ s -> samples_16 [ i ] = ( int16_t * ) s -> frame . extended_data [ i ] ;
+ s -> samples_32 [ i ] = ( int32_t * ) s -> frame . extended_data [ i ] ;
+ }
+ if ( s -> len_prefix ) len = get_bits ( gb , s -> log2_frame_size ) ;
+ if ( decode_tilehdr ( s ) ) {
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+ if ( s -> dynamic_range_compression ) s -> drc_gain = get_bits ( gb , 8 ) ;
+ if ( get_bits1 ( gb ) ) {
+ int av_unused skip ;
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "start skip: %i\n" , skip ) ;
+ }
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "end skip: %i\n" , skip ) ;
+ }
+ }
+ s -> parsed_all_subframes = 0 ;
+ for ( i = 0 ;
+ i < s -> num_channels ;
+ i ++ ) {
+ s -> channel [ i ] . decoded_samples = 0 ;
+ s -> channel [ i ] . cur_subframe = 0 ;
+ }
+ while ( ! s -> parsed_all_subframes ) {
+ if ( decode_subframe ( s ) < 0 ) {
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+ }
+ av_dlog ( s -> avctx , "Frame done\n" ) ;
+ if ( s -> skip_frame ) s -> skip_frame = 0 ;
+ if ( s -> len_prefix ) {
+ if ( len != ( get_bits_count ( gb ) - s -> frame_offset ) + 2 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "frame[%i] would have to skip %i bits\n" , s -> frame_num , len - ( get_bits_count ( gb ) - s -> frame_offset ) - 1 ) ;
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+ skip_bits_long ( gb , len - ( get_bits_count ( gb ) - s -> frame_offset ) - 1 ) ;
+ }
+ more_frames = get_bits1 ( gb ) ;
+ ++ s -> frame_num ;
+ return more_frames ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GetBitContext * gb = & s -> gb ;
+ int more_frames = 0 , len = 0 , i , ret ;
+ s -> frame . nb_samples = s -> samples_per_frame ;
+ if ( ( ret = ff_get_buffer ( s -> avctx , & s -> frame , 0 ) ) < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "not enough space for the output samples\n" ) ;
+ s -> packet_loss = 1 ;
+ return ret ;
+ }
+ for ( i = 0 ;
+ i < s -> num_channels ;
+ i ++ ) {
+ s -> samples_16 [ i ] = ( int16_t * ) s -> frame . extended_data [ i ] ;
+ s -> samples_32 [ i ] = ( int32_t * ) s -> frame . extended_data [ i ] ;
+ }
+ if ( s -> len_prefix ) len = get_bits ( gb , s -> log2_frame_size ) ;
+ if ( decode_tilehdr ( s ) ) {
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+ if ( s -> dynamic_range_compression ) s -> drc_gain = get_bits ( gb , 8 ) ;
+ if ( get_bits1 ( gb ) ) {
+ int av_unused skip ;
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "start skip: %i\n" , skip ) ;
+ }
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb...
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "not enough space for the output samples\n" ) ;
+ s -> packet_loss = 1 ;
+ return ret ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ s -> samples_16 [ i ] = ( int16_t * ) s -> frame . extended_data [ i ] ;
+ s -> samples_32 [ i ] = ( int32_t * ) s -> frame . extended_data [ i ] ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { s -> packet_loss = 1 ; return 0 ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ int av_unused skip ;
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "start skip: %i\n" , skip ) ;
+ }
+ if ( get_bits1 ( gb ) ) {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "end skip: %i\n" , skip ) ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "start skip: %i\n" , skip ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ skip = get_bits ( gb , av_log2 ( s -> samples_per_frame * 2 ) ) ;
+ av_dlog ( s -> avctx , "end skip: %i\n" , skip ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ s -> channel [ i ] . decoded_samples = 0 ;
+ s -> channel [ i ] . cur_subframe = 0 ;
+ }
+      
+25769803786 | BLOCK | { if ( decode_subframe ( s ) < 0 ) { s -> packet_loss = 1 ; return 0 ; } }
+25769803787 | BLOCK | { s -> packet_loss = 1 ; return 0 ; }
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ if ( len != ( get_bits_count ( gb ) - s -> frame_offset ) + 2 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "frame[%i] would have to skip %i bits\n" , s -> frame_num , len - ( get_bits_count ( gb ) - s -> frame_offset ) - 1 ) ;
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+ skip_bits_long ( gb , len - ( get_bits_count ( gb ) - s -> frame_offset ) - 1 ) ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "frame[%i] would have to skip %i bits\n" , s -> frame_num , len - ( get_bits_count ( gb ) - s -> frame_offset ) - 1 ) ;
+ s -> packet_loss = 1 ;
+ return 0 ;
+ }
+      
+30064771072 | CALL | gb = & s -> gb
+30064771073 | CALL | & s -> gb
+30064771074 | CALL | s -> gb
+30064771075 | CALL | more_frames = 0
+30064771076 | CALL | len = 0
+30064771077 | CALL | s -> frame . nb_samples = s -> samples_per_frame
+30064771078 | CALL | s -> frame . nb_samples
+30064771079 | CALL | s -> frame
+30064771080 | CALL | s -> samples_per_frame
+30064771081 | CALL | ( ret = ff_get_buffer ( s -> avctx , & s -> frame , 0 ) ) < 0
+30064771082 | CALL | ret = ff_get_buffer ( s -> avctx , & s -> frame , 0 )
+30064771083 | CALL | ff_get_buffer ( s -> avctx , & s -> frame , 0 )
+30064771084 | CALL | s -> avctx
+30064771085 | CALL | & s -> frame
+30064771086 | CALL | s -> frame
+30064771087 | CALL | 
+        av_log ( s -> avctx , AV_LOG_ERROR , "not enough space for the output samples\n" )
+      
+30064771088 | CALL | s -> avctx
+30064771089 | CALL | s -> packet_loss = 1
+30064771090 | CALL | s -> packet_loss
+30064771091 | CALL | i = 0
+30064771092 | CALL | i < s -> num_channels
+30064771093 | CALL | s -> num_channels
+30064771094 | CALL | i ++
+30064771095 | CALL | s -> samples_16 [ i ] = ( int16_t * ) s -> frame . extended_data [ i ]
+30064771096 | CALL | s -> samples_16 [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803778 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771086 [REACHING_DEF]
+
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

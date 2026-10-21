@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool mysql_show_grants ( THD * thd , LEX_USER * lex_user ) {
+ ulong want_access ;
+ uint counter , index ;
+ int error = 0 ;
+ ACL_USER * acl_user ;
+ ACL_DB * acl_db ;
+ char buff [ 1024 ] ;
+ Protocol * protocol = thd -> protocol ;
+ DBUG_ENTER ( "mysql_show_grants" ) ;
+ LINT_INIT ( acl_user ) ;
+ if ( ! initialized ) {
+ my_error ( ER_OPTION_PREVENTS_STATEMENT , MYF ( 0 ) , "--skip-grant-tables" ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+ rw_rdlock ( & LOCK_grant ) ;
+ VOID ( pthread_mutex_lock ( & acl_cache -> lock ) ) ;
+ acl_user = find_acl_user ( lex_user -> host . str , lex_user -> user . str , TRUE ) ;
+ if ( ! acl_user ) {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ rw_unlock ( & LOCK_grant ) ;
+ my_error ( ER_NONEXISTING_GRANT , MYF ( 0 ) , lex_user -> user . str , lex_user -> host . str ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+ Item_string * field = new Item_string ( "" , 0 , & my_charset_latin1 ) ;
+ List < Item > field_list ;
+ field -> name = buff ;
+ field -> max_length = 1024 ;
+ strxmov ( buff , "Grants for " , lex_user -> user . str , "@" , lex_user -> host . str , NullS ) ;
+ field_list . push_back ( field ) ;
+ if ( protocol -> send_fields ( & field_list , Protocol : : SEND_NUM_ROWS | Protocol : : SEND_EOF ) ) {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ rw_unlock ( & LOCK_grant ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+ {
+ String global ( buff , sizeof ( buff ) , system_charset_info ) ;
+ global . length ( 0 ) ;
+ global . append ( STRING_WITH_LEN ( "GRANT " ) ) ;
+ want_access = acl_user -> access ;
+ if ( test_all_bits ( want_access , ( GLOBAL_ACLS & ~ GRANT_ACL ) ) ) global . append ( STRING_WITH_LEN ( "ALL PRIVILEGES" ) ) ;
+ else if ( ! ( want_access & ~ GRANT_ACL ) ) global . append ( STRING_WITH_LEN ( "USAGE" ) ) ;
+ else {
+ bool found = 0 ;
+ ulong j , test_access = want_access & ~ GRANT_ACL ;
+ for ( counter = 0 , j = SELECT_ACL ;
+ j <= GLOBAL_ACLS ;
+ counter ++ , j <<= 1 ) {
+ if ( test_access & j ) {
+ if ( found ) global . append ( STRING_WITH_LEN ( ", " ) ) ;
+ found = 1 ;
+ global . append ( command_array [ counter ] , command_lengths [ counter ] ) ;
+ }
+ }
+ }
+ global . append ( STRING_WITH_LEN ( " ON *.* TO '" ) ) ;
+ global . append ( lex_user -> user . str , lex_user -> user . length , system_charset_info ) ;
+ global . append ( STRING_WITH_LEN ( "'@'" ) ) ;
+ global . append ( lex_user -> host . str , lex_user -> host . length , system_charset_info ) ;
+ global . append ( '\'' ) ;
+ if ( acl_user -> salt_len ) {
+ global . append ( STRING_WITH_LEN ( " IDENTIFIED BY PASSWORD" ) ) ;
+ if ( ( thd -> security_ctx -> master_access & SUPER_ACL ) == SUPER_ACL ) {
+ char passwd_buff [ SCRAMBLED_PASSWORD_CHAR_LENGTH + 1 ] ;
+ if ( acl_user -> salt_len == SCRAMBLE_LENGTH ) make_password_from_salt ( passwd_buff , acl_user -> salt ) ;
+ else make_password_from_salt_323 ( passwd_buff , ( ulong * ) acl_user -> salt ) ;
+ global . append ( " \'" ) ;
+ global . append ( passwd_buff ) ;
+ global . append ( '\'' ) ;
+ }
+ else global . append ( " <secret>" ) ;
+ }
+ if ( acl_u
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ulong want_access ;
+ uint counter , index ;
+ int error = 0 ;
+ ACL_USER * acl_user ;
+ ACL_DB * acl_db ;
+ char buff [ 1024 ] ;
+ Protocol * protocol = thd -> protocol ;
+ DBUG_ENTER ( "mysql_show_grants" ) ;
+ LINT_INIT ( acl_user ) ;
+ if ( ! initialized ) {
+ my_error ( ER_OPTION_PREVENTS_STATEMENT , MYF ( 0 ) , "--skip-grant-tables" ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+ rw_rdlock ( & LOCK_grant ) ;
+ VOID ( pthread_mutex_lock ( & acl_cache -> lock ) ) ;
+ acl_user = find_acl_user ( lex_user -> host . str , lex_user -> user . str , TRUE ) ;
+ if ( ! acl_user ) {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ rw_unlock ( & LOCK_grant ) ;
+ my_error ( ER_NONEXISTING_GRANT , MYF ( 0 ) , lex_user -> user . str , lex_user -> host . str ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+ Item_string * field = new Item_string ( "" , 0 , & my_charset_latin1 ) ;
+ List < Item > field_list ;
+ field -> name = buff ;
+ field -> max_length = 1024 ;
+ strxmov ( buff , "Grants for " , lex_user -> user . str , "@" , lex_u...
+      
+25769803777 | BLOCK | 
+        {
+ my_error ( ER_OPTION_PREVENTS_STATEMENT , MYF ( 0 ) , "--skip-grant-tables" ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ rw_unlock ( & LOCK_grant ) ;
+ my_error ( ER_NONEXISTING_GRANT , MYF ( 0 ) , lex_user -> user . str , lex_user -> host . str ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ rw_unlock ( & LOCK_grant ) ;
+ DBUG_RETURN ( TRUE ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ String global ( buff , sizeof ( buff ) , system_charset_info ) ;
+ global . length ( 0 ) ;
+ global . append ( STRING_WITH_LEN ( "GRANT " ) ) ;
+ want_access = acl_user -> access ;
+ if ( test_all_bits ( want_access , ( GLOBAL_ACLS & ~ GRANT_ACL ) ) ) global . append ( STRING_WITH_LEN ( "ALL PRIVILEGES" ) ) ;
+ else if ( ! ( want_access & ~ GRANT_ACL ) ) global . append ( STRING_WITH_LEN ( "USAGE" ) ) ;
+ else {
+ bool found = 0 ;
+ ulong j , test_access = want_access & ~ GRANT_ACL ;
+ for ( counter = 0 , j = SELECT_ACL ;
+ j <= GLOBAL_ACLS ;
+ counter ++ , j <<= 1 ) {
+ if ( test_access & j ) {
+ if ( found ) global . append ( STRING_WITH_LEN ( ", " ) ) ;
+ found = 1 ;
+ global . append ( command_array [ counter ] , command_lengths [ counter ] ) ;
+ }
+ }
+ }
+ global . append ( STRING_WITH_LEN ( " ON *.* TO '" ) ) ;
+ global . append ( lex_user -> user . str , lex_user -> user . length , system_charset_info ) ;
+ global . append ( STRING_WITH_LEN ( "'@'" ) ) ;
+ global . append ( lex_user -> host . ...
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ bool found = 0 ;
+ ulong j , test_access = want_access & ~ GRANT_ACL ;
+ for ( counter = 0 , j = SELECT_ACL ;
+ j <= GLOBAL_ACLS ;
+ counter ++ , j <<= 1 ) {
+ if ( test_access & j ) {
+ if ( found ) global . append ( STRING_WITH_LEN ( ", " ) ) ;
+ found = 1 ;
+ global . append ( command_array [ counter ] , command_lengths [ counter ] ) ;
+ }
+ }
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( test_access & j ) {
+ if ( found ) global . append ( STRING_WITH_LEN ( ", " ) ) ;
+ found = 1 ;
+ global . append ( command_array [ counter ] , command_lengths [ counter ] ) ;
+ }
+ }
+      
+25769803788 | BLOCK | 
+        {
+ if ( found ) global . append ( STRING_WITH_LEN ( ", " ) ) ;
+ found = 1 ;
+ global . append ( command_array [ counter ] , command_lengths [ counter ] ) ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ global . append ( STRING_WITH_LEN ( " IDENTIFIED BY PASSWORD" ) ) ;
+ if ( ( thd -> security_ctx -> master_access & SUPER_ACL ) == SUPER_ACL ) {
+ char passwd_buff [ SCRAMBLED_PASSWORD_CHAR_LENGTH + 1 ] ;
+ if ( acl_user -> salt_len == SCRAMBLE_LENGTH ) make_password_from_salt ( passwd_buff , acl_user -> salt ) ;
+ else make_password_from_salt_323 ( passwd_buff , ( ulong * ) acl_user -> salt ) ;
+ global . append ( " \'" ) ;
+ global . append ( passwd_buff ) ;
+ global . append ( '\'' ) ;
+ }
+ else global . append ( " <secret>" ) ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ char passwd_buff [ SCRAMBLED_PASSWORD_CHAR_LENGTH + 1 ] ;
+ if ( acl_user -> salt_len == SCRAMBLE_LENGTH ) make_password_from_salt ( passwd_buff , acl_user ->
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

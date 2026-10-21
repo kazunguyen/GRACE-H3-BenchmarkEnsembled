@@ -1,0 +1,89 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static enum nss_status internal_getent ( struct STRUCTURE * result , char * buffer , size_t buflen , int * errnop H_ERRNO_PROTO EXTRA_ARGS_DECL ) {
+ char * p ;
+ struct parser_data * data = ( void * ) buffer ;
+ size_t linebuflen = buffer + buflen - data -> linebuffer ;
+ int parse_result ;
+ if ( buflen < sizeof * data + 2 ) {
+ * errnop = ERANGE ;
+ H_ERRNO_SET ( NETDB_INTERNAL ) ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ do {
+ get_contents_ret r = get_contents ( data -> linebuffer , linebuflen , stream ) ;
+ if ( r == gcr_error ) {
+ H_ERRNO_SET ( HOST_NOT_FOUND ) ;
+ return NSS_STATUS_NOTFOUND ;
+ }
+ if ( r == gcr_overflow ) {
+ * errnop = ERANGE ;
+ H_ERRNO_SET ( NETDB_INTERNAL ) ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ p = data -> linebuffer ;
+ while ( isspace ( * p ) ) ++ p ;
+ }
+ while ( * p == '\0' || * p == '#' || ! ( parse_result = parse_line ( p , result , data , buflen , errnop EXTRA_ARGS ) ) ) ;
+ if ( __glibc_unlikely ( parse_result == - 1 ) ) {
+ H_ERRNO_SET ( NETDB_INTERNAL ) ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ return NSS_STATUS_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+strong_alias ( _nss_nis_setaliasent , _nss_nis_endaliasent ) static enum nss_status internal_nis_getaliasent_r ( struct aliasent * alias , char * buffer , size_t buflen , int * errnop ) {
+ char * domain ;
+ if ( __builtin_expect ( yp_get_default_domain ( & domain ) , 0 ) ) return NSS_STATUS_UNAVAIL ;
+ alias -> alias_local = 0 ;
+ int parse_res ;
+ do {
+ char * result ;
+ int len ;
+ char * outkey ;
+ int keylen ;
+ int yperr ;
+ if ( new_start ) yperr = yp_first ( domain , "mail.aliases" , & outkey , & keylen , & result , & len ) ;
+ else yperr = yp_next ( domain , "mail.aliases" , oldkey , oldkeylen , & outkey , & keylen , & result , & len ) ;
+ if ( __builtin_expect ( yperr != YPERR_SUCCESS , 0 ) ) {
+ enum nss_status retval = yperr2nss ( yperr ) ;
+ if ( retval == NSS_STATUS_TRYAGAIN ) * errnop = errno ;
+ return retval ;
+ }
+ if ( __builtin_expect ( ( size_t ) ( len + 1 ) > buflen , 0 ) ) {
+ free ( result ) ;
+ * errnop = ERANGE ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ char * p = strncpy ( buffer , result , len ) ;
+ buffer [ len ] = '\0' ;
+ while ( isspace ( * p ) ) ++ p ;
+ free ( result ) ;
+ parse_res = _nss_nis_parse_aliasent ( outkey , p , alias , buffer , buflen , errnop ) ;
+ if ( __builtin_expect ( parse_res == - 1 , 0 ) ) {
+ free ( outkey ) ;
+ * errnop = ERANGE ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ free ( oldkey ) ;
+ oldkey = outkey ;
+ oldkeylen = keylen ;
+ new_start = 0 ;
+ }
+ while ( ! parse_res ) ;
+ return NSS_STATUS_SUCCESS ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

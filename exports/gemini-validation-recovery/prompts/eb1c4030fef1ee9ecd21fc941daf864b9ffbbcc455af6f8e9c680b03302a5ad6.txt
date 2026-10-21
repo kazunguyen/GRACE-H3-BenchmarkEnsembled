@@ -1,0 +1,326 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void copy_cell(Indeo3DecodeContext *ctx, Plane *plane, Cell *cell)
+
+{
+
+    int     h, w, mv_x, mv_y, offset, offset_dst;
+
+    uint8_t *src, *dst;
+
+
+
+    /* setup output and reference pointers */
+
+    offset_dst  = (cell->ypos << 2) * plane->pitch + (cell->xpos << 2);
+
+    dst         = plane->pixels[ctx->buf_sel] + offset_dst;
+
+    mv_y        = cell->mv_ptr[0];
+
+    mv_x        = cell->mv_ptr[1];
+
+    offset      = offset_dst + mv_y * plane->pitch + mv_x;
+
+    src         = plane->pixels[ctx->buf_sel ^ 1] + offset;
+
+
+
+    h = cell->height << 2;
+
+
+
+    for (w = cell->width; w > 0;) {
+
+        /* copy using 16xH blocks */
+
+        if (!((cell->xpos << 2) & 15) && w >= 4) {
+
+            for (; w >= 4; src += 16, dst += 16, w -= 4)
+
+                ctx->dsp.put_no_rnd_pixels_tab[0][0](dst, src, plane->pitch, h);
+
+        }
+
+
+
+        /* copy using 8xH blocks */
+
+        if (!((cell->xpos << 2) & 7) && w >= 2) {
+
+            ctx->dsp.put_no_rnd_pixels_tab[1][0](dst, src, plane->pitch, h);
+
+            w -= 2;
+
+            src += 8;
+
+            dst += 8;
+
+        }
+
+
+
+        if (w >= 1) {
+
+            ctx->dsp.put_no_rnd_pixels_tab[2][0](dst, src, plane->pitch, h);
+
+            w--;
+
+            src += 4;
+
+            dst += 4;
+
+        }
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int     h, w, mv_x, mv_y, offset, offset_dst;
+
+    uint8_t *src, *dst;
+
+
+
+    /* setup output and reference pointers */
+
+    offset_dst  = (cell->ypos << 2) * plane->pitch + (cell->xpos << 2);
+
+    dst         = plane->pixels[ctx->buf_sel] + offset_dst;
+
+    mv_y        = cell->mv_ptr[0];
+
+    mv_x        = cell->mv_ptr[1];
+
+    offset      = offset_dst + mv_y * plane->pitch + mv_x;
+
+    src         = plane->pixels[ctx->buf_sel ^ 1] + offset;
+
+
+
+    h = cell->height << 2;
+
+
+
+    for (w = cell->width; w > 0;) {
+
+        /* copy using 16xH blocks */
+
+        if (!((cell->xpos << 2) & 15) && w >= 4) {
+
+            for (; w >= 4; src += 16, dst += 16, w -= 4)
+
+                ctx->dsp.put_no_rnd_pixels_tab[0][0](dst, src, plane->pitch, h);
+
+        }
+
+
+
+        /* copy using 8xH blocks */
+
+        if (!((cell->xpos << 2) & 7) && w >= 2) {
+
+            ctx->dsp.put_no_rnd_pixels_tab[1][0](dst, src, plane->pitch, h);
+
+            w -= 2;
+
+            src += 8;
+
+            dst += 8...
+      
+25769803777 | BLOCK | 
+        {
+
+        /* copy using 16xH blocks */
+
+        if (!((cell->xpos << 2) & 15) && w >= 4) {
+
+            for (; w >= 4; src += 16, dst += 16, w -= 4)
+
+                ctx->dsp.put_no_rnd_pixels_tab[0][0](dst, src, plane->pitch, h);
+
+        }
+
+
+
+        /* copy using 8xH blocks */
+
+        if (!((cell->xpos << 2) & 7) && w >= 2) {
+
+            ctx->dsp.put_no_rnd_pixels_tab[1][0](dst, src, plane->pitch, h);
+
+            w -= 2;
+
+            src += 8;
+
+            dst += 8;
+
+        }
+
+
+
+        if (w >= 1) {
+
+            ctx->dsp.put_no_rnd_pixels_tab[2][0](dst, src, plane->pitch, h);
+
+            w--;
+
+            src += 4;
+
+            dst += 4;
+
+        }
+
+    }
+      
+25769803778 | BLOCK | 
+        {
+
+            for (; w >= 4; src += 16, dst += 16, w -= 4)
+
+                ctx->dsp.put_no_rnd_pixels_tab[0][0](dst, src, plane->pitch, h);
+
+        }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+
+            ctx->dsp.put_no_rnd_pixels_tab[1][0](dst, src, plane->pitch, h);
+
+            w -= 2;
+
+            src += 8;
+
+            dst += 8;
+
+        }
+      
+25769803782 | BLOCK | 
+        {
+
+            ctx->dsp.put_no_rnd_pixels_tab[2][0](dst, src, plane->pitch, h);
+
+            w--;
+
+            src += 4;
+
+            dst += 4;
+
+        }
+      
+30064771072 | CALL | 
+        offset_dst  = (cell->ypos << 2) * plane->pitch + (cell->xpos << 2)
+      
+30064771073 | CALL | (cell->ypos << 2) * plane->pitch + (cell->xpos << 2)
+30064771074 | CALL | (cell->ypos << 2) * plane->pitch
+30064771075 | CALL | cell->ypos << 2
+30064771076 | CALL | cell->ypos
+30064771077 | CALL | plane->pitch
+30064771078 | CALL | cell->xpos << 2
+30064771079 | CALL | cell->xpos
+30064771080 | CALL | dst = plane->pixels[ctx->buf_sel] + offset_dst
+30064771081 | CALL | plane->pixels[ctx->buf_sel] + offset_dst
+30064771082 | CALL | plane->pixels[ctx->buf_sel]
+30064771083 | CALL | plane->pixels
+30064771084 | CALL | ctx->buf_sel
+30064771085 | CALL | mv_y = cell->mv_ptr[0]
+30064771086 | CALL | cell->mv_ptr[0]
+30064771087 | CALL | cell->mv_ptr
+30064771088 | CALL | mv_x = cell->mv_ptr[1]
+30064771089 | CALL | cell->mv_ptr[1]
+30064771090 | CALL | cell->mv_ptr
+30064771091 | CALL | offset = offset_dst + mv_y * plane->pitch + mv_x
+30064771092 | CALL | offset_dst + mv_y * plane->pitch + mv_x
+30064771093 | CALL | offset_dst + mv_y * plane->pitch
+30064771094 | CALL | mv_y * plane->pitch
+30064771095 | CALL | plane->pitch
+30064771096 | CALL | src = plane->pixels[ctx->buf_sel ^ 1] + offset
+30064771097 | CALL | plane->pixels[ctx->buf_sel ^ 1] + offset
+30064771098 | CALL | plane->pixels[ctx->buf_sel ^ 1]
+30064771099 | CALL | plane->pixels
+30064771100 | CALL | ctx->buf_sel ^ 1
+30064771101 | CALL | ctx->buf_sel
+30064771102 | CALL | h = cell->height << 2
+30064771103 | CALL | cell->height << 2
+30064771104 | CALL | cell->height
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771078 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771078 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771078 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771073 [CFG]
+30064771078 -> 30064771073 [DOMINATE]
+30064771078 -> 30064771073 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771099 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+3
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

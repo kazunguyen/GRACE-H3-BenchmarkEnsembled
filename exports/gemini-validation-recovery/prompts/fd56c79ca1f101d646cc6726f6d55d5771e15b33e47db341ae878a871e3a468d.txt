@@ -1,0 +1,156 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gint dissect_capabilities ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , gint offset , gint * codec , gint * content_protection_type , guint32 * vendor_id , guint16 * vendor_codec , guint32 * configuration_offset , guint8 * configuration_length ) {
+ proto_item * pitem = NULL ;
+ proto_item * ptree = NULL ;
+ proto_tree * capabilities_tree ;
+ proto_item * capabilities_item ;
+ proto_tree * service_tree = NULL ;
+ proto_item * service_item = NULL ;
+ gint service_category = 0 ;
+ gint losc = 0 ;
+ gint recovery_type = 0 ;
+ gint maximum_recovery_window_size = 0 ;
+ gint maximum_number_of_media_packet_in_parity_code = 0 ;
+ gint media_type = 0 ;
+ gint media_codec_type = 0 ;
+ capabilities_item = proto_tree_add_item ( tree , hf_btavdtp_capabilities , tvb , offset , tvb_reported_length ( tvb ) - offset , ENC_NA ) ;
+ capabilities_tree = proto_item_add_subtree ( capabilities_item , ett_btavdtp_capabilities ) ;
+ if ( codec ) * codec = - 1 ;
+ if ( vendor_id ) * vendor_id = 0x003F ;
+ if ( vendor_codec ) * vendor_codec = 0 ;
+ if ( configuration_length ) * configuration_length = 0 ;
+ if ( configuration_offset ) * configuration_offset = 0 ;
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ service_category = tvb_get_guint8 ( tvb , offset ) ;
+ losc = tvb_get_guint8 ( tvb , offset + 1 ) ;
+ service_item = proto_tree_add_none_format ( capabilities_tree , hf_btavdtp_service , tvb , offset , 2 + losc , "Service: %s" , val_to_str_const ( service_category , service_category_vals , "RFD" ) ) ;
+ service_tree = proto_item_add_subtree ( service_item , ett_btavdtp_service ) ;
+ proto_tree_add_item ( service_tree , hf_btavdtp_service_category , tvb , offset , 1 , ENC_NA ) ;
+ offset += 1 ;
+ proto_tree_add_item ( service_tree , hf_btavdtp_length_of_service_category , tvb , offset , 1 , ENC_NA ) ;
+ offset += 1 ;
+ switch ( service_category ) {
+ case SERVICE_CATEGORY_MEDIA_TRANSPORT : case SERVICE_CATEGORY_REPORTING : case SERVICE_CATEGORY_DELAY_REPORTING : break ;
+ case SERVICE_CATEGORY_RECOVERY : recovery_type = tvb_get_guint8 ( tvb , offset ) ;
+ pitem = proto_tree_add_item ( service_tree , hf_btavdtp_recovery_type , tvb , offset , 1 , ENC_NA ) ;
+ proto_item_append_text ( pitem , " (%s)" , val_to_str_const ( recovery_type , recovery_type_vals , "RFD" ) ) ;
+ offset += 1 ;
+ losc -= 1 ;
+ maximum_recovery_window_size = tvb_get_guint8 ( tvb , offset ) ;
+ pitem = proto_tree_add_item ( service_tree , hf_btavdtp_maximum_recovery_window_size , tvb , offset , 1 , ENC_NA ) ;
+ if ( maximum_recovery_window_size == 0x00 ) {
+ proto_item_append_text ( pitem , " (Forbidden)" ) ;
+ }
+ else if ( maximum_recovery_window_size >= 0x18 ) {
+ proto_item_append_text ( pitem , " (Undocumented)" ) ;
+ }
+ offset += 1 ;
+ losc -= 1 ;
+ maximum_number_of_media_packet_in_parity_code = tvb_get_guint8 ( tvb , offset ) ;
+ proto_tree_add_item ( service_tree , hf_btavdtp_maximum_number_of_media_packet_in_parity_code , tvb , offset , 1 , ENC_NA ) ;
+ pitem = proto_tree_add_item ( service_tree ,
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * pitem = NULL ;
+ proto_item * ptree = NULL ;
+ proto_tree * capabilities_tree ;
+ proto_item * capabilities_item ;
+ proto_tree * service_tree = NULL ;
+ proto_item * service_item = NULL ;
+ gint service_category = 0 ;
+ gint losc = 0 ;
+ gint recovery_type = 0 ;
+ gint maximum_recovery_window_size = 0 ;
+ gint maximum_number_of_media_packet_in_parity_code = 0 ;
+ gint media_type = 0 ;
+ gint media_codec_type = 0 ;
+ capabilities_item = proto_tree_add_item ( tree , hf_btavdtp_capabilities , tvb , offset , tvb_reported_length ( tvb ) - offset , ENC_NA ) ;
+ capabilities_tree = proto_item_add_subtree ( capabilities_item , ett_btavdtp_capabilities ) ;
+ if ( codec ) * codec = - 1 ;
+ if ( vendor_id ) * vendor_id = 0x003F ;
+ if ( vendor_codec ) * vendor_codec = 0 ;
+ if ( configuration_length ) * configuration_length = 0 ;
+ if ( configuration_offset ) * configuration_offset = 0 ;
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ service_category = tvb_get_guint8 ( tvb , of...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ service_category = tvb_get_guint8 ( tvb , offset ) ;
+ losc = tvb_get_guint8 ( tvb , offset + 1 ) ;
+ service_item = proto_tree_add_none_format ( capabilities_tree , hf_btavdtp_service , tvb , offset , 2 + losc , "Service: %s" , val_to_str_const ( service_category , service_category_vals , "RFD" ) ) ;
+ service_tree = proto_item_add_subtree ( service_item , ett_btavdtp_service ) ;
+ proto_tree_add_item ( service_tree , hf_btavdtp_service_category , tvb , offset , 1 , ENC_NA ) ;
+ offset += 1 ;
+ proto_tree_add_item ( service_tree , hf_btavdtp_length_of_service_category , tvb , offset , 1 , ENC_NA ) ;
+ offset += 1 ;
+ switch ( service_category ) {
+ case SERVICE_CATEGORY_MEDIA_TRANSPORT : case SERVICE_CATEGORY_REPORTING : case SERVICE_CATEGORY_DELAY_REPORTING : break ;
+ case SERVICE_CATEGORY_RECOVERY : recovery_type = tvb_get_guint8 ( tvb , offset ) ;
+ pitem = proto_tree_add_item ( service_tree , hf_btavdtp_recovery_type , tvb , offset , 1 , ENC_NA ) ;
+ proto_item_append_text ( pitem , " ...
+      
+25769803783 | BLOCK | 
+        {
+ case SERVICE_CATEGORY_MEDIA_TRANSPORT : case SERVICE_CATEGORY_REPORTING : case SERVICE_CATEGORY_DELAY_REPORTING : break ;
+ case SERVICE_CATEGORY_RECOVERY : recovery_type = tvb_get_guint8 ( tvb , offset ) ;
+ pitem = proto_tree_add_item ( service_tree , hf_btavdtp_recovery_type , tvb , offset , 1 , ENC_NA ) ;
+ proto_item_append_text ( pitem , " (%s)" , val_to_str_const ( recovery_type , recovery_type_vals , "RFD" ) ) ;
+ offset += 1 ;
+ losc -= 1 ;
+ maximum_recovery_window_size = tvb_get_guint8 ( tvb , offset ) ;
+ pitem = proto_tree_add_item ( service_tree , hf_btavdtp_maximum_recovery_window_size , tvb , offset , 1 , ENC_NA ) ;
+ if ( maximum_recovery_window_size == 0x00 ) {
+ proto_item_append_text ( pitem , " (Forbidden)" ) ;
+ }
+ else if ( maximum_recovery_window_size >= 0x18 ) {
+ proto_item_append_text ( pitem , " (Undocumented)" ) ;
+ }
+ offset += 1 ;
+ losc -= 1 ;
+ maximum_number_of_media_packet_in_parity_code = tvb_get_guint8 ( tvb , offset ) ;
+ proto_tree_add_item ( service_tree ...
+      
+25769803784 | BLOCK | { proto_item_append_text ( pitem , " (Forbidden)" ) ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { proto_item_append_text ( pitem , " (Undocumented)" ) ; }
+25769803787 | BLOCK | { proto_item_append_text ( pitem , " (Forbidden)" ) ; }
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | { proto_item_append_text ( pitem , " (Undocumented)" ) ; }
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | { * codec = media_codec_type ; }
+25769803793 | BLOCK | 
+        {
+ proto_tree_add_item ( service_tree , hf_btavdtp_media_codec_audio_type , tvb , offset , 1 , ENC_NA ) ;
+ proto_item_append_text ( service_item , " - Audio %s" , val_to_str_const ( media_codec_type , media_codec_audio_type_vals , "unknown codec" ) ) ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " - Audio %s" , val_to_str_const ( media_codec_type , media_codec_audio_type_vals , "unknown codec" ) ) ;
+ }
+      
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ proto_tree_add_item ( service_tree , hf_btavdtp_media_codec_video_type , tvb , offset , 1 , ENC_NA ) ;
+ proto_item_
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

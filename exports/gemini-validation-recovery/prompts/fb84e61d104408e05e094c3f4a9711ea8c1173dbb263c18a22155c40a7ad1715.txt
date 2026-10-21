@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool check_column_grant_in_table_ref ( THD * thd , TABLE_LIST * table_ref , const char * name , uint length ) {
+ GRANT_INFO * grant ;
+ const char * db_name ;
+ const char * table_name ;
+ Security_context * sctx = test ( table_ref -> security_ctx ) ? table_ref -> security_ctx : thd -> security_ctx ;
+ if ( table_ref -> view || table_ref -> field_translation ) {
+ ulong view_privs ;
+ grant = & ( table_ref -> grant ) ;
+ db_name = table_ref -> view_db . str ;
+ table_name = table_ref -> view_name . str ;
+ if ( table_ref -> belong_to_view && thd -> lex -> sql_command == SQLCOM_SHOW_FIELDS ) {
+ view_privs = get_column_grant ( thd , grant , db_name , table_name , name ) ;
+ if ( view_privs & VIEW_ANY_ACL ) {
+ table_ref -> belong_to_view -> allowed_show = TRUE ;
+ return FALSE ;
+ }
+ table_ref -> belong_to_view -> allowed_show = FALSE ;
+ my_message ( ER_VIEW_NO_EXPLAIN , ER ( ER_VIEW_NO_EXPLAIN ) , MYF ( 0 ) ) ;
+ return TRUE ;
+ }
+ }
+ else {
+ TABLE * table = table_ref -> table ;
+ grant = & ( table -> grant ) ;
+ db_name = table -> s -> db . str ;
+ table_name = table -> s -> table_name . str ;
+ }
+ if ( grant -> want_privilege ) return check_grant_column ( thd , grant , db_name , table_name , name , length , sctx ) ;
+ else return FALSE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GRANT_INFO * grant ;
+ const char * db_name ;
+ const char * table_name ;
+ Security_context * sctx = test ( table_ref -> security_ctx ) ? table_ref -> security_ctx : thd -> security_ctx ;
+ if ( table_ref -> view || table_ref -> field_translation ) {
+ ulong view_privs ;
+ grant = & ( table_ref -> grant ) ;
+ db_name = table_ref -> view_db . str ;
+ table_name = table_ref -> view_name . str ;
+ if ( table_ref -> belong_to_view && thd -> lex -> sql_command == SQLCOM_SHOW_FIELDS ) {
+ view_privs = get_column_grant ( thd , grant , db_name , table_name , name ) ;
+ if ( view_privs & VIEW_ANY_ACL ) {
+ table_ref -> belong_to_view -> allowed_show = TRUE ;
+ return FALSE ;
+ }
+ table_ref -> belong_to_view -> allowed_show = FALSE ;
+ my_message ( ER_VIEW_NO_EXPLAIN , ER ( ER_VIEW_NO_EXPLAIN ) , MYF ( 0 ) ) ;
+ return TRUE ;
+ }
+ }
+ else {
+ TABLE * table = table_ref -> table ;
+ grant = & ( table -> grant ) ;
+ db_name = table -> s -> db . str ;
+ table_name = table -> s -> table_name . str ;
+ }
+ if ( grant...
+      
+25769803777 | BLOCK | 
+        {
+ ulong view_privs ;
+ grant = & ( table_ref -> grant ) ;
+ db_name = table_ref -> view_db . str ;
+ table_name = table_ref -> view_name . str ;
+ if ( table_ref -> belong_to_view && thd -> lex -> sql_command == SQLCOM_SHOW_FIELDS ) {
+ view_privs = get_column_grant ( thd , grant , db_name , table_name , name ) ;
+ if ( view_privs & VIEW_ANY_ACL ) {
+ table_ref -> belong_to_view -> allowed_show = TRUE ;
+ return FALSE ;
+ }
+ table_ref -> belong_to_view -> allowed_show = FALSE ;
+ my_message ( ER_VIEW_NO_EXPLAIN , ER ( ER_VIEW_NO_EXPLAIN ) , MYF ( 0 ) ) ;
+ return TRUE ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ view_privs = get_column_grant ( thd , grant , db_name , table_name , name ) ;
+ if ( view_privs & VIEW_ANY_ACL ) {
+ table_ref -> belong_to_view -> allowed_show = TRUE ;
+ return FALSE ;
+ }
+ table_ref -> belong_to_view -> allowed_show = FALSE ;
+ my_message ( ER_VIEW_NO_EXPLAIN , ER ( ER_VIEW_NO_EXPLAIN ) , MYF ( 0 ) ) ;
+ return TRUE ;
+ }
+      
+25769803779 | BLOCK | { table_ref -> belong_to_view -> allowed_show = TRUE ; return FALSE ; }
+25769803780 | BLOCK | 
+        {
+ TABLE * table = table_ref -> table ;
+ grant = & ( table -> grant ) ;
+ db_name = table -> s -> db . str ;
+ table_name = table -> s -> table_name . str ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | 
+        sctx = test ( table_ref -> security_ctx ) ? table_ref -> security_ctx : thd -> security_ctx
+      
+30064771073 | CALL | 
+        test ( table_ref -> security_ctx ) ? table_ref -> security_ctx : thd -> security_ctx
+      
+30064771074 | CALL | test ( table_ref -> security_ctx )
+30064771075 | CALL | table_ref -> security_ctx
+30064771076 | CALL | table_ref -> security_ctx
+30064771077 | CALL | thd -> security_ctx
+30064771078 | CALL | table_ref -> view || table_ref -> field_translation
+30064771079 | CALL | table_ref -> view
+30064771080 | CALL | table_ref -> field_translation
+30064771081 | CALL | grant = & ( table_ref -> grant )
+30064771082 | CALL | & ( table_ref -> grant )
+30064771083 | CALL | table_ref -> grant
+30064771084 | CALL | db_name = table_ref -> view_db . str
+30064771085 | CALL | table_ref -> view_db . str
+30064771086 | CALL | table_ref -> view_db
+30064771087 | CALL | table_name = table_ref -> view_name . str
+30064771088 | CALL | table_ref -> view_name . str
+30064771089 | CALL | table_ref -> view_name
+30064771090 | CALL | 
+        table_ref -> belong_to_view && thd -> lex -> sql_command == SQLCOM_SHOW_FIELDS
+      
+30064771091 | CALL | table_ref -> belong_to_view
+30064771092 | CALL | thd -> lex -> sql_command == SQLCOM_SHOW_FIELDS
+30064771093 | CALL | thd -> lex -> sql_command
+30064771094 | CALL | thd -> lex
+30064771095 | CALL | view_privs = get_column_grant ( thd , grant , db_name , table_name , name )
+30064771096 | CALL | get_column_grant ( thd , grant , db_name , table_name , name )
+30064771097 | CALL | view_privs & VIEW_ANY_ACL
+30064771098 | CALL | table_ref -> belong_to_view -> allowed_show = TRUE
+30064771099 | CALL | table_ref -> belong_to_view -> allowed_show
+30064771100 | CALL | table_ref -> belong_to_view
+30064771101 | CALL | table_ref -> belong_to_view -> allowed_show = FALSE
+30064771102 | CALL | table_ref -> belong_to_view -> allowed_show
+30064771103 | CALL | table_ref -> belong_to_view
+30064771104 | CALL | my_message ( ER_VIEW_NO_EXPLAIN , ER ( ER_VIEW_NO_EXPLAIN ) , MYF ( 0 ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771095 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771104 [AST]
+25769803779 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771076 [POST_DOMINATE]
+30064771073 -> 30064771077 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771076 -> 30064771073 [CFG]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771073 [CFG]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

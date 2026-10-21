@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vfio_bar_quirk_teardown(VFIOPCIDevice *vdev, int nr)
+
+{
+
+    VFIOBAR *bar = &vdev->bars[nr];
+
+
+
+    while (!QLIST_EMPTY(&bar->quirks)) {
+
+        VFIOQuirk *quirk = QLIST_FIRST(&bar->quirks);
+
+        memory_region_del_subregion(&bar->region.mem, &quirk->mem);
+
+        object_unparent(OBJECT(&quirk->mem));
+
+        QLIST_REMOVE(quirk, next);
+
+        g_free(quirk);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    VFIOBAR *bar = &vdev->bars[nr];
+
+
+
+    while (!QLIST_EMPTY(&bar->quirks)) {
+
+        VFIOQuirk *quirk = QLIST_FIRST(&bar->quirks);
+
+        memory_region_del_subregion(&bar->region.mem, &quirk->mem);
+
+        object_unparent(OBJECT(&quirk->mem));
+
+        QLIST_REMOVE(quirk, next);
+
+        g_free(quirk);
+
+    }
+
+}
+      
+25769803777 | BLOCK | 
+        {
+
+        VFIOQuirk *quirk = QLIST_FIRST(&bar->quirks);
+
+        memory_region_del_subregion(&bar->region.mem, &quirk->mem);
+
+        object_unparent(OBJECT(&quirk->mem));
+
+        QLIST_REMOVE(quirk, next);
+
+        g_free(quirk);
+
+    }
+      
+30064771072 | CALL | bar = &vdev->bars[nr]
+30064771073 | CALL | &vdev->bars[nr]
+30064771074 | CALL | vdev->bars[nr]
+30064771075 | CALL | vdev->bars
+30064771076 | CALL | !QLIST_EMPTY(&bar->quirks)
+30064771077 | CALL | QLIST_EMPTY(&bar->quirks)
+30064771078 | CALL | &bar->quirks
+30064771079 | CALL | bar->quirks
+30064771080 | CALL | quirk = QLIST_FIRST(&bar->quirks)
+30064771081 | CALL | QLIST_FIRST(&bar->quirks)
+30064771082 | CALL | &bar->quirks
+30064771083 | CALL | bar->quirks
+30064771084 | CALL | memory_region_del_subregion(&bar->region.mem, &quirk->mem)
+30064771085 | CALL | &bar->region.mem
+30064771086 | CALL | bar->region.mem
+30064771087 | CALL | bar->region
+30064771088 | CALL | &quirk->mem
+30064771089 | CALL | quirk->mem
+30064771090 | CALL | object_unparent(OBJECT(&quirk->mem))
+30064771091 | CALL | OBJECT(&quirk->mem)
+30064771092 | CALL | &quirk->mem
+30064771093 | CALL | quirk->mem
+30064771094 | CALL | QLIST_REMOVE(quirk, next)
+30064771095 | CALL | g_free(quirk)
+47244640256 | CONTROL_STRUCTURE | while (!QLIST_EMPTY(&bar->quirks))
+55834574848 | FIELD_IDENTIFIER | bars
+55834574849 | FIELD_IDENTIFIER | quirks
+55834574850 | FIELD_IDENTIFIER | quirks
+55834574851 | FIELD_IDENTIFIER | region
+55834574852 | FIELD_IDENTIFIER | mem
+55834574853 | FIELD_IDENTIFIER | mem
+55834574854 | FIELD_IDENTIFIER | mem
+68719476736 | IDENTIFIER | bar
+68719476737 | IDENTIFIER | vdev
+68719476738 | IDENTIFIER | nr
+68719476739 | IDENTIFIER | bar
+68719476740 | IDENTIFIER | quirk
+68719476741 | IDENTIFIER | bar
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771095 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 55834574854 [CDG]
+30064771076 -> 55834574852 [CDG]
+30064771076 -> 55834574853 [CDG]
+30064771076 -> 55834574850 [CDG]
+30064771076 -> 55834574851 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 68719476739 [CDG]
+30064771076 -> 68719476740 [CDG]
+30064771076 -> 30064771094 [CDG]
+30064771076 -> 30064771095 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771093 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void vfio_bar_quirk_teardown(VFIODevice *vdev, int nr)
+
+{
+
+    VFIOBAR *bar = &vdev->bars[nr];
+
+
+
+    while (!QLIST_EMPTY(&bar->quirks)) {
+
+        VFIOQuirk *quirk = QLIST_FIRST(&bar->quirks);
+
+        memory_region_del_subregion(&bar->mem, &quirk->mem);
+
+
+        QLIST_REMOVE(quirk, next);
+
+        g_free(quirk);
+
+    }
+
+}
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

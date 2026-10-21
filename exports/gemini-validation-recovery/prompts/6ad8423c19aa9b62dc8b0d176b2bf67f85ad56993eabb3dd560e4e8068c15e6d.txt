@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int main_file_seek ( main_file * xfile , xoff_t pos ) {
+ int ret = 0 ;
+ # if XD3_STDIO if ( fseek ( xfile -> file , pos , SEEK_SET ) != 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_POSIX if ( ( xoff_t ) lseek ( xfile -> file , pos , SEEK_SET ) != pos ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_WIN32 # if ( _WIN32_WINNT >= 0x0500 ) LARGE_INTEGER move , out ;
+ move . QuadPart = pos ;
+ if ( SetFilePointerEx ( xfile -> file , move , & out , FILE_BEGIN ) == 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # else if ( SetFilePointer ( xfile -> file , ( LONG ) pos , NULL , FILE_BEGIN ) == INVALID_SET_FILE_POINTER ) {
+ ret = get_errno ( ) ;
+ }
+ # endif # endif return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret = 0 ;
+ # if XD3_STDIO if ( fseek ( xfile -> file , pos , SEEK_SET ) != 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_POSIX if ( ( xoff_t ) lseek ( xfile -> file , pos , SEEK_SET ) != pos ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_WIN32 # if ( _WIN32_WINNT >= 0x0500 ) LARGE_INTEGER move , out ;
+ move . QuadPart = pos ;
+ if ( SetFilePointerEx ( xfile -> file , move , & out , FILE_BEGIN ) == 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # else if ( SetFilePointer ( xfile -> file , ( LONG ) pos , NULL , FILE_BEGIN ) == INVALID_SET_FILE_POINTER ) {
+ ret = get_errno ( ) ;
+ }
+      
+30064771072 | CALL | ret = 0
+30064771073 | CALL | ret = get_errno ( )
+30064771074 | CALL | get_errno ( )
+68719476736 | IDENTIFIER | ret
+68719476737 | IDENTIFIER | ret
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | int ret
+107374182400 | METHOD | 
+        static int main_file_seek ( main_file * xfile , xoff_t pos ) {
+ int ret = 0 ;
+ # if XD3_STDIO if ( fseek ( xfile -> file , pos , SEEK_SET ) != 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_POSIX if ( ( xoff_t ) lseek ( xfile -> file , pos , SEEK_SET ) != pos ) {
+ ret = get_errno ( ) ;
+ }
+ # elif XD3_WIN32 # if ( _WIN32_WINNT >= 0x0500 ) LARGE_INTEGER move , out ;
+ move . QuadPart = pos ;
+ if ( SetFilePointerEx ( xfile -> file , move , & out , FILE_BEGIN ) == 0 ) {
+ ret = get_errno ( ) ;
+ }
+ # else if ( SetFilePointer ( xfile -> file , ( LONG ) pos , NULL , FILE_BEGIN ) == INVALID_SET_FILE_POINTER ) {
+ ret = get_errno ( ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | main_file * xfile
+111669149697 | METHOD_PARAMETER_IN | xoff_t pos
+115964116992 | METHOD_PARAMETER_OUT | main_file * xfile
+115964116993 | METHOD_PARAMETER_OUT | xoff_t pos
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 124554051584 [CFG]
+30064771073 -> 124554051584 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+68719476736 -> 90194313216 [CFG]
+68719476736 -> 90194313216 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+68719476736 -> 94489280512 [REF]
+68719476737 -> 30064771074 [CFG]
+68719476737 -> 30064771074 [DOMINATE]
+68719476737 -> 30064771072 [POST_DOMINATE]
+68719476737 -> 30064771073 [REACHING_DEF]
+68719476737 -> 124554051584 [REACHING_DEF]
+68719476737 -> 94489280512 [REF]
+90194313216 -> 30064771072 [CFG]
+90194313216 -> 30064771072 [DOMINATE]
+90194313216 -> 68719476736 [POST_DOMINATE]
+90194313216 -> 68719476736 [REACHING_DEF]
+90194313216 -> 30064771072 [REACHING_DEF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 68719476736 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 30064771072 [CONTAINS]
+107374182400 -> 30064771073 [CONTAINS]
+107374182400 -> 68719476736 [CONTAINS]
+107374182400 -> 90194313216 [CONTAINS]
+107374182400 -> 68719476737 [CONTAINS]
+107374182400 -> 30064771074 [CONTAINS]
+107374182400 -> 68719476736 [DOMINATE]
+107374182400 -> 30064771074 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 90194313216 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 30064771073 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int main_file_stat ( main_file * xfile , xoff_t * size ) {
+ int ret = 0 ;
+ # if XD3_WIN32 if ( GetFileType ( xfile -> file ) != FILE_TYPE_DISK ) {
+ return - 1 ;
+ }
+ # if ( _WIN32_WINNT >= 0x0500 ) {
+ LARGE_INTEGER li ;
+ if ( GetFileSizeEx ( xfile -> file , & li ) == 0 ) {
+ return get_errno ( ) ;
+ }
+ * size = li . QuadPart ;
+ }
+ # else {
+ DWORD filesize = GetFileSize ( xfile -> file , NULL ) ;
+ if ( filesize == INVALID_FILE_SIZE ) {
+ return get_errno ( ) }
+ * size = filesize ;
+ }
+ # endif # else struct stat sbuf ;
+ if ( fstat ( XFNO ( xfile ) , & sbuf ) < 0 ) {
+ ret = get_errno ( ) ;
+ return ret ;
+ }
+ if ( ! S_ISREG ( sbuf . st_mode ) ) {
+ return ESPIPE ;
+ }
+ ( * size ) = sbuf . st_size ;
+ # endif return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

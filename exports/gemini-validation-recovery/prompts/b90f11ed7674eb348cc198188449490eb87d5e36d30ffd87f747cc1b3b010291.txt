@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void updateMMXDitherTables(SwsContext *c, int dstY, int lumBufIndex, int chrBufIndex,
+                           int lastInLumBuf, int lastInChrBuf)
+{
+    const int dstH= c->dstH;
+    const int flags= c->flags;
+    int16_t **lumPixBuf= c->lumPixBuf;
+    int16_t **chrUPixBuf= c->chrUPixBuf;
+    int16_t **alpPixBuf= c->alpPixBuf;
+    const int vLumBufSize= c->vLumBufSize;
+    const int vChrBufSize= c->vChrBufSize;
+    int16_t *vLumFilterPos= c->vLumFilterPos;
+    int16_t *vChrFilterPos= c->vChrFilterPos;
+    int16_t *vLumFilter= c->vLumFilter;
+    int16_t *vChrFilter= c->vChrFilter;
+    int32_t *lumMmxFilter= c->lumMmxFilter;
+    int32_t *chrMmxFilter= c->chrMmxFilter;
+    int32_t av_unused *alpMmxFilter= c->alpMmxFilter;
+    const int vLumFilterSize= c->vLumFilterSize;
+    const int vChrFilterSize= c->vChrFilterSize;
+    const int chrDstY= dstY>>c->chrDstVSubSample;
+    const int firstLumSrcY= vLumFilterPos[dstY]; //First line needed as input
+    const int firstChrSrcY= vChrFilterPos[chrDstY]; //First line needed as input
+    c->blueDither= ff_dither8[dstY&1];
+    if (c->dstFormat == PIX_FMT_RGB555 || c->dstFormat == PIX_FMT_BGR555)
+        c->greenDither= ff_dither8[dstY&1];
+    else
+        c->greenDither= ff_dither4[dstY&1];
+    c->redDither= ff_dither8[(dstY+1)&1];
+    if (dstY < dstH - 2) {
+        const int16_t **lumSrcPtr= (const int16_t **) lumPixBuf + lumBufIndex + firstLumSrcY - lastInLumBuf + vLumBufSize;
+        const int16_t **chrUSrcPtr= (const int16_t **) chrUPixBuf + chrBufIndex + firstChrSrcY - lastInChrBuf + vChrBufSize;
+        const int16_t **alpSrcPtr= (CONFIG_SWSCALE_ALPHA && alpPixBuf) ? (const int16_t **) alpPixBuf + lumBufIndex + firstLumSrcY - lastInLumBuf + vLumBufSize : NULL;
+        int i;
+        if (flags & SWS_ACCURATE_RND) {
+            int s= APCK_SIZE / 8;
+            for (i=0; i<vLumFilterSize; i+=2) {
+                *(const void**)&lumMmxFilter[s*i              ]= lumSrcPtr[i  ];
+                *(const void**)&lumMmxFilter[s*i+APCK_PTR2/4  ]= lumSrcPtr[i+(vLumFilterSize>1)];
+                lumMmxFilter[s*i+APCK_COEF/4  ]=
+                lumMmxFilter[s*i+APCK_COEF/4+1]= vLumFilter[dstY*vLumFilterSize + i    ]
+                + (vLumFilterSize>1 ? vLumFilter[dstY*vLumFilterSize + i + 1]<<16 : 0);
+                if (CONFIG_SWSCALE_ALPHA && alpPixBuf) {
+                    *(const void**)&alpMmxFilter[s*i              ]= alpSrcPtr[i  ];
+                    *(const void**)&alpMmxFilter[s*i+APCK_PTR2/4  ]= alpSrcPtr[i+(vLumFilterSize>1)];
+                    alpMmxFilter[s*i+APCK_COEF/4  ]=
+                    alpMmxFilter[s*i+APCK_COEF/4+1]= lumMmxFilter[s*i+APCK_COEF/4  ];
+            for (i=0; i<vChrFilterSize; i+=2) {
+                *(const void**)&chrMmxFilter[s*i              ]= chrUSrcPtr[i  ];
+                *(const void**)&chrMmxFilter[s*i+APCK_PTR2/4  ]= chrUSrcPtr[i+(vChrFilterSize>1)];
+                chrMmxFilter[s*i+APCK_COEF/4  ]=
+                chrMmxFilter[s*i+APCK_COEF/4+1]= vChrFilter[chrDs
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+51 -> 54 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+78 -> 81 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void updateMMXDitherTables(SwsContext *c, int dstY, int lumBufIndex, int chrBufIndex,
+
+                                  int lastInLumBuf, int lastInChrBuf)
+
+{
+
+    const int dstH= c->dstH;
+
+    const int flags= c->flags;
+
+    int16_t **lumPixBuf= c->lumPixBuf;
+
+    int16_t **chrUPixBuf= c->chrUPixBuf;
+
+    int16_t **chrVPixBuf= c->chrVPixBuf;
+
+    int16_t **alpPixBuf= c->alpPixBuf;
+
+    const int vLumBufSize= c->vLumBufSize;
+
+    const int vChrBufSize= c->vChrBufSize;
+
+    int16_t *vLumFilterPos= c->vLumFilterPos;
+
+    int16_t *vChrFilterPos= c->vChrFilterPos;
+
+    int16_t *vLumFilter= c->vLumFilter;
+
+    int16_t *vChrFilter= c->vChrFilter;
+
+    int32_t *lumMmxFilter= c->lumMmxFilter;
+
+    int32_t *chrMmxFilter= c->chrMmxFilter;
+
+    int32_t av_unused *alpMmxFilter= c->alpMmxFilter;
+
+    const int vLumFilterSize= c->vLumFilterSize;
+
+    const int vChrFilterSize= c->vChrFilterSize;
+
+    const int chrDstY= dstY>>c->chrDstVSubSample;
+
+    const int firstLumSrcY= vLumFilterPos[dstY]; //First line needed as input
+
+    const int firstChrSrcY= vChrFilterPos[chrDstY]; //First line needed as input
+
+
+
+    c->blueDither= ff_dither8[dstY&1];
+
+    if (c->dstFormat == PIX_FMT_RGB555 || c->dstFormat == PIX_FMT_BGR555)
+
+        c->greenDither= ff_dither8[dstY&1];
+
+    else
+
+        c->greenDither= ff_dither4[dstY&1];
+
+    c->redDither= ff_dither8[(dstY+1)&1];
+
+    if (dstY < dstH - 2) {
+
+        const int16_t **lumSrcPtr= (const int16_t **) lumPixBuf + lumBufIndex + firstLumSrcY - la
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

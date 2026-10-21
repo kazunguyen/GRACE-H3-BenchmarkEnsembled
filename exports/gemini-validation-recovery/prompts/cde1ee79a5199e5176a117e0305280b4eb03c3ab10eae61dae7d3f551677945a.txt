@@ -1,0 +1,240 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static struct cvec * cclass ( struct vars * v , const chr * startp , const chr * endp , int cases ) {
+ size_t len ;
+ struct cvec * cv = NULL ;
+ const char * const * namePtr ;
+ int i , index ;
+ static const char * const classNames [ ] = {
+ "alnum" , "alpha" , "ascii" , "blank" , "cntrl" , "digit" , "graph" , "lower" , "print" , "punct" , "space" , "upper" , "xdigit" , NULL }
+ ;
+ enum classes {
+ CC_ALNUM , CC_ALPHA , CC_ASCII , CC_BLANK , CC_CNTRL , CC_DIGIT , CC_GRAPH , CC_LOWER , CC_PRINT , CC_PUNCT , CC_SPACE , CC_UPPER , CC_XDIGIT }
+ ;
+ len = endp - startp ;
+ index = - 1 ;
+ for ( namePtr = classNames , i = 0 ;
+ * namePtr != NULL ;
+ namePtr ++ , i ++ ) {
+ if ( strlen ( * namePtr ) == len && pg_char_and_wchar_strncmp ( * namePtr , startp , len ) == 0 ) {
+ index = i ;
+ break ;
+ }
+ }
+ if ( index == - 1 ) {
+ ERR ( REG_ECTYPE ) ;
+ return NULL ;
+ }
+ if ( cases && ( ( enum classes ) index == CC_LOWER || ( enum classes ) index == CC_UPPER ) ) index = ( int ) CC_ALPHA ;
+ switch ( ( enum classes ) index ) {
+ case CC_PRINT : cv = pg_ctype_get_cache ( pg_wc_isprint ) ;
+ break ;
+ case CC_ALNUM : cv = pg_ctype_get_cache ( pg_wc_isalnum ) ;
+ break ;
+ case CC_ALPHA : cv = pg_ctype_get_cache ( pg_wc_isalpha ) ;
+ break ;
+ case CC_ASCII : cv = getcvec ( v , 0 , 1 ) ;
+ if ( cv ) addrange ( cv , 0 , 0x7f ) ;
+ break ;
+ case CC_BLANK : cv = getcvec ( v , 2 , 0 ) ;
+ addchr ( cv , '\t' ) ;
+ addchr ( cv , ' ' ) ;
+ break ;
+ case CC_CNTRL : cv = getcvec ( v , 0 , 2 ) ;
+ addrange ( cv , 0x0 , 0x1f ) ;
+ addrange ( cv , 0x7f , 0x9f ) ;
+ break ;
+ case CC_DIGIT : cv = pg_ctype_get_cache ( pg_wc_isdigit ) ;
+ break ;
+ case CC_PUNCT : cv = pg_ctype_get_cache ( pg_wc_ispunct ) ;
+ break ;
+ case CC_XDIGIT : cv = getcvec ( v , 0 , 3 ) ;
+ if ( cv ) {
+ addrange ( cv , '0' , '9' ) ;
+ addrange ( cv , 'a' , 'f' ) ;
+ addrange ( cv , 'A' , 'F' ) ;
+ }
+ break ;
+ case CC_SPACE : cv = pg_ctype_get_cache ( pg_wc_isspace ) ;
+ break ;
+ case CC_LOWER : cv = pg_ctype_get_cache ( pg_wc_islower ) ;
+ break ;
+ case CC_UPPER : cv = pg_ctype_get_cache ( pg_wc_isupper ) ;
+ break ;
+ case CC_GRAPH : cv = pg_ctype_get_cache ( pg_wc_isgraph ) ;
+ break ;
+ }
+ if ( cv == NULL ) ERR ( REG_ESPACE ) ;
+ return cv ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ size_t len ;
+ struct cvec * cv = NULL ;
+ const char * const * namePtr ;
+ int i , index ;
+ static const char * const classNames [ ] = {
+ "alnum" , "alpha" , "ascii" , "blank" , "cntrl" , "digit" , "graph" , "lower" , "print" , "punct" , "space" , "upper" , "xdigit" , NULL }
+ ;
+ enum classes {
+ CC_ALNUM , CC_ALPHA , CC_ASCII , CC_BLANK , CC_CNTRL , CC_DIGIT , CC_GRAPH , CC_LOWER , CC_PRINT , CC_PUNCT , CC_SPACE , CC_UPPER , CC_XDIGIT }
+ ;
+ len = endp - startp ;
+ index = - 1 ;
+ for ( namePtr = classNames , i = 0 ;
+ * namePtr != NULL ;
+ namePtr ++ , i ++ ) {
+ if ( strlen ( * namePtr ) == len && pg_char_and_wchar_strncmp ( * namePtr , startp , len ) == 0 ) {
+ index = i ;
+ break ;
+ }
+ }
+ if ( index == - 1 ) {
+ ERR ( REG_ECTYPE ) ;
+ return NULL ;
+ }
+ if ( cases && ( ( enum classes ) index == CC_LOWER || ( enum classes ) index == CC_UPPER ) ) index = ( int ) CC_ALPHA ;
+ switch ( ( enum classes ) index ) {
+ case CC_PRINT : cv = pg_ctype_get_cache ( pg_wc_isprint ) ;
+ break ;
+ case CC_ALNU...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( strlen ( * namePtr ) == len && pg_char_and_wchar_strncmp ( * namePtr , startp , len ) == 0 ) {
+ index = i ;
+ break ;
+ }
+ }
+      
+25769803780 | BLOCK | { index = i ; break ; }
+25769803781 | BLOCK | { ERR ( REG_ECTYPE ) ; return NULL ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ case CC_PRINT : cv = pg_ctype_get_cache ( pg_wc_isprint ) ;
+ break ;
+ case CC_ALNUM : cv = pg_ctype_get_cache ( pg_wc_isalnum ) ;
+ break ;
+ case CC_ALPHA : cv = pg_ctype_get_cache ( pg_wc_isalpha ) ;
+ break ;
+ case CC_ASCII : cv = getcvec ( v , 0 , 1 ) ;
+ if ( cv ) addrange ( cv , 0 , 0x7f ) ;
+ break ;
+ case CC_BLANK : cv = getcvec ( v , 2 , 0 ) ;
+ addchr ( cv , '\t' ) ;
+ addchr ( cv , ' ' ) ;
+ break ;
+ case CC_CNTRL : cv = getcvec ( v , 0 , 2 ) ;
+ addrange ( cv , 0x0 , 0x1f ) ;
+ addrange ( cv , 0x7f , 0x9f ) ;
+ break ;
+ case CC_DIGIT : cv = pg_ctype_get_cache ( pg_wc_isdigit ) ;
+ break ;
+ case CC_PUNCT : cv = pg_ctype_get_cache ( pg_wc_ispunct ) ;
+ break ;
+ case CC_XDIGIT : cv = getcvec ( v , 0 , 3 ) ;
+ if ( cv ) {
+ addrange ( cv , '0' , '9' ) ;
+ addrange ( cv , 'a' , 'f' ) ;
+ addrange ( cv , 'A' , 'F' ) ;
+ }
+ break ;
+ case CC_SPACE : cv = pg_ctype_get_cache ( pg_wc_isspace ) ;
+ break ;
+ case CC_LOWER : cv = pg_ctype_get_cache ( pg_wc_islower ) ;
+ break ;
+ case CC_UPPER : cv = p...
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ addrange ( cv , '0' , '9' ) ;
+ addrange ( cv , 'a' , 'f' ) ;
+ addrange ( cv , 'A' , 'F' ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | cv = NULL
+30064771073 | CALL | 
+        const classNames [ ] = {
+ "alnum" , "alpha" , "ascii" , "blank" , "cntrl" , "digit" , "graph" , "lower" , "print" , "punct" , "space" , "upper" , "xdigit" , NULL }
+      
+30064771074 | CALL | 
+        {
+ "alnum" , "alpha" , "ascii" , "blank" , "cntrl" , "digit" , "graph" , "lower" , "print" , "punct" , "space" , "upper" , "xdigit" , NULL }
+      
+30064771075 | CALL | len = endp - startp
+30064771076 | CALL | endp - startp
+30064771077 | CALL | index = - 1
+30064771078 | CALL | - 1
+30064771079 | CALL | namePtr = classNames
+30064771080 | CALL | i = 0
+30064771081 | CALL | * namePtr != NULL
+30064771082 | CALL | * namePtr
+30064771083 | CALL | namePtr ++
+30064771084 | CALL | i ++
+30064771085 | CALL | 
+        strlen ( * namePtr ) == len && pg_char_and_wchar_strncmp ( * namePtr , startp , len ) == 0
+      
+30064771086 | CALL | strlen ( * namePtr ) == len
+30064771087 | CALL | strlen ( * namePtr )
+30064771088 | CALL | * namePtr
+30064771089 | CALL | pg_char_and_wchar_strncmp ( * namePtr , startp , len ) == 0
+30064771090 | CALL | pg_char_and_wchar_strncmp ( * namePtr , startp , len )
+30064771091 | CALL | * namePtr
+30064771092 | CALL | index = i
+30064771093 | CALL | index == - 1
+30064771094 | CALL | - 1
+30064771095 | CALL | ERR ( REG_ECTYPE )
+30064771096 | CALL | 
+        cases && ( ( enum classes ) index == CC_LOWER || ( enum classes ) index == CC_UPPER )
+      
+30064771097 | CALL | ( enum classes ) index == CC_LOWER || ( enum classes ) index == CC_UPPER
+30064771098 | CALL | ( enum classes ) index == CC_LOWER
+30064771099 | CALL | ( enum classes ) index
+30064771100 | CALL | ( enum classes ) index == CC_UPPER
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771084 [AST]
+25769803780 -> 30064771092 [AST]
+25769803781 -> 30064771095 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 ->
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

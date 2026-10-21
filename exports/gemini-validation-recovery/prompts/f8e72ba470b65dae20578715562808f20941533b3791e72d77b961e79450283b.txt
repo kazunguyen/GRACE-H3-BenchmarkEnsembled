@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+ArchiveHandle * CloneArchive ( ArchiveHandle * AH ) {
+ ArchiveHandle * clone ;
+ clone = ( ArchiveHandle * ) pg_malloc ( sizeof ( ArchiveHandle ) ) ;
+ memcpy ( clone , AH , sizeof ( ArchiveHandle ) ) ;
+ memset ( & ( clone -> sqlparse ) , 0 , sizeof ( clone -> sqlparse ) ) ;
+ clone -> connection = NULL ;
+ clone -> connCancel = NULL ;
+ clone -> currUser = NULL ;
+ clone -> currSchema = NULL ;
+ clone -> currTablespace = NULL ;
+ clone -> currWithOids = - 1 ;
+ if ( clone -> savedPassword ) clone -> savedPassword = pg_strdup ( clone -> savedPassword ) ;
+ clone -> public . n_errors = 0 ;
+ if ( AH -> mode == archModeRead ) {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ Assert ( AH -> connection == NULL ) ;
+ ConnectDatabase ( ( Archive * ) clone , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword ) ;
+ _doSetFixedOutputState ( clone ) ;
+ }
+ else {
+ PQExpBufferData connstr ;
+ char * pghost ;
+ char * pgport ;
+ char * username ;
+ Assert ( AH -> connection != NULL ) ;
+ initPQExpBuffer ( & connstr ) ;
+ appendPQExpBuffer ( & connstr , "dbname=" ) ;
+ appendConnStrVal ( & connstr , PQdb ( AH -> connection ) ) ;
+ pghost = PQhost ( AH -> connection ) ;
+ pgport = PQport ( AH -> connection ) ;
+ username = PQuser ( AH -> connection ) ;
+ ConnectDatabase ( ( Archive * ) clone , connstr . data , pghost , pgport , username , TRI_NO ) ;
+ termPQExpBuffer ( & connstr ) ;
+ }
+ ( clone -> ClonePtr ) ( clone ) ;
+ Assert ( clone -> connection != NULL ) ;
+ return clone ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ArchiveHandle * clone ;
+ clone = ( ArchiveHandle * ) pg_malloc ( sizeof ( ArchiveHandle ) ) ;
+ memcpy ( clone , AH , sizeof ( ArchiveHandle ) ) ;
+ memset ( & ( clone -> sqlparse ) , 0 , sizeof ( clone -> sqlparse ) ) ;
+ clone -> connection = NULL ;
+ clone -> connCancel = NULL ;
+ clone -> currUser = NULL ;
+ clone -> currSchema = NULL ;
+ clone -> currTablespace = NULL ;
+ clone -> currWithOids = - 1 ;
+ if ( clone -> savedPassword ) clone -> savedPassword = pg_strdup ( clone -> savedPassword ) ;
+ clone -> public . n_errors = 0 ;
+ if ( AH -> mode == archModeRead ) {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ Assert ( AH -> connection == NULL ) ;
+ ConnectDatabase ( ( Archive * ) clone , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword ) ;
+ _doSetFixedOutputState ( clone ) ;
+ }
+ else {
+ PQExpBufferData connstr ;
+ char * pghost ;
+ char * pgport ;
+ char * username ;
+ Assert ( AH -> connection != NULL ) ;
+ initPQExpBuffer ( & connstr ) ;
+ ap...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ Assert ( AH -> connection == NULL ) ;
+ ConnectDatabase ( ( Archive * ) clone , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword ) ;
+ _doSetFixedOutputState ( clone ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ PQExpBufferData connstr ;
+ char * pghost ;
+ char * pgport ;
+ char * username ;
+ Assert ( AH -> connection != NULL ) ;
+ initPQExpBuffer ( & connstr ) ;
+ appendPQExpBuffer ( & connstr , "dbname=" ) ;
+ appendConnStrVal ( & connstr , PQdb ( AH -> connection ) ) ;
+ pghost = PQhost ( AH -> connection ) ;
+ pgport = PQport ( AH -> connection ) ;
+ username = PQuser ( AH -> connection ) ;
+ ConnectDatabase ( ( Archive * ) clone , connstr . data , pghost , pgport , username , TRI_NO ) ;
+ termPQExpBuffer ( & connstr ) ;
+ }
+      
+30064771072 | CALL | clone = ( ArchiveHandle * ) pg_malloc ( sizeof ( ArchiveHandle ) )
+30064771073 | CALL | ( ArchiveHandle * ) pg_malloc ( sizeof ( ArchiveHandle ) )
+30064771074 | CALL | pg_malloc ( sizeof ( ArchiveHandle ) )
+30064771075 | CALL | sizeof ( ArchiveHandle )
+30064771076 | CALL | memcpy ( clone , AH , sizeof ( ArchiveHandle ) )
+30064771077 | CALL | sizeof ( ArchiveHandle )
+30064771078 | CALL | memset ( & ( clone -> sqlparse ) , 0 , sizeof ( clone -> sqlparse ) )
+30064771079 | CALL | & ( clone -> sqlparse )
+30064771080 | CALL | clone -> sqlparse
+30064771081 | CALL | sizeof ( clone -> sqlparse )
+30064771082 | CALL | clone -> sqlparse
+30064771083 | CALL | clone -> connection = NULL
+30064771084 | CALL | clone -> connection
+30064771085 | CALL | clone -> connCancel = NULL
+30064771086 | CALL | clone -> connCancel
+30064771087 | CALL | clone -> currUser = NULL
+30064771088 | CALL | clone -> currUser
+30064771089 | CALL | clone -> currSchema = NULL
+30064771090 | CALL | clone -> currSchema
+30064771091 | CALL | clone -> currTablespace = NULL
+30064771092 | CALL | clone -> currTablespace
+30064771093 | CALL | clone -> currWithOids = - 1
+30064771094 | CALL | clone -> currWithOids
+30064771095 | CALL | - 1
+30064771096 | CALL | clone -> savedPassword
+30064771097 | CALL | clone -> savedPassword = pg_strdup ( clone -> savedPassword )
+30064771098 | CALL | clone -> savedPassword
+30064771099 | CALL | pg_strdup ( clone -> savedPassword )
+30064771100 | CALL | clone -> savedPassword
+30064771101 | CALL | clone -> public . n_errors = 0
+30064771102 | CALL | clone -> public . n_errors
+30064771103 | CALL | clone -> public
+30064771104 | CALL | AH -> mode == archModeRead
+30064771105 | CALL | AH -> mode
+30064771106 | CALL | ropt = AH -> public . ropt
+30064771107 | CALL | AH -> public . ropt
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771101 [AST]
+25769803777 -> 30064771097 [AST]
+25769803778 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771078 [CFG]
+30064771081 -> 30064771078 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 300
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

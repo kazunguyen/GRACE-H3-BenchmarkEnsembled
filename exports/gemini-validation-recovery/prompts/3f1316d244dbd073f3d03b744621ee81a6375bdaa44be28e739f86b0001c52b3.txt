@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void desegment_iax ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * iax2_tree , proto_tree * tree , gboolean video , iax_packet_data * iax_packet ) {
+ iax_call_data * iax_call = iax_packet -> call_data ;
+ iax_call_dirdata * dirdata ;
+ gpointer value = NULL ;
+ guint32 frag_offset = 0 ;
+ fragment_head * fd_head ;
+ gboolean must_desegment = FALSE ;
+ DISSECTOR_ASSERT ( iax_call ) ;
+ pinfo -> can_desegment = 2 ;
+ pinfo -> desegment_offset = 0 ;
+ pinfo -> desegment_len = 0 ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "dissecting packet %u" , pinfo -> fd -> num ) ;
+ # endif dirdata = & ( iax_call -> dirdata [ ! ! ( iax_packet -> reversed ) ] ) ;
+ if ( ( ! pinfo -> fd -> flags . visited && ( dirdata -> current_frag_bytes > 0 ) ) || ( ( value = g_hash_table_lookup ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) ) ) != NULL ) ) {
+ guint32 fid ;
+ guint32 frag_len = tvb_reported_length ( tvb ) ;
+ gboolean complete ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "visited: %i;
+ c_f_b: %u;
+ hash: %u->%u" , pinfo -> fd -> flags . visited ? 1 : 0 , dirdata -> current_frag_bytes , pinfo -> fd -> num , dirdata -> current_frag_id ) ;
+ # endif if ( ! pinfo -> fd -> flags . visited ) {
+ guint32 tot_len ;
+ fid = dirdata -> current_frag_id ;
+ tot_len = dirdata -> current_frag_minlen ;
+ DISSECTOR_ASSERT ( g_hash_table_lookup ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) ) == NULL ) ;
+ g_hash_table_insert ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) , GUINT_TO_POINTER ( fid ) ) ;
+ frag_offset = dirdata -> current_frag_bytes ;
+ dirdata -> current_frag_bytes += frag_len ;
+ complete = dirdata -> current_frag_bytes > tot_len ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "hash: %u->%u;
+ frag_offset: %u;
+ c_f_b: %u;
+ totlen: %u" , pinfo -> fd -> num , fid , frag_offset , dirdata -> current_frag_bytes , tot_len ) ;
+ # endif }
+ else {
+ fid = GPOINTER_TO_UINT ( value ) ;
+ dirdata -> current_frag_bytes = 0 ;
+ complete = FALSE ;
+ }
+ fd_head = fragment_add ( & iax_reassembly_table , tvb , 0 , pinfo , fid , NULL , frag_offset , frag_len , ! complete ) ;
+ if ( fd_head && ( pinfo -> fd -> num == fd_head -> reassembled_in ) ) {
+ gint32 old_len ;
+ tvbuff_t * next_tvb = tvb_new_chain ( tvb , fd_head -> tvb_data ) ;
+ add_new_data_source ( pinfo , next_tvb , "Reassembled IAX2" ) ;
+ process_iax_pdu ( next_tvb , pinfo , tree , video , iax_packet ) ;
+ old_len = ( gint32 ) ( tvb_reported_length ( next_tvb ) - frag_len ) ;
+ if ( pinfo -> desegment_len && ( pinfo -> desegment_offset < old_len ) ) {
+ fragment_set_partial_reassembly ( & iax_reassembly_table , pinfo , fid , NULL ) ;
+ if ( pinfo -> desegment_len == DESEGMENT_ONE_MORE_SEGMENT ) {
+ dirdata -> current_frag_minlen = fd_head -> datalen + 1 ;
+ }
+ else {
+ dirdata -> current_frag_minlen = fd_head -> datalen + pinfo -> desegment_len ;
+ }
+ }
+ else {
+ proto_item * iax_tree_item , * frag_tree_item ;
+ show_fragment_tree ( fd_head , & iax2_fragment_items , tree , pinfo , next_tvb , & frag_tree_item ) ;
+ iax_tree_item = proto_item
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ iax_call_data * iax_call = iax_packet -> call_data ;
+ iax_call_dirdata * dirdata ;
+ gpointer value = NULL ;
+ guint32 frag_offset = 0 ;
+ fragment_head * fd_head ;
+ gboolean must_desegment = FALSE ;
+ DISSECTOR_ASSERT ( iax_call ) ;
+ pinfo -> can_desegment = 2 ;
+ pinfo -> desegment_offset = 0 ;
+ pinfo -> desegment_len = 0 ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "dissecting packet %u" , pinfo -> fd -> num ) ;
+ # endif dirdata = & ( iax_call -> dirdata [ ! ! ( iax_packet -> reversed ) ] ) ;
+ if ( ( ! pinfo -> fd -> flags . visited && ( dirdata -> current_frag_bytes > 0 ) ) || ( ( value = g_hash_table_lookup ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) ) ) != NULL ) ) {
+ guint32 fid ;
+ guint32 frag_len = tvb_reported_length ( tvb ) ;
+ gboolean complete ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "visited: %i;
+ c_f_b: %u;
+ hash: %u->%u" , pinfo -> fd -> flags . visited ? 1 : 0 , dirdata -> current_frag_bytes , pinfo -> fd -> num , dirdata -> current_frag_id ) ;
+ # endif if ( ! pinfo ...
+      
+25769803777 | BLOCK | 
+        {
+ guint32 fid ;
+ guint32 frag_len = tvb_reported_length ( tvb ) ;
+ gboolean complete ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "visited: %i;
+ c_f_b: %u;
+ hash: %u->%u" , pinfo -> fd -> flags . visited ? 1 : 0 , dirdata -> current_frag_bytes , pinfo -> fd -> num , dirdata -> current_frag_id ) ;
+ # endif if ( ! pinfo -> fd -> flags . visited ) {
+ guint32 tot_len ;
+ fid = dirdata -> current_frag_id ;
+ tot_len = dirdata -> current_frag_minlen ;
+ DISSECTOR_ASSERT ( g_hash_table_lookup ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) ) == NULL ) ;
+ g_hash_table_insert ( iax_fid_table , GUINT_TO_POINTER ( pinfo -> fd -> num ) , GUINT_TO_POINTER ( fid ) ) ;
+ frag_offset = dirdata -> current_frag_bytes ;
+ dirdata -> current_frag_bytes += frag_len ;
+ complete = dirdata -> current_frag_bytes > tot_len ;
+ # ifdef DEBUG_DESEGMENT g_debug ( "hash: %u->%u;
+ frag_offset: %u;
+ c_f_b: %u;
+ totlen: %u" , pinfo -> fd -> num , fid , frag_offset , dirdata -> current_frag_bytes , tot_len ) ;
+ # endif...
+      
+25769803778 | BLOCK | 
+        {
+ gint32 old_len ;
+ tvbuff_t * next_tvb = tvb_new_chain ( tvb , fd_head -> tvb_data ) ;
+ add_new_data_source ( pinfo , next_tvb , "Reassembled IAX2" ) ;
+ process_iax_pdu ( next_tvb , pinfo , tree , video , iax_packet ) ;
+ old_len = ( gint32 ) ( tvb_reported_length ( next_tvb ) - frag_len ) ;
+ if ( pinfo -> desegment_len && ( pinfo -> desegment_offset < old_len ) ) {
+ fragment_set_partial_reassembly ( & iax_reassembly_table , pinfo , fid , NULL ) ;
+ if ( pinfo -> desegment_len == DESEGMENT_ONE_MORE_SEGMENT ) {
+ dirdata -> current_frag_minlen = fd_head -> datalen + 1 ;
+ }
+ else {
+ dirdata -> current_frag_minlen = fd_head -> datalen + pinfo -> desegment_len ;
+ }
+ }
+ else {
+ proto_item * iax_tree_item , * frag_tree_item ;
+ show_fragment_tree ( fd_head , & iax2_fragment_items , tree , pinfo , next_tvb , & frag_tree_item ) ;
+ iax_tree_item = proto_item_get_parent ( proto_tree_get_parent ( iax2_tree ) ) ;
+ if ( frag_tree_item && iax_tree_item ) proto_tree_move_item ( tree , iax_tree_item ...
+      
+25769803779 | BLOCK | 
+        {
+ fragment_set_partial_reassembly ( & iax_reassembly_table , pinfo , fid , NULL ) ;
+ if ( pinfo -> desegment_len == DESEGMENT_ONE_MORE_SEGMENT ) {
+ dirdata -> current_frag_minlen = fd_head -> datalen + 1 ;
+ }
+ else {
+ dirdata -> current_frag_minlen = fd_head -> datalen + pinfo -> desegment_len ;
+ }
+ }
+      
+25769803780 | BLOCK | { dirdata -> current_frag_minlen = fd_head -> datalen + 1 ; }
+25769803781 | BLOCK | 
+        {
+ dirdata -> current_frag_minlen = fd_head -> datalen + pinfo -> desegment_len ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ proto_item * iax_tree_item , * frag_tree_item ;
+ show_fragment_tree ( fd_head , & iax2_fragment_items , tree , pinfo , next_tvb , & frag_tree_item ) ;
+ iax_tree_item = proto_item_get_parent ( proto_tree_get_parent ( iax2_tree ) ) ;
+ if ( frag_tree_item && iax_tree_item ) proto_tree_move_item ( tree , iax_tree_item , frag_tree_item ) ;
+ dirdata -> current_frag_minlen = dirdata -> current_frag_id = dirdata -> current_frag_bytes = 0 ;
+ if ( pinfo -> desegment_len ) {
+ must_desegment = TRUE ;
+ pinfo -> desegment_offset -= old_len ;
+ }
+ fd_head = NULL ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { must_desegment = TRUE ; pinfo -> desegment_offset -= old_len ; 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

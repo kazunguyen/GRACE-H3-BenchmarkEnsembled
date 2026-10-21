@@ -1,0 +1,244 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void x8_get_ac_rlf ( IntraX8Context * const w , const int mode , int * const run , int * const level , int * const final ) {
+ MpegEncContext * const s = w -> s ;
+ int i , e ;
+ i = get_vlc2 ( & s -> gb , w -> j_ac_vlc [ mode ] -> table , AC_VLC_BITS , AC_VLC_MTD ) ;
+ if ( i < 46 ) {
+ int t , l ;
+ if ( i < 0 ) {
+ ( * level ) = ( * final ) = ( * run ) = 64 ;
+ return ;
+ }
+ ( * final ) = t = ( i > 22 ) ;
+ i -= 23 * t ;
+ l = ( 0xE50000 >> ( i & ( 0x1E ) ) ) & 3 ;
+ t = ( 0x01030F >> ( l << 3 ) ) ;
+ ( * run ) = i & t ;
+ ( * level ) = l ;
+ }
+ else if ( i < 73 ) {
+ uint32_t sm ;
+ uint32_t mask ;
+ i -= 46 ;
+ sm = ac_decode_table [ i ] ;
+ e = get_bits ( & s -> gb , sm & 0xF ) ;
+ sm >>= 8 ;
+ mask = sm & 0xff ;
+ sm >>= 8 ;
+ ( * run ) = ( sm & 0xff ) + ( e & ( mask ) ) ;
+ ( * level ) = ( sm >> 8 ) + ( e & ( ~ mask ) ) ;
+ ( * final ) = i > ( 58 - 46 ) ;
+ }
+ else if ( i < 75 ) {
+ static const uint8_t crazy_mix_runlevel [ 32 ] = {
+ 0x22 , 0x32 , 0x33 , 0x53 , 0x23 , 0x42 , 0x43 , 0x63 , 0x24 , 0x52 , 0x34 , 0x73 , 0x25 , 0x62 , 0x44 , 0x83 , 0x26 , 0x72 , 0x35 , 0x54 , 0x27 , 0x82 , 0x45 , 0x64 , 0x28 , 0x92 , 0x36 , 0x74 , 0x29 , 0xa2 , 0x46 , 0x84 }
+ ;
+ ( * final ) = ! ( i & 1 ) ;
+ e = get_bits ( & s -> gb , 5 ) ;
+ ( * run ) = crazy_mix_runlevel [ e ] >> 4 ;
+ ( * level ) = crazy_mix_runlevel [ e ] & 0x0F ;
+ }
+ else {
+ ( * level ) = get_bits ( & s -> gb , 7 - 3 * ( i & 1 ) ) ;
+ ( * run ) = get_bits ( & s -> gb , 6 ) ;
+ ( * final ) = get_bits1 ( & s -> gb ) ;
+ }
+ return ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MpegEncContext * const s = w -> s ;
+ int i , e ;
+ i = get_vlc2 ( & s -> gb , w -> j_ac_vlc [ mode ] -> table , AC_VLC_BITS , AC_VLC_MTD ) ;
+ if ( i < 46 ) {
+ int t , l ;
+ if ( i < 0 ) {
+ ( * level ) = ( * final ) = ( * run ) = 64 ;
+ return ;
+ }
+ ( * final ) = t = ( i > 22 ) ;
+ i -= 23 * t ;
+ l = ( 0xE50000 >> ( i & ( 0x1E ) ) ) & 3 ;
+ t = ( 0x01030F >> ( l << 3 ) ) ;
+ ( * run ) = i & t ;
+ ( * level ) = l ;
+ }
+ else if ( i < 73 ) {
+ uint32_t sm ;
+ uint32_t mask ;
+ i -= 46 ;
+ sm = ac_decode_table [ i ] ;
+ e = get_bits ( & s -> gb , sm & 0xF ) ;
+ sm >>= 8 ;
+ mask = sm & 0xff ;
+ sm >>= 8 ;
+ ( * run ) = ( sm & 0xff ) + ( e & ( mask ) ) ;
+ ( * level ) = ( sm >> 8 ) + ( e & ( ~ mask ) ) ;
+ ( * final ) = i > ( 58 - 46 ) ;
+ }
+ else if ( i < 75 ) {
+ static const uint8_t crazy_mix_runlevel [ 32 ] = {
+ 0x22 , 0x32 , 0x33 , 0x53 , 0x23 , 0x42 , 0x43 , 0x63 , 0x24 , 0x52 , 0x34 , 0x73 , 0x25 , 0x62 , 0x44 , 0x83 , 0x26 , 0x72 , 0x35 , 0x54 , 0x27 , 0x82 , 0x45 , 0x64 , 0x28 , 0x92 , 0x36 , 0x7...
+      
+25769803777 | BLOCK | 
+        {
+ int t , l ;
+ if ( i < 0 ) {
+ ( * level ) = ( * final ) = ( * run ) = 64 ;
+ return ;
+ }
+ ( * final ) = t = ( i > 22 ) ;
+ i -= 23 * t ;
+ l = ( 0xE50000 >> ( i & ( 0x1E ) ) ) & 3 ;
+ t = ( 0x01030F >> ( l << 3 ) ) ;
+ ( * run ) = i & t ;
+ ( * level ) = l ;
+ }
+      
+25769803778 | BLOCK | { ( * level ) = ( * final ) = ( * run ) = 64 ; return ; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ uint32_t sm ;
+ uint32_t mask ;
+ i -= 46 ;
+ sm = ac_decode_table [ i ] ;
+ e = get_bits ( & s -> gb , sm & 0xF ) ;
+ sm >>= 8 ;
+ mask = sm & 0xff ;
+ sm >>= 8 ;
+ ( * run ) = ( sm & 0xff ) + ( e & ( mask ) ) ;
+ ( * level ) = ( sm >> 8 ) + ( e & ( ~ mask ) ) ;
+ ( * final ) = i > ( 58 - 46 ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ static const uint8_t crazy_mix_runlevel [ 32 ] = {
+ 0x22 , 0x32 , 0x33 , 0x53 , 0x23 , 0x42 , 0x43 , 0x63 , 0x24 , 0x52 , 0x34 , 0x73 , 0x25 , 0x62 , 0x44 , 0x83 , 0x26 , 0x72 , 0x35 , 0x54 , 0x27 , 0x82 , 0x45 , 0x64 , 0x28 , 0x92 , 0x36 , 0x74 , 0x29 , 0xa2 , 0x46 , 0x84 }
+ ;
+ ( * final ) = ! ( i & 1 ) ;
+ e = get_bits ( & s -> gb , 5 ) ;
+ ( * run ) = crazy_mix_runlevel [ e ] >> 4 ;
+ ( * level ) = crazy_mix_runlevel [ e ] & 0x0F ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ ( * level ) = get_bits ( & s -> gb , 7 - 3 * ( i & 1 ) ) ;
+ ( * run ) = get_bits ( & s -> gb , 6 ) ;
+ ( * final ) = get_bits1 ( & s -> gb ) ;
+ }
+      
+30064771072 | CALL | const s = w -> s
+30064771073 | CALL | w -> s
+30064771074 | CALL | 
+        i = get_vlc2 ( & s -> gb , w -> j_ac_vlc [ mode ] -> table , AC_VLC_BITS , AC_VLC_MTD )
+      
+30064771075 | CALL | 
+        get_vlc2 ( & s -> gb , w -> j_ac_vlc [ mode ] -> table , AC_VLC_BITS , AC_VLC_MTD )
+      
+30064771076 | CALL | & s -> gb
+30064771077 | CALL | s -> gb
+30064771078 | CALL | w -> j_ac_vlc [ mode ] -> table
+30064771079 | CALL | w -> j_ac_vlc [ mode ]
+30064771080 | CALL | w -> j_ac_vlc
+30064771081 | CALL | i < 46
+30064771082 | CALL | i < 0
+30064771083 | CALL | ( * level ) = ( * final ) = ( * run ) = 64
+30064771084 | CALL | * level
+30064771085 | CALL | ( * final ) = ( * run ) = 64
+30064771086 | CALL | * final
+30064771087 | CALL | ( * run ) = 64
+30064771088 | CALL | * run
+30064771089 | CALL | ( * final ) = t = ( i > 22 )
+30064771090 | CALL | * final
+30064771091 | CALL | t = ( i > 22 )
+30064771092 | CALL | i > 22
+30064771093 | CALL | i -= 23 * t
+30064771094 | CALL | 23 * t
+30064771095 | CALL | l = ( 0xE50000 >> ( i & ( 0x1E ) ) ) & 3
+30064771096 | CALL | ( 0xE50000 >> ( i & ( 0x1E ) ) ) & 3
+30064771097 | CALL | 0xE50000 >> ( i & ( 0x1E ) )
+30064771098 | CALL | i & ( 0x1E )
+30064771099 | CALL | t = ( 0x01030F >> ( l << 3 ) )
+30064771100 | CALL | 0x01030F >> ( l << 3 )
+30064771101 | CALL | l << 3
+30064771102 | CALL | ( * run ) = i & t
+30064771103 | CALL | * run
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771095 [AST]
+25769803777 -> 30064771099 [AST]
+25769803777 -> 30064771102 [AST]
+25769803778 -> 30064771083 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771081 -> 30064771082 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771102 [CDG]
+30064771082 -> 30064771103 [CDG]
+30064771082 -> 30064771098 [CDG]
+30064771082 -> 30064771099 [CDG]
+30064771082 -> 30064771100 [CDG]
+30064771082 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

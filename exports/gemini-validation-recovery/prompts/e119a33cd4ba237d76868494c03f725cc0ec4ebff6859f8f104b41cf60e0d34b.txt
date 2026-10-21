@@ -1,0 +1,146 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ExtensionServiceSyncTest , ProcessSyncDataNewExtension ) {
+ InitializeEmptyExtensionService ( ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ const base : : FilePath path = data_dir ( ) . AppendASCII ( "good.crx" ) ;
+ const ExtensionPrefs * prefs = ExtensionPrefs : : Get ( profile ( ) ) ;
+ struct TestCase {
+ const char * name ;
+ bool sync_enabled ;
+ int sync_disable_reasons ;
+ int expect_disable_reasons ;
+ bool expect_permissions_granted ;
+ }
+ test_cases [ ] = {
+ {
+ "Standard" , true , 0 , 0 , true }
+ , {
+ "Disabled" , false , extensions : : disable_reason : : DISABLE_USER_ACTION , extensions : : disable_reason : : DISABLE_USER_ACTION , true }
+ , {
+ "Legacy" , false , - 1 , extensions : : disable_reason : : DISABLE_USER_ACTION , true }
+ , {
+ "PermissionsIncrease" , false , extensions : : disable_reason : : DISABLE_PERMISSIONS_INCREASE , extensions : : disable_reason : : DISABLE_PERMISSIONS_INCREASE , false }
+ , }
+ ;
+ for ( const TestCase & test_case : test_cases ) {
+ SCOPED_TRACE ( test_case . name ) ;
+ sync_pb : : EntitySpecifics specifics ;
+ sync_pb : : ExtensionSpecifics * ext_specifics = specifics . mutable_extension ( ) ;
+ ext_specifics -> set_id ( good_crx ) ;
+ ext_specifics -> set_version ( base : : Version ( "1" ) . GetString ( ) ) ;
+ ext_specifics -> set_enabled ( test_case . sync_enabled ) ;
+ if ( test_case . sync_disable_reasons != - 1 ) ext_specifics -> set_disable_reasons ( test_case . sync_disable_reasons ) ;
+ SyncChangeList list = MakeSyncChangeList ( good_crx , specifics , SyncChange : : ACTION_UPDATE ) ;
+ extension_sync_service ( ) -> ProcessSyncChanges ( FROM_HERE , list ) ;
+ ASSERT_TRUE ( service ( ) -> pending_extension_manager ( ) -> IsIdPending ( good_crx ) ) ;
+ UpdateExtension ( good_crx , path , test_case . sync_enabled ? ENABLED : DISABLED ) ;
+ EXPECT_EQ ( test_case . expect_disable_reasons , prefs -> GetDisableReasons ( good_crx ) ) ;
+ std : : unique_ptr < const PermissionSet > permissions = prefs -> GetGrantedPermissions ( good_crx ) ;
+ EXPECT_EQ ( test_case . expect_permissions_granted , ! permissions -> IsEmpty ( ) ) ;
+ ASSERT_FALSE ( service ( ) -> pending_extension_manager ( ) -> IsIdPending ( good_crx ) ) ;
+ UninstallExtension ( good_crx , false , test_case . sync_enabled ? Extension : : ENABLED : Extension : : DISABLED ) ;
+ }
+ }
+ TEST_F ( ExtensionServiceSyncTest , ProcessSyncDataTerminatedExtension ) {
+ InitializeExtensionServiceWithUpdater ( ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW ) ;
+ TerminateExtension ( good_crx ) ;
+ EXPECT_TRUE ( servi
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ InitializeEmptyExtensionService ( ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ const base : : FilePath path = data_dir ( ) . AppendASCII ( "good.crx" ) ;
+ const ExtensionPrefs * prefs = ExtensionPrefs : : Get ( profile ( ) ) ;
+ struct TestCase {
+ const char * name ;
+ bool sync_enabled ;
+ int sync_disable_reasons ;
+ int expect_disable_reasons ;
+ bool expect_permissions_granted ;
+ }
+ test_cases [ ] = {
+ {
+ "Standard" , true , 0 , 0 , true }
+ , {
+ "Disabled" , false , extensions : : disable_reason : : DISABLE_USER_ACTION , extensions : : disable_reason : : DISABLE_USER_ACTION , true }
+      
+25769803777 | BLOCK | 
+        {
+ InitializeExtensionServiceWithUpdater ( ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW ) ;
+ TerminateExtension ( good_crx ) ;
+ EXPECT_TRUE ( service ( ) -> IsExtensionEnabled ( good_crx ) ) ;
+ EXPECT_FALSE ( extensions : : util : : IsIncognitoEnabled ( good_crx , profile ( ) ) ) ;
+ sync_pb : : EntitySpecifics specifics ;
+ sync_pb : : ExtensionSpecifics * ext_specifics = specifics . mutable_extension ( ) ;
+ ext_specifics -> set_id ( good_crx ) ;
+ ext_specifics -> set_version ( service ( ) -> GetInstalledExtension ( good_crx ) -> version ( ) -> GetString ( ) ) ;
+ ext_specifics -> set_enabled ( false ) ;
+ ext_specifics -> set_incognito_enabled ( true ) ;
+ SyncChangeList list = MakeSyncChangeList ( good_crx , specifics ,...
+      
+25769803778 | BLOCK | 
+        {
+ InitializeExtensionServiceWithUpdater ( ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW ) ;
+ EXPECT_TRUE ( service ( ) -> IsExtensionEnabled ( good_crx ) ) ;
+ EXPECT_FALSE ( extensions : : util : : IsIncognitoEnabled ( good_crx , profile ( ) ) ) ;
+ sync_pb : : EntitySpecifics specifics ;
+ sync_pb : : ExtensionSpecifics * ext_specifics = specifics . mutable_extension ( ) ;
+ ext_specifics -> set_id ( good_crx ) ;
+ ext_specifics -> set_enabled ( true ) ;
+ const base : : Version installed_version = * service ( ) -> GetInstalledExtension ( good_crx ) -> version ( ) ;
+ {
+ ext_specifics -> set_version ( installed_version . GetString ( ) ) ;
+ SyncChangeList list = MakeSyncChangeList ( good_crx , specifics , SyncChange : : ACT...
+      
+25769803779 | BLOCK | 
+        {
+ ext_specifics -> set_version ( installed_version . GetString ( ) ) ;
+ SyncChangeList list = MakeSyncChangeList ( good_crx , specifics , SyncChange : : ACTION_UPDATE ) ;
+ extension_sync_service ( ) -> ProcessSyncChanges ( FROM_HERE , list ) ;
+ EXPECT_FALSE ( service ( ) -> updater ( ) -> WillCheckSoon ( ) ) ;
+ syncer : : SyncDataList data = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( 1u , data . size ( ) ) ;
+ std : : unique_ptr < ExtensionSyncData > extension_data = ExtensionSyncData : : CreateFromSyncData ( data [ 0 ] ) ;
+ ASSERT_TRUE ( extension_data ) ;
+ EXPECT_EQ ( installed_version , extension_data -> version ( ) ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ ext_specifics -> set_version ( "0.0.0.0" ) ;
+ SyncChangeList list = MakeSyncChangeList ( good_crx , specifics , SyncChange : : ACTION_UPDATE ) ;
+ extension_sync_service ( ) -> ProcessSyncChanges ( FROM_HERE , list ) ;
+ EXPECT_FALSE ( service ( ) -> updater ( ) -> WillCheckSoon ( ) ) ;
+ syncer : : SyncDataList data = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( 1u , data . size ( ) ) ;
+ std : : unique_ptr < ExtensionSyncData > extension_data = ExtensionSyncData : : CreateFromSyncData ( data [ 0 ] ) ;
+ ASSERT_TRUE ( extension_data ) ;
+ EXPECT_EQ ( installed_version , extension_data -> version ( ) ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ const base : : Version new_versio
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

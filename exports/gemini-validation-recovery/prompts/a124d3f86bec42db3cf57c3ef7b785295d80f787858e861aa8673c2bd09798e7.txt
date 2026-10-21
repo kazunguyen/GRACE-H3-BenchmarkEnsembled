@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+mbfl_string * mime_header_decoder_result ( struct mime_header_decoder_data * pd , mbfl_string * result ) {
+ switch ( pd -> status ) {
+ case 1 : case 2 : case 3 : case 4 : case 7 : case 8 : case 9 : mbfl_convert_filter_devcat ( pd -> conv1_filter , & pd -> tmpdev ) ;
+ break ;
+ case 5 : case 6 : ( * pd -> deco_filter -> filter_flush ) ( pd -> deco_filter ) ;
+ ( * pd -> conv1_filter -> filter_flush ) ( pd -> conv1_filter ) ;
+ break ;
+ }
+ ( * pd -> conv2_filter -> filter_flush ) ( pd -> conv2_filter ) ;
+ mbfl_memory_device_reset ( & pd -> tmpdev ) ;
+ pd -> status = 0 ;
+ return mbfl_memory_device_result ( & pd -> outdev , result ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ switch ( pd -> status ) {
+ case 1 : case 2 : case 3 : case 4 : case 7 : case 8 : case 9 : mbfl_convert_filter_devcat ( pd -> conv1_filter , & pd -> tmpdev ) ;
+ break ;
+ case 5 : case 6 : ( * pd -> deco_filter -> filter_flush ) ( pd -> deco_filter ) ;
+ ( * pd -> conv1_filter -> filter_flush ) ( pd -> conv1_filter ) ;
+ break ;
+ }
+ ( * pd -> conv2_filter -> filter_flush ) ( pd -> conv2_filter ) ;
+ mbfl_memory_device_reset ( & pd -> tmpdev ) ;
+ pd -> status = 0 ;
+ return mbfl_memory_device_result ( & pd -> outdev , result ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case 1 : case 2 : case 3 : case 4 : case 7 : case 8 : case 9 : mbfl_convert_filter_devcat ( pd -> conv1_filter , & pd -> tmpdev ) ;
+ break ;
+ case 5 : case 6 : ( * pd -> deco_filter -> filter_flush ) ( pd -> deco_filter ) ;
+ ( * pd -> conv1_filter -> filter_flush ) ( pd -> conv1_filter ) ;
+ break ;
+ }
+      
+30064771072 | CALL | pd -> status
+30064771073 | CALL | mbfl_convert_filter_devcat ( pd -> conv1_filter , & pd -> tmpdev )
+30064771074 | CALL | pd -> conv1_filter
+30064771075 | CALL | & pd -> tmpdev
+30064771076 | CALL | pd -> tmpdev
+30064771077 | CALL | ( * pd -> deco_filter -> filter_flush ) ( pd -> deco_filter )
+30064771078 | CALL | * pd -> deco_filter -> filter_flush
+30064771079 | CALL | pd -> deco_filter -> filter_flush
+30064771080 | CALL | pd -> deco_filter
+30064771081 | CALL | pd -> deco_filter
+30064771082 | CALL | ( * pd -> conv1_filter -> filter_flush ) ( pd -> conv1_filter )
+30064771083 | CALL | * pd -> conv1_filter -> filter_flush
+30064771084 | CALL | pd -> conv1_filter -> filter_flush
+30064771085 | CALL | pd -> conv1_filter
+30064771086 | CALL | pd -> conv1_filter
+30064771087 | CALL | ( * pd -> conv2_filter -> filter_flush ) ( pd -> conv2_filter )
+30064771088 | CALL | * pd -> conv2_filter -> filter_flush
+30064771089 | CALL | pd -> conv2_filter -> filter_flush
+30064771090 | CALL | pd -> conv2_filter
+30064771091 | CALL | pd -> conv2_filter
+30064771092 | CALL | mbfl_memory_device_reset ( & pd -> tmpdev )
+30064771093 | CALL | & pd -> tmpdev
+30064771094 | CALL | pd -> tmpdev
+30064771095 | CALL | pd -> status = 0
+30064771096 | CALL | pd -> status
+30064771097 | CALL | mbfl_memory_device_result ( & pd -> outdev , result )
+30064771098 | CALL | & pd -> outdev
+30064771099 | CALL | pd -> outdev
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( pd -> status ) {
+ case 1 : case 2 : case 3 : case 4 : case 7 : case 8 : case 9 : mbfl_convert_filter_devcat ( pd -> conv1_filter , & pd -> tmpdev ) ;
+ break ;
+ case 5 : case 6 : ( * pd -> deco_filter -> filter_flush ) ( pd -> deco_filter ) ;
+ ( * pd -> conv1_filter -> filter_flush ) ( pd -> conv1_filter ) ;
+ break ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | status
+55834574849 | FIELD_IDENTIFIER | conv1_filter
+55834574850 | FIELD_IDENTIFIER | tmpdev
+55834574851 | FIELD_IDENTIFIER | deco_filter
+55834574852 | FIELD_IDENTIFIER | filter_flush
+55834574853 | FIELD_IDENTIFIER | deco_filter
+55834574854 | FIELD_IDENTIFIER | conv1_filter
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771095 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 47244640258 [AST]
+30064771072 -> 55834574848 [ARGUMENT]
+30064771072 -> 55834574848 [AST]
+30064771072 -> 55834574854 [CDG]
+30064771072 -> 55834574853 [CDG]
+30064771072 -> 55834574852 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 47244640258 [CDG]
+30064771072 -> 47244640257 [CDG]
+30064771072 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 47244640257 [CFG]
+30064771073 -> 47244640257 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771093 [REACHING_DEF]
+30064771075 -> 30064771094 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 55834574850 [ARGUMENT]
+30064771076 -> 55834574850 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574850 [POST_DOMINATE]
+30064771076 -> 30064771093 [REACHING_DEF]
+30064771076 -> 30064771094 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771081 [POST_DOMINATE]
+30064771077 -> 30064771078 [RECEIVER]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 55834574852 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 55834574852 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574852 [POST_DOMINATE]
+30064771080 -> 55834574851 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void pmac_ide_writeb ( void * opaque , hwaddr addr , uint32_t val ) {
+ MACIOIDEState * d = opaque ;
+ addr = ( addr & 0xFFF ) >> 4 ;
+ switch ( addr ) {
+ case 1 ... 7 : ide_ioport_write ( & d -> bus , addr , val ) ;
+ break ;
+ case 8 : case 22 : ide_cmd_write ( & d -> bus , 0 , val ) ;
+ break ;
+ default : break ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

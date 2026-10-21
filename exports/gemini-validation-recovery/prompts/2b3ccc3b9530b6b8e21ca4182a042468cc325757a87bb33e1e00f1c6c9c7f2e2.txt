@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int encode_frame ( AVCodecContext * c , AVFrame * frame ) {
+ AVPacket pkt = {
+ 0 }
+ ;
+ int ret , got_output ;
+ av_init_packet ( & pkt ) ;
+ ret = avcodec_encode_video2 ( c , & pkt , frame , & got_output ) ;
+ if ( ret < 0 ) return ret ;
+ ret = pkt . size ;
+ av_free_packet ( & pkt ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVPacket pkt = {
+ 0 }
+ ;
+ int ret , got_output ;
+ av_init_packet ( & pkt ) ;
+ ret = avcodec_encode_video2 ( c , & pkt , frame , & got_output ) ;
+ if ( ret < 0 ) return ret ;
+ ret = pkt . size ;
+ av_free_packet ( & pkt ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | pkt = { 0 }
+30064771073 | CALL | { 0 }
+30064771074 | CALL | av_init_packet ( & pkt )
+30064771075 | CALL | & pkt
+30064771076 | CALL | ret = avcodec_encode_video2 ( c , & pkt , frame , & got_output )
+30064771077 | CALL | avcodec_encode_video2 ( c , & pkt , frame , & got_output )
+30064771078 | CALL | & pkt
+30064771079 | CALL | & got_output
+30064771080 | CALL | ret < 0
+30064771081 | CALL | ret = pkt . size
+30064771082 | CALL | pkt . size
+30064771083 | CALL | av_free_packet ( & pkt )
+30064771084 | CALL | & pkt
+47244640256 | CONTROL_STRUCTURE | if ( ret < 0 ) return ret ;
+55834574848 | FIELD_IDENTIFIER | size
+68719476736 | IDENTIFIER | pkt
+68719476737 | IDENTIFIER | pkt
+68719476738 | IDENTIFIER | ret
+68719476739 | IDENTIFIER | c
+68719476740 | IDENTIFIER | pkt
+68719476741 | IDENTIFIER | frame
+68719476742 | IDENTIFIER | got_output
+68719476743 | IDENTIFIER | ret
+68719476744 | IDENTIFIER | ret
+68719476745 | IDENTIFIER | ret
+68719476746 | IDENTIFIER | pkt
+68719476747 | IDENTIFIER | pkt
+68719476748 | IDENTIFIER | ret
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+94489280512 | LOCAL | AVPacket pkt
+94489280513 | LOCAL | int ret
+94489280514 | LOCAL | int got_output
+107374182400 | METHOD | 
+        static int encode_frame ( AVCodecContext * c , AVFrame * frame ) {
+ AVPacket pkt = {
+ 0 }
+ ;
+ int ret , got_output ;
+ av_init_packet ( & pkt ) ;
+ ret = avcodec_encode_video2 ( c , & pkt , frame , & got_output ) ;
+ if ( ret < 0 ) return ret ;
+ ret = pkt . size ;
+ av_free_packet ( & pkt ) ;
+ return ret ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | AVCodecContext * c
+111669149697 | METHOD_PARAMETER_IN | AVFrame * frame
+115964116992 | METHOD_PARAMETER_OUT | AVCodecContext * c
+115964116993 | METHOD_PARAMETER_OUT | AVFrame * frame
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 68719476738 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 68719476741 [CFG]
+30064771078 -> 68719476741 [DOMINATE]
+30064771078 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 68719476746 [REACHING_DEF]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771084 [REACHING_DEF]
+30064771078 -> 68719476747 [REACHING_DEF]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 68719476742 [POST_DOMINATE]
+30064771079 -> 68719476739 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 68719476741 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 68719476743 [ARGUMENT]
+30064771080 -> 90194313217 [ARGUMENT]
+30064771080 -> 68719476743 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int rpza_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ RpzaContext * s = avctx -> priv_data ;
+ int ret ;
+ s -> buf = buf ;
+ s -> size = buf_size ;
+ if ( ( ret = ff_reget_buffer ( avctx , & s -> frame ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" ) ;
+ return ret ;
+ }
+ rpza_decode_stream ( s ) ;
+ if ( ( ret = av_frame_ref ( data , & s -> frame ) ) < 0 ) return ret ;
+ * got_frame = 1 ;
+ return buf_size ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

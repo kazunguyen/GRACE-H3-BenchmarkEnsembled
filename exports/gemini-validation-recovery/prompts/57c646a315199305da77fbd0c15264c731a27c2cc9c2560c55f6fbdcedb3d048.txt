@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void lsf2lsp_5 ( AMRContext * p ) {
+ const uint16_t * lsf_param = p -> frame . lsf ;
+ float lsf_no_r [ LP_FILTER_ORDER ] ;
+ const int16_t * lsf_quantizer [ 5 ] ;
+ int i ;
+ lsf_quantizer [ 0 ] = lsf_5_1 [ lsf_param [ 0 ] ] ;
+ lsf_quantizer [ 1 ] = lsf_5_2 [ lsf_param [ 1 ] ] ;
+ lsf_quantizer [ 2 ] = lsf_5_3 [ lsf_param [ 2 ] >> 1 ] ;
+ lsf_quantizer [ 3 ] = lsf_5_4 [ lsf_param [ 3 ] ] ;
+ lsf_quantizer [ 4 ] = lsf_5_5 [ lsf_param [ 4 ] ] ;
+ for ( i = 0 ;
+ i < LP_FILTER_ORDER ;
+ i ++ ) lsf_no_r [ i ] = p -> prev_lsf_r [ i ] * LSF_R_FAC * PRED_FAC_MODE_12k2 + lsf_5_mean [ i ] ;
+ lsf2lsp_for_mode12k2 ( p , p -> lsp [ 1 ] , lsf_no_r , lsf_quantizer , 0 , lsf_param [ 2 ] & 1 , 0 ) ;
+ lsf2lsp_for_mode12k2 ( p , p -> lsp [ 3 ] , lsf_no_r , lsf_quantizer , 2 , lsf_param [ 2 ] & 1 , 1 ) ;
+ weighted_vector_sumd ( p -> lsp [ 0 ] , p -> prev_lsp_sub4 , p -> lsp [ 1 ] , 0.5 , 0.5 , LP_FILTER_ORDER ) ;
+ weighted_vector_sumd ( p -> lsp [ 2 ] , p -> lsp [ 1 ] , p -> lsp [ 3 ] , 0.5 , 0.5 , LP_FILTER_ORDER ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint16_t * lsf_param = p -> frame . lsf ;
+ float lsf_no_r [ LP_FILTER_ORDER ] ;
+ const int16_t * lsf_quantizer [ 5 ] ;
+ int i ;
+ lsf_quantizer [ 0 ] = lsf_5_1 [ lsf_param [ 0 ] ] ;
+ lsf_quantizer [ 1 ] = lsf_5_2 [ lsf_param [ 1 ] ] ;
+ lsf_quantizer [ 2 ] = lsf_5_3 [ lsf_param [ 2 ] >> 1 ] ;
+ lsf_quantizer [ 3 ] = lsf_5_4 [ lsf_param [ 3 ] ] ;
+ lsf_quantizer [ 4 ] = lsf_5_5 [ lsf_param [ 4 ] ] ;
+ for ( i = 0 ;
+ i < LP_FILTER_ORDER ;
+ i ++ ) lsf_no_r [ i ] = p -> prev_lsf_r [ i ] * LSF_R_FAC * PRED_FAC_MODE_12k2 + lsf_5_mean [ i ] ;
+ lsf2lsp_for_mode12k2 ( p , p -> lsp [ 1 ] , lsf_no_r , lsf_quantizer , 0 , lsf_param [ 2 ] & 1 , 0 ) ;
+ lsf2lsp_for_mode12k2 ( p , p -> lsp [ 3 ] , lsf_no_r , lsf_quantizer , 2 , lsf_param [ 2 ] & 1 , 1 ) ;
+ weighted_vector_sumd ( p -> lsp [ 0 ] , p -> prev_lsp_sub4 , p -> lsp [ 1 ] , 0.5 , 0.5 , LP_FILTER_ORDER ) ;
+ weighted_vector_sumd ( p -> lsp [ 2 ] , p -> lsp [ 1 ] , p -> lsp [ 3 ] , 0.5 , 0.5 , LP_FILTER_ORDER ) ;
+ }
+      
+30064771072 | CALL | lsf_param = p -> frame . lsf
+30064771073 | CALL | p -> frame . lsf
+30064771074 | CALL | p -> frame
+30064771075 | CALL | lsf_no_r [ LP_FILTER_ORDER ]
+30064771076 | CALL | lsf_no_r [ LP_FILTER_ORDER ]
+30064771077 | CALL | * lsf_quantizer [ 5 ]
+30064771078 | CALL | * lsf_quantizer [ 5 ]
+30064771079 | CALL | lsf_quantizer [ 0 ] = lsf_5_1 [ lsf_param [ 0 ] ]
+30064771080 | CALL | lsf_quantizer [ 0 ]
+30064771081 | CALL | lsf_5_1 [ lsf_param [ 0 ] ]
+30064771082 | CALL | lsf_param [ 0 ]
+30064771083 | CALL | lsf_quantizer [ 1 ] = lsf_5_2 [ lsf_param [ 1 ] ]
+30064771084 | CALL | lsf_quantizer [ 1 ]
+30064771085 | CALL | lsf_5_2 [ lsf_param [ 1 ] ]
+30064771086 | CALL | lsf_param [ 1 ]
+30064771087 | CALL | lsf_quantizer [ 2 ] = lsf_5_3 [ lsf_param [ 2 ] >> 1 ]
+30064771088 | CALL | lsf_quantizer [ 2 ]
+30064771089 | CALL | lsf_5_3 [ lsf_param [ 2 ] >> 1 ]
+30064771090 | CALL | lsf_param [ 2 ] >> 1
+30064771091 | CALL | lsf_param [ 2 ]
+30064771092 | CALL | lsf_quantizer [ 3 ] = lsf_5_4 [ lsf_param [ 3 ] ]
+30064771093 | CALL | lsf_quantizer [ 3 ]
+30064771094 | CALL | lsf_5_4 [ lsf_param [ 3 ] ]
+30064771095 | CALL | lsf_param [ 3 ]
+30064771096 | CALL | lsf_quantizer [ 4 ] = lsf_5_5 [ lsf_param [ 4 ] ]
+30064771097 | CALL | lsf_quantizer [ 4 ]
+30064771098 | CALL | lsf_5_5 [ lsf_param [ 4 ] ]
+30064771099 | CALL | lsf_param [ 4 ]
+30064771100 | CALL | i = 0
+30064771101 | CALL | i < LP_FILTER_ORDER
+30064771102 | CALL | i ++
+30064771103 | CALL | 
+        lsf_no_r [ i ] = p -> prev_lsf_r [ i ] * LSF_R_FAC * PRED_FAC_MODE_12k2 + lsf_5_mean [ i ]
+      
+30064771104 | CALL | lsf_no_r [ i ]
+30064771105 | CALL | p -> prev_lsf_r [ i ] * LSF_R_FAC * PRED_FAC_MODE_12k2 + lsf_5_mean [ i ]
+30064771106 | CALL | p -> prev_lsf_r [ i ] * LSF_R_FAC * PRED_FAC_MODE_12k2
+30064771107 | CALL | p -> prev_lsf_r [ i ] * LSF_R_FAC
+30064771108 | CALL | p -> prev_lsf_r [ i ]
+30064771109 | CALL | p -> prev_lsf_r
+30064771110 | CALL | lsf_5_mean [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771087 [CFG]
+30064771089 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771094 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771094 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void lsf2lsp_3 ( AMRContext * p ) {
+ const uint16_t * lsf_param = p -> frame . lsf ;
+ int16_t lsf_r [ LP_FILTER_ORDER ] ;
+ float lsf_q [ LP_FILTER_ORDER ] ;
+ const int16_t * lsf_quantizer ;
+ int i , j ;
+ lsf_quantizer = ( p -> cur_frame_mode == MODE_7k95 ? lsf_3_1_MODE_7k95 : lsf_3_1 ) [ lsf_param [ 0 ] ] ;
+ memcpy ( lsf_r , lsf_quantizer , 3 * sizeof ( * lsf_r ) ) ;
+ lsf_quantizer = lsf_3_2 [ lsf_param [ 1 ] << ( p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

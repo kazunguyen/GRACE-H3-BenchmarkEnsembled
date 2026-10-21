@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int32_t u_scanf_string_handler ( UFILE * input , u_scanf_spec_info * info , ufmt_args * args , const UChar * fmt , int32_t * fmtConsumed , int32_t * argConverted ) {
+ const UChar * source ;
+ UConverter * conv ;
+ char * arg = ( char * ) ( args [ 0 ] . ptrValue ) ;
+ char * alias = arg ;
+ char * limit ;
+ UErrorCode status = U_ZERO_ERROR ;
+ int32_t count ;
+ int32_t skipped = 0 ;
+ UChar c ;
+ UBool isNotEOF = FALSE ;
+ if ( info -> fIsString ) {
+ skipped = u_scanf_skip_leading_ws ( input , info -> fPadChar ) ;
+ }
+ count = 0 ;
+ conv = u_getDefaultConverter ( & status ) ;
+ if ( U_FAILURE ( status ) ) return - 1 ;
+ while ( ( info -> fWidth == - 1 || count < info -> fWidth ) && ( isNotEOF = ufile_getch ( input , & c ) ) && ( ! info -> fIsString || ( c != info -> fPadChar && ! u_isWhitespace ( c ) ) ) ) {
+ if ( ! info -> fSkipArg ) {
+ source = & c ;
+ if ( info -> fWidth > 0 ) {
+ limit = alias + info -> fWidth - count ;
+ }
+ else {
+ limit = alias + ucnv_getMaxCharSize ( conv ) ;
+ }
+ ucnv_fromUnicode ( conv , & alias , limit , & source , source + 1 , NULL , TRUE , & status ) ;
+ if ( U_FAILURE ( status ) ) {
+ u_releaseDefaultConverter ( conv ) ;
+ return - 1 ;
+ }
+ }
+ ++ count ;
+ }
+ if ( ! info -> fSkipArg ) {
+ if ( ( info -> fWidth == - 1 || count < info -> fWidth ) && isNotEOF ) u_fungetc ( c , input ) ;
+ if ( info -> fIsString ) {
+ * alias = 0x00 ;
+ }
+ }
+ u_releaseDefaultConverter ( conv ) ;
+ * argConverted = ! info -> fSkipArg ;
+ return count + skipped ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const UChar * source ;
+ UConverter * conv ;
+ char * arg = ( char * ) ( args [ 0 ] . ptrValue ) ;
+ char * alias = arg ;
+ char * limit ;
+ UErrorCode status = U_ZERO_ERROR ;
+ int32_t count ;
+ int32_t skipped = 0 ;
+ UChar c ;
+ UBool isNotEOF = FALSE ;
+ if ( info -> fIsString ) {
+ skipped = u_scanf_skip_leading_ws ( input , info -> fPadChar ) ;
+ }
+ count = 0 ;
+ conv = u_getDefaultConverter ( & status ) ;
+ if ( U_FAILURE ( status ) ) return - 1 ;
+ while ( ( info -> fWidth == - 1 || count < info -> fWidth ) && ( isNotEOF = ufile_getch ( input , & c ) ) && ( ! info -> fIsString || ( c != info -> fPadChar && ! u_isWhitespace ( c ) ) ) ) {
+ if ( ! info -> fSkipArg ) {
+ source = & c ;
+ if ( info -> fWidth > 0 ) {
+ limit = alias + info -> fWidth - count ;
+ }
+ else {
+ limit = alias + ucnv_getMaxCharSize ( conv ) ;
+ }
+ ucnv_fromUnicode ( conv , & alias , limit , & source , source + 1 , NULL , TRUE , & status ) ;
+ if ( U_FAILURE ( status ) ) {
+ u_releaseDefaultConverter ( conv ) ;
+ return - 1 ;...
+      
+25769803777 | BLOCK | { skipped = u_scanf_skip_leading_ws ( input , info -> fPadChar ) ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( ! info -> fSkipArg ) {
+ source = & c ;
+ if ( info -> fWidth > 0 ) {
+ limit = alias + info -> fWidth - count ;
+ }
+ else {
+ limit = alias + ucnv_getMaxCharSize ( conv ) ;
+ }
+ ucnv_fromUnicode ( conv , & alias , limit , & source , source + 1 , NULL , TRUE , & status ) ;
+ if ( U_FAILURE ( status ) ) {
+ u_releaseDefaultConverter ( conv ) ;
+ return - 1 ;
+ }
+ }
+ ++ count ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ source = & c ;
+ if ( info -> fWidth > 0 ) {
+ limit = alias + info -> fWidth - count ;
+ }
+ else {
+ limit = alias + ucnv_getMaxCharSize ( conv ) ;
+ }
+ ucnv_fromUnicode ( conv , & alias , limit , & source , source + 1 , NULL , TRUE , & status ) ;
+ if ( U_FAILURE ( status ) ) {
+ u_releaseDefaultConverter ( conv ) ;
+ return - 1 ;
+ }
+ }
+      
+25769803781 | BLOCK | { limit = alias + info -> fWidth - count ; }
+25769803782 | BLOCK | { limit = alias + ucnv_getMaxCharSize ( conv ) ; }
+25769803783 | BLOCK | { u_releaseDefaultConverter ( conv ) ; return - 1 ; }
+25769803784 | BLOCK | 
+        {
+ if ( ( info -> fWidth == - 1 || count < info -> fWidth ) && isNotEOF ) u_fungetc ( c , input ) ;
+ if ( info -> fIsString ) {
+ * alias = 0x00 ;
+ }
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { * alias = 0x00 ; }
+30064771072 | CALL | arg = ( char * ) ( args [ 0 ] . ptrValue )
+30064771073 | CALL | ( char * ) ( args [ 0 ] . ptrValue )
+30064771074 | CALL | args [ 0 ] . ptrValue
+30064771075 | CALL | args [ 0 ]
+30064771076 | CALL | alias = arg
+30064771077 | CALL | status = U_ZERO_ERROR
+30064771078 | CALL | skipped = 0
+30064771079 | CALL | isNotEOF = FALSE
+30064771080 | CALL | info -> fIsString
+30064771081 | CALL | skipped = u_scanf_skip_leading_ws ( input , info -> fPadChar )
+30064771082 | CALL | u_scanf_skip_leading_ws ( input , info -> fPadChar )
+30064771083 | CALL | info -> fPadChar
+30064771084 | CALL | count = 0
+30064771085 | CALL | conv = u_getDefaultConverter ( & status )
+30064771086 | CALL | u_getDefaultConverter ( & status )
+30064771087 | CALL | & status
+30064771088 | CALL | U_FAILURE ( status )
+30064771089 | CALL | - 1
+30064771090 | CALL | 
+        ( info -> fWidth == - 1 || count < info -> fWidth ) && ( isNotEOF = ufile_getch ( input , & c ) ) && ( ! info -> fIsString || ( c != info -> fPadChar && ! u_isWhitespace ( c ) ) )
+      
+30064771091 | CALL | 
+        ( info -> fWidth == - 1 || count < info -> fWidth ) && ( isNotEOF = ufile_getch ( input , & c ) )
+      
+30064771092 | CALL | info -> fWidth == - 1 || count < info -> fWidth
+30064771093 | CALL | info -> fWidth == - 1
+30064771094 | CALL | info -> fWidth
+30064771095 | CALL | - 1
+30064771096 | CALL | count < info -> fWidth
+30064771097 | CALL | info -> fWidth
+30064771098 | CALL | isNotEOF = ufile_getch ( input , & c )
+30064771099 | CALL | ufile_getch ( input , & c )
+30064771100 | CALL | & c
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803777 -> 30064771081 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771094 [CDG]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771089 [CDG]
+3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

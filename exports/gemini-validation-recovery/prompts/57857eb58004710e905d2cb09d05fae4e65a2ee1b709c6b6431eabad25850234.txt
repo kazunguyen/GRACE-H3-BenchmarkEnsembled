@@ -1,0 +1,351 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ff_mspel_motion(MpegEncContext *s,
+
+                               uint8_t *dest_y, uint8_t *dest_cb, uint8_t *dest_cr,
+
+                               uint8_t **ref_picture, op_pixels_func (*pix_op)[4],
+
+                               int motion_x, int motion_y, int h)
+
+{
+
+    Wmv2Context * const w= (Wmv2Context*)s;
+
+    uint8_t *ptr;
+
+    int dxy, offset, mx, my, src_x, src_y, v_edge_pos, linesize, uvlinesize;
+
+    int emu=0;
+
+
+
+    dxy = ((motion_y & 1) << 1) | (motion_x & 1);
+
+    dxy = 2*dxy + w->hshift;
+
+    src_x = s->mb_x * 16 + (motion_x >> 1);
+
+    src_y = s->mb_y * 16 + (motion_y >> 1);
+
+
+
+    /* WARNING: do no forget half pels */
+
+    v_edge_pos = s->v_edge_pos;
+
+    src_x = av_clip(src_x, -16, s->width);
+
+    src_y = av_clip(src_y, -16, s->height);
+
+
+
+    if(src_x<=-16 || src_x >= s->width)
+
+        dxy &= ~3;
+
+    if(src_y<=-16 || src_y >= s->height)
+
+        dxy &= ~4;
+
+
+
+    linesize   = s->linesize;
+
+    uvlinesize = s->uvlinesize;
+
+    ptr = ref_picture[0] + (src_y * linesize) + src_x;
+
+
+
+    if(s->flags&CODEC_FLAG_EMU_EDGE){
+
+        if(src_x<1 || src_y<1 || src_x + 17  >= s->h_edge_pos
+
+                              || src_y + h+1 >= v_edge_pos){
+
+            s->vdsp.emulated_edge_mc(s->edge_emu_buffer, ptr - 1 - s->linesize, s->linesize, 19, 19,
+
+                             src_x-1, src_y-1, s->h_edge_pos, s->v_edge_pos);
+
+            ptr= s->edge_emu_buffer + 1 + s->linesize;
+
+            emu=1;
+
+        }
+
+    }
+
+
+
+    s->dsp.put_mspel_pixels_tab[dxy](dest_y             , ptr             , linesize);
+
+    s->dsp.put_mspel_pixels_tab[dxy](dest_y+8           , ptr+8           , linesize);
+
+    s->dsp.put_mspel_pixels_tab[dxy](dest_y  +8*linesize, ptr  +8*linesize, linesize);
+
+    s->dsp.put_mspel_pixels_tab[dxy](dest_y+8+8*linesize, ptr+8+8*linesize, linesize);
+
+
+
+    if(s->flags&CODEC_FLAG_GRAY) return;
+
+
+
+    if (s->out_format == FMT_H263) {
+
+        dxy = 0;
+
+        if ((motion_x & 3) != 0)
+
+            dxy |= 1;
+
+        if ((motion_y & 3) != 0)
+
+            dxy |= 2;
+
+        mx = motion_x >> 2;
+
+        my = motion_y >> 2;
+
+    } else {
+
+        mx = motion_x / 2;
+
+        my = motion_y / 2;
+
+        dxy = ((my & 1) << 1) | (mx & 1);
+
+        mx >>= 1;
+
+        my >>= 1;
+
+    }
+
+
+
+    src_x = s->mb_x * 8 + mx;
+
+    src_y = s->mb_y * 8 + my;
+
+    src_x = av_clip(src_x, -8, s->width >> 1);
+
+    if (src_x == (s->width >> 1))
+
+        dxy &= ~1;
+
+    src_y = av_clip(src_y, -8, s->height >> 1);
+
+    if (src_y == (s->height >> 1))
+
+        dxy &= ~2;
+
+    offset = (src_y * uvlinesize) + src_x;
+
+    ptr = ref_picture[1] + offset;
+
+    if(emu){
+
+        s->vdsp.emulated_edge_mc(s->edge_emu_buffer, ptr, s->uvlinesize, 9, 9,
+
+                         src_x, src_y, s->h_edge_pos>>1, s->v_edge_pos>>1);
+
+        ptr= s->edge_emu_buffer;
+
+    }
+
+    pix_op[1][dxy](dest_cb, ptr, uvlinesize, h >> 1);
+
+
+
+    ptr = ref_picture[2] + offset;
+
+    if(emu){
+
+        s->vdsp.emulated_edge_mc(s->edge_emu_buffer, ptr, s->uvlinesize, 9, 9
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Statement
+AST 2 | CompoundStatement
+AST 3 | FunctionDef
+EDGES (original Joern endpoint IDs):
+4 -> 5 [IS_AST_PARENT]
+4 -> 6 [IS_AST_PARENT]
+4 -> 7 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+4 -> 8 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+18 -> 22 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+18 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+18 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+18 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+18 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+18 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+18 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+18 -> 43 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 61 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+56 -> 62 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+68 -> 72 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+78 -> 84 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline void mpeg_motion(MpegEncContext *s,
+
+                               UINT8 *dest_y, UINT8 *dest_cb, UINT8 *dest_cr,
+
+                               int dest_offset,
+
+                               UINT8 **ref_picture, int src_offset,
+
+                               int field_based, op_pixels_func *pix_op,
+
+                               int motion_x, int motion_y, int h)
+
+{
+
+    UINT8 *ptr;
+
+    int dxy, offset, mx, my, src_x, src_y, height, linesize;
+
+if(s->quarter_sample)
+
+{
+
+    motion_x>>=1;
+
+    motion_y>>=1;
+
+}
+
+
+
+    dxy = ((motion_y & 1) << 1) | (motion_x & 1);
+
+    src_x = s->mb_x * 16 + (motion_x >> 1);
+
+    src_y = s->mb_y * (16 >> field_based) + (motion_y >> 1);
+
+                
+
+    /* WARNING: do no forget half pels */
+
+    height = s->height >> field_based;
+
+    src_x = clip(src_x, -16, s->width);
+
+    if (src_x == s->width)
+
+        dxy &= ~1;
+
+    src_y = clip(src_y, -16, height);
+
+    if (src_y == height)
+
+        dxy &= ~2;
+
+    linesize = s->linesize << field_based;
+
+    ptr = ref_picture[0] + (src_y * linesize) + (src_x) + src_offset;
+
+    dest_y += dest_offset;
+
+    pix_op[dxy](dest_y, ptr, linesize, h);
+
+    pix_op[dxy](dest_y + 8, ptr + 8, linesize, h);
+
+
+
+    if (s->out_format == FMT_H263) {
+
+        dxy = 0;
+
+        if ((motion_x & 3) != 0)
+
+            dxy |= 1;
+
+        if ((motion_y & 3) != 0)
+
+            dxy |= 2;
+
+        mx = motion_x >> 2;
+
+        my = motion_y >> 2;
+
+    } else {
+
+        mx = motion_x / 2;
+
+        my = moti
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

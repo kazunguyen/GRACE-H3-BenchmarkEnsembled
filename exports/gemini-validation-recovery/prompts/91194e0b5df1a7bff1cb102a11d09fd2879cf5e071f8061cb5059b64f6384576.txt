@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool replay_checkpoint(ReplayCheckpoint checkpoint)
+
+{
+
+    bool res = false;
+
+    assert(EVENT_CHECKPOINT + checkpoint <= EVENT_CHECKPOINT_LAST);
+
+    replay_save_instructions();
+
+
+
+    if (!replay_file) {
+
+        return true;
+
+    }
+
+
+
+    replay_mutex_lock();
+
+
+
+    if (replay_mode == REPLAY_MODE_PLAY) {
+
+        if (replay_next_event_is(EVENT_CHECKPOINT + checkpoint)) {
+
+            replay_finish_event();
+
+        } else if (replay_data_kind != EVENT_ASYNC) {
+
+            res = false;
+
+            goto out;
+
+        }
+
+        replay_read_events(checkpoint);
+
+        /* replay_read_events may leave some unread events.
+
+           Return false if not all of the events associated with
+
+           checkpoint were processed */
+
+        res = replay_data_kind != EVENT_ASYNC;
+
+    } else if (replay_mode == REPLAY_MODE_RECORD) {
+
+        replay_put_event(EVENT_CHECKPOINT + checkpoint);
+
+        replay_save_events(checkpoint);
+
+        res = true;
+
+    }
+
+out:
+
+    replay_mutex_unlock();
+
+    return res;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 22 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+28 -> 33 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+47 -> 57 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+69 -> 74 [IS_AST_PARENT]
+64 -> 69 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+47 -> 63 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+46 -> 76 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool replay_next_event_is(int event)
+
+{
+
+    bool res = false;
+
+
+
+    /* nothing to skip - not all instructions used */
+
+    if (replay_state.instructions_count != 0) {
+
+        assert(replay_data_kind == EVENT_INSTRUCTION);
+
+        return event == EVENT_INSTRUCTION;
+
+    }
+
+
+
+    while (true) {
+
+        if (event == replay_data_kind) {
+
+            res = true;
+
+        }
+
+        switch (replay_data_kind) {
+
+        case EVENT_SHUTDOWN:
+
+            replay_finish_event();
+
+            qemu_system_shutdown_request();
+
+            break;
+
+        default:
+
+            /* clock, time_t, checkpoint and other events */
+
+            return res;
+
+        }
+
+    }
+
+    return res;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

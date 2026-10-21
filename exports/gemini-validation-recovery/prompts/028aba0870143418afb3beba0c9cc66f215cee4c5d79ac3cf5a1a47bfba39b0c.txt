@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorJSONGraphicsRelocate ( qemuMonitorPtr mon , int type , const char * hostname , int port , int tlsPort , const char * tlsSubject ) {
+ int ret = - 1 ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "client_migrate_info" , "s:protocol" , ( type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE ? "spice" : "vnc" ) , "s:hostname" , hostname , "i:port" , port , "i:tls-port" , tlsPort , ( tlsSubject ? "s:cert-subject" : NULL ) , ( tlsSubject ? tlsSubject : NULL ) , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret = - 1 ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "client_migrate_info" , "s:protocol" , ( type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE ? "spice" : "vnc" ) , "s:hostname" , hostname , "i:port" , port , "i:tls-port" , tlsPort , ( tlsSubject ? "s:cert-subject" : NULL ) , ( tlsSubject ? tlsSubject : NULL ) , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | ret = - 1
+30064771073 | CALL | - 1
+30064771074 | CALL | 
+        cmd = qemuMonitorJSONMakeCommand ( "client_migrate_info" , "s:protocol" , ( type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE ? "spice" : "vnc" ) , "s:hostname" , hostname , "i:port" , port , "i:tls-port" , tlsPort , ( tlsSubject ? "s:cert-subject" : NULL ) , ( tlsSubject ? tlsSubject : NULL ) , NULL )
+      
+30064771075 | CALL | 
+        qemuMonitorJSONMakeCommand ( "client_migrate_info" , "s:protocol" , ( type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE ? "spice" : "vnc" ) , "s:hostname" , hostname , "i:port" , port , "i:tls-port" , tlsPort , ( tlsSubject ? "s:cert-subject" : NULL ) , ( tlsSubject ? tlsSubject : NULL ) , NULL )
+      
+30064771076 | CALL | type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE ? "spice" : "vnc"
+30064771077 | CALL | type == VIR_DOMAIN_GRAPHICS_TYPE_SPICE
+30064771078 | CALL | tlsSubject ? "s:cert-subject" : NULL
+30064771079 | CALL | tlsSubject ? tlsSubject : NULL
+30064771080 | CALL | reply = NULL
+30064771081 | CALL | ! cmd
+30064771082 | CALL | - 1
+30064771083 | CALL | ret = qemuMonitorJSONCommand ( mon , cmd , & reply )
+30064771084 | CALL | qemuMonitorJSONCommand ( mon , cmd , & reply )
+30064771085 | CALL | & reply
+30064771086 | CALL | ret == 0
+30064771087 | CALL | ret = qemuMonitorJSONCheckError ( cmd , reply )
+30064771088 | CALL | qemuMonitorJSONCheckError ( cmd , reply )
+30064771089 | CALL | virJSONValueFree ( cmd )
+30064771090 | CALL | virJSONValueFree ( reply )
+47244640256 | CONTROL_STRUCTURE | if ( ! cmd ) return - 1 ;
+47244640257 | CONTROL_STRUCTURE | if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+68719476736 | IDENTIFIER | ret
+68719476737 | IDENTIFIER | cmd
+68719476738 | IDENTIFIER | type
+68719476739 | IDENTIFIER | <unknown> VIR_DOMAIN_GRAPHICS_TYPE_SPICE
+68719476740 | IDENTIFIER | hostname
+68719476741 | IDENTIFIER | port
+68719476742 | IDENTIFIER | tlsPort
+68719476743 | IDENTIFIER | tlsSubject
+68719476744 | IDENTIFIER | <unknown> NULL
+68719476745 | IDENTIFIER | tlsSubject
+68719476746 | IDENTIFIER | tlsSubject
+68719476747 | IDENTIFIER | <unknown> NULL
+68719476748 | IDENTIFIER | <unknown> NULL
+68719476749 | IDENTIFIER | reply
+68719476750 | IDENTIFIER | <unknown> NULL
+68719476751 | IDENTIFIER | cmd
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803778 -> 30064771087 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476749 [CFG]
+30064771074 -> 68719476749 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 68719476742 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771079 [ARGUMENT]
+30064771075 -> 68719476748 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 68719476742 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771079 [AST]
+30064771075 -> 68719476748 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476748 [POST_DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771079 [REACHING_DEF]
+30064771076 -> 68719476748 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476738 [ARGUMENT]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 68719476738 [AST]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476739 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [CFG]
+30064771078 -> 68719476745 [DOMINATE]
+30064771078 -> 68719476743 [POST_DOMINATE]
+30064771078 -> 68719476744 [POST_DOMINATE]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476740 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 68719476748 [REACHING_DEF]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 68719476746 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int qemuMonitorJSONRemoveHostNetwork ( qemuMonitorPtr mon , int vlan , const char * netname ) {
+ int ret ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "host_net_remove" , "i:vlan" , vlan , "s:device" , netname , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

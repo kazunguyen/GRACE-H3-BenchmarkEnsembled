@@ -1,0 +1,266 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ VideoXLContext * const a = avctx -> priv_data ;
+ AVFrame * const p = & a -> pic ;
+ uint8_t * Y , * U , * V ;
+ int i , j , ret ;
+ int stride ;
+ uint32_t val ;
+ int y0 , y1 , y2 , y3 = 0 , c0 = 0 , c1 = 0 ;
+ if ( p -> data [ 0 ] ) avctx -> release_buffer ( avctx , p ) ;
+ p -> reference = 0 ;
+ if ( ( ret = ff_get_buffer ( avctx , p ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ p -> pict_type = AV_PICTURE_TYPE_I ;
+ p -> key_frame = 1 ;
+ Y = a -> pic . data [ 0 ] ;
+ U = a -> pic . data [ 1 ] ;
+ V = a -> pic . data [ 2 ] ;
+ stride = avctx -> width - 4 ;
+ if ( buf_size < avctx -> width * avctx -> height ) {
+ av_log ( avctx , AV_LOG_ERROR , "Packet is too small\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( i = 0 ;
+ i < avctx -> height ;
+ i ++ ) {
+ buf += stride ;
+ for ( j = 0 ;
+ j < avctx -> width ;
+ j += 4 ) {
+ val = AV_RL32 ( buf ) ;
+ buf -= 4 ;
+ val = ( ( val >> 16 ) & 0xFFFF ) | ( ( val & 0xFFFF ) << 16 ) ;
+ if ( ! j ) y0 = ( val & 0x1F ) << 2 ;
+ else y0 = y3 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y1 = y0 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y2 = y1 + xl_table [ val & 0x1F ] ;
+ val >>= 6 ;
+ y3 = y2 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c0 = ( val & 0x1F ) << 2 ;
+ else c0 += xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c1 = ( val & 0x1F ) << 2 ;
+ else c1 += xl_table [ val & 0x1F ] ;
+ Y [ j + 0 ] = y0 << 1 ;
+ Y [ j + 1 ] = y1 << 1 ;
+ Y [ j + 2 ] = y2 << 1 ;
+ Y [ j + 3 ] = y3 << 1 ;
+ U [ j >> 2 ] = c0 << 1 ;
+ V [ j >> 2 ] = c1 << 1 ;
+ }
+ buf += avctx -> width + 4 ;
+ Y += a -> pic . linesize [ 0 ] ;
+ U += a -> pic . linesize [ 1 ] ;
+ V += a -> pic . linesize [ 2 ] ;
+ }
+ * got_frame = 1 ;
+ * ( AVFrame * ) data = a -> pic ;
+ return buf_size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ VideoXLContext * const a = avctx -> priv_data ;
+ AVFrame * const p = & a -> pic ;
+ uint8_t * Y , * U , * V ;
+ int i , j , ret ;
+ int stride ;
+ uint32_t val ;
+ int y0 , y1 , y2 , y3 = 0 , c0 = 0 , c1 = 0 ;
+ if ( p -> data [ 0 ] ) avctx -> release_buffer ( avctx , p ) ;
+ p -> reference = 0 ;
+ if ( ( ret = ff_get_buffer ( avctx , p ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ p -> pict_type = AV_PICTURE_TYPE_I ;
+ p -> key_frame = 1 ;
+ Y = a -> pic . data [ 0 ] ;
+ U = a -> pic . data [ 1 ] ;
+ V = a -> pic . data [ 2 ] ;
+ stride = avctx -> width - 4 ;
+ if ( buf_size < avctx -> width * avctx -> height ) {
+ av_log ( avctx , AV_LOG_ERROR , "Packet is too small\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( i = 0 ;
+ i < avctx -> height ;
+ i ++ ) {
+ buf += stride ;
+ for ( j = 0 ;
+ j < avctx -> width ;
+ j += 4 ) {
+ val = AV_RL32 ( buf ) ;
+ buf -= 4 ;
+ val = ( ( val >> 16 ) & ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Packet is too small\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ buf += stride ;
+ for ( j = 0 ;
+ j < avctx -> width ;
+ j += 4 ) {
+ val = AV_RL32 ( buf ) ;
+ buf -= 4 ;
+ val = ( ( val >> 16 ) & 0xFFFF ) | ( ( val & 0xFFFF ) << 16 ) ;
+ if ( ! j ) y0 = ( val & 0x1F ) << 2 ;
+ else y0 = y3 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y1 = y0 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y2 = y1 + xl_table [ val & 0x1F ] ;
+ val >>= 6 ;
+ y3 = y2 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c0 = ( val & 0x1F ) << 2 ;
+ else c0 += xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c1 = ( val & 0x1F ) << 2 ;
+ else c1 += xl_table [ val & 0x1F ] ;
+ Y [ j + 0 ] = y0 << 1 ;
+ Y [ j + 1 ] = y1 << 1 ;
+ Y [ j + 2 ] = y2 << 1 ;
+ Y [ j + 3 ] = y3 << 1 ;
+ U [ j >> 2 ] = c0 << 1 ;
+ V [ j >> 2 ] = c1 << 1 ;
+ }
+ buf += avctx -> width + 4 ;
+ Y += a -> pic . linesize [ 0 ] ;
+ U += a -> pic . linesize [ 1 ] ;
+ V += a -> pic . linesize [ 2 ] ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ val = AV_RL32 ( buf ) ;
+ buf -= 4 ;
+ val = ( ( val >> 16 ) & 0xFFFF ) | ( ( val & 0xFFFF ) << 16 ) ;
+ if ( ! j ) y0 = ( val & 0x1F ) << 2 ;
+ else y0 = y3 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y1 = y0 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ y2 = y1 + xl_table [ val & 0x1F ] ;
+ val >>= 6 ;
+ y3 = y2 + xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c0 = ( val & 0x1F ) << 2 ;
+ else c0 += xl_table [ val & 0x1F ] ;
+ val >>= 5 ;
+ if ( ! j ) c1 = ( val & 0x1F ) << 2 ;
+ else c1 += xl_table [ val & 0x1F ] ;
+ Y [ j + 0 ] = y0 << 1 ;
+ Y [ j + 1 ] = y1 << 1 ;
+ Y [ j + 2 ] = y2 << 1 ;
+ Y [ j + 3 ] = y3 << 1 ;
+ U [ j >> 2 ] = c0 << 1 ;
+ V [ j >> 2 ] = c1 << 1 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+30064771072 | CALL | buf = avpkt -> data
+30064771073 | CALL | avpkt -> data
+30064771074 | CALL | buf_size = avpkt -> size
+30064771075 | CALL | avpkt -> size
+30064771076 | CALL | const a = avctx -> priv_data
+30064771077 | CALL | avctx -> priv_data
+30064771078 | CALL | const p = & a -> pic
+30064771079 | CALL | & a -> pic
+30064771080 | CALL | a -> pic
+30064771081 | CALL | y3 = 0
+30064771082 | CALL | c0 = 0
+30064771083 | CALL | c1 = 0
+30064771084 | CALL | p -> data [ 0 ]
+30064771085 | CALL | p -> data
+30064771086 | CALL | avctx -> release_buffer ( avctx , p )
+30064771087 | CALL | avctx -> release_buffer
+30064771088 | CALL | p -> reference = 0
+30064771089 | CALL | p -> reference
+30064771090 | CALL | ( ret = ff_get_buffer ( avctx , p ) ) < 0
+30064771091 | CALL | ret = ff_get_buffer ( avctx , p )
+30064771092 | CALL | ff_get_buffer ( avctx , p )
+30064771093 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771094 | CALL | p -> pict_type = AV_PICTURE_TYPE_I
+30064771095 | CALL | p -> pict_type
+30064771096 | CALL | p -> key_frame = 1
+30064771097 | CALL | p -> key_frame
+30064771098 | CALL | Y = a -> pic . data [ 0 ]
+30064771099 | CALL | a -> pic . data [ 0 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 30064771086 [AST]
+25769803778 -> 30064771093 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

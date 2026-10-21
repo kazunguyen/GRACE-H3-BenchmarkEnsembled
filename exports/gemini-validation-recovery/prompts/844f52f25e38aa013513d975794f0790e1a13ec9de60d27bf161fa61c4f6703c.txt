@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static float sbr_sum_square_c ( float ( * x ) [ 2 ] , int n ) {
+ float sum0 = 0.0f , sum1 = 0.0f ;
+ int i ;
+ for ( i = 0 ;
+ i < n ;
+ i += 2 ) {
+ sum0 += x [ i + 0 ] [ 0 ] * x [ i + 0 ] [ 0 ] ;
+ sum1 += x [ i + 0 ] [ 1 ] * x [ i + 0 ] [ 1 ] ;
+ sum0 += x [ i + 1 ] [ 0 ] * x [ i + 1 ] [ 0 ] ;
+ sum1 += x [ i + 1 ] [ 1 ] * x [ i + 1 ] [ 1 ] ;
+ }
+ return sum0 + sum1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ float sum0 = 0.0f , sum1 = 0.0f ;
+ int i ;
+ for ( i = 0 ;
+ i < n ;
+ i += 2 ) {
+ sum0 += x [ i + 0 ] [ 0 ] * x [ i + 0 ] [ 0 ] ;
+ sum1 += x [ i + 0 ] [ 1 ] * x [ i + 0 ] [ 1 ] ;
+ sum0 += x [ i + 1 ] [ 0 ] * x [ i + 1 ] [ 0 ] ;
+ sum1 += x [ i + 1 ] [ 1 ] * x [ i + 1 ] [ 1 ] ;
+ }
+ return sum0 + sum1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ sum0 += x [ i + 0 ] [ 0 ] * x [ i + 0 ] [ 0 ] ;
+ sum1 += x [ i + 0 ] [ 1 ] * x [ i + 0 ] [ 1 ] ;
+ sum0 += x [ i + 1 ] [ 0 ] * x [ i + 1 ] [ 0 ] ;
+ sum1 += x [ i + 1 ] [ 1 ] * x [ i + 1 ] [ 1 ] ;
+ }
+      
+30064771072 | CALL | sum0 = 0.0f
+30064771073 | CALL | sum1 = 0.0f
+30064771074 | CALL | i = 0
+30064771075 | CALL | i < n
+30064771076 | CALL | i += 2
+30064771077 | CALL | sum0 += x [ i + 0 ] [ 0 ] * x [ i + 0 ] [ 0 ]
+30064771078 | CALL | x [ i + 0 ] [ 0 ] * x [ i + 0 ] [ 0 ]
+30064771079 | CALL | x [ i + 0 ] [ 0 ]
+30064771080 | CALL | x [ i + 0 ]
+30064771081 | CALL | i + 0
+30064771082 | CALL | x [ i + 0 ] [ 0 ]
+30064771083 | CALL | x [ i + 0 ]
+30064771084 | CALL | i + 0
+30064771085 | CALL | sum1 += x [ i + 0 ] [ 1 ] * x [ i + 0 ] [ 1 ]
+30064771086 | CALL | x [ i + 0 ] [ 1 ] * x [ i + 0 ] [ 1 ]
+30064771087 | CALL | x [ i + 0 ] [ 1 ]
+30064771088 | CALL | x [ i + 0 ]
+30064771089 | CALL | i + 0
+30064771090 | CALL | x [ i + 0 ] [ 1 ]
+30064771091 | CALL | x [ i + 0 ]
+30064771092 | CALL | i + 0
+30064771093 | CALL | sum0 += x [ i + 1 ] [ 0 ] * x [ i + 1 ] [ 0 ]
+30064771094 | CALL | x [ i + 1 ] [ 0 ] * x [ i + 1 ] [ 0 ]
+30064771095 | CALL | x [ i + 1 ] [ 0 ]
+30064771096 | CALL | x [ i + 1 ]
+30064771097 | CALL | i + 1
+30064771098 | CALL | x [ i + 1 ] [ 0 ]
+30064771099 | CALL | x [ i + 1 ]
+30064771100 | CALL | i + 1
+30064771101 | CALL | sum1 += x [ i + 1 ] [ 1 ] * x [ i + 1 ] [ 1 ]
+30064771102 | CALL | x [ i + 1 ] [ 1 ] * x [ i + 1 ] [ 1 ]
+30064771103 | CALL | x [ i + 1 ] [ 1 ]
+30064771104 | CALL | x [ i + 1 ]
+30064771105 | CALL | i + 1
+30064771106 | CALL | x [ i + 1 ] [ 1 ]
+30064771107 | CALL | x [ i + 1 ]
+30064771108 | CALL | i + 1
+30064771109 | CALL | sum0 + sum1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771101 [AST]
+30064771075 -> 30064771087 [CDG]
+30064771075 -> 30064771088 [CDG]
+30064771075 -> 30064771089 [CDG]
+30064771075 -> 30064771090 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771086 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771107 [CDG]
+30064771075 -> 30064771108 [CDG]
+30064771075 -> 30064771103 [CDG]
+30064771075 -> 30064771104 [CDG]
+30064771075 -> 30064771105 [CDG]
+30064771075 -> 30064771106 [CDG]
+30064771075 -> 30064771099 [CDG]
+30064771075 -> 30064771100 [CDG]
+30064771075 -> 30064771101 [CDG]
+30064771075 -> 30064771102 [CDG]
+30064771075 -> 30064771095 [CDG]
+30064771075 -> 30064771096 [CDG]
+30064771075 -> 30064771097 [CDG]
+30064771075 -> 30064771098 [CDG]
+30064771075 -> 30064771091 [CDG]
+30064771075 -> 30064771092 [CDG]
+30064771075 -> 30064771093 [CDG]
+30064771075 -> 30064771094 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771082 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771082 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771082 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771091 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771088 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771078 [CFG]
+30064771082 -> 30064771078 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771078 [REACHING_DEF]
+30064771082 -> 30064771091 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771088 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static float eval_lpc_spectrum ( const float * lsp , float cos_val , int order ) {
+ int j ;
+ float p = 0.5f ;
+ float q = 0.5f ;
+ float two_cos_w = 2.0f * cos_val ;
+ for ( j = 0 ;
+ j + 1 < order ;
+ j += 2 * 2 ) {
+ q *= lsp [ j ] - two_cos_w ;
+ p *= lsp [ j + 1 ] - two_cos_w ;
+ q *= lsp [ j + 2 ] - two_cos_w ;
+ p *= lsp [ j + 3 ] - two_cos_w ;
+ }
+ p *= p * ( 2.0f - two_cos_w ) ;
+ q *= q * ( 2.0f + two_cos_w ) ;
+ return 0.5 / ( p + q ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

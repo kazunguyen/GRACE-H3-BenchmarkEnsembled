@@ -1,0 +1,209 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dvvideo_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ DVVideoContext * s = avctx -> priv_data ;
+ const uint8_t * vsc_pack ;
+ int apt , is16_9 ;
+ s -> sys = avpriv_dv_frame_profile ( s -> sys , buf , buf_size ) ;
+ if ( ! s -> sys || buf_size < s -> sys -> frame_size || ff_dv_init_dynamic_tables ( s -> sys ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "could not find dv frame profile\n" ) ;
+ return - 1 ;
+ }
+ if ( s -> picture . data [ 0 ] ) avctx -> release_buffer ( avctx , & s -> picture ) ;
+ s -> picture . reference = 0 ;
+ s -> picture . key_frame = 1 ;
+ s -> picture . pict_type = AV_PICTURE_TYPE_I ;
+ avctx -> pix_fmt = s -> sys -> pix_fmt ;
+ avctx -> time_base = s -> sys -> time_base ;
+ avcodec_set_dimensions ( avctx , s -> sys -> width , s -> sys -> height ) ;
+ if ( ff_get_buffer ( avctx , & s -> picture ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return - 1 ;
+ }
+ s -> picture . interlaced_frame = 1 ;
+ s -> picture . top_field_first = 0 ;
+ s -> buf = buf ;
+ avctx -> execute ( avctx , dv_decode_video_segment , s -> sys -> work_chunks , NULL , dv_work_pool_size ( s -> sys ) , sizeof ( DVwork_chunk ) ) ;
+ emms_c ( ) ;
+ * got_frame = 1 ;
+ * ( AVFrame * ) data = s -> picture ;
+ vsc_pack = buf + 80 * 5 + 48 + 5 ;
+ if ( * vsc_pack == dv_video_control ) {
+ apt = buf [ 4 ] & 0x07 ;
+ is16_9 = ( vsc_pack && ( ( vsc_pack [ 2 ] & 0x07 ) == 0x02 || ( ! apt && ( vsc_pack [ 2 ] & 0x07 ) == 0x07 ) ) ) ;
+ avctx -> sample_aspect_ratio = s -> sys -> sar [ is16_9 ] ;
+ }
+ return s -> sys -> frame_size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ DVVideoContext * s = avctx -> priv_data ;
+ const uint8_t * vsc_pack ;
+ int apt , is16_9 ;
+ s -> sys = avpriv_dv_frame_profile ( s -> sys , buf , buf_size ) ;
+ if ( ! s -> sys || buf_size < s -> sys -> frame_size || ff_dv_init_dynamic_tables ( s -> sys ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "could not find dv frame profile\n" ) ;
+ return - 1 ;
+ }
+ if ( s -> picture . data [ 0 ] ) avctx -> release_buffer ( avctx , & s -> picture ) ;
+ s -> picture . reference = 0 ;
+ s -> picture . key_frame = 1 ;
+ s -> picture . pict_type = AV_PICTURE_TYPE_I ;
+ avctx -> pix_fmt = s -> sys -> pix_fmt ;
+ avctx -> time_base = s -> sys -> time_base ;
+ avcodec_set_dimensions ( avctx , s -> sys -> width , s -> sys -> height ) ;
+ if ( ff_get_buffer ( avctx , & s -> picture ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return - 1 ;
+ }
+ s -> picture . interlaced_frame = 1 ;
+ s -> picture . top_field_first = 0 ;
+ s -> b...
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "could not find dv frame profile\n" ) ;
+ return - 1 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return - 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ apt = buf [ 4 ] & 0x07 ;
+ is16_9 = ( vsc_pack && ( ( vsc_pack [ 2 ] & 0x07 ) == 0x02 || ( ! apt && ( vsc_pack [ 2 ] & 0x07 ) == 0x07 ) ) ) ;
+ avctx -> sample_aspect_ratio = s -> sys -> sar [ is16_9 ] ;
+ }
+      
+30064771072 | CALL | buf = avpkt -> data
+30064771073 | CALL | avpkt -> data
+30064771074 | CALL | buf_size = avpkt -> size
+30064771075 | CALL | avpkt -> size
+30064771076 | CALL | s = avctx -> priv_data
+30064771077 | CALL | avctx -> priv_data
+30064771078 | CALL | s -> sys = avpriv_dv_frame_profile ( s -> sys , buf , buf_size )
+30064771079 | CALL | s -> sys
+30064771080 | CALL | avpriv_dv_frame_profile ( s -> sys , buf , buf_size )
+30064771081 | CALL | s -> sys
+30064771082 | CALL | 
+        ! s -> sys || buf_size < s -> sys -> frame_size || ff_dv_init_dynamic_tables ( s -> sys )
+      
+30064771083 | CALL | ! s -> sys || buf_size < s -> sys -> frame_size
+30064771084 | CALL | ! s -> sys
+30064771085 | CALL | s -> sys
+30064771086 | CALL | buf_size < s -> sys -> frame_size
+30064771087 | CALL | s -> sys -> frame_size
+30064771088 | CALL | s -> sys
+30064771089 | CALL | ff_dv_init_dynamic_tables ( s -> sys )
+30064771090 | CALL | s -> sys
+30064771091 | CALL | av_log ( avctx , AV_LOG_ERROR , "could not find dv frame profile\n" )
+30064771092 | CALL | - 1
+30064771093 | CALL | s -> picture . data [ 0 ]
+30064771094 | CALL | s -> picture . data
+30064771095 | CALL | s -> picture
+30064771096 | CALL | avctx -> release_buffer ( avctx , & s -> picture )
+30064771097 | CALL | avctx -> release_buffer
+30064771098 | CALL | & s -> picture
+30064771099 | CALL | s -> picture
+30064771100 | CALL | s -> picture . reference = 0
+30064771101 | CALL | s -> picture . reference
+30064771102 | CALL | s -> picture
+30064771103 | CALL | s -> picture . key_frame = 1
+30064771104 | CALL | s -> picture . key_frame
+30064771105 | CALL | s -> picture
+30064771106 | CALL | s -> picture . pict_type = AV_PICTURE_TYPE_I
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803777 -> 30064771091 [AST]
+25769803778 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771085 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771089 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771089 [AST]
+30064771082 -> 30064771103 [CDG]
+30064771082 -> 30064771104 [CDG]
+30064771082 -> 30064771101 [CDG]
+30064771082 -> 30064771102 [CDG]
+30064771082 -> 30064771100 [CDG]
+30064771082 -> 30064771105 [CDG]
+30064771082 -> 30064771106 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771089 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+300647710
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

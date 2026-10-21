@@ -1,0 +1,246 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void mainwindow_change_active ( MAIN_WINDOW_REC * mainwin , WINDOW_REC * skip_window ) {
+ WINDOW_REC * window , * other ;
+ GSList * tmp ;
+ mainwin -> active = NULL ;
+ if ( mainwin -> sticky_windows ) {
+ tmp = get_sticky_windows_sorted ( mainwin ) ;
+ window = tmp -> data ;
+ if ( window == skip_window ) {
+ window = tmp -> next == NULL ? NULL : tmp -> next -> data ;
+ }
+ g_slist_free ( tmp ) ;
+ if ( window != NULL ) {
+ window_set_active ( window ) ;
+ return ;
+ }
+ }
+ other = NULL ;
+ for ( tmp = windows ;
+ tmp != NULL ;
+ tmp = tmp -> next ) {
+ WINDOW_REC * rec = tmp -> data ;
+ if ( rec != skip_window ) {
+ other = rec ;
+ break ;
+ }
+ }
+ window_set_active ( other ) ;
+ if ( mainwindows -> next != NULL ) mainwindow_destroy ( mainwin ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ WINDOW_REC * window , * other ;
+ GSList * tmp ;
+ mainwin -> active = NULL ;
+ if ( mainwin -> sticky_windows ) {
+ tmp = get_sticky_windows_sorted ( mainwin ) ;
+ window = tmp -> data ;
+ if ( window == skip_window ) {
+ window = tmp -> next == NULL ? NULL : tmp -> next -> data ;
+ }
+ g_slist_free ( tmp ) ;
+ if ( window != NULL ) {
+ window_set_active ( window ) ;
+ return ;
+ }
+ }
+ other = NULL ;
+ for ( tmp = windows ;
+ tmp != NULL ;
+ tmp = tmp -> next ) {
+ WINDOW_REC * rec = tmp -> data ;
+ if ( rec != skip_window ) {
+ other = rec ;
+ break ;
+ }
+ }
+ window_set_active ( other ) ;
+ if ( mainwindows -> next != NULL ) mainwindow_destroy ( mainwin ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ tmp = get_sticky_windows_sorted ( mainwin ) ;
+ window = tmp -> data ;
+ if ( window == skip_window ) {
+ window = tmp -> next == NULL ? NULL : tmp -> next -> data ;
+ }
+ g_slist_free ( tmp ) ;
+ if ( window != NULL ) {
+ window_set_active ( window ) ;
+ return ;
+ }
+ }
+      
+25769803778 | BLOCK | { window = tmp -> next == NULL ? NULL : tmp -> next -> data ; }
+25769803779 | BLOCK | { window_set_active ( window ) ; return ; }
+25769803780 | BLOCK | 
+        {
+ WINDOW_REC * rec = tmp -> data ;
+ if ( rec != skip_window ) {
+ other = rec ;
+ break ;
+ }
+ }
+      
+25769803781 | BLOCK | { other = rec ; break ; }
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | mainwin -> active = NULL
+30064771073 | CALL | mainwin -> active
+30064771074 | CALL | mainwin -> sticky_windows
+30064771075 | CALL | tmp = get_sticky_windows_sorted ( mainwin )
+30064771076 | CALL | get_sticky_windows_sorted ( mainwin )
+30064771077 | CALL | window = tmp -> data
+30064771078 | CALL | tmp -> data
+30064771079 | CALL | window == skip_window
+30064771080 | CALL | window = tmp -> next == NULL ? NULL : tmp -> next -> data
+30064771081 | CALL | tmp -> next == NULL ? NULL : tmp -> next -> data
+30064771082 | CALL | tmp -> next == NULL
+30064771083 | CALL | tmp -> next
+30064771084 | CALL | tmp -> next -> data
+30064771085 | CALL | tmp -> next
+30064771086 | CALL | g_slist_free ( tmp )
+30064771087 | CALL | window != NULL
+30064771088 | CALL | window_set_active ( window )
+30064771089 | CALL | other = NULL
+30064771090 | CALL | tmp = windows
+30064771091 | CALL | tmp != NULL
+30064771092 | CALL | tmp = tmp -> next
+30064771093 | CALL | tmp -> next
+30064771094 | CALL | rec = tmp -> data
+30064771095 | CALL | tmp -> data
+30064771096 | CALL | rec != skip_window
+30064771097 | CALL | other = rec
+30064771098 | CALL | window_set_active ( other )
+30064771099 | CALL | mainwindows -> next != NULL
+30064771100 | CALL | mainwindows -> next
+30064771101 | CALL | mainwindow_destroy ( mainwin )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( mainwin -> sticky_windows ) {
+ tmp = get_sticky_windows_sorted ( mainwin ) ;
+ window = tmp -> data ;
+ if ( window == skip_window ) {
+ window = tmp -> next == NULL ? NULL : tmp -> next -> data ;
+ }
+ g_slist_free ( tmp ) ;
+ if ( window != NULL ) {
+ window_set_active ( window ) ;
+ return ;
+ }
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( window == skip_window ) {
+ window = tmp -> next == NULL ? NULL : tmp -> next -> data ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | if ( window != NULL ) { window_set_active ( window ) ; return ; }
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 47244640258 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771094 [AST]
+25769803781 -> 30064771097 [AST]
+25769803782 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771100 [CDG]
+30064771074 -> 30064771099 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771098 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771095 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771084 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771084 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771093 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771081 [CFG]
+30064771084 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771093 [REACHING_DEF]
+30064771087 -> 30064771100 [CDG]
+30064771087 -> 30064771099 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771098 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771091 -> 30064771096 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void gui_windows_remove_parent ( MAIN_WINDOW_REC * window ) {
+ MAIN_WINDOW_REC * new_parent ;
+ GSList * tmp ;
+ new_parent = mainwindows -> data ;
+ for ( tmp = windows ;
+ tmp != NULL ;
+ tmp = tmp -> next ) {
+ WINDOW_REC * rec = tmp -> data ;
+ if ( rec -> gui_data != NULL && WINDOW_MAIN ( rec ) == window ) gui_window_reparent ( rec , new_parent ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

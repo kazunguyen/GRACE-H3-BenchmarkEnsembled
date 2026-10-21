@@ -1,0 +1,204 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_pvfs2_readdir_response ( tvbuff_t * tvb , proto_tree * tree , int offset , packet_info * pinfo ) {
+ guint32 dirent_count = 0 ;
+ guint32 nCount = 0 ;
+ proto_tree_add_item ( tree , hf_pvfs_ds_position , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_pvfs_directory_version , tvb , offset , 8 , ENC_LITTLE_ENDIAN ) ;
+ offset += 8 ;
+ offset += 4 ;
+ dirent_count = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_item ( tree , hf_pvfs_dirent_count , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ for ( nCount = 0 ;
+ nCount < dirent_count ;
+ nCount ++ ) {
+ offset = dissect_pvfs_string ( tvb , tree , hf_pvfs_path , offset , NULL ) ;
+ offset = dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL ) ;
+ }
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint32 dirent_count = 0 ;
+ guint32 nCount = 0 ;
+ proto_tree_add_item ( tree , hf_pvfs_ds_position , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_pvfs_directory_version , tvb , offset , 8 , ENC_LITTLE_ENDIAN ) ;
+ offset += 8 ;
+ offset += 4 ;
+ dirent_count = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_item ( tree , hf_pvfs_dirent_count , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ for ( nCount = 0 ;
+ nCount < dirent_count ;
+ nCount ++ ) {
+ offset = dissect_pvfs_string ( tvb , tree , hf_pvfs_path , offset , NULL ) ;
+ offset = dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL ) ;
+ }
+ return offset ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ offset = dissect_pvfs_string ( tvb , tree , hf_pvfs_path , offset , NULL ) ;
+ offset = dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL ) ;
+ }
+      
+30064771072 | CALL | dirent_count = 0
+30064771073 | CALL | nCount = 0
+30064771074 | CALL | 
+        proto_tree_add_item ( tree , hf_pvfs_ds_position , tvb , offset , 4 , ENC_LITTLE_ENDIAN )
+      
+30064771075 | CALL | offset += 4
+30064771076 | CALL | offset += 4
+30064771077 | CALL | 
+        proto_tree_add_item ( tree , hf_pvfs_directory_version , tvb , offset , 8 , ENC_LITTLE_ENDIAN )
+      
+30064771078 | CALL | offset += 8
+30064771079 | CALL | offset += 4
+30064771080 | CALL | dirent_count = tvb_get_letohl ( tvb , offset )
+30064771081 | CALL | tvb_get_letohl ( tvb , offset )
+30064771082 | CALL | 
+        proto_tree_add_item ( tree , hf_pvfs_dirent_count , tvb , offset , 4 , ENC_LITTLE_ENDIAN )
+      
+30064771083 | CALL | offset += 4
+30064771084 | CALL | nCount = 0
+30064771085 | CALL | nCount < dirent_count
+30064771086 | CALL | nCount ++
+30064771087 | CALL | offset = dissect_pvfs_string ( tvb , tree , hf_pvfs_path , offset , NULL )
+30064771088 | CALL | dissect_pvfs_string ( tvb , tree , hf_pvfs_path , offset , NULL )
+30064771089 | CALL | 
+        offset = dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL )
+      
+30064771090 | CALL | dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL )
+47244640256 | CONTROL_STRUCTURE | for (nCount = 0 ;nCount < dirent_count;nCount ++)
+68719476736 | IDENTIFIER | dirent_count
+68719476737 | IDENTIFIER | nCount
+68719476738 | IDENTIFIER | tree
+68719476739 | IDENTIFIER | <unknown> hf_pvfs_ds_position
+68719476740 | IDENTIFIER | tvb
+68719476741 | IDENTIFIER | offset
+68719476742 | IDENTIFIER | <unknown> ENC_LITTLE_ENDIAN
+68719476743 | IDENTIFIER | offset
+68719476744 | IDENTIFIER | offset
+68719476745 | IDENTIFIER | tree
+68719476746 | IDENTIFIER | <unknown> hf_pvfs_directory_version
+68719476747 | IDENTIFIER | tvb
+68719476748 | IDENTIFIER | offset
+68719476749 | IDENTIFIER | <unknown> ENC_LITTLE_ENDIAN
+68719476750 | IDENTIFIER | offset
+68719476751 | IDENTIFIER | offset
+68719476752 | IDENTIFIER | dirent_count
+68719476753 | IDENTIFIER | tvb
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476741 [ARGUMENT]
+30064771074 -> 68719476742 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [AST]
+30064771074 -> 68719476742 [AST]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 68719476743 [DOMINATE]
+30064771074 -> 68719476742 [POST_DOMINATE]
+30064771075 -> 68719476743 [ARGUMENT]
+30064771075 -> 68719476743 [AST]
+30064771075 -> 68719476744 [CFG]
+30064771075 -> 68719476744 [DOMINATE]
+30064771076 -> 68719476744 [ARGUMENT]
+30064771076 -> 68719476744 [AST]
+30064771076 -> 68719476745 [CFG]
+30064771076 -> 68719476745 [DOMINATE]
+30064771077 -> 68719476745 [ARGUMENT]
+30064771077 -> 68719476746 [ARGUMENT]
+30064771077 -> 68719476747 [ARGUMENT]
+30064771077 -> 68719476748 [ARGUMENT]
+30064771077 -> 68719476749 [ARGUMENT]
+30064771077 -> 68719476745 [AST]
+30064771077 -> 68719476746 [AST]
+30064771077 -> 68719476747 [AST]
+30064771077 -> 68719476748 [AST]
+30064771077 -> 68719476749 [AST]
+30064771077 -> 68719476750 [CFG]
+30064771077 -> 68719476750 [DOMINATE]
+30064771077 -> 68719476749 [POST_DOMINATE]
+30064771078 -> 68719476750 [ARGUMENT]
+30064771078 -> 68719476750 [AST]
+30064771078 -> 68719476751 [CFG]
+30064771078 -> 68719476751 [DOMINATE]
+30064771079 -> 68719476751 [ARGUMENT]
+30064771079 -> 68719476751 [AST]
+30064771079 -> 68719476752 [CFG]
+30064771079 -> 68719476752 [DOMINATE]
+30064771080 -> 68719476752 [ARGUMENT]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 68719476752 [AST]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 68719476753 [ARGUMENT]
+30064771081 -> 68719476753 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 68719476752 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771087 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_pvfs2_mgmt_iterate_handles_response ( tvbuff_t * tvb , proto_tree * tree , int offset , packet_info * pinfo ) {
+ guint32 handle_count , i ;
+ proto_tree_add_item ( tree , hf_pvfs_mgmt_iterate_handles_response_ds_position , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ handle_count = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_item ( tree , hf_pvfs_mgmt_iterate_handles_response_handle_count , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ for ( i = 0 ;
+ i < handle_count ;
+ i ++ ) offset = dissect_pvfs_fh ( tvb , offset , pinfo , tree , "handle" , NULL ) ;
+ return offset ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

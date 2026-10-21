@@ -1,0 +1,143 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+target_ulong helper_load_slb_esid(CPUPPCState *env, target_ulong rb)
+
+{
+
+    target_ulong rt;
+
+
+
+    if (ppc_load_slb_esid(env, rb, &rt) < 0) {
+
+        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
+
+                                   POWERPC_EXCP_INVAL);
+
+    }
+
+    return rt;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+15 -> 20 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 24 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+9 -> 25 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 39 [IS_AST_PARENT]
+3 -> 40 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+3 -> 41 [IS_AST_PARENT]
+48 -> 42 [FLOWS_TO]
+42 -> 45 [FLOWS_TO]
+45 -> 5 [FLOWS_TO]
+5 -> 10 [FLOWS_TO]
+10 -> 26 [FLOWS_TO]
+10 -> 37 [FLOWS_TO]
+26 -> 37 [FLOWS_TO]
+37 -> 49 [FLOWS_TO]
+45 -> 50 [DEF]
+10 -> 50 [USE]
+18 -> 50 [USE]
+26 -> 51 [USE]
+33 -> 51 [USE]
+5 -> 52 [DEF]
+6 -> 52 [DEF]
+37 -> 52 [USE]
+42 -> 53 [DEF]
+10 -> 53 [USE]
+16 -> 53 [USE]
+26 -> 53 [USE]
+31 -> 53 [USE]
+10 -> 54 [USE]
+20 -> 54 [USE]
+10 -> 55 [USE]
+26 -> 56 [USE]
+35 -> 56 [USE]
+45 -> 10 [REACHES]
+5 -> 37 [REACHES]
+42 -> 10 [REACHES]
+42 -> 26 [REACHES]
+48 -> 42 [CONTROLS]
+48 -> 45 [CONTROLS]
+48 -> 5 [CONTROLS]
+48 -> 10 [CONTROLS]
+48 -> 37 [CONTROLS]
+10 -> 26 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+target_ulong helper_load_slb_vsid(CPUPPCState *env, target_ulong rb)
+
+{
+
+    target_ulong rt;
+
+
+
+    if (ppc_load_slb_vsid(env, rb, &rt) < 0) {
+
+        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
+
+                                   POWERPC_EXCP_INVAL);
+
+    }
+
+    return rt;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void sig_message_own_public ( SERVER_REC * server , const char * msg , const char * target , const char * origtarget ) {
+ CHANNEL_REC * channel ;
+ NICK_REC * nick ;
+ char * p , * msgnick ;
+ g_return_if_fail ( server != NULL ) ;
+ g_return_if_fail ( msg != NULL ) ;
+ if ( target == NULL ) return ;
+ channel = channel_find ( server , target ) ;
+ if ( channel == NULL ) return ;
+ p = strchr ( msg , ' ' ) ;
+ if ( p != NULL && p != msg ) {
+ msgnick = g_strndup ( msg , ( int ) ( p - msg ) ) ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ if ( nick == NULL && msgnick [ 1 ] != '\0' ) {
+ msgnick [ strlen ( msgnick ) - 1 ] = '\0' ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ }
+ g_free ( msgnick ) ;
+ if ( nick != NULL && nick != channel -> ownnick ) CHANNEL_LAST_MSG_ADD ( channel , nick -> nick , TRUE ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CHANNEL_REC * channel ;
+ NICK_REC * nick ;
+ char * p , * msgnick ;
+ g_return_if_fail ( server != NULL ) ;
+ g_return_if_fail ( msg != NULL ) ;
+ if ( target == NULL ) return ;
+ channel = channel_find ( server , target ) ;
+ if ( channel == NULL ) return ;
+ p = strchr ( msg , ' ' ) ;
+ if ( p != NULL && p != msg ) {
+ msgnick = g_strndup ( msg , ( int ) ( p - msg ) ) ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ if ( nick == NULL && msgnick [ 1 ] != '\0' ) {
+ msgnick [ strlen ( msgnick ) - 1 ] = '\0' ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ }
+ g_free ( msgnick ) ;
+ if ( nick != NULL && nick != channel -> ownnick ) CHANNEL_LAST_MSG_ADD ( channel , nick -> nick , TRUE ) ;
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ msgnick = g_strndup ( msg , ( int ) ( p - msg ) ) ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ if ( nick == NULL && msgnick [ 1 ] != '\0' ) {
+ msgnick [ strlen ( msgnick ) - 1 ] = '\0' ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ }
+ g_free ( msgnick ) ;
+ if ( nick != NULL && nick != channel -> ownnick ) CHANNEL_LAST_MSG_ADD ( channel , nick -> nick , TRUE ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ msgnick [ strlen ( msgnick ) - 1 ] = '\0' ;
+ nick = nicklist_find ( channel , msgnick ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | g_return_if_fail ( server != NULL )
+30064771073 | CALL | server != NULL
+30064771074 | CALL | g_return_if_fail ( msg != NULL )
+30064771075 | CALL | msg != NULL
+30064771076 | CALL | target == NULL
+30064771077 | CALL | channel = channel_find ( server , target )
+30064771078 | CALL | channel_find ( server , target )
+30064771079 | CALL | channel == NULL
+30064771080 | CALL | p = strchr ( msg , ' ' )
+30064771081 | CALL | strchr ( msg , ' ' )
+30064771082 | CALL | p != NULL && p != msg
+30064771083 | CALL | p != NULL
+30064771084 | CALL | p != msg
+30064771085 | CALL | msgnick = g_strndup ( msg , ( int ) ( p - msg ) )
+30064771086 | CALL | g_strndup ( msg , ( int ) ( p - msg ) )
+30064771087 | CALL | ( int ) ( p - msg )
+30064771088 | CALL | p - msg
+30064771089 | CALL | nick = nicklist_find ( channel , msgnick )
+30064771090 | CALL | nicklist_find ( channel , msgnick )
+30064771091 | CALL | nick == NULL && msgnick [ 1 ] != '\0'
+30064771092 | CALL | nick == NULL
+30064771093 | CALL | msgnick [ 1 ] != '\0'
+30064771094 | CALL | msgnick [ 1 ]
+30064771095 | CALL | msgnick [ strlen ( msgnick ) - 1 ] = '\0'
+30064771096 | CALL | msgnick [ strlen ( msgnick ) - 1 ]
+30064771097 | CALL | strlen ( msgnick ) - 1
+30064771098 | CALL | strlen ( msgnick )
+30064771099 | CALL | nick = nicklist_find ( channel , msgnick )
+30064771100 | CALL | nicklist_find ( channel , msgnick )
+30064771101 | CALL | g_free ( msgnick )
+30064771102 | CALL | nick != NULL && nick != channel -> ownnick
+30064771103 | CALL | nick != NULL
+30064771104 | CALL | nick != channel -> ownnick
+30064771105 | CALL | channel -> ownnick
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803779 -> 30064771085 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771101 [AST]
+25769803780 -> 30064771095 [AST]
+25769803780 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771103 [CDG]
+30064771082 -> 30064771102 [CDG]
+30064771082 -> 30064771101 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void sig_message_public ( SERVER_REC * server , const char * msg , const char * nick , const char * address , const char * target ) {
+ CHANNEL_REC * channel ;
+ int own ;
+ g_return_if_fail ( nick != NULL ) ;
+ channel = channel_find ( server , target ) ;
+ if ( channel != NULL ) {
+ own = nick_match_msg ( channel , msg , server -> nick ) ;
+ CHANNEL_LAST_MSG_ADD ( channel , nick , own ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

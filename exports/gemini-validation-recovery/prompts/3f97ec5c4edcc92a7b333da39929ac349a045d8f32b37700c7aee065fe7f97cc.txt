@@ -1,0 +1,419 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int img_amend(int argc, char **argv)
+
+{
+
+    int c, ret = 0;
+
+    char *options = NULL;
+
+    QemuOptsList *create_opts = NULL;
+
+    QemuOpts *opts = NULL;
+
+    const char *fmt = NULL, *filename, *cache;
+
+    int flags;
+
+    bool quiet = false, progress = false;
+
+    BlockBackend *blk = NULL;
+
+    BlockDriverState *bs = NULL;
+
+
+
+    cache = BDRV_DEFAULT_CACHE;
+
+    for (;;) {
+
+        c = getopt(argc, argv, "ho:f:t:pq");
+
+        if (c == -1) {
+
+            break;
+
+        }
+
+
+
+        switch (c) {
+
+            case 'h':
+
+            case '?':
+
+                help();
+
+                break;
+
+            case 'o':
+
+                if (!is_valid_option_list(optarg)) {
+
+                    error_report("Invalid option list: %s", optarg);
+
+                    ret = -1;
+
+                    goto out;
+
+                }
+
+                if (!options) {
+
+                    options = g_strdup(optarg);
+
+                } else {
+
+                    char *old_options = options;
+
+                    options = g_strdup_printf("%s,%s", options, optarg);
+
+                    g_free(old_options);
+
+                }
+
+                break;
+
+            case 'f':
+
+                fmt = optarg;
+
+                break;
+
+            case 't':
+
+                cache = optarg;
+
+                break;
+
+            case 'p':
+
+                progress = true;
+
+                break;
+
+            case 'q':
+
+                quiet = true;
+
+                break;
+
+        }
+
+    }
+
+
+
+    if (!options) {
+
+        error_exit("Must specify options (-o)");
+
+    }
+
+
+
+    if (quiet) {
+
+        progress = false;
+
+    }
+
+    qemu_progress_init(progress, 1.0);
+
+
+
+    filename = (optind == argc - 1) ? argv[argc - 1] : NULL;
+
+    if (fmt && has_help_option(options)) {
+
+        /* If a format is explicitly specified (and possibly no filename is
+
+         * given), print option help here */
+
+        ret = print_block_option_help(filename, fmt);
+
+        goto out;
+
+    }
+
+
+
+    if (optind != argc - 1) {
+
+        error_report("Expecting one image file name");
+
+        ret = -1;
+
+        goto out;
+
+    }
+
+
+
+    flags = BDRV_O_FLAGS | BDRV_O_RDWR;
+
+    ret = bdrv_parse_cache_flags(cache, &flags);
+
+    if (ret < 0) {
+
+        error_report("Invalid cache option: %s", cache);
+
+        goto out;
+
+    }
+
+
+
+    blk = img_open("image", filename, fmt, flags, true, quiet);
+
+    if (!blk) {
+
+        ret = -1;
+
+        goto out;
+
+    }
+
+    bs = blk_bs(blk);
+
+
+
+    fmt = bs->drv->format_name;
+
+
+
+    if (has_help_option(options)) {
+
+        /* If the format was auto-detected, print option help here */
+
+        ret = print_block_option_help(filename, fmt);
+
+        goto out;
+
+    }
+
+
+
+    if (!bs->drv->create_opts) {
+
+        error_report("Format driver '%s' does not support any options to amend",
+
+                     fmt);
+
+        ret = -1;
+
+        goto out;
+
+    }
+
+
+
+    create_opts = qemu_opts_append(create_opts, bs->drv->create_opts);
+
+    opts = qemu_opts_create(create_opts, NULL, 0, &err
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+9 -> 12 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+36 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+36 -> 46 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+54 -> 57 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+53 -> 60 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+74 -> 77 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+4 -> 80 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int img_amend(int argc, char **argv)
+
+{
+
+    Error *err = NULL;
+
+    int c, ret = 0;
+
+    char *options = NULL;
+
+    QemuOptsList *create_opts = NULL;
+
+    QemuOpts *opts = NULL;
+
+    const char *fmt = NULL, *filename, *cache;
+
+    int flags;
+
+    bool quiet = false, progress = false;
+
+    BlockBackend *blk = NULL;
+
+    BlockDriverState *bs = NULL;
+
+
+
+    cache = BDRV_DEFAULT_CACHE;
+
+    for (;;) {
+
+        c = getopt(argc, argv, "ho:f:t:pq");
+
+        if (c == -1) {
+
+            break;
+
+        }
+
+
+
+        switch (c) {
+
+            case 'h':
+
+            case '?':
+
+                help();
+
+                break;
+
+            case 'o':
+
+                if (!is_valid_option_list(optarg)) {
+
+                    error_report("Invalid option list: %s", optarg);
+
+                    ret = -1;
+
+                    goto out;
+
+                }
+
+                if (!options) {
+
+                    options = g_strdup(optarg);
+
+                } else {
+
+                    char *old_options = options;
+
+                    options = g_strdup_printf("%s,%s", options, optarg);
+
+                    g_free(old_options);
+
+                }
+
+                break;
+
+            case 'f':
+
+                fmt = optarg;
+
+                break;
+
+            case 't':
+
+                cache = optarg;
+
+                break;
+
+            case 'p':
+
+                progress = true;
+
+                break;
+
+            case 'q':
+
+                quiet = true;
+
+                break;
+
+        
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

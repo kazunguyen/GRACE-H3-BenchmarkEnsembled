@@ -1,0 +1,45 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void U_CALLCONV _CompoundText_GetUnicodeSet ( const UConverter * cnv , const USetAdder * sa , UConverterUnicodeSet which , UErrorCode * pErrorCode ) {
+ UConverterDataCompoundText * myConverterData = ( UConverterDataCompoundText * ) cnv -> extraInfo ;
+ int32_t i ;
+ for ( i = 1 ;
+ i < NUM_OF_CONVERTERS ;
+ i ++ ) {
+ ucnv_MBCSGetUnicodeSetForUnicode ( myConverterData -> myConverterArray [ i ] , sa , which , pErrorCode ) ;
+ }
+ sa -> add ( sa -> set , 0x0000 ) ;
+ sa -> add ( sa -> set , 0x0009 ) ;
+ sa -> add ( sa -> set , 0x000A ) ;
+ sa -> addRange ( sa -> set , 0x0020 , 0x007F ) ;
+ sa -> addRange ( sa -> set , 0x00A0 , 0x00FF ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void _CompoundText_GetUnicodeSet ( const UConverter * cnv , const USetAdder * sa , UConverterUnicodeSet which , UErrorCode * pErrorCode ) {
+ UConverterDataCompoundText * myConverterData = ( UConverterDataCompoundText * ) cnv -> extraInfo ;
+ int32_t i ;
+ for ( i = 1 ;
+ i < NUM_OF_CONVERTERS ;
+ i ++ ) {
+ ucnv_MBCSGetUnicodeSetForUnicode ( myConverterData -> myConverterArray [ i ] , sa , which , pErrorCode ) ;
+ }
+ sa -> add ( sa -> set , 0x0000 ) ;
+ sa -> add ( sa -> set , 0x0009 ) ;
+ sa -> add ( sa -> set , 0x000A ) ;
+ sa -> addRange ( sa -> set , 0x0020 , 0x007F ) ;
+ sa -> addRange ( sa -> set , 0x00A0 , 0x00FF ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

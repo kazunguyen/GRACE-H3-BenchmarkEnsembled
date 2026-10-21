@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void lag_pred_line_yuy2 ( LagarithContext * l , uint8_t * buf , int width , int stride , int line , int is_luma ) {
+ int L , TL ;
+ if ( ! line ) {
+ if ( is_luma ) {
+ buf ++ ;
+ width -- ;
+ }
+ l -> dsp . add_hfyu_left_prediction ( buf + 1 , buf + 1 , width - 1 , buf [ 0 ] ) ;
+ return ;
+ }
+ if ( line == 1 ) {
+ const int HEAD = is_luma ? 4 : 2 ;
+ int i ;
+ L = buf [ width - stride - 1 ] ;
+ TL = buf [ HEAD - stride - 1 ] ;
+ for ( i = 0 ;
+ i < HEAD ;
+ i ++ ) {
+ L += buf [ i ] ;
+ buf [ i ] = L ;
+ }
+ buf += HEAD ;
+ width -= HEAD ;
+ }
+ else {
+ TL = buf [ width - ( 2 * stride ) - 1 ] ;
+ L = buf [ width - stride - 1 ] ;
+ }
+ l -> dsp . add_hfyu_median_prediction ( buf , buf - stride , buf , width , & L , & TL ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int L , TL ;
+ if ( ! line ) {
+ if ( is_luma ) {
+ buf ++ ;
+ width -- ;
+ }
+ l -> dsp . add_hfyu_left_prediction ( buf + 1 , buf + 1 , width - 1 , buf [ 0 ] ) ;
+ return ;
+ }
+ if ( line == 1 ) {
+ const int HEAD = is_luma ? 4 : 2 ;
+ int i ;
+ L = buf [ width - stride - 1 ] ;
+ TL = buf [ HEAD - stride - 1 ] ;
+ for ( i = 0 ;
+ i < HEAD ;
+ i ++ ) {
+ L += buf [ i ] ;
+ buf [ i ] = L ;
+ }
+ buf += HEAD ;
+ width -= HEAD ;
+ }
+ else {
+ TL = buf [ width - ( 2 * stride ) - 1 ] ;
+ L = buf [ width - stride - 1 ] ;
+ }
+ l -> dsp . add_hfyu_median_prediction ( buf , buf - stride , buf , width , & L , & TL ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( is_luma ) {
+ buf ++ ;
+ width -- ;
+ }
+ l -> dsp . add_hfyu_left_prediction ( buf + 1 , buf + 1 , width - 1 , buf [ 0 ] ) ;
+ return ;
+ }
+      
+25769803778 | BLOCK | { buf ++ ; width -- ; }
+25769803779 | BLOCK | 
+        {
+ const int HEAD = is_luma ? 4 : 2 ;
+ int i ;
+ L = buf [ width - stride - 1 ] ;
+ TL = buf [ HEAD - stride - 1 ] ;
+ for ( i = 0 ;
+ i < HEAD ;
+ i ++ ) {
+ L += buf [ i ] ;
+ buf [ i ] = L ;
+ }
+ buf += HEAD ;
+ width -= HEAD ;
+ }
+      
+25769803780 | BLOCK | { L += buf [ i ] ; buf [ i ] = L ; }
+25769803781 | BLOCK | { TL = buf [ width - ( 2 * stride ) - 1 ] ; L = buf [ width - stride - 1 ] ; }
+30064771072 | CALL | ! line
+30064771073 | CALL | is_luma != 0
+30064771074 | CALL | buf ++
+30064771075 | CALL | width --
+30064771076 | CALL | 
+        l -> dsp . add_hfyu_left_prediction ( buf + 1 , buf + 1 , width - 1 , buf [ 0 ] )
+      
+30064771077 | CALL | l -> dsp . add_hfyu_left_prediction
+30064771078 | CALL | l -> dsp
+30064771079 | CALL | buf + 1
+30064771080 | CALL | buf + 1
+30064771081 | CALL | width - 1
+30064771082 | CALL | buf [ 0 ]
+30064771083 | CALL | line == 1
+30064771084 | CALL | HEAD = is_luma ? 4 : 2
+30064771085 | CALL | is_luma ? 4 : 2
+30064771086 | CALL | L = buf [ width - stride - 1 ]
+30064771087 | CALL | buf [ width - stride - 1 ]
+30064771088 | CALL | width - stride - 1
+30064771089 | CALL | width - stride
+30064771090 | CALL | TL = buf [ HEAD - stride - 1 ]
+30064771091 | CALL | buf [ HEAD - stride - 1 ]
+30064771092 | CALL | HEAD - stride - 1
+30064771093 | CALL | HEAD - stride
+30064771094 | CALL | i = 0
+30064771095 | CALL | i < HEAD
+30064771096 | CALL | i ++
+30064771097 | CALL | L += buf [ i ]
+30064771098 | CALL | buf [ i ]
+30064771099 | CALL | buf [ i ] = L
+30064771100 | CALL | buf [ i ]
+30064771101 | CALL | buf += HEAD
+30064771102 | CALL | width -= HEAD
+30064771103 | CALL | TL = buf [ width - ( 2 * stride ) - 1 ]
+30064771104 | CALL | buf [ width - ( 2 * stride ) - 1 ]
+30064771105 | CALL | width - ( 2 * stride ) - 1
+EDGES:
+25769803777 -> 30064771076 [AST]
+25769803778 -> 30064771074 [AST]
+25769803778 -> 30064771075 [AST]
+25769803779 -> 30064771084 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771090 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771102 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771099 [AST]
+25769803781 -> 30064771103 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771081 [ARGUMENT]
+30064771076 -> 30064771082 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 30064771081 [AST]
+30064771076 -> 30064771082 [AST]
+30064771076 -> 30064771082 [POST_DOMINATE]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771076 [REACHING_DEF]
+30064771082 -> 30064771076 [CFG]
+30064771082 -> 30064771076 [DOMINATE]
+30064771082 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771076 [REACHING_DEF]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771094 [CDG]
+30064771083 -> 30064771095 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771093 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771104 [CDG]
+30064771083 -> 30064771105 [CDG]
+30064771083 -> 30064771102 [CDG]
+30064771083 -> 30064771103 [CDG]
+30064771083 -> 30064771101 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void lag_pred_line ( LagarithContext * l , uint8_t * buf , int width , int stride , int line ) {
+ int L , TL ;
+ if ( ! line ) {
+ L = l -> dsp . add_hfyu_left_prediction ( buf + 1 , buf + 1 , width - 1 , buf [ 0 ] ) ;
+ }
+ else {
+ L = buf [ width - stride - 1 ] ;
+ if ( line == 1 ) {
+ TL = l -> avctx -> pix_fmt == AV_PIX_FMT_YUV420P ? buf [ - stride ] : L ;
+ }
+ else {
+ TL = buf [ width - ( 2 * stride ) - 1 ] ;
+ }
+ add_lag_median_prediction ( buf , buf - stride , buf , width , & L , & TL ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_bug3117 ( ) {
+ MYSQL_STMT * stmt ;
+ MYSQL_BIND buffer ;
+ longlong lii ;
+ ulong length ;
+ my_bool is_null ;
+ int rc ;
+ myheader ( "test_bug3117" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE t1 (id int auto_increment primary key)" ) ;
+ myquery ( rc ) ;
+ stmt = mysql_simple_prepare ( mysql , "SELECT LAST_INSERT_ID()" ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_query ( mysql , "INSERT INTO t1 VALUES (NULL)" ) ;
+ myquery ( rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ memset ( & buffer , 0 , sizeof ( buffer ) ) ;
+ buffer . buffer_type = MYSQL_TYPE_LONGLONG ;
+ buffer . buffer_length = sizeof ( lii ) ;
+ buffer . buffer = ( void * ) & lii ;
+ buffer . length = & length ;
+ buffer . is_null = & is_null ;
+ rc = mysql_stmt_bind_result ( stmt , & buffer ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_store_result ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ DIE_UNLESS ( is_null == 0 && lii == 1 ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\n\tLAST_INSERT_ID()= 1 ok\n" ) ;
+ rc = mysql_query ( mysql , "INSERT INTO t1 VALUES (NULL)" ) ;
+ myquery ( rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ DIE_UNLESS ( is_null == 0 && lii == 2 ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\tLAST_INSERT_ID()= 2 ok\n" ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_query ( mysql , "DROP TABLE t1" ) ;
+ myquery ( rc ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ MYSQL_BIND buffer ;
+ longlong lii ;
+ ulong length ;
+ my_bool is_null ;
+ int rc ;
+ myheader ( "test_bug3117" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE t1 (id int auto_increment primary key)" ) ;
+ myquery ( rc ) ;
+ stmt = mysql_simple_prepare ( mysql , "SELECT LAST_INSERT_ID()" ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_query ( mysql , "INSERT INTO t1 VALUES (NULL)" ) ;
+ myquery ( rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ memset ( & buffer , 0 , sizeof ( buffer ) ) ;
+ buffer . buffer_type = MYSQL_TYPE_LONGLONG ;
+ buffer . buffer_length = sizeof ( lii ) ;
+ buffer . buffer = ( void * ) & lii ;
+ buffer . length = & length ;
+ buffer . is_null = & is_null ;
+ rc = mysql_stmt_bind_result ( stmt , & buffer ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_store_result ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ check_execute ( ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | myheader ( "test_bug3117" )
+30064771073 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1" )
+30064771074 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS t1" )
+30064771075 | CALL | myquery ( rc )
+30064771076 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE t1 (id int auto_increment primary key)" )
+      
+30064771077 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE t1 (id int auto_increment primary key)" )
+      
+30064771078 | CALL | myquery ( rc )
+30064771079 | CALL | stmt = mysql_simple_prepare ( mysql , "SELECT LAST_INSERT_ID()" )
+30064771080 | CALL | mysql_simple_prepare ( mysql , "SELECT LAST_INSERT_ID()" )
+30064771081 | CALL | check_stmt ( stmt )
+30064771082 | CALL | rc = mysql_query ( mysql , "INSERT INTO t1 VALUES (NULL)" )
+30064771083 | CALL | mysql_query ( mysql , "INSERT INTO t1 VALUES (NULL)" )
+30064771084 | CALL | myquery ( rc )
+30064771085 | CALL | rc = mysql_stmt_execute ( stmt )
+30064771086 | CALL | mysql_stmt_execute ( stmt )
+30064771087 | CALL | check_execute ( stmt , rc )
+30064771088 | CALL | memset ( & buffer , 0 , sizeof ( buffer ) )
+30064771089 | CALL | & buffer
+30064771090 | CALL | sizeof ( buffer )
+30064771091 | CALL | buffer . buffer_type = MYSQL_TYPE_LONGLONG
+30064771092 | CALL | buffer . buffer_type
+30064771093 | CALL | buffer . buffer_length = sizeof ( lii )
+30064771094 | CALL | buffer . buffer_length
+30064771095 | CALL | sizeof ( lii )
+30064771096 | CALL | buffer . buffer = ( void * ) & lii
+30064771097 | CALL | buffer . buffer
+30064771098 | CALL | ( void * ) & lii
+30064771099 | CALL | & lii
+30064771100 | CALL | buffer . length = & length
+30064771101 | CALL | buffer . length
+30064771102 | CALL | & length
+30064771103 | CALL | buffer . is_null = & is_null
+30064771104 | CALL | buffer . is_null
+30064771105 | CALL | & is_null
+30064771106 | CALL | rc = mysql_stmt_bind_result ( stmt , & buffer )
+30064771107 | CALL | mysql_stmt_bind_result ( stmt , & buffer )
+30064771108 | CALL | & buffer
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771108 [REACHING_DEF]
+30064771090 -> 30064771088 [CFG]
+30064771090 -> 30064771088 [DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771095 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771095 [AST]
+30064771093 -> 30064771095 [POST_DOMINATE]
+30064771094 -> 30064771093 [REACHING_DEF]
+30064771095 -> 30064771093 [CFG]
+30064771095 -> 30064771093 [DOMINATE]
+30064771096 -> 30064771097 [ARGUMENT]
+30064771096 -> 30064771098 [ARGUMENT]
+30064771096 -> 30064771097 [AST]
+30064771096 -> 30064771098 [AST]
+30064771096 -> 30064771098 [POST_DOM
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

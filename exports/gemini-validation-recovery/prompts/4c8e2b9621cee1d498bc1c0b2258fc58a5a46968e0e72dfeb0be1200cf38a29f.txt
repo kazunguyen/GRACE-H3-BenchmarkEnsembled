@@ -1,0 +1,296 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mov_read_elst(MOVContext *c, ByteIOContext *pb, MOVAtom atom)
+
+{
+
+    MOVStreamContext *sc = c->fc->streams[c->fc->nb_streams-1]->priv_data;
+
+    int i, edit_count;
+
+
+
+    get_byte(pb); /* version */
+
+    get_be24(pb); /* flags */
+
+    edit_count= sc->edit_count = get_be32(pb);     /* entries */
+
+
+
+    for(i=0; i<edit_count; i++){
+
+        int time;
+
+        get_be32(pb); /* Track duration */
+
+        time = get_be32(pb); /* Media time */
+
+        get_be32(pb); /* Media rate */
+
+        if (time != 0)
+
+            av_log(c->fc, AV_LOG_WARNING, "edit list not starting at 0, "
+
+                   "a/v desync might occur, patch welcome\n");
+
+    }
+
+    dprintf(c->fc, "track[%i].edit_count = %i\n", c->fc->nb_streams-1, sc->edit_count);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    MOVStreamContext *sc = c->fc->streams[c->fc->nb_streams-1]->priv_data;
+
+    int i, edit_count;
+
+
+
+    get_byte(pb); /* version */
+
+    get_be24(pb); /* flags */
+
+    edit_count= sc->edit_count = get_be32(pb);     /* entries */
+
+
+
+    for(i=0; i<edit_count; i++){
+
+        int time;
+
+        get_be32(pb); /* Track duration */
+
+        time = get_be32(pb); /* Media time */
+
+        get_be32(pb); /* Media rate */
+
+        if (time != 0)
+
+            av_log(c->fc, AV_LOG_WARNING, "edit list not starting at 0, "
+
+                   "a/v desync might occur, patch welcome\n");
+
+    }
+
+    dprintf(c->fc, "track[%i].edit_count = %i\n", c->fc->nb_streams-1, sc->edit_count);
+
+    return 0;
+
+}
+      
+25769803777 | BLOCK | 
+        {
+
+        int time;
+
+        get_be32(pb); /* Track duration */
+
+        time = get_be32(pb); /* Media time */
+
+        get_be32(pb); /* Media rate */
+
+        if (time != 0)
+
+            av_log(c->fc, AV_LOG_WARNING, "edit list not starting at 0, "
+
+                   "a/v desync might occur, patch welcome\n");
+
+    }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | sc = c->fc->streams[c->fc->nb_streams-1]->priv_data
+30064771073 | CALL | c->fc->streams[c->fc->nb_streams-1]->priv_data
+30064771074 | CALL | c->fc->streams[c->fc->nb_streams-1]
+30064771075 | CALL | c->fc->streams
+30064771076 | CALL | c->fc
+30064771077 | CALL | c->fc->nb_streams-1
+30064771078 | CALL | c->fc->nb_streams
+30064771079 | CALL | c->fc
+30064771080 | CALL | get_byte(pb)
+30064771081 | CALL | get_be24(pb)
+30064771082 | CALL | edit_count= sc->edit_count = get_be32(pb)
+30064771083 | CALL | sc->edit_count = get_be32(pb)
+30064771084 | CALL | sc->edit_count
+30064771085 | CALL | get_be32(pb)
+30064771086 | CALL | i=0
+30064771087 | CALL | i<edit_count
+30064771088 | CALL | i++
+30064771089 | CALL | get_be32(pb)
+30064771090 | CALL | time = get_be32(pb)
+30064771091 | CALL | get_be32(pb)
+30064771092 | CALL | get_be32(pb)
+30064771093 | CALL | time != 0
+30064771094 | CALL | 
+        av_log(c->fc, AV_LOG_WARNING, "edit list not starting at 0, "
+
+                   "a/v desync might occur, patch welcome\n")
+      
+30064771095 | CALL | c->fc
+30064771096 | CALL | 
+        dprintf(c->fc, "track[%i].edit_count = %i\n", c->fc->nb_streams-1, sc->edit_count)
+      
+30064771097 | CALL | c->fc
+30064771098 | CALL | c->fc->nb_streams-1
+30064771099 | CALL | c->fc->nb_streams
+30064771100 | CALL | c->fc
+30064771101 | CALL | sc->edit_count
+47244640256 | CONTROL_STRUCTURE | for (i=0;i<edit_count;i++)
+47244640257 | CONTROL_STRUCTURE | 
+        if (time != 0)
+
+            av_log(c->fc, AV_LOG_WARNING, "edit list not starting at 0, "
+
+                   "a/v desync might occur, patch welcome\n");
+      
+55834574848 | FIELD_IDENTIFIER | fc
+55834574849 | FIELD_IDENTIFIER | streams
+55834574850 | FIELD_IDENTIFIER | fc
+55834574851 | FIELD_IDENTIFIER | nb_streams
+55834574852 | FIELD_IDENTIFIER | priv_data
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771096 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 55834574852 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 55834574852 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574852 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 55834574852 [CFG]
+30064771074 -> 55834574852 [DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574849 [CFG]
+30064771076 -> 55834574849 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574851 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574851 [AST]
+30064771078 -> 55834574851 [POST_DOMINATE]
+30064771078 -> 30064771095 [REACHING_DEF]
+30064771078 -> 30064771099 [REACHING_DEF]
+30064771078 -> 30064771100 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 55834574851 [CFG]
+30064771079 -> 55834574851 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771101 [REACHING_DEF]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771087 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771090 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int mov_read_ctts(MOVContext *c, ByteIOContext *pb, MOVAtom atom)
+
+{
+
+    AVStream *st = c->fc->streams[c->fc->nb_streams-1];
+
+    MOVStreamContext *sc = st->priv_data;
+
+    unsigned int i, entries;
+
+
+
+    get_byte(pb); /* version */
+
+    get_be24(pb); /* flags */
+
+    entries = get_be32(pb);
+
+
+
+    dprintf(c->fc, "track[%i].ctts.entries = %i\n", c->fc->nb_streams-1, entries);
+
+
+
+    if(entries >= UINT_MAX / sizeof(*sc->ctts_data))
+
+        return -1;
+
+    sc->ctts_data = av_malloc(entries * sizeof(*sc->ctts_data));
+
+    if (!sc->ctts_data)
+
+        return AVERROR(ENOMEM);
+
+    sc->ctts_count = entries;
+
+
+
+    for(i=0; i<entries; i++) {
+
+        int count    =get_be32(pb);
+
+        int duration =get_be32(pb);
+
+
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

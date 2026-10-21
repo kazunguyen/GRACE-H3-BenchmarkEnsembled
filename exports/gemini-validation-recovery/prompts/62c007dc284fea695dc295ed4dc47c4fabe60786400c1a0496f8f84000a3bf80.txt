@@ -1,0 +1,72 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void yy_reduce_print ( YYSTYPE * yyvsp , int yyrule ) # else static void yy_reduce_print ( yyvsp , yyrule ) YYSTYPE * yyvsp ;
+ int yyrule ;
+ # endif {
+ int yynrhs = yyr2 [ yyrule ] ;
+ int yyi ;
+ unsigned long int yylno = yyrline [ yyrule ] ;
+ YYFPRINTF ( stderr , "Reducing stack by rule %d (line %lu):\n" , yyrule - 1 , yylno ) ;
+ for ( yyi = 0 ;
+ yyi < yynrhs ;
+ yyi ++ ) {
+ YYFPRINTF ( stderr , " $%d = " , yyi + 1 ) ;
+ yy_symbol_print ( stderr , yyrhs [ yyprhs [ yyrule ] + yyi ] , & ( yyvsp [ ( yyi + 1 ) - ( yynrhs ) ] ) ) ;
+ YYFPRINTF ( stderr , "\n" ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803778 | BLOCK | <empty>
+107374182402 | METHOD | static void yy_reduce_print ( YYSTYPE * yyvsp , int yyrule )
+111669149696 | METHOD_PARAMETER_IN | YYSTYPE * yyvsp
+111669149697 | METHOD_PARAMETER_IN | int yyrule
+115964116992 | METHOD_PARAMETER_OUT | YYSTYPE * yyvsp
+115964116993 | METHOD_PARAMETER_OUT | int yyrule
+124554051586 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+107374182402 -> 111669149696 [AST]
+107374182402 -> 111669149697 [AST]
+107374182402 -> 25769803778 [AST]
+107374182402 -> 128849018880 [AST]
+107374182402 -> 124554051586 [AST]
+107374182402 -> 115964116992 [AST]
+107374182402 -> 115964116993 [AST]
+107374182402 -> 124554051586 [CFG]
+107374182402 -> 25769803778 [CONTAINS]
+107374182402 -> 124554051586 [DOMINATE]
+107374182402 -> 111669149697 [REACHING_DEF]
+107374182402 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051586 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051586 [REACHING_DEF]
+124554051586 -> 107374182402 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void yy_stack_print ( yytype_int16 * yybottom , yytype_int16 * yytop ) # else static void yy_stack_print ( yybottom , yytop ) yytype_int16 * yybottom ;
+ yytype_int16 * yytop ;
+ # endif {
+ YYFPRINTF ( stderr , "Stack now" ) ;
+ for ( ;
+ yybottom <= yytop ;
+ yybottom ++ ) {
+ int yybot = * yybottom ;
+ YYFPRINTF ( stderr , " %d" , yybot ) ;
+ }
+ YYFPRINTF ( stderr , "\n" ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

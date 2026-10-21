@@ -1,0 +1,251 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static enum nss_status internal_setent ( int stayopen ) {
+ enum nss_status status = NSS_STATUS_SUCCESS ;
+ if ( stream == NULL ) {
+ stream = fopen ( DATAFILE , "rce" ) ;
+ if ( stream == NULL ) status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL ;
+ else {
+ # if ! defined O_CLOEXEC || ! defined __ASSUME_O_CLOEXEC # ifdef O_CLOEXEC if ( __have_o_cloexec <= 0 ) # endif {
+ int result ;
+ int flags ;
+ result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 ) ;
+ if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+ if ( stream != NULL ) keep_stream |= stayopen ;
+ return status ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ enum nss_status status = NSS_STATUS_SUCCESS ;
+ if ( stream == NULL ) {
+ stream = fopen ( DATAFILE , "rce" ) ;
+ if ( stream == NULL ) status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL ;
+ else {
+ # if ! defined O_CLOEXEC || ! defined __ASSUME_O_CLOEXEC # ifdef O_CLOEXEC if ( __have_o_cloexec <= 0 ) # endif {
+ int result ;
+ int flags ;
+ result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 ) ;
+ if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+ if ( stream != NULL ) keep_stream |= stayopen ;
+ return status ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ stream = fopen ( DATAFILE , "rce" ) ;
+ if ( stream == NULL ) status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL ;
+ else {
+ # if ! defined O_CLOEXEC || ! defined __ASSUME_O_CLOEXEC # ifdef O_CLOEXEC if ( __have_o_cloexec <= 0 ) # endif {
+ int result ;
+ int flags ;
+ result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 ) ;
+ if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+ if ( stream != NULL ) keep_stream |= stayopen ;
+ return status ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ # if ! defined O_CLOEXEC || ! defined __ASSUME_O_CLOEXEC # ifdef O_CLOEXEC if ( __have_o_cloexec <= 0 ) # endif {
+ int result ;
+ int flags ;
+ result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 ) ;
+ if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+ if ( stream != NULL ) keep_stream |= stayopen ;
+ return status ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | status = NSS_STATUS_SUCCESS
+30064771073 | CALL | stream = fopen ( DATAFILE , "rce" )
+30064771074 | CALL | fopen ( DATAFILE , "rce" )
+30064771075 | CALL | stream == NULL
+30064771076 | CALL | status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL
+30064771077 | CALL | errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL
+30064771078 | CALL | errno == EAGAIN
+30064771079 | CALL | result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 )
+30064771080 | CALL | flags = fcntl ( fileno ( stream ) , F_GETFD , 0 )
+30064771081 | CALL | fcntl ( fileno ( stream ) , F_GETFD , 0 )
+30064771082 | CALL | fileno ( stream )
+30064771083 | CALL | result >= 0
+30064771084 | CALL | rewind ( stream )
+30064771085 | CALL | stream != NULL
+30064771086 | CALL | keep_stream |= stayopen
+47244640256 | CONTROL_STRUCTURE | 
+        if ( stream == NULL ) status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL ;
+ else {
+ # if ! defined O_CLOEXEC || ! defined __ASSUME_O_CLOEXEC # ifdef O_CLOEXEC if ( __have_o_cloexec <= 0 ) # endif {
+ int result ;
+ int flags ;
+ result = flags = fcntl ( fileno ( stream ) , F_GETFD , 0 ) ;
+ if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+ if ( stream != NULL ) keep_stream |= stayopen ;
+ return status ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( result >= 0 ) {
+ # ifdef O_CLOEXEC if ( __have_o_cloexec == 0 ) __have_o_cloexec = ( flags & FD_CLOEXEC ) == 0 ? - 1 : 1 ;
+ if ( __have_o_cloexec < 0 ) # endif {
+ flags |= FD_CLOEXEC ;
+ result = fcntl ( fileno ( stream ) , F_SETFD , flags ) ;
+ }
+ }
+ if ( result < 0 ) {
+ fclose ( stream ) ;
+ stream = NULL ;
+ status = NSS_STATUS_UNAVAIL ;
+ }
+ }
+ # endif }
+ }
+ else rewind ( stream ) ;
+      
+47244640258 | CONTROL_STRUCTURE | if ( stream != NULL ) keep_stream |= stayopen ;
+68719476736 | IDENTIFIER | status
+68719476737 | IDENTIFIER | <unknown> NSS_STATUS_SUCCESS
+68719476738 | IDENTIFIER | <unknown> stream
+68719476739 | IDENTIFIER | <unknown> DATAFILE
+68719476740 | IDENTIFIER | <unknown> stream
+68719476741 | IDENTIFIER | <unknown> NULL
+68719476742 | IDENTIFIER | status
+68719476743 | IDENTIFIER | <unknown> errno
+68719476744 | IDENTIFIER | <unknown> EAGAIN
+68719476745 | IDENTIFIER | <unknown> NSS_STATUS_TRYAGAIN
+68719476746 | IDENTIFIER | <unknown> NSS_STATUS_UNAVAIL
+68719476747 | IDENTIFIER | result
+68719476748 | IDENTIFIER | flags
+68719476749 | IDENTIFIER | <unknown> stream
+68719476750 | IDENTIFIER | <unknown> F_GETFD
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 25769803777 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640256 [AST]
+25769803777 -> 30064771076 [POST_DOMINATE]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771079 [AST]
+25769803779 -> 47244640257 [AST]
+25769803779 -> 47244640258 [AST]
+25769803781 -> 30064771084 [AST]
+25769803782 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

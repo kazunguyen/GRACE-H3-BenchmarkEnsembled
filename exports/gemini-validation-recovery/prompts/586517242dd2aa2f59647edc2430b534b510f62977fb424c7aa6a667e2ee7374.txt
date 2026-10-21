@@ -1,0 +1,371 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int lag_decode_arith_plane(LagarithContext *l, uint8_t *dst,
+
+                                  int width, int height, int stride,
+
+                                  const uint8_t *src, int src_size)
+
+{
+
+    int i = 0;
+
+    int read = 0;
+
+    uint32_t length;
+
+    uint32_t offset = 1;
+
+    int esc_count;
+
+    GetBitContext gb;
+
+    lag_rac rac;
+
+    const uint8_t *src_end = src + src_size;
+
+
+
+    rac.avctx = l->avctx;
+
+    l->zeros = 0;
+
+
+
+    if(src_size < 2)
+
+        return AVERROR_INVALIDDATA;
+
+
+
+    esc_count = src[0];
+
+    if (esc_count < 4) {
+
+        length = width * height;
+
+        if(src_size < 5)
+
+            return AVERROR_INVALIDDATA;
+
+        if (esc_count && AV_RL32(src + 1) < length) {
+
+            length = AV_RL32(src + 1);
+
+            offset += 4;
+
+        }
+
+
+
+        init_get_bits8(&gb, src + offset, src_size - offset);
+
+
+
+        if (lag_read_prob_header(&rac, &gb) < 0)
+
+            return -1;
+
+
+
+        ff_lag_rac_init(&rac, &gb, length - stride);
+
+
+
+        for (i = 0; i < height; i++)
+
+            read += lag_decode_line(l, &rac, dst + (i * stride), width,
+
+                                    stride, esc_count);
+
+
+
+        if (read > length)
+
+            av_log(l->avctx, AV_LOG_WARNING,
+
+                   "Output more bytes than length (%d of %d)\n", read,
+
+                   length);
+
+    } else if (esc_count < 8) {
+
+        esc_count -= 4;
+
+        src ++;
+
+        src_size --;
+
+        if (esc_count > 0) {
+
+            /* Zero run coding only, no range coding. */
+
+            for (i = 0; i < height; i++) {
+
+                int res = lag_decode_zero_run_line(l, dst + (i * stride), src,
+
+                                                   src_end, width, esc_count);
+
+                if (res < 0)
+
+                    return res;
+
+                src += res;
+
+            }
+
+        } else {
+
+            if (src_size < width * height)
+
+                return AVERROR_INVALIDDATA; // buffer not big enough
+
+            /* Plane is stored uncompressed */
+
+            for (i = 0; i < height; i++) {
+
+                memcpy(dst + (i * stride), src, width);
+
+                src += width;
+
+            }
+
+        }
+
+    } else if (esc_count == 0xff) {
+
+        /* Plane is a solid run of given value */
+
+        for (i = 0; i < height; i++)
+
+            memset(dst + i * stride, src[1], width);
+
+        /* Do not apply prediction.
+
+           Note: memset to 0 above, setting first value to src[1]
+
+           and applying prediction gives the same result. */
+
+        return 0;
+
+    } else {
+
+        av_log(l->avctx, AV_LOG_ERROR,
+
+               "Invalid zero run escape code! (%#x)\n", esc_count);
+
+        return -1;
+
+    }
+
+
+
+    if (l->avctx->pix_fmt != AV_PIX_FMT_YUV422P) {
+
+        for (i = 0; i < height; i++) {
+
+            lag_pred_line(l, dst, width, stride, i);
+
+            dst += stride;
+
+        }
+
+    } else {
+
+        for (i = 0; i < height; i++) {
+
+            lag_pred_line_yuy2(l, dst, width, stride, i,
+
+            
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+65 -> 70 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int lag_decode_arith_plane(LagarithContext *l, uint8_t *dst,
+
+                                  int width, int height, int stride,
+
+                                  const uint8_t *src, int src_size)
+
+{
+
+    int i = 0;
+
+    int read = 0;
+
+    uint32_t length;
+
+    uint32_t offset = 1;
+
+    int esc_count = src[0];
+
+    GetBitContext gb;
+
+    lag_rac rac;
+
+
+
+    rac.avctx = l->avctx;
+
+    l->zeros = 0;
+
+
+
+    if (esc_count < 4) {
+
+        length = width * height;
+
+        if (esc_count && AV_RL32(src + 1) < length) {
+
+            length = AV_RL32(src + 1);
+
+            offset += 4;
+
+        }
+
+
+
+        init_get_bits(&gb, src + offset, src_size * 8);
+
+
+
+        if (lag_read_prob_header(&rac, &gb) < 0)
+
+            return -1;
+
+
+
+        ff_lag_rac_init(&rac, &gb, length - stride);
+
+
+
+        for (i = 0; i < height; i++)
+
+            read += lag_decode_line(l, &rac, dst + (i * stride), width,
+
+                                    stride, esc_count);
+
+
+
+        if (read > length)
+
+            av_log(l->avctx, AV_LOG_WARNING,
+
+                   "Output more bytes than length (%d of %d)\n", read,
+
+                   length);
+
+    } else if (esc_count < 8) {
+
+        esc_count -= 4;
+
+        if (esc_count > 0) {
+
+            /* Zero run coding only, no range coding. */
+
+            for (i = 0; i < height; i++)
+
+                src += lag_decode_zero_run_line(l, dst + (i * stride), src,
+
+                                                width, esc_count);
+
+        } else {
+
+     
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

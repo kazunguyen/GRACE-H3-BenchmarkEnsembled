@@ -1,0 +1,255 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void stroke_export ( private_stroke_socket_t * this , stroke_msg_t * msg , FILE * out ) {
+ pop_string ( msg , & msg -> export . selector ) ;
+ if ( msg -> export . flags & EXPORT_X509 ) {
+ enumerator_t * enumerator ;
+ identification_t * id ;
+ certificate_t * cert ;
+ id = identification_create_from_string ( msg -> export . selector ) ;
+ enumerator = lib -> credmgr -> create_cert_enumerator ( lib -> credmgr , CERT_X509 , KEY_ANY , id , FALSE ) ;
+ while ( enumerator -> enumerate ( enumerator , & cert ) ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ enumerator -> destroy ( enumerator ) ;
+ id -> destroy ( id ) ;
+ }
+ if ( msg -> export . flags & ( EXPORT_CONN_CERT | EXPORT_CONN_CHAIN ) ) {
+ enumerator_t * sas , * auths , * certs ;
+ ike_sa_t * ike_sa ;
+ auth_cfg_t * auth ;
+ certificate_t * cert ;
+ auth_rule_t rule ;
+ sas = charon -> ike_sa_manager -> create_enumerator ( charon -> ike_sa_manager , TRUE ) ;
+ while ( sas -> enumerate ( sas , & ike_sa ) ) {
+ if ( streq ( msg -> export . selector , ike_sa -> get_name ( ike_sa ) ) ) {
+ auths = ike_sa -> create_auth_cfg_enumerator ( ike_sa , FALSE ) ;
+ while ( auths -> enumerate ( auths , & auth ) ) {
+ bool got_subject = FALSE ;
+ certs = auth -> create_enumerator ( auth ) ;
+ while ( certs -> enumerate ( certs , & rule , & cert ) ) {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ certs -> destroy ( certs ) ;
+ }
+ auths -> destroy ( auths ) ;
+ }
+ }
+ sas -> destroy ( sas ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ pop_string ( msg , & msg -> export . selector ) ;
+ if ( msg -> export . flags & EXPORT_X509 ) {
+ enumerator_t * enumerator ;
+ identification_t * id ;
+ certificate_t * cert ;
+ id = identification_create_from_string ( msg -> export . selector ) ;
+ enumerator = lib -> credmgr -> create_cert_enumerator ( lib -> credmgr , CERT_X509 , KEY_ANY , id , FALSE ) ;
+ while ( enumerator -> enumerate ( enumerator , & cert ) ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ enumerator -> destroy ( enumerator ) ;
+ id -> destroy ( id ) ;
+ }
+ if ( msg -> export . flags & ( EXPORT_CONN_CERT | EXPORT_CONN_CHAIN ) ) {
+ enumerator_t * sas , * auths , * certs ;
+ ike_sa_t * ike_sa ;
+ auth_cfg_t * auth ;
+ certificate_t * cert ;
+ auth_rule_t rule ;
+ sas = charon -> ike_sa_manager -> create_enumerator ( charon -> ike_sa_manager , TRUE ) ;
+ while ( sas -> enumerate ( sas , & ike_sa ) ) {
+ if ( streq ( msg -> export . selector , ike_sa -> get_name ( ike_sa ) ) ) {
+ auths = ike_sa -> create_auth_cfg_enumerator ( ike_sa...
+      
+25769803777 | BLOCK | 
+        {
+ enumerator_t * enumerator ;
+ identification_t * id ;
+ certificate_t * cert ;
+ id = identification_create_from_string ( msg -> export . selector ) ;
+ enumerator = lib -> credmgr -> create_cert_enumerator ( lib -> credmgr , CERT_X509 , KEY_ANY , id , FALSE ) ;
+ while ( enumerator -> enumerate ( enumerator , & cert ) ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ enumerator -> destroy ( enumerator ) ;
+ id -> destroy ( id ) ;
+ }
+      
+25769803778 | BLOCK | { print_pem_cert ( out , cert ) ; }
+25769803779 | BLOCK | 
+        {
+ enumerator_t * sas , * auths , * certs ;
+ ike_sa_t * ike_sa ;
+ auth_cfg_t * auth ;
+ certificate_t * cert ;
+ auth_rule_t rule ;
+ sas = charon -> ike_sa_manager -> create_enumerator ( charon -> ike_sa_manager , TRUE ) ;
+ while ( sas -> enumerate ( sas , & ike_sa ) ) {
+ if ( streq ( msg -> export . selector , ike_sa -> get_name ( ike_sa ) ) ) {
+ auths = ike_sa -> create_auth_cfg_enumerator ( ike_sa , FALSE ) ;
+ while ( auths -> enumerate ( auths , & auth ) ) {
+ bool got_subject = FALSE ;
+ certs = auth -> create_enumerator ( auth ) ;
+ while ( certs -> enumerate ( certs , & rule , & cert ) ) {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ certs -> destroy ( certs ) ;
+ }
+ auths -> destroy ( auths ) ;
+ }
+ }
+ sas -> destroy (...
+      
+25769803780 | BLOCK | 
+        {
+ if ( streq ( msg -> export . selector , ike_sa -> get_name ( ike_sa ) ) ) {
+ auths = ike_sa -> create_auth_cfg_enumerator ( ike_sa , FALSE ) ;
+ while ( auths -> enumerate ( auths , & auth ) ) {
+ bool got_subject = FALSE ;
+ certs = auth -> create_enumerator ( auth ) ;
+ while ( certs -> enumerate ( certs , & rule , & cert ) ) {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ certs -> destroy ( certs ) ;
+ }
+ auths -> destroy ( auths ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ auths = ike_sa -> create_auth_cfg_enumerator ( ike_sa , FALSE ) ;
+ while ( auths -> enumerate ( auths , & auth ) ) {
+ bool got_subject = FALSE ;
+ certs = auth -> create_enumerator ( auth ) ;
+ while ( certs -> enumerate ( certs , & rule , & cert ) ) {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ certs -> destroy ( certs ) ;
+ }
+ auths -> destroy ( auths ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ bool got_subject = FALSE ;
+ certs = auth -> create_enumerator ( auth ) ;
+ while ( certs -> enumerate ( certs , & rule , & cert ) ) {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ certs -> destroy ( certs ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ switch ( rule ) {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ case AUTH_RULE_CA_CERT : case AUTH_RULE_IM_CERT : if ( msg -> export . flags & EXPORT_CONN_CHAIN ) {
+ print_pem_cert ( out , cert ) ;
+ }
+ break ;
+ case AUTH_RULE_SUBJECT_CERT : if ( ! got_subject ) {
+ print_pem_cert ( out , cert ) ;
+ got_subject = TRUE ;
+ }
+ break ;
+ default : break ;
+ }
+      
+25769803785 | BLOCK | { print_pem_cert ( out , cert ) ; }
+25769803786 | BLOCK | { print_pem_cert ( out , cert ) ; got_subject = TRUE ; }
+30064771072 | CALL | pop_string ( msg , & msg -> export . selector )
+30064771073 | CALL | & msg -> export . selector
+30064771074 | CALL | msg -> export . selector
+30064771075 | CALL | msg -> export
+30064771076 | CALL | msg -> export . flags & EXPORT_X509
+30064771077 | CALL | msg -> export . flags
+30064771078 | CALL | msg
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

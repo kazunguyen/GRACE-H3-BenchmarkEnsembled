@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( OmniboxViewViewsTest , OnBlur ) {
+ int kOmniboxWidth = 60 ;
+ gfx : : RenderText * render_text = omnibox_view ( ) -> GetRenderText ( ) ;
+ render_text -> SetDisplayRect ( gfx : : Rect ( 0 , 0 , kOmniboxWidth , 10 ) ) ;
+ render_text -> SetHorizontalAlignment ( gfx : : ALIGN_LEFT ) ;
+ omnibox_view ( ) -> OnFocus ( ) ;
+ const base : : string16 kContentsRtl = base : : WideToUTF16 ( L"\x05e8\x05e2.\x05e7\x05d5\x05dd/0123/abcd" ) ;
+ static_cast < OmniboxView * > ( omnibox_view ( ) ) -> SetWindowTextAndCaretPos ( kContentsRtl , 0 , false , false ) ;
+ EXPECT_EQ ( gfx : : NO_ELIDE , render_text -> elide_behavior ( ) ) ;
+ EXPECT_GT ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ omnibox_view ( ) -> OnBlur ( ) ;
+ EXPECT_EQ ( gfx : : ELIDE_TAIL , render_text -> elide_behavior ( ) ) ;
+ EXPECT_EQ ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int kOmniboxWidth = 60 ;
+ gfx : : RenderText * render_text = omnibox_view ( ) -> GetRenderText ( ) ;
+ render_text -> SetDisplayRect ( gfx : : Rect ( 0 , 0 , kOmniboxWidth , 10 ) ) ;
+ render_text -> SetHorizontalAlignment ( gfx : : ALIGN_LEFT ) ;
+ omnibox_view ( ) -> OnFocus ( ) ;
+ const base : : string16 kContentsRtl = base : : WideToUTF16 ( L"\x05e8\x05e2.\x05e7\x05d5\x05dd/0123/abcd" ) ;
+ static_cast < OmniboxView * > ( omnibox_view ( ) ) -> SetWindowTextAndCaretPos ( kContentsRtl , 0 , false , false ) ;
+ EXPECT_EQ ( gfx : : NO_ELIDE , render_text -> elide_behavior ( ) ) ;
+ EXPECT_GT ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ omnibox_view ( ) -> OnBlur ( ) ;
+ EXPECT_EQ ( gfx : : ELIDE_TAIL , render_text -> elide_behavior ( ) ) ;
+ EXPECT_EQ ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ }
+      
+30064771072 | CALL | kOmniboxWidth = 60
+30064771073 | CALL | omnibox_view ( ) -> OnFocus ( )
+30064771074 | CALL | omnibox_view ( ) -> OnFocus
+30064771075 | CALL | omnibox_view ( )
+30064771076 | CALL | EXPECT_GT ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) )
+30064771077 | CALL | render_text -> GetUpdatedDisplayOffset ( ) . x ( )
+30064771078 | CALL | render_text -> GetUpdatedDisplayOffset ( ) . x
+30064771079 | CALL | render_text -> GetUpdatedDisplayOffset ( )
+30064771080 | CALL | render_text -> GetUpdatedDisplayOffset
+30064771081 | CALL | omnibox_view ( ) -> OnBlur ( )
+30064771082 | CALL | omnibox_view ( ) -> OnBlur
+30064771083 | CALL | omnibox_view ( )
+30064771084 | CALL | EXPECT_EQ ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) )
+30064771085 | CALL | render_text -> GetUpdatedDisplayOffset ( ) . x ( )
+30064771086 | CALL | render_text -> GetUpdatedDisplayOffset ( ) . x
+30064771087 | CALL | render_text -> GetUpdatedDisplayOffset ( )
+30064771088 | CALL | render_text -> GetUpdatedDisplayOffset
+55834574848 | FIELD_IDENTIFIER | OnFocus
+55834574849 | FIELD_IDENTIFIER | GetUpdatedDisplayOffset
+55834574850 | FIELD_IDENTIFIER | x
+55834574851 | FIELD_IDENTIFIER | OnBlur
+55834574852 | FIELD_IDENTIFIER | GetUpdatedDisplayOffset
+55834574853 | FIELD_IDENTIFIER | x
+68719476736 | IDENTIFIER | kOmniboxWidth
+68719476737 | IDENTIFIER | <unknown> render_text
+68719476738 | IDENTIFIER | <unknown> render_text
+90194313216 | LITERAL | 60
+90194313217 | LITERAL | 0
+90194313218 | LITERAL | 0
+94489280512 | LOCAL | int kOmniboxWidth
+94489280513 | LOCAL | <unknown> render_text
+107374182400 | METHOD | 
+        TEST_F ( OmniboxViewViewsTest , OnBlur ) {
+ int kOmniboxWidth = 60 ;
+ gfx : : RenderText * render_text = omnibox_view ( ) -> GetRenderText ( ) ;
+ render_text -> SetDisplayRect ( gfx : : Rect ( 0 , 0 , kOmniboxWidth , 10 ) ) ;
+ render_text -> SetHorizontalAlignment ( gfx : : ALIGN_LEFT ) ;
+ omnibox_view ( ) -> OnFocus ( ) ;
+ const base : : string16 kContentsRtl = base : : WideToUTF16 ( L"\x05e8\x05e2.\x05e7\x05d5\x05dd/0123/abcd" ) ;
+ static_cast < OmniboxView * > ( omnibox_view ( ) ) -> SetWindowTextAndCaretPos ( kContentsRtl , 0 , false , false ) ;
+ EXPECT_EQ ( gfx : : NO_ELIDE , render_text -> elide_behavior ( ) ) ;
+ EXPECT_GT ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ omnibox_view ( ) -> OnBlur ( ) ;
+ EXPECT_EQ ( gfx : : ELIDE_TAIL , render_text -> elide_behavior ( ) ) ;
+ EXPECT_EQ ( 0 , render_text -> GetUpdatedDisplayOffset ( ) . x ( ) ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | OmniboxViewViewsTest
+111669149697 | METHOD_PARAMETER_IN | OnBlur
+115964116992 | METHOD_PARAMETER_OUT | OmniboxViewViewsTest
+115964116993 | METHOD_PARAMETER_OUT | OnBlur
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 94489280513 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 30064771075 [CFG]
+30064771072 -> 30064771075 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 90194313217 [CFG]
+30064771073 -> 90194313217 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771075 -> 30064771072 [POST_DOMINATE]
+30064771076 -> 90194313217 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313217 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771083 [CFG]
+30064771076 -> 30064771083 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [RECEIVER]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 55834574850 [CFG]
+30064771079 -> 55834574850 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771080 [RECEIVER]
+30064771080 -> 68719476737 [ARGUMENT]
+30064771080 -> 55834574849 [ARGUMENT]
+30064771080 -> 68719476737 [AST]
+30064771080 -> 55834574849 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 55834574849 [POST_DOMINATE]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 90194313218 [CFG]
+30064771081 -> 90194313218 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 124554051584 [REACHING_DEF]
+30064771081 -> 30064771082 [RECEIVER]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 55834574851 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 55834574851 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 55834574851 [POST_DOMINATE]
+30064771083 -> 55834574851 [CFG]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

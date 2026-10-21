@@ -1,0 +1,213 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int load_segment(uint32_t *e1_ptr, uint32_t *e2_ptr,
+
+                               int selector)
+
+{
+
+    SegmentCache *dt;
+
+    int index;
+
+    uint8_t *ptr;
+
+
+
+    if (selector & 0x4)
+
+        dt = &env->ldt;
+
+    else
+
+        dt = &env->gdt;
+
+    index = selector & ~7;
+
+    if ((index + 7) > dt->limit)
+
+        return -1;
+
+    ptr = dt->base + index;
+
+    *e1_ptr = ldl_kernel(ptr);
+
+    *e2_ptr = ldl_kernel(ptr + 4);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+17 -> 22 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+17 -> 30 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+45 -> 54 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+67 -> 71 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void load_seg(int seg_reg, int selector)
+
+{
+
+    SegmentCache *sc;
+
+    SegmentDescriptorTable *dt;
+
+    int index;
+
+    uint32_t e1, e2;
+
+    uint8_t *ptr;
+
+
+
+    env->segs[seg_reg] = selector;
+
+    sc = &env->seg_cache[seg_reg];
+
+    if (env->eflags & VM_MASK) {
+
+        sc->base = (void *)(selector << 4);
+
+        sc->limit = 0xffff;
+
+        sc->seg_32bit = 0;
+
+    } else {
+
+        if (selector & 0x4)
+
+            dt = &env->ldt;
+
+        else
+
+            dt = &env->gdt;
+
+        index = selector & ~7;
+
+        if ((index + 7) > dt->limit)
+
+            raise_exception_err(EXCP0D_GPF, selector);
+
+        ptr = dt->base + index;
+
+        e1 = ldl(ptr);
+
+        e2 = ldl(ptr + 4);
+
+        sc->base = (void *)((e1 >> 16) | ((e2 & 0xff) << 16) | (e2 & 0xff000000));
+
+        sc->limit = (e1 & 0xffff) | (e2 & 0x000f0000);
+
+        if (e2 & (1 << 23))
+
+            sc->limit = (sc->limit << 12) | 0xfff;
+
+        sc->seg_32bit = (e2 >> 22) & 1;
+
+#if 0
+
+        fprintf(logfile, "load_seg: sel=0x%04x base=0x%08lx limit=0x%08lx seg_32bit=%d\n", 
+
+                selector, (unsigned long)sc->base, sc->limit, sc->seg_32bit);
+
+#endif
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

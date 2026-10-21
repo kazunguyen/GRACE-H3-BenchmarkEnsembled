@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( SessionRestorePageLoadMetricsBrowserTest , LoadingAfterSessionRestore ) {
+ ui_test_utils : : NavigateToURL ( browser ( ) , GetTestURL ( ) ) ;
+ Browser * new_browser = nullptr ;
+ {
+ SessionRestorePaintWaiter session_restore_paint_waiter ;
+ new_browser = QuitBrowserAndRestore ( browser ( ) ) ;
+ session_restore_paint_waiter . WaitForForegroundTabs ( 1 ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+ auto waiter = std : : make_unique < PageLoadMetricsWaiter > ( new_browser -> tab_strip_model ( ) -> GetActiveWebContents ( ) ) ;
+ waiter -> AddPageExpectation ( TimingField : : FIRST_MEANINGFUL_PAINT ) ;
+ ui_test_utils : : NavigateToURL ( new_browser , GetTestURL ( ) ) ;
+ waiter -> Wait ( ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ui_test_utils : : NavigateToURL ( browser ( ) , GetTestURL ( ) ) ;
+ Browser * new_browser = nullptr ;
+ {
+ SessionRestorePaintWaiter session_restore_paint_waiter ;
+ new_browser = QuitBrowserAndRestore ( browser ( ) ) ;
+ session_restore_paint_waiter . WaitForForegroundTabs ( 1 ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+ auto waiter = std : : make_unique < PageLoadMetricsWaiter > ( new_browser -> tab_strip_model ( ) -> GetActiveWebContents ( ) ) ;
+ waiter -> AddPageExpectation ( TimingField : : FIRST_MEANINGFUL_PAINT ) ;
+ ui_test_utils : : NavigateToURL ( new_browser , GetTestURL ( ) ) ;
+ waiter -> Wait ( ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ SessionRestorePaintWaiter session_restore_paint_waiter ;
+ new_browser = QuitBrowserAndRestore ( browser ( ) ) ;
+ session_restore_paint_waiter . WaitForForegroundTabs ( 1 ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+      
+30064771072 | CALL | new_browser = nullptr
+30064771073 | CALL | new_browser = QuitBrowserAndRestore ( browser ( ) )
+30064771074 | CALL | QuitBrowserAndRestore ( browser ( ) )
+30064771075 | CALL | browser ( )
+30064771076 | CALL | session_restore_paint_waiter . WaitForForegroundTabs ( 1 )
+30064771077 | CALL | session_restore_paint_waiter . WaitForForegroundTabs
+30064771078 | CALL | ExpectFirstPaintMetricsTotalCount ( 1 )
+30064771079 | CALL | waiter = std
+30064771080 | CALL | waiter -> Wait ( )
+30064771081 | CALL | waiter -> Wait
+30064771082 | CALL | ExpectFirstPaintMetricsTotalCount ( 1 )
+55834574848 | FIELD_IDENTIFIER | WaitForForegroundTabs
+55834574849 | FIELD_IDENTIFIER | Wait
+68719476736 | IDENTIFIER | new_browser
+68719476737 | IDENTIFIER | <unknown> nullptr
+68719476738 | IDENTIFIER | new_browser
+68719476739 | IDENTIFIER | session_restore_paint_waiter
+68719476740 | IDENTIFIER | waiter
+68719476741 | IDENTIFIER | <unknown> std
+68719476742 | IDENTIFIER | waiter
+90194313216 | LITERAL | 1
+90194313217 | LITERAL | 1
+90194313218 | LITERAL | 1
+94489280512 | LOCAL | Browser * new_browser
+94489280513 | LOCAL | SessionRestorePaintWaiter session_restore_paint_waiter
+94489280514 | LOCAL | auto waiter
+94489280515 | LOCAL | <unknown> std
+94489280516 | LOCAL | <unknown> nullptr
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( SessionRestorePageLoadMetricsBrowserTest , LoadingAfterSessionRestore ) {
+ ui_test_utils : : NavigateToURL ( browser ( ) , GetTestURL ( ) ) ;
+ Browser * new_browser = nullptr ;
+ {
+ SessionRestorePaintWaiter session_restore_paint_waiter ;
+ new_browser = QuitBrowserAndRestore ( browser ( ) ) ;
+ session_restore_paint_waiter . WaitForForegroundTabs ( 1 ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+ auto waiter = std : : make_unique < PageLoadMetricsWaiter > ( new_browser -> tab_strip_model ( ) -> GetActiveWebContents ( ) ) ;
+ waiter -> AddPageExpectation ( TimingField : : FIRST_MEANINGFUL_PAINT ) ;
+ ui_test_utils : : NavigateToURL ( new_browser , GetTestURL ( ) ) ;
+ waiter -> Wait ( ) ;
+ ExpectFirstPaintMetricsTotalCount ( 1 ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | SessionRestorePageLoadMetricsBrowserTest
+111669149697 | METHOD_PARAMETER_IN | LoadingAfterSessionRestore
+115964116992 | METHOD_PARAMETER_OUT | SessionRestorePageLoadMetricsBrowserTest
+115964116993 | METHOD_PARAMETER_OUT | LoadingAfterSessionRestore
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803777 -> 94489280513 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 68719476740 [CFG]
+25769803777 -> 68719476740 [DOMINATE]
+25769803777 -> 30064771078 [POST_DOMINATE]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 90194313217 [CFG]
+30064771076 -> 90194313217 [DOMINATE]
+30064771076 -> 90194313216 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 90194313216 [CFG]
+30064771077 -> 90194313216 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771078 -> 90194313217 [ARGUMENT]
+30064771078 -> 90194313217 [AST]
+30064771078 -> 25769803777 [CFG]
+30064771078 -> 25769803777 [DOMINATE]
+30064771078 -> 90194313217 [POST_DOMINATE]
+30064771079 -> 68719476740 [ARGUMENT]
+30064771079 -> 68719476741 [ARGUMENT]
+30064771079 -> 68719476740 [AST]
+30064771079 -> 68719476741 [AST]
+30064771079 -> 68719476742 [CFG]
+30064771079 -> 68719476742 [DOMINATE]
+30064771079 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 124554051584 [REACHING_DEF]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 90194313218 [CFG]
+30064771080 -> 90194313218 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 124554051584 [REACHING_DEF]
+30064771080 -> 30064771081 [RECEIVER]
+30064771081 -> 68719476742 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+IN_PROC_BROWSER_TEST_F ( SessionRestorePageLoadMetricsBrowserTest , MultipleTabsSessionRestore ) {
+ ui_test_utils : : NavigateToURL ( browser ( ) , GetTestURL ( ) ) ;
+ ui_test_utils : : NavigateToURLWithDisposition ( browser ( ) , GetTestURL ( ) , WindowOpenDisposition : 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

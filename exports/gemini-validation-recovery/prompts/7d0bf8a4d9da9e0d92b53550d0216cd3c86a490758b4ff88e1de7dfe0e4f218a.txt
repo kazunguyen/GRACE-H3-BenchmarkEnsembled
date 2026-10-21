@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_choose_segmap_coding_method ( VP9_COMMON * cm , MACROBLOCKD * xd ) {
+ struct segmentation * seg = & cm -> seg ;
+ int no_pred_cost ;
+ int t_pred_cost = INT_MAX ;
+ int i , tile_col , mi_row , mi_col ;
+ int temporal_predictor_count [ PREDICTION_PROBS ] [ 2 ] = {
+ {
+ 0 }
+ }
+ ;
+ int no_pred_segcounts [ MAX_SEGMENTS ] = {
+ 0 }
+ ;
+ int t_unpred_seg_counts [ MAX_SEGMENTS ] = {
+ 0 }
+ ;
+ vp9_prob no_pred_tree [ SEG_TREE_PROBS ] ;
+ vp9_prob t_pred_tree [ SEG_TREE_PROBS ] ;
+ vp9_prob t_nopred_prob [ PREDICTION_PROBS ] ;
+ vpx_memset ( seg -> tree_probs , 255 , sizeof ( seg -> tree_probs ) ) ;
+ vpx_memset ( seg -> pred_probs , 255 , sizeof ( seg -> pred_probs ) ) ;
+ for ( tile_col = 0 ;
+ tile_col < 1 << cm -> log2_tile_cols ;
+ tile_col ++ ) {
+ TileInfo tile ;
+ MODE_INFO * * mi_ptr ;
+ vp9_tile_init ( & tile , cm , 0 , tile_col ) ;
+ mi_ptr = cm -> mi_grid_visible + tile . mi_col_start ;
+ for ( mi_row = 0 ;
+ mi_row < cm -> mi_rows ;
+ mi_row += 8 , mi_ptr += 8 * cm -> mi_stride ) {
+ MODE_INFO * * mi = mi_ptr ;
+ for ( mi_col = tile . mi_col_start ;
+ mi_col < tile . mi_col_end ;
+ mi_col += 8 , mi += 8 ) count_segs_sb ( cm , xd , & tile , mi , no_pred_segcounts , temporal_predictor_count , t_unpred_seg_counts , mi_row , mi_col , BLOCK_64X64 ) ;
+ }
+ }
+ calc_segtree_probs ( no_pred_segcounts , no_pred_tree ) ;
+ no_pred_cost = cost_segmap ( no_pred_segcounts , no_pred_tree ) ;
+ if ( ! frame_is_intra_only ( cm ) ) {
+ calc_segtree_probs ( t_unpred_seg_counts , t_pred_tree ) ;
+ t_pred_cost = cost_segmap ( t_unpred_seg_counts , t_pred_tree ) ;
+ for ( i = 0 ;
+ i < PREDICTION_PROBS ;
+ i ++ ) {
+ const int count0 = temporal_predictor_count [ i ] [ 0 ] ;
+ const int count1 = temporal_predictor_count [ i ] [ 1 ] ;
+ t_nopred_prob [ i ] = get_binary_prob ( count0 , count1 ) ;
+ t_pred_cost += count0 * vp9_cost_zero ( t_nopred_prob [ i ] ) + count1 * vp9_cost_one ( t_nopred_prob [ i ] ) ;
+ }
+ }
+ if ( t_pred_cost < no_pred_cost ) {
+ seg -> temporal_update = 1 ;
+ vpx_memcpy ( seg -> tree_probs , t_pred_tree , sizeof ( t_pred_tree ) ) ;
+ vpx_memcpy ( seg -> pred_probs , t_nopred_prob , sizeof ( t_nopred_prob ) ) ;
+ }
+ else {
+ seg -> temporal_update = 0 ;
+ vpx_memcpy ( seg -> tree_probs , no_pred_tree , sizeof ( no_pred_tree ) ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct segmentation * seg = & cm -> seg ;
+ int no_pred_cost ;
+ int t_pred_cost = INT_MAX ;
+ int i , tile_col , mi_row , mi_col ;
+ int temporal_predictor_count [ PREDICTION_PROBS ] [ 2 ] = {
+ {
+ 0 }
+ }
+ ;
+ int no_pred_segcounts [ MAX_SEGMENTS ] = {
+ 0 }
+ ;
+ int t_unpred_seg_counts [ MAX_SEGMENTS ] = {
+ 0 }
+ ;
+ vp9_prob no_pred_tree [ SEG_TREE_PROBS ] ;
+ vp9_prob t_pred_tree [ SEG_TREE_PROBS ] ;
+ vp9_prob t_nopred_prob [ PREDICTION_PROBS ] ;
+ vpx_memset ( seg -> tree_probs , 255 , sizeof ( seg -> tree_probs ) ) ;
+ vpx_memset ( seg -> pred_probs , 255 , sizeof ( seg -> pred_probs ) ) ;
+ for ( tile_col = 0 ;
+ tile_col < 1 << cm -> log2_tile_cols ;
+ tile_col ++ ) {
+ TileInfo tile ;
+ MODE_INFO * * mi_ptr ;
+ vp9_tile_init ( & tile , cm , 0 , tile_col ) ;
+ mi_ptr = cm -> mi_grid_visible + tile . mi_col_start ;
+ for ( mi_row = 0 ;
+ mi_row < cm -> mi_rows ;
+ mi_row += 8 , mi_ptr += 8 * cm -> mi_stride ) {
+ MODE_INFO * * mi = mi_ptr ;
+ for ( mi_col = tile . mi_col_start ;
+ mi_col < tile . m...
+      
+25769803777 | BLOCK | 
+        {
+ TileInfo tile ;
+ MODE_INFO * * mi_ptr ;
+ vp9_tile_init ( & tile , cm , 0 , tile_col ) ;
+ mi_ptr = cm -> mi_grid_visible + tile . mi_col_start ;
+ for ( mi_row = 0 ;
+ mi_row < cm -> mi_rows ;
+ mi_row += 8 , mi_ptr += 8 * cm -> mi_stride ) {
+ MODE_INFO * * mi = mi_ptr ;
+ for ( mi_col = tile . mi_col_start ;
+ mi_col < tile . mi_col_end ;
+ mi_col += 8 , mi += 8 ) count_segs_sb ( cm , xd , & tile , mi , no_pred_segcounts , temporal_predictor_count , t_unpred_seg_counts , mi_row , mi_col , BLOCK_64X64 ) ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ MODE_INFO * * mi = mi_ptr ;
+ for ( mi_col = tile . mi_col_start ;
+ mi_col < tile . mi_col_end ;
+ mi_col += 8 , mi += 8 ) count_segs_sb ( cm , xd , & tile , mi , no_pred_segcounts , temporal_predictor_count , t_unpred_seg_counts , mi_row , mi_col , BLOCK_64X64 ) ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ calc_segtree_probs ( t_unpred_seg_counts , t_pred_tree ) ;
+ t_pred_cost = cost_segmap ( t_unpred_seg_counts , t_pred_tree ) ;
+ for ( i = 0 ;
+ i < PREDICTION_PROBS ;
+ i ++ ) {
+ const int count0 = temporal_predictor_count [ i ] [ 0 ] ;
+ const int count1 = temporal_predictor_count [ i ] [ 1 ] ;
+ t_nopred_prob [ i ] = get_binary_prob ( count0 , count1 ) ;
+ t_pred_cost += count0 * vp9_cost_zero ( t_nopred_prob [ i ] ) + count1 * vp9_cost_one ( t_nopred_prob [ i ] ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ const int count0 = temporal_predictor_count [ i ] [ 0 ] ;
+ const int count1 = temporal_predictor_count [ i ] [ 1 ] ;
+ t_nopred_prob [ i ] = get_binary_prob ( count0 , count1 ) ;
+ t_pred_cost += count0 * vp9_cost_zero ( t_nopred_prob [ i ] ) + count1 * vp9_cost_one ( t_nopred_prob [ i ] ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ seg -> temporal_update = 1 ;
+ vpx_memcpy ( seg -> tree_probs , t_pred_tree , sizeof ( t_pred_tree ) ) ;
+ vpx_memcpy ( seg -> pred_probs , t_nopred_prob , sizeof ( t_nopred_prob ) ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ seg -> temporal_update = 0 ;
+ vpx_memcpy ( seg -> tree_probs , no_pred_tree , sizeof ( no_pred_tree ) ) ;
+ }
+      
+30064771072 | CALL | seg = & cm -> seg
+30064771073 | CALL | & cm -> seg
+30064771074 | CALL | cm -> seg
+30064771075 | CALL | t_pred_cost = INT_MAX
+30064771076 | CALL | temporal_predictor_count [ PREDICTION_PROBS ] [ 2 ] = { { 0 } }
+30064771077 | CALL | temporal_predictor_count [ PREDICTION_PROBS ] [ 2 ] = { { 0 } }
+30064771078 | CALL | temporal_predictor_count [ PREDICTION_PROBS ] [ 2 ] = { { 0 } }
+30064771079 | CALL | { { 0 } }
+30064771080 | CALL | { 0 }
+30064771081 | CALL | no_pred_segcounts [ MAX_SEGMENTS ] = { 0 }
+30064771082 | CALL | no_pred_segcounts [ MAX_SEGMENTS ] = { 0 }
+30064771083 | CALL | no_pred_segcounts [ MAX_SEGMENTS ] = { 0 }
+30064771084 | CALL | { 0 }
+30064771085 | CALL | t_unpred_seg_counts [ MAX_SEGMENTS ] = { 0 }
+30064771086 | CALL | t_unpred_seg_counts [ MAX_SEGMENTS ] = { 0 }
+30064771087 | CALL | t_unpred_seg_counts [ MAX_SEGMENTS ] = { 0 }
+30064771088 | CALL | { 0 }
+30064771089 | CALL | no_pred_tree [ SEG_TREE_PROBS ]
+30064771090 | CALL | no_pred_tree [ SEG_TREE_PROBS ]
+30064771091 | CALL | t_pred_tree [ SEG_TREE_PROBS ]
+30064771092 | CALL | t_pred_tree [ SEG_TREE_PROBS ]
+30064771093 | CALL | t_nopred_prob [ PREDICTION_PROBS ]
+30064771094 | CALL | t_nopred_prob [ PREDICTION_PROBS ]
+30064771095 | CALL | vpx_memset ( seg -> tree_probs , 255 , sizeof ( seg -> tree_probs ) )
+30064771096 | CALL | seg -> tree_probs
+30064771097 | CALL | sizeof ( seg -> tree_probs )
+30064771098 | CALL | seg -> tree_probs
+30064771099 | CALL | vpx_memset ( seg -> pred_probs , 255 , sizeof ( seg -> pred_probs ) )
+30064771100 | CALL | seg -> pred_probs
+30064771101 | CALL | sizeof ( seg -> pred_probs )
+30064771102 | CALL | seg -> pred_probs
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

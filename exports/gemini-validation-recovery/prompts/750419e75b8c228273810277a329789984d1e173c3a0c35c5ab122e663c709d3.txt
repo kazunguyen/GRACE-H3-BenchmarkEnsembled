@@ -1,0 +1,86 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool cephx_build_service_ticket_reply ( CephContext * cct , CryptoKey & principal_secret , vector < CephXSessionAuthInfo > ticket_info_vec , bool should_encrypt_ticket , CryptoKey & ticket_enc_key , bufferlist & reply ) {
+ __u8 service_ticket_reply_v = 1 ;
+ : : encode ( service_ticket_reply_v , reply ) ;
+ uint32_t num = ticket_info_vec . size ( ) ;
+ : : encode ( num , reply ) ;
+ ldout ( cct , 10 ) << "build_service_ticket_reply encoding " << num << " tickets with secret " << principal_secret << dendl ;
+ for ( vector < CephXSessionAuthInfo > : : iterator ticket_iter = ticket_info_vec . begin ( ) ;
+ ticket_iter != ticket_info_vec . end ( ) ;
+ ++ ticket_iter ) {
+ CephXSessionAuthInfo & info = * ticket_iter ;
+ : : encode ( info . service_id , reply ) ;
+ __u8 service_ticket_v = 1 ;
+ : : encode ( service_ticket_v , reply ) ;
+ CephXServiceTicket msg_a ;
+ msg_a . session_key = info . session_key ;
+ msg_a . validity = info . validity ;
+ std : : string error ;
+ if ( encode_encrypt ( cct , msg_a , principal_secret , reply , error ) ) {
+ ldout ( cct , - 1 ) << "error encoding encrypted: " << error << dendl ;
+ return false ;
+ }
+ bufferlist service_ticket_bl ;
+ CephXTicketBlob blob ;
+ if ( ! cephx_build_service_ticket_blob ( cct , info , blob ) ) {
+ return false ;
+ }
+ : : encode ( blob , service_ticket_bl ) ;
+ ldout ( cct , 30 ) << "service_ticket_blob is " ;
+ service_ticket_bl . hexdump ( * _dout ) ;
+ * _dout << dendl ;
+ : : encode ( ( __u8 ) should_encrypt_ticket , reply ) ;
+ if ( should_encrypt_ticket ) {
+ if ( encode_encrypt ( cct , service_ticket_bl , ticket_enc_key , reply , error ) ) {
+ ldout ( cct , - 1 ) << "error encoding encrypted ticket: " << error << dendl ;
+ return false ;
+ }
+ }
+ else {
+ : : encode ( service_ticket_bl , reply ) ;
+ }
+ }
+ return true ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool cephx_decode_ticket ( CephContext * cct , KeyStore * keys , uint32_t service_id , CephXTicketBlob & ticket_blob , CephXServiceTicketInfo & ticket_info ) {
+ uint64_t secret_id = ticket_blob . secret_id ;
+ CryptoKey service_secret ;
+ if ( ! ticket_blob . blob . length ( ) ) {
+ return false ;
+ }
+ if ( secret_id == ( uint64_t ) - 1 ) {
+ if ( ! keys -> get_secret ( cct -> _conf -> name , service_secret ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not get general service secret for service_id=" << ceph_entity_type_name ( service_id ) << " secret_id=" << secret_id << dendl ;
+ return false ;
+ }
+ }
+ else {
+ if ( ! keys -> get_service_secret ( service_id , secret_id , service_secret ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not get service secret for service_id=" << ceph_entity_type_name ( service_id ) << " secret_id=" << secret_id << dendl ;
+ return false ;
+ }
+ }
+ std : : string error ;
+ decode_decrypt_enc_bl ( cct , ticket_info , service_secret , ticket_blob . blob , error ) ;
+ if ( ! error . empty ( ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not decrypt ticket info. error:" << error << dendl ;
+ return false ;
+ }
+ return true ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

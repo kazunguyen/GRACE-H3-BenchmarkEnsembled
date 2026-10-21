@@ -1,0 +1,322 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int create_header64(DumpState *s)
+
+{
+
+    int ret = 0;
+
+    DiskDumpHeader64 *dh = NULL;
+
+    KdumpSubHeader64 *kh = NULL;
+
+    size_t size;
+
+    int endian = s->dump_info.d_endian;
+
+    uint32_t block_size;
+
+    uint32_t sub_hdr_size;
+
+    uint32_t bitmap_blocks;
+
+    uint32_t status = 0;
+
+    uint64_t offset_note;
+
+
+
+    /* write common header, the version of kdump-compressed format is 6th */
+
+    size = sizeof(DiskDumpHeader64);
+
+    dh = g_malloc0(size);
+
+
+
+    strncpy(dh->signature, KDUMP_SIGNATURE, strlen(KDUMP_SIGNATURE));
+
+    dh->header_version = cpu_convert_to_target32(6, endian);
+
+    block_size = s->page_size;
+
+    dh->block_size = cpu_convert_to_target32(block_size, endian);
+
+    sub_hdr_size = sizeof(struct KdumpSubHeader64) + s->note_size;
+
+    sub_hdr_size = DIV_ROUND_UP(sub_hdr_size, block_size);
+
+    dh->sub_hdr_size = cpu_convert_to_target32(sub_hdr_size, endian);
+
+    /* dh->max_mapnr may be truncated, full 64bit is in kh.max_mapnr_64 */
+
+    dh->max_mapnr = cpu_convert_to_target32(MIN(s->max_mapnr, UINT_MAX),
+
+                                            endian);
+
+    dh->nr_cpus = cpu_convert_to_target32(s->nr_cpus, endian);
+
+    bitmap_blocks = DIV_ROUND_UP(s->len_dump_bitmap, block_size) * 2;
+
+    dh->bitmap_blocks = cpu_convert_to_target32(bitmap_blocks, endian);
+
+    strncpy(dh->utsname.machine, ELF_MACHINE_UNAME, sizeof(dh->utsname.machine));
+
+
+
+    if (s->flag_compress & DUMP_DH_COMPRESSED_ZLIB) {
+
+        status |= DUMP_DH_COMPRESSED_ZLIB;
+
+    }
+
+#ifdef CONFIG_LZO
+
+    if (s->flag_compress & DUMP_DH_COMPRESSED_LZO) {
+
+        status |= DUMP_DH_COMPRESSED_LZO;
+
+    }
+
+#endif
+
+#ifdef CONFIG_SNAPPY
+
+    if (s->flag_compress & DUMP_DH_COMPRESSED_SNAPPY) {
+
+        status |= DUMP_DH_COMPRESSED_SNAPPY;
+
+    }
+
+#endif
+
+    dh->status = cpu_convert_to_target32(status, endian);
+
+
+
+    if (write_buffer(s->fd, 0, dh, size) < 0) {
+
+        dump_error(s, "dump: failed to write disk dump header.\n");
+
+        ret = -1;
+
+        goto out;
+
+    }
+
+
+
+    /* write sub header */
+
+    size = sizeof(KdumpSubHeader64);
+
+    kh = g_malloc0(size);
+
+
+
+    /* 64bit max_mapnr_64 */
+
+    kh->max_mapnr_64 = cpu_convert_to_target64(s->max_mapnr, endian);
+
+    kh->phys_base = cpu_convert_to_target64(PHYS_BASE, endian);
+
+    kh->dump_level = cpu_convert_to_target32(DUMP_LEVEL, endian);
+
+
+
+    offset_note = DISKDUMP_HEADER_BLOCKS * block_size + size;
+
+    kh->offset_note = cpu_convert_to_target64(offset_note, endian);
+
+    kh->note_size = cpu_convert_to_target64(s->note_size, endian);
+
+
+
+    if (write_buffer(s->fd, DISKDUMP_HEADER_BLOCKS *
+
+                     block_size, kh, size) < 0) {
+
+        dump_error(s, "dump: failed to write kdump sub header.\n");
+
+        ret = -1;
+
+        goto out;
+
+    }
+
+
+
+    /* write note */
+
+    s->note_buf = g_malloc0(s->note_size);
+
+    s->note_buf_offset = 0;
+
+
+
+    /* use s->note_buf to store notes temporarily */
+
+    if (write_elf64_notes(buf_write_note, s) < 0) {
+
+        ret = -1;
+
+        goto out;
+
+ 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int ret = 0;
+
+    DiskDumpHeader64 *dh = NULL;
+
+    KdumpSubHeader64 *kh = NULL;
+
+    size_t size;
+
+    int endian = s->dump_info.d_endian;
+
+    uint32_t block_size;
+
+    uint32_t sub_hdr_size;
+
+    uint32_t bitmap_blocks;
+
+    uint32_t status = 0;
+
+    uint64_t offset_note;
+
+
+
+    /* write common header, the version of kdump-compressed format is 6th */
+
+    size = sizeof(DiskDumpHeader64);
+
+    dh = g_malloc0(size);
+
+
+
+    strncpy(dh->signature, KDUMP_SIGNATURE, strlen(KDUMP_SIGNATURE));
+
+    dh->header_version = cpu_convert_to_target32(6, endian);
+
+    block_size = s->page_size;
+
+    dh->block_size = cpu_convert_to_target32(block_size, endian);
+
+    sub_hdr_size = sizeof(struct KdumpSubHeader64) + s->note_size;
+
+    sub_hdr_size = DIV_ROUND_UP(sub_hdr_size, block_size);
+
+    dh->sub_hdr_size = cpu_convert_to_target32(sub_hdr_size, endian);
+
+    /* dh->max_mapnr may be truncated, full 64bit is in kh.max_mapnr_64 */
+
+    dh->max_mapnr = cpu_convert_to_target32(MIN(s->max_mapn...
+      
+25769803777 | BLOCK | { status |= DUMP_DH_COMPRESSED_ZLIB; }
+25769803778 | BLOCK | 
+        {
+
+        dump_error(s, "dump: failed to write disk dump header.\n");
+
+        ret = -1;
+
+        goto out;
+
+    }
+      
+25769803779 | BLOCK | 
+        {
+
+        dump_error(s, "dump: failed to write kdump sub header.\n");
+
+        ret = -1;
+
+        goto out;
+
+    }
+      
+25769803780 | BLOCK | { ret = -1; goto out; }
+25769803781 | BLOCK | { dump_error(s, "dump: failed to write notes"); ret = -1; goto out; }
+30064771072 | CALL | ret = 0
+30064771073 | CALL | dh = NULL
+30064771074 | CALL | kh = NULL
+30064771075 | CALL | endian = s->dump_info.d_endian
+30064771076 | CALL | s->dump_info.d_endian
+30064771077 | CALL | s->dump_info
+30064771078 | CALL | status = 0
+30064771079 | CALL | size = sizeof(DiskDumpHeader64)
+30064771080 | CALL | sizeof(DiskDumpHeader64)
+30064771081 | CALL | dh = g_malloc0(size)
+30064771082 | CALL | g_malloc0(size)
+30064771083 | CALL | strncpy(dh->signature, KDUMP_SIGNATURE, strlen(KDUMP_SIGNATURE))
+30064771084 | CALL | dh->signature
+30064771085 | CALL | strlen(KDUMP_SIGNATURE)
+30064771086 | CALL | dh->header_version = cpu_convert_to_target32(6, endian)
+30064771087 | CALL | dh->header_version
+30064771088 | CALL | cpu_convert_to_target32(6, endian)
+30064771089 | CALL | block_size = s->page_size
+30064771090 | CALL | s->page_size
+30064771091 | CALL | dh->block_size = cpu_convert_to_target32(block_size, endian)
+30064771092 | CALL | dh->block_size
+30064771093 | CALL | cpu_convert_to_target32(block_size, endian)
+30064771094 | CALL | sub_hdr_size = sizeof(struct KdumpSubHeader64) + s->note_size
+30064771095 | CALL | sizeof(struct KdumpSubHeader64) + s->note_size
+30064771096 | CALL | sizeof(struct KdumpSubHeader64)
+30064771097 | CALL | s->note_size
+30064771098 | CALL | sub_hdr_size = DIV_ROUND_UP(sub_hdr_size, block_size)
+30064771099 | CALL | DIV_ROUND_UP(sub_hdr_size, block_size)
+30064771100 | CALL | dh->sub_hdr_size = cpu_convert_to_target32(sub_hdr_size, endian)
+30064771101 | CALL | dh->sub_hdr_size
+30064771102 | CALL | cpu_convert_to_target32(sub_hdr_size, endian)
+30064771103 | CALL | dh->max_mapnr = cpu_convert_to_target32(MIN(s->max_mapnr, UINT_MAX), endian)
+30064771104 | CALL | dh->max_mapnr
+30064771105 | CALL | cpu_convert_to_target32(MIN(s->max_mapnr, UINT_MAX), endian)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

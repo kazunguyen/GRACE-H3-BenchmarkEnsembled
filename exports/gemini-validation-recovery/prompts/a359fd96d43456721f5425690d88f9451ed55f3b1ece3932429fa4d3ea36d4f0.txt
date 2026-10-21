@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _slurm_rpc_job_step_get_info ( slurm_msg_t * msg ) {
+ DEF_TIMERS ;
+ void * resp_buffer = NULL ;
+ int resp_buffer_size = 0 ;
+ int error_code = SLURM_SUCCESS ;
+ job_step_info_request_msg_t * request = ( job_step_info_request_msg_t * ) msg -> data ;
+ slurmctld_lock_t job_read_lock = {
+ READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , NO_LOCK }
+ ;
+ uid_t uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info ) ;
+ START_TIMER ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "Processing RPC: REQUEST_JOB_STEP_INFO from uid=%d" , uid ) ;
+ lock_slurmctld ( job_read_lock ) ;
+ if ( ( request -> last_update - 1 ) >= last_job_update ) {
+ unlock_slurmctld ( job_read_lock ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s, no change" , __func__ ) ;
+ error_code = SLURM_NO_CHANGE_IN_DATA ;
+ }
+ else {
+ Buf buffer = init_buf ( BUF_SIZE ) ;
+ error_code = pack_ctld_job_step_info_response_msg ( request -> job_id , request -> step_id , uid , request -> show_flags , buffer , msg -> protocol_version ) ;
+ unlock_slurmctld ( job_read_lock ) ;
+ END_TIMER2 ( "_slurm_rpc_job_step_get_info" ) ;
+ if ( error_code ) {
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s: %s" , __func__ , slurm_strerror ( error_code ) ) ;
+ free_buf ( buffer ) ;
+ }
+ else {
+ resp_buffer_size = get_buf_offset ( buffer ) ;
+ resp_buffer = xfer_buf_data ( buffer ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s size=%d %s" , __func__ , resp_buffer_size , TIME_STR ) ;
+ }
+ }
+ if ( error_code ) slurm_send_rc_msg ( msg , error_code ) ;
+ else {
+ slurm_msg_t response_msg ;
+ slurm_msg_t_init ( & response_msg ) ;
+ response_msg . flags = msg -> flags ;
+ response_msg . protocol_version = msg -> protocol_version ;
+ response_msg . address = msg -> address ;
+ response_msg . conn = msg -> conn ;
+ response_msg . msg_type = RESPONSE_JOB_STEP_INFO ;
+ response_msg . data = resp_buffer ;
+ response_msg . data_size = resp_buffer_size ;
+ slurm_send_node_msg ( msg -> conn_fd , & response_msg ) ;
+ xfree ( resp_buffer ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DEF_TIMERS ;
+ void * resp_buffer = NULL ;
+ int resp_buffer_size = 0 ;
+ int error_code = SLURM_SUCCESS ;
+ job_step_info_request_msg_t * request = ( job_step_info_request_msg_t * ) msg -> data ;
+ slurmctld_lock_t job_read_lock = {
+ READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , NO_LOCK }
+ ;
+ uid_t uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info ) ;
+ START_TIMER ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "Processing RPC: REQUEST_JOB_STEP_INFO from uid=%d" , uid ) ;
+ lock_slurmctld ( job_read_lock ) ;
+ if ( ( request -> last_update - 1 ) >= last_job_update ) {
+ unlock_slurmctld ( job_read_lock ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s, no change" , __func__ ) ;
+ error_code = SLURM_NO_CHANGE_IN_DATA ;
+ }
+ else {
+ Buf buffer = init_buf ( BUF_SIZE ) ;
+ error_code = pack_ctld_job_step_info_response_msg ( request -> job_id , request -> step_id , uid , request -> show_flags , buffer , msg -> protocol_version )...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ unlock_slurmctld ( job_read_lock ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s, no change" , __func__ ) ;
+ error_code = SLURM_NO_CHANGE_IN_DATA ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ Buf buffer = init_buf ( BUF_SIZE ) ;
+ error_code = pack_ctld_job_step_info_response_msg ( request -> job_id , request -> step_id , uid , request -> show_flags , buffer , msg -> protocol_version ) ;
+ unlock_slurmctld ( job_read_lock ) ;
+ END_TIMER2 ( "_slurm_rpc_job_step_get_info" ) ;
+ if ( error_code ) {
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s: %s" , __func__ , slurm_strerror ( error_code ) ) ;
+ free_buf ( buffer ) ;
+ }
+ else {
+ resp_buffer_size = get_buf_offset ( buffer ) ;
+ resp_buffer = xfer_buf_data ( buffer ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s size=%d %s" , __func__ , resp_buffer_size , TIME_STR ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s: %s" , __func__ , slurm_strerror ( error_code ) ) ;
+ free_buf ( buffer ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ resp_buffer_size = get_buf_offset ( buffer ) ;
+ resp_buffer = xfer_buf_data ( buffer ) ;
+ if ( slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS ) debug ( "%s size=%d %s" , __func__ , resp_buffer_size , TIME_STR ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ slurm_msg_t response_msg ;
+ slurm_msg_t_init ( & response_msg ) ;
+ response_msg . flags = msg -> flags ;
+ response_msg . protocol_version = msg -> protocol_version ;
+ response_msg . address = msg -> address ;
+ response_msg . conn = msg -> conn ;
+ response_msg . msg_type = RESPONSE_JOB_STEP_INFO ;
+ response_msg . data = resp_buffer ;
+ response_msg . data_size = resp_buffer_size ;
+ slurm_send_node_msg ( msg -> conn_fd , & response_msg ) ;
+ xfree ( resp_buffer ) ;
+ }
+      
+30064771072 | CALL | resp_buffer = NULL
+30064771073 | CALL | resp_buffer_size = 0
+30064771074 | CALL | error_code = SLURM_SUCCESS
+30064771075 | CALL | request = ( job_step_info_request_msg_t * ) msg -> data
+30064771076 | CALL | ( job_step_info_request_msg_t * ) msg -> data
+30064771077 | CALL | msg -> data
+30064771078 | CALL | job_read_lock = { READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , NO_LOCK }
+30064771079 | CALL | { READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , NO_LOCK }
+30064771080 | CALL | uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info )
+30064771081 | CALL | g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info )
+30064771082 | CALL | msg -> auth_cred
+30064771083 | CALL | slurmctld_config . auth_info
+30064771084 | CALL | slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS
+30064771085 | CALL | slurmctld_conf . debug_flags
+30064771086 | CALL | debug ( "Processing RPC: REQUEST_JOB_STEP_INFO from uid=%d" , uid )
+30064771087 | CALL | lock_slurmctld ( job_read_lock )
+30064771088 | CALL | ( request -> last_update - 1 ) >= last_job_update
+30064771089 | CALL | request -> last_update - 1
+30064771090 | CALL | request -> last_update
+30064771091 | CALL | unlock_slurmctld ( job_read_lock )
+30064771092 | CALL | slurmctld_conf . debug_flags & DEBUG_FLAG_STEPS
+30064771093 | CALL | slurmctld_conf . debug_flags
+30064771094 | CALL | debug ( "%s, no change" , __func__ )
+30064771095 | CALL | error_code = SLURM_NO_CHANGE_IN_DATA
+30064771096 | CALL | buffer = init_buf ( BUF_SIZE )
+30064771097 | CALL | init_buf ( BUF_SIZE )
+30064771098 | CALL | 
+        error_code = pack_ctld_job_step_info_response_msg ( request -> job_id , request -> step_id , uid , request -> show_flags , buffer , msg -> protocol_version )
+      
+30064771099 | CALL | 
+        pack_ctld_job_step_info_response_msg ( request -> job_id , request -> step_id , uid , request -> show_flags , buffer , msg -> protocol_version )
+      
+30064771100 | CALL | request -> job_id
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

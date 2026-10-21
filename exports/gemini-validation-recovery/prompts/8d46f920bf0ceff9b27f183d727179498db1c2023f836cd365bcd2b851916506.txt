@@ -1,0 +1,288 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint8_t checkBaseExtUnicode ( UCMStates * baseStates , UCMTable * base , UCMTable * ext , UBool moveToExt , UBool intersectBase ) {
+ ( void ) baseStates ;
+ UCMapping * mb , * me , * mbLimit , * meLimit ;
+ int32_t cmp ;
+ uint8_t result ;
+ mb = base -> mappings ;
+ mbLimit = mb + base -> mappingsLength ;
+ me = ext -> mappings ;
+ meLimit = me + ext -> mappingsLength ;
+ result = 0 ;
+ for ( ;
+ ;
+ ) {
+ for ( ;
+ ;
+ ) {
+ if ( mb == mbLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= mb -> f && mb -> f <= 2 ) || mb -> f == 4 ) {
+ break ;
+ }
+ ++ mb ;
+ }
+ for ( ;
+ ;
+ ) {
+ if ( me == meLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= me -> f && me -> f <= 2 ) || me -> f == 4 ) {
+ break ;
+ }
+ ++ me ;
+ }
+ cmp = compareUnicode ( base , mb , ext , me ) ;
+ if ( cmp < 0 ) {
+ if ( intersectBase && ( intersectBase != 2 || mb -> bLen > 1 ) ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( mb -> uLen < me -> uLen && 0 == uprv_memcmp ( UCM_GET_CODE_POINTS ( base , mb ) , UCM_GET_CODE_POINTS ( ext , me ) , 4 * mb -> uLen ) ) {
+ if ( moveToExt ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is a prefix of the input sequence of an extension mapping\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+ }
+ ++ mb ;
+ }
+ else if ( cmp == 0 ) {
+ if ( mb -> f == me -> f && mb -> bLen == me -> bLen && 0 == uprv_memcmp ( UCM_GET_BYTES ( base , mb ) , UCM_GET_BYTES ( ext , me ) , mb -> bLen ) ) {
+ me -> moveFlag |= UCM_REMOVE_MAPPING ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( intersectBase ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is the same as the input sequence of an extension mapping\n" " but it maps differently\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+ ++ mb ;
+ }
+ else {
+ ++ me ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ( void ) baseStates ;
+ UCMapping * mb , * me , * mbLimit , * meLimit ;
+ int32_t cmp ;
+ uint8_t result ;
+ mb = base -> mappings ;
+ mbLimit = mb + base -> mappingsLength ;
+ me = ext -> mappings ;
+ meLimit = me + ext -> mappingsLength ;
+ result = 0 ;
+ for ( ;
+ ;
+ ) {
+ for ( ;
+ ;
+ ) {
+ if ( mb == mbLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= mb -> f && mb -> f <= 2 ) || mb -> f == 4 ) {
+ break ;
+ }
+ ++ mb ;
+ }
+ for ( ;
+ ;
+ ) {
+ if ( me == meLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= me -> f && me -> f <= 2 ) || me -> f == 4 ) {
+ break ;
+ }
+ ++ me ;
+ }
+ cmp = compareUnicode ( base , mb , ext , me ) ;
+ if ( cmp < 0 ) {
+ if ( intersectBase && ( intersectBase != 2 || mb -> bLen > 1 ) ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( mb -> uLen < me -> uLen && 0 == uprv_memcmp ( UCM_GET_CODE_POINTS ( base , mb ) , UCM_GET_CODE_POINTS ( ext , me ) , 4 * mb -> uLen ) ) {
+ if ( moveToExt ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ for ( ;
+ ;
+ ) {
+ if ( mb == mbLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= mb -> f && mb -> f <= 2 ) || mb -> f == 4 ) {
+ break ;
+ }
+ ++ mb ;
+ }
+ for ( ;
+ ;
+ ) {
+ if ( me == meLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= me -> f && me -> f <= 2 ) || me -> f == 4 ) {
+ break ;
+ }
+ ++ me ;
+ }
+ cmp = compareUnicode ( base , mb , ext , me ) ;
+ if ( cmp < 0 ) {
+ if ( intersectBase && ( intersectBase != 2 || mb -> bLen > 1 ) ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( mb -> uLen < me -> uLen && 0 == uprv_memcmp ( UCM_GET_CODE_POINTS ( base , mb ) , UCM_GET_CODE_POINTS ( ext , me ) , 4 * mb -> uLen ) ) {
+ if ( moveToExt ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is a prefix of the input sequence of an extension mapping\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ ...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ if ( mb == mbLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= mb -> f && mb -> f <= 2 ) || mb -> f == 4 ) {
+ break ;
+ }
+ ++ mb ;
+ }
+      
+25769803781 | BLOCK | { return result ; }
+25769803782 | BLOCK | { break ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( me == meLimit ) {
+ return result ;
+ }
+ if ( ( 0 <= me -> f && me -> f <= 2 ) || me -> f == 4 ) {
+ break ;
+ }
+ ++ me ;
+ }
+      
+25769803785 | BLOCK | { return result ; }
+25769803786 | BLOCK | { break ; }
+25769803787 | BLOCK | 
+        {
+ if ( intersectBase && ( intersectBase != 2 || mb -> bLen > 1 ) ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( mb -> uLen < me -> uLen && 0 == uprv_memcmp ( UCM_GET_CODE_POINTS ( base , mb ) , UCM_GET_CODE_POINTS ( ext , me ) , 4 * mb -> uLen ) ) {
+ if ( moveToExt ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is a prefix of the input sequence of an extension mapping\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+ }
+ ++ mb ;
+ }
+      
+25769803788 | BLOCK | { mb -> moveFlag |= UCM_MOVE_TO_EXT ; result |= NEEDS_MOVE ; }
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( moveToExt ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is a prefix of the input sequence of an extension mapping\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+ }
+      
+25769803791 | BLOCK | { mb -> moveFlag |= UCM_MOVE_TO_EXT ; result |= NEEDS_MOVE ; }
+25769803792 | BLOCK | 
+        {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is a prefix of the input sequence of an extension mapping\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ if ( mb -> f == me -> f && mb -> bLen == me -> bLen && 0 == uprv_memcmp ( UCM_GET_BYTES ( base , mb ) , UCM_GET_BYTES ( ext , me ) , mb -> bLen ) ) {
+ me -> moveFlag |= UCM_REMOVE_MAPPING ;
+ result |= NEEDS_MOVE ;
+ }
+ else if ( intersectBase ) {
+ mb -> moveFlag |= UCM_MOVE_TO_EXT ;
+ result |= NEEDS_MOVE ;
+ }
+ else {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " is the same as the input sequence of an extension mapping\n" " but it maps differently\n" ) ;
+ ucm_printMapping ( base , mb , stderr ) ;
+ ucm_printMapping ( ext , me , stderr ) ;
+ result |= HAS_ERRORS ;
+ }
+ ++ mb ;
+ }
+      
+25769803795 | BLOCK | { me -> moveFlag |= UCM_REMOVE_MAPPING ; result |= NEEDS_MOVE ; }
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | { mb -> moveFlag |= UCM_MOVE_TO_EXT ; result |= NEEDS_MOVE ; }
+25769803798 | BLOCK | 
+        {
+ fprintf ( stderr , "ucm error: the base table contains a mapping whose input sequence\n" " 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

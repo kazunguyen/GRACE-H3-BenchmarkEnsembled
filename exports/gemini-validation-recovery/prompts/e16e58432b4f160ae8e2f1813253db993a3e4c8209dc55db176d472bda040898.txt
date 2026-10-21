@@ -1,0 +1,335 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int kvm_put_msrs(X86CPU *cpu, int level)
+
+{
+
+    CPUX86State *env = &cpu->env;
+
+    int i;
+
+    int ret;
+
+
+
+    kvm_msr_buf_reset(cpu);
+
+
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_CS, env->sysenter_cs);
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_ESP, env->sysenter_esp);
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_EIP, env->sysenter_eip);
+
+    kvm_msr_entry_add(cpu, MSR_PAT, env->pat);
+
+    if (has_msr_star) {
+
+        kvm_msr_entry_add(cpu, MSR_STAR, env->star);
+
+    }
+
+    if (has_msr_hsave_pa) {
+
+        kvm_msr_entry_add(cpu, MSR_VM_HSAVE_PA, env->vm_hsave);
+
+    }
+
+    if (has_msr_tsc_aux) {
+
+        kvm_msr_entry_add(cpu, MSR_TSC_AUX, env->tsc_aux);
+
+    }
+
+    if (has_msr_tsc_adjust) {
+
+        kvm_msr_entry_add(cpu, MSR_TSC_ADJUST, env->tsc_adjust);
+
+    }
+
+    if (has_msr_misc_enable) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_MISC_ENABLE,
+
+                          env->msr_ia32_misc_enable);
+
+    }
+
+    if (has_msr_smbase) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_SMBASE, env->smbase);
+
+    }
+
+    if (has_msr_bndcfgs) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_BNDCFGS, env->msr_bndcfgs);
+
+    }
+
+    if (has_msr_xss) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_XSS, env->xss);
+
+    }
+
+#ifdef TARGET_X86_64
+
+    if (lm_capable_kernel) {
+
+        kvm_msr_entry_add(cpu, MSR_CSTAR, env->cstar);
+
+        kvm_msr_entry_add(cpu, MSR_KERNELGSBASE, env->kernelgsbase);
+
+        kvm_msr_entry_add(cpu, MSR_FMASK, env->fmask);
+
+        kvm_msr_entry_add(cpu, MSR_LSTAR, env->lstar);
+
+    }
+
+#endif
+
+    /*
+
+     * The following MSRs have side effects on the guest or are too heavy
+
+     * for normal writeback. Limit them to reset or full state updates.
+
+     */
+
+    if (level >= KVM_PUT_RESET_STATE) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_TSC, env->tsc);
+
+        kvm_msr_entry_add(cpu, MSR_KVM_SYSTEM_TIME, env->system_time_msr);
+
+        kvm_msr_entry_add(cpu, MSR_KVM_WALL_CLOCK, env->wall_clock_msr);
+
+        if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_ASYNC_PF)) {
+
+            kvm_msr_entry_add(cpu, MSR_KVM_ASYNC_PF_EN, env->async_pf_en_msr);
+
+        }
+
+        if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_PV_EOI)) {
+
+            kvm_msr_entry_add(cpu, MSR_KVM_PV_EOI_EN, env->pv_eoi_en_msr);
+
+        }
+
+        if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_STEAL_TIME)) {
+
+            kvm_msr_entry_add(cpu, MSR_KVM_STEAL_TIME, env->steal_time_msr);
+
+        }
+
+        if (has_msr_architectural_pmu) {
+
+            /* Stop the counter.  */
+
+            kvm_msr_entry_add(cpu, MSR_CORE_PERF_FIXED_CTR_CTRL, 0);
+
+            kvm_msr_entry_add(cpu, MSR_CORE_PERF_GLOBAL_CTRL, 0);
+
+
+
+            /* Set the counter values.  */
+
+            for (i = 0; i < MAX_FIXED_COUNTERS; i++) {
+
+                kvm_msr_entry_add(cpu, MSR_CORE_PERF_FIXED_CTR0 + i,
+
+                                  env->msr_fixed_counters[i]);
+
+            }
+
+            for (i = 0; i < num_architectural_pmu_counters; i++) {
+
+                kvm_msr_entry_add(cpu, MS
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+35 -> 40 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+48 -> 53 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+61 -> 66 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+74 -> 77 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+74 -> 79 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int kvm_put_msrs(X86CPU *cpu, int level)
+
+{
+
+    CPUX86State *env = &cpu->env;
+
+    int i;
+
+    int ret;
+
+
+
+    kvm_msr_buf_reset(cpu);
+
+
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_CS, env->sysenter_cs);
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_ESP, env->sysenter_esp);
+
+    kvm_msr_entry_add(cpu, MSR_IA32_SYSENTER_EIP, env->sysenter_eip);
+
+    kvm_msr_entry_add(cpu, MSR_PAT, env->pat);
+
+    if (has_msr_star) {
+
+        kvm_msr_entry_add(cpu, MSR_STAR, env->star);
+
+    }
+
+    if (has_msr_hsave_pa) {
+
+        kvm_msr_entry_add(cpu, MSR_VM_HSAVE_PA, env->vm_hsave);
+
+    }
+
+    if (has_msr_tsc_aux) {
+
+        kvm_msr_entry_add(cpu, MSR_TSC_AUX, env->tsc_aux);
+
+    }
+
+    if (has_msr_tsc_adjust) {
+
+        kvm_msr_entry_add(cpu, MSR_TSC_ADJUST, env->tsc_adjust);
+
+    }
+
+    if (has_msr_misc_enable) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_MISC_ENABLE,
+
+                          env->msr_ia32_misc_enable);
+
+    }
+
+    if (has_msr_smbase) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_SMBASE, env->smbase);
+
+    }
+
+    if (has_msr_bndcfgs) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_BNDCFGS, env->msr_bndcfgs);
+
+    }
+
+    if (has_msr_xss) {
+
+        kvm_msr_entry_add(cpu, MSR_IA32_XSS, env->xss);
+
+    }
+
+#ifdef TARGET_X86_64
+
+    if (lm_capable_kernel) {
+
+        kvm_msr_entry_add(cpu, MSR_CSTAR, env->cstar);
+
+        kvm_msr_entry_add(cpu, MSR_KERNELGSBASE, env->kernelgsbase);
+
+        kvm_msr_entry_add(cpu, MSR_FMASK, env->fmask);
+
+        kvm_msr_entry_add(cpu, MSR_LST
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

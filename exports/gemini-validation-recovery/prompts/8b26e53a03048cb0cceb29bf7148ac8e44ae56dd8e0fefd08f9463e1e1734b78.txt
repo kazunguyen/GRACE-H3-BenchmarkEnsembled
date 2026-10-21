@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decode_dct_block ( RangeCoder * c , DCTBlockCoder * bc , uint8_t * dst , int stride , int block_size , int * block , int mb_x , int mb_y ) {
+ int i , j ;
+ int bx , by ;
+ int nblocks = block_size >> 3 ;
+ bx = mb_x * nblocks ;
+ by = mb_y * nblocks ;
+ for ( j = 0 ;
+ j < nblocks ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < nblocks ;
+ i ++ ) {
+ if ( decode_dct ( c , bc , block , bx + i , by + j ) ) {
+ c -> got_error = 1 ;
+ return ;
+ }
+ ff_mss34_dct_put ( dst + i * 8 , stride , block ) ;
+ }
+ dst += 8 * stride ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ int bx , by ;
+ int nblocks = block_size >> 3 ;
+ bx = mb_x * nblocks ;
+ by = mb_y * nblocks ;
+ for ( j = 0 ;
+ j < nblocks ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < nblocks ;
+ i ++ ) {
+ if ( decode_dct ( c , bc , block , bx + i , by + j ) ) {
+ c -> got_error = 1 ;
+ return ;
+ }
+ ff_mss34_dct_put ( dst + i * 8 , stride , block ) ;
+ }
+ dst += 8 * stride ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < nblocks ;
+ i ++ ) {
+ if ( decode_dct ( c , bc , block , bx + i , by + j ) ) {
+ c -> got_error = 1 ;
+ return ;
+ }
+ ff_mss34_dct_put ( dst + i * 8 , stride , block ) ;
+ }
+ dst += 8 * stride ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( decode_dct ( c , bc , block , bx + i , by + j ) ) {
+ c -> got_error = 1 ;
+ return ;
+ }
+ ff_mss34_dct_put ( dst + i * 8 , stride , block ) ;
+ }
+      
+25769803779 | BLOCK | { c -> got_error = 1 ; return ; }
+30064771072 | CALL | nblocks = block_size >> 3
+30064771073 | CALL | block_size >> 3
+30064771074 | CALL | bx = mb_x * nblocks
+30064771075 | CALL | mb_x * nblocks
+30064771076 | CALL | by = mb_y * nblocks
+30064771077 | CALL | mb_y * nblocks
+30064771078 | CALL | j = 0
+30064771079 | CALL | j < nblocks
+30064771080 | CALL | j ++
+30064771081 | CALL | i = 0
+30064771082 | CALL | i < nblocks
+30064771083 | CALL | i ++
+30064771084 | CALL | decode_dct ( c , bc , block , bx + i , by + j )
+30064771085 | CALL | bx + i
+30064771086 | CALL | by + j
+30064771087 | CALL | c -> got_error = 1
+30064771088 | CALL | c -> got_error
+30064771089 | CALL | ff_mss34_dct_put ( dst + i * 8 , stride , block )
+30064771090 | CALL | dst + i * 8
+30064771091 | CALL | i * 8
+30064771092 | CALL | dst += 8 * stride
+30064771093 | CALL | 8 * stride
+47244640256 | CONTROL_STRUCTURE | for (j = 0 ;j < nblocks;j ++)
+47244640257 | CONTROL_STRUCTURE | for (i = 0 ;i < nblocks;i ++)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( decode_dct ( c , bc , block , bx + i , by + j ) ) {
+ c -> got_error = 1 ;
+ return ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | got_error
+68719476736 | IDENTIFIER | nblocks
+68719476737 | IDENTIFIER | block_size
+68719476738 | IDENTIFIER | bx
+68719476739 | IDENTIFIER | mb_x
+68719476740 | IDENTIFIER | nblocks
+68719476741 | IDENTIFIER | by
+68719476742 | IDENTIFIER | mb_y
+68719476743 | IDENTIFIER | nblocks
+68719476744 | IDENTIFIER | j
+68719476745 | IDENTIFIER | j
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771092 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771089 [AST]
+25769803779 -> 30064771087 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476743 [POST_DOMINATE]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [CFG]
+30064771078 -> 68719476745 [DOMINATE]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 68719476745 [AST]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771080 -> 68719476745 [CFG]
+30064771082 -> 30064771080 [CDG]
+30064771082 -> 30064771079 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 68719476745 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 55834574848 [CDG]
+30064771084 -> 30064771082 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771090 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void decode_fill_block ( RangeCoder * c , FillBlockCoder * fc , uint8_t * dst , int stride , int block_size ) {
+ int i ;
+ fc -> fill_val += decode_coeff ( c , & fc -> coef_model ) ;
+ for ( i = 0 ;
+ i < block_size ;
+ i ++ , dst += stride ) memset ( dst , fc -> fill_val , block_size ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,325 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_scale_eval_dimensions(void *log_ctx,
+
+    const char *w_expr, const char *h_expr,
+
+    AVFilterLink *inlink, AVFilterLink *outlink,
+
+    int *ret_w, int *ret_h)
+
+{
+
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(inlink->format);
+
+    const AVPixFmtDescriptor *out_desc = av_pix_fmt_desc_get(outlink->format);
+
+    const char *expr;
+
+    int w, h;
+
+    int factor_w, factor_h;
+
+    int eval_w, eval_h;
+
+    int ret;
+
+    double var_values[VARS_NB], res;
+
+
+
+    var_values[VAR_PI]    = M_PI;
+
+    var_values[VAR_PHI]   = M_PHI;
+
+    var_values[VAR_E]     = M_E;
+
+    var_values[VAR_IN_W]  = var_values[VAR_IW] = inlink->w;
+
+    var_values[VAR_IN_H]  = var_values[VAR_IH] = inlink->h;
+
+    var_values[VAR_OUT_W] = var_values[VAR_OW] = NAN;
+
+    var_values[VAR_OUT_H] = var_values[VAR_OH] = NAN;
+
+    var_values[VAR_A]     = (double) inlink->w / inlink->h;
+
+    var_values[VAR_SAR]   = inlink->sample_aspect_ratio.num ?
+
+        (double) inlink->sample_aspect_ratio.num / inlink->sample_aspect_ratio.den : 1;
+
+    var_values[VAR_DAR]   = var_values[VAR_A] * var_values[VAR_SAR];
+
+    var_values[VAR_HSUB]  = 1 << desc->log2_chroma_w;
+
+    var_values[VAR_VSUB]  = 1 << desc->log2_chroma_h;
+
+    var_values[VAR_OHSUB] = 1 << out_desc->log2_chroma_w;
+
+    var_values[VAR_OVSUB] = 1 << out_desc->log2_chroma_h;
+
+
+
+    /* evaluate width and height */
+
+    av_expr_parse_and_eval(&res, (expr = w_expr),
+
+                           var_names, var_values,
+
+                           NULL, NULL, NULL, NULL, NULL, 0, log_ctx);
+
+    eval_w = var_values[VAR_OUT_W] = var_values[VAR_OW] = res;
+
+
+
+    if ((ret = av_expr_parse_and_eval(&res, (expr = h_expr),
+
+                                      var_names, var_values,
+
+                                      NULL, NULL, NULL, NULL, NULL, 0, log_ctx)) < 0)
+
+        goto fail;
+
+    eval_h = var_values[VAR_OUT_H] = var_values[VAR_OH] = res;
+
+    /* evaluate again the width, as it may depend on the output height */
+
+    if ((ret = av_expr_parse_and_eval(&res, (expr = w_expr),
+
+                                      var_names, var_values,
+
+                                      NULL, NULL, NULL, NULL, NULL, 0, log_ctx)) < 0)
+
+        goto fail;
+
+    eval_w = res;
+
+
+
+    w = eval_w;
+
+    h = eval_h;
+
+
+
+    /* Check if it is requested that the result has to be divisible by a some
+
+     * factor (w or h = -n with n being the factor). */
+
+    factor_w = 1;
+
+    factor_h = 1;
+
+    if (w < -1) {
+
+        factor_w = -w;
+
+    }
+
+    if (h < -1) {
+
+        factor_h = -h;
+
+    }
+
+
+
+    if (w < 0 && h < 0)
+
+        eval_w = eval_h = 0;
+
+
+
+    if (!(w = eval_w))
+
+        w = inlink->w;
+
+    if (!(h = eval_h))
+
+        h = inlink->h;
+
+
+
+    /* Make sure that the result is divisible by the factor we determined
+
+     * earlier. If no factor was set, it is nothing will happen as the default
+
+     * factor is 1 */
+
+    if (w < 0)
+
+        w = av_rescale(h, inlink->w, inlink->h * factor_w) * factor_w;
+
+    if (h < 0)
+
+        h = av_rescale(w, inli
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+37 -> 41 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+51 -> 55 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+63 -> 66 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+62 -> 67 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 75 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int ff_scale_eval_dimensions(void *log_ctx,
+
+    const char *w_expr, const char *h_expr,
+
+    AVFilterLink *inlink, AVFilterLink *outlink,
+
+    int *ret_w, int *ret_h)
+
+{
+
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(inlink->format);
+
+    const AVPixFmtDescriptor *out_desc = av_pix_fmt_desc_get(outlink->format);
+
+    const char *expr;
+
+    int w, h;
+
+    int factor_w, factor_h;
+
+    int eval_w, eval_h;
+
+    int ret;
+
+    const char scale2ref = outlink->src->nb_inputs == 2 && outlink->src->inputs[1] == inlink;
+
+    double var_values[VARS_NB + VARS_S2R_NB], res;
+
+    const AVPixFmtDescriptor *main_desc;
+
+    const AVFilterLink *main_link;
+
+    const char *const *names = scale2ref ? var_names_scale2ref : var_names;
+
+
+
+    if (scale2ref) {
+
+        main_link = outlink->src->inputs[0];
+
+        main_desc = av_pix_fmt_desc_get(main_link->format);
+
+    }
+
+
+
+    var_values[VAR_PI]    = M_PI;
+
+    var_values[VAR_PHI]   = M_PHI;
+
+    var_values[VAR_E]     = M_E;
+
+    var_values[VAR_IN_W]  = var_values[VAR_IW] = inlink->w;
+
+    var_values[VAR_IN_H]  = var_values[VAR_IH] = inlink->h;
+
+    var_values[VAR_OUT_W] = var_values[VAR_OW] = NAN;
+
+    var_values[VAR_OUT_H] = var_values[VAR_OH] = NAN;
+
+    var_values[VAR_A]     = (double) inlink->w / inlink->h;
+
+    var_values[VAR_SAR]   = inlink->sample_aspect_ratio.num ?
+
+        (double) inlink->sample_aspect_ratio.num / inlink->sample_aspect_ratio.den : 1;
+
+    var_values[VAR_DAR]   = var_values[VAR_A] * var_values[VAR_SAR];
+
+    v
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

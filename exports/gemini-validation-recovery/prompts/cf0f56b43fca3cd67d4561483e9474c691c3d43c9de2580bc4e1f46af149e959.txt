@@ -1,0 +1,234 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int zexecn ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ uint n , i ;
+ es_ptr esp_orig ;
+ check_int_leu ( * op , max_uint - 1 ) ;
+ n = ( uint ) op -> value . intval ;
+ check_op ( n + 1 ) ;
+ check_estack ( n ) ;
+ esp_orig = esp ;
+ for ( i = 0 ;
+ i < n ;
+ ++ i ) {
+ const ref * rp = ref_stack_index ( & o_stack , ( long ) ( i + 1 ) ) ;
+ if ( ref_type_uses_access ( r_type ( rp ) ) ) {
+ if ( ! r_has_attr ( rp , a_execute ) && r_has_attr ( rp , a_executable ) ) {
+ esp = esp_orig ;
+ return_error ( gs_error_invalidaccess ) ;
+ }
+ }
+ if ( ! r_has_type_attrs ( rp , t_null , a_executable ) ) {
+ ++ esp ;
+ ref_assign ( esp , rp ) ;
+ }
+ }
+ esfile_check_cache ( ) ;
+ pop ( n + 1 ) ;
+ return o_push_estack ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ os_ptr op = osp ;
+ uint n , i ;
+ es_ptr esp_orig ;
+ check_int_leu ( * op , max_uint - 1 ) ;
+ n = ( uint ) op -> value . intval ;
+ check_op ( n + 1 ) ;
+ check_estack ( n ) ;
+ esp_orig = esp ;
+ for ( i = 0 ;
+ i < n ;
+ ++ i ) {
+ const ref * rp = ref_stack_index ( & o_stack , ( long ) ( i + 1 ) ) ;
+ if ( ref_type_uses_access ( r_type ( rp ) ) ) {
+ if ( ! r_has_attr ( rp , a_execute ) && r_has_attr ( rp , a_executable ) ) {
+ esp = esp_orig ;
+ return_error ( gs_error_invalidaccess ) ;
+ }
+ }
+ if ( ! r_has_type_attrs ( rp , t_null , a_executable ) ) {
+ ++ esp ;
+ ref_assign ( esp , rp ) ;
+ }
+ }
+ esfile_check_cache ( ) ;
+ pop ( n + 1 ) ;
+ return o_push_estack ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ const ref * rp = ref_stack_index ( & o_stack , ( long ) ( i + 1 ) ) ;
+ if ( ref_type_uses_access ( r_type ( rp ) ) ) {
+ if ( ! r_has_attr ( rp , a_execute ) && r_has_attr ( rp , a_executable ) ) {
+ esp = esp_orig ;
+ return_error ( gs_error_invalidaccess ) ;
+ }
+ }
+ if ( ! r_has_type_attrs ( rp , t_null , a_executable ) ) {
+ ++ esp ;
+ ref_assign ( esp , rp ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( ! r_has_attr ( rp , a_execute ) && r_has_attr ( rp , a_executable ) ) {
+ esp = esp_orig ;
+ return_error ( gs_error_invalidaccess ) ;
+ }
+ }
+      
+25769803779 | BLOCK | { esp = esp_orig ; return_error ( gs_error_invalidaccess ) ; }
+25769803780 | BLOCK | { ++ esp ; ref_assign ( esp , rp ) ; }
+30064771072 | CALL | op = osp
+30064771073 | CALL | check_int_leu ( * op , max_uint - 1 )
+30064771074 | CALL | * op
+30064771075 | CALL | max_uint - 1
+30064771076 | CALL | n = ( uint ) op -> value . intval
+30064771077 | CALL | ( uint ) op -> value . intval
+30064771078 | CALL | op -> value . intval
+30064771079 | CALL | op -> value
+30064771080 | CALL | check_op ( n + 1 )
+30064771081 | CALL | n + 1
+30064771082 | CALL | check_estack ( n )
+30064771083 | CALL | esp_orig = esp
+30064771084 | CALL | i = 0
+30064771085 | CALL | i < n
+30064771086 | CALL | ++ i
+30064771087 | CALL | rp = ref_stack_index ( & o_stack , ( long ) ( i + 1 ) )
+30064771088 | CALL | ref_stack_index ( & o_stack , ( long ) ( i + 1 ) )
+30064771089 | CALL | & o_stack
+30064771090 | CALL | ( long ) ( i + 1 )
+30064771091 | CALL | i + 1
+30064771092 | CALL | ref_type_uses_access ( r_type ( rp ) )
+30064771093 | CALL | r_type ( rp )
+30064771094 | CALL | ! r_has_attr ( rp , a_execute ) && r_has_attr ( rp , a_executable )
+30064771095 | CALL | ! r_has_attr ( rp , a_execute )
+30064771096 | CALL | r_has_attr ( rp , a_execute )
+30064771097 | CALL | r_has_attr ( rp , a_executable )
+30064771098 | CALL | esp = esp_orig
+30064771099 | CALL | return_error ( gs_error_invalidaccess )
+30064771100 | CALL | ! r_has_type_attrs ( rp , t_null , a_executable )
+30064771101 | CALL | r_has_type_attrs ( rp , t_null , a_executable )
+30064771102 | CALL | ++ esp
+30064771103 | CALL | ref_assign ( esp , rp )
+30064771104 | CALL | esfile_check_cache ( )
+30064771105 | CALL | pop ( n + 1 )
+30064771106 | CALL | n + 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771105 [AST]
+25769803777 -> 30064771087 [AST]
+25769803779 -> 30064771098 [AST]
+25769803779 -> 30064771099 [AST]
+25769803780 -> 30064771102 [AST]
+25769803780 -> 30064771103 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771085 -> 30064771101 [CDG]
+30064771085 -> 30064771100 [CDG]
+30064771085 -> 30064771085 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771104 [CFG]
+30064771085 -> 30064771104 [DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771090 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771088 [CFG]
+30064771090 -> 30064771088 [DOMINATE]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int zexec ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ int code ;
+ check_op ( 1 ) ;
+ code = check_for_exec ( op ) ;
+ if ( code < 0 ) {
+ return code ;
+ }
+ if ( ! r_has_attr ( op , a_executable ) ) {
+ return 0 ;
+ }
+ check_estack ( 1 ) ;
+ ++ esp ;
+ ref_assign ( esp , op ) ;
+ esfile_check_cache ( ) ;
+ pop ( 1 ) ;
+ return o_push_estack ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

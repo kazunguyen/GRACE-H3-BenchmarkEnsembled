@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void PrintTOCSummary ( Archive * AHX ) {
+ ArchiveHandle * AH = ( ArchiveHandle * ) AHX ;
+ RestoreOptions * ropt = AH -> public . ropt ;
+ TocEntry * te ;
+ teSection curSection ;
+ OutputContext sav ;
+ const char * fmtName ;
+ char stamp_str [ 64 ] ;
+ sav = SaveOutput ( AH ) ;
+ if ( ropt -> filename ) SetOutput ( AH , ropt -> filename , 0 ) ;
+ if ( strftime ( stamp_str , sizeof ( stamp_str ) , PGDUMP_STRFTIME_FMT , localtime ( & AH -> createDate ) ) == 0 ) strcpy ( stamp_str , "[unknown]" ) ;
+ ahprintf ( AH , ";
+\n;
+ Archive created at %s\n" , stamp_str ) ;
+ ahprintf ( AH , ";
+ dbname: %s\n;
+ TOC Entries: %d\n;
+ Compression: %d\n" , AH -> archdbname , AH -> tocCount , AH -> compression ) ;
+ switch ( AH -> format ) {
+ case archCustom : fmtName = "CUSTOM" ;
+ break ;
+ case archDirectory : fmtName = "DIRECTORY" ;
+ break ;
+ case archTar : fmtName = "TAR" ;
+ break ;
+ default : fmtName = "UNKNOWN" ;
+ }
+ ahprintf ( AH , ";
+ Dump Version: %d.%d-%d\n" , AH -> vmaj , AH -> vmin , AH -> vrev ) ;
+ ahprintf ( AH , ";
+ Format: %s\n" , fmtName ) ;
+ ahprintf ( AH , ";
+ Integer: %d bytes\n" , ( int ) AH -> intSize ) ;
+ ahprintf ( AH , ";
+ Offset: %d bytes\n" , ( int ) AH -> offSize ) ;
+ if ( AH -> archiveRemoteVersion ) ahprintf ( AH , ";
+ Dumped from database version: %s\n" , AH -> archiveRemoteVersion ) ;
+ if ( AH -> archiveDumpVersion ) ahprintf ( AH , ";
+ Dumped by pg_dump version: %s\n" , AH -> archiveDumpVersion ) ;
+ ahprintf ( AH , ";
+\n;
+\n;
+ Selected TOC Entries:\n;
+\n" ) ;
+ curSection = SECTION_PRE_DATA ;
+ for ( te = AH -> toc -> next ;
+ te != AH -> toc ;
+ te = te -> next ) {
+ if ( te -> section != SECTION_NONE ) curSection = te -> section ;
+ if ( ropt -> verbose || ( _tocEntryRequired ( te , curSection , ropt ) & ( REQ_SCHEMA | REQ_DATA ) ) != 0 ) ahprintf ( AH , "%d;
+ %u %u %s %s %s %s\n" , te -> dumpId , te -> catalogId . tableoid , te -> catalogId . oid , te -> desc , te -> namespace ? te -> namespace : "-" , te -> tag , te -> owner ) ;
+ if ( ropt -> verbose && te -> nDeps > 0 ) {
+ int i ;
+ ahprintf ( AH , ";
+\tdepends on:" ) ;
+ for ( i = 0 ;
+ i < te -> nDeps ;
+ i ++ ) ahprintf ( AH , " %d" , te -> dependencies [ i ] ) ;
+ ahprintf ( AH , "\n" ) ;
+ }
+ }
+ if ( ropt -> strict_names ) StrictNamesCheck ( ropt ) ;
+ if ( ropt -> filename ) RestoreOutput ( AH , sav ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ArchiveHandle * AH = ( ArchiveHandle * ) AHX ;
+ RestoreOptions * ropt = AH -> public . ropt ;
+ TocEntry * te ;
+ teSection curSection ;
+ OutputContext sav ;
+ const char * fmtName ;
+ char stamp_str [ 64 ] ;
+ sav = SaveOutput ( AH ) ;
+ if ( ropt -> filename ) SetOutput ( AH , ropt -> filename , 0 ) ;
+ if ( strftime ( stamp_str , sizeof ( stamp_str ) , PGDUMP_STRFTIME_FMT , localtime ( & AH -> createDate ) ) == 0 ) strcpy ( stamp_str , "[unknown]" ) ;
+ ahprintf ( AH , ";
+\n;
+ Archive created at %s\n" , stamp_str ) ;
+ ahprintf ( AH , ";
+ dbname: %s\n;
+ TOC Entries: %d\n;
+ Compression: %d\n" , AH -> archdbname , AH -> tocCount , AH -> compression ) ;
+ switch ( AH -> format ) {
+ case archCustom : fmtName = "CUSTOM" ;
+ break ;
+ case archDirectory : fmtName = "DIRECTORY" ;
+ break ;
+ case archTar : fmtName = "TAR" ;
+ break ;
+ default : fmtName = "UNKNOWN" ;
+ }
+ ahprintf ( AH , ";
+ Dump Version: %d.%d-%d\n" , AH -> vmaj , AH -> vmin , AH -> vrev ) ;
+ ahprintf ( AH , ";
+ Format: %s\n" , fmtN...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( te -> section != SECTION_NONE ) curSection = te -> section ;
+ if ( ropt -> verbose || ( _tocEntryRequired ( te , curSection , ropt ) & ( REQ_SCHEMA | REQ_DATA ) ) != 0 ) ahprintf ( AH , "%d;
+ %u %u %s %s %s %s\n" , te -> dumpId , te -> catalogId . tableoid , te -> catalogId . oid , te -> desc , te -> namespace ? te -> namespace : "-" , te -> tag , te -> owner ) ;
+ if ( ropt -> verbose && te -> nDeps > 0 ) {
+ int i ;
+ ahprintf ( AH , ";
+\tdepends on:" ) ;
+ for ( i = 0 ;
+ i < te -> nDeps ;
+ i ++ ) ahprintf ( AH , " %d" , te -> dependencies [ i ] ) ;
+ ahprintf ( AH , "\n" ) ;
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | AH = ( ArchiveHandle * ) AHX
+30064771073 | CALL | ( ArchiveHandle * ) AHX
+30064771074 | CALL | ropt = AH -> public . ropt
+30064771075 | CALL | AH -> public . ropt
+30064771076 | CALL | AH -> public
+30064771077 | CALL | stamp_str [ 64 ]
+30064771078 | CALL | stamp_str [ 64 ]
+30064771079 | CALL | sav = SaveOutput ( AH )
+30064771080 | CALL | SaveOutput ( AH )
+30064771081 | CALL | ropt -> filename
+30064771082 | CALL | SetOutput ( AH , ropt -> filename , 0 )
+30064771083 | CALL | ropt -> filename
+30064771084 | CALL | 
+        strftime ( stamp_str , sizeof ( stamp_str ) , PGDUMP_STRFTIME_FMT , localtime ( & AH -> createDate ) ) == 0
+      
+30064771085 | CALL | 
+        strftime ( stamp_str , sizeof ( stamp_str ) , PGDUMP_STRFTIME_FMT , localtime ( & AH -> createDate ) )
+      
+30064771086 | CALL | sizeof ( stamp_str )
+30064771087 | CALL | localtime ( & AH -> createDate )
+30064771088 | CALL | & AH -> createDate
+30064771089 | CALL | AH -> createDate
+30064771090 | CALL | strcpy ( stamp_str , "[unknown]" )
+30064771091 | CALL | at %s
+30064771092 | CALL | curSection = SECTION_PRE_DATA
+30064771093 | CALL | te = AH -> toc -> next
+30064771094 | CALL | AH -> toc -> next
+30064771095 | CALL | AH -> toc
+30064771096 | CALL | te != AH -> toc
+30064771097 | CALL | AH -> toc
+30064771098 | CALL | te = te -> next
+30064771099 | CALL | te -> next
+30064771100 | CALL | te -> section != SECTION_NONE
+30064771101 | CALL | te -> section
+30064771102 | CALL | curSection = te -> section
+30064771103 | CALL | te -> section
+30064771104 | CALL | ropt -> strict_names
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771082 [AST]
+25769803778 -> 30064771090 [AST]
+25769803780 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771090 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

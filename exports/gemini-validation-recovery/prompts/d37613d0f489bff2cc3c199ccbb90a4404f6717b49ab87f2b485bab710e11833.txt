@@ -1,0 +1,55 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * unsigned64_avp ( diam_ctx_t * c , diam_avp_t * a , tvbuff_t * tvb , diam_sub_dis_t * diam_sub_dis_inf _U_ ) {
+ char * label = NULL ;
+ proto_item * pi ;
+ gint length = tvb_reported_length ( tvb ) ;
+ if ( length == 8 ) {
+ if ( c -> tree ) {
+ pi = proto_tree_add_item ( c -> tree , a -> hf_value , tvb , 0 , length , ENC_BIG_ENDIAN ) ;
+ label = ( char * ) wmem_alloc ( wmem_packet_scope ( ) , ITEM_LABEL_LENGTH + 1 ) ;
+ proto_item_fill_label ( PITEM_FINFO ( pi ) , label ) ;
+ label = strstr ( label , ": " ) + 2 ;
+ }
+ }
+ else {
+ pi = proto_tree_add_bytes_format ( c -> tree , hf_diameter_avp_data_wrong_length , tvb , 0 , length , NULL , "Error! Bad Unsigned64 Length" ) ;
+ expert_add_info_format ( c -> pinfo , pi , & ei_diameter_avp_len , "Bad Unsigned64 Length (%u)" , length ) ;
+ PROTO_ITEM_SET_GENERATED ( pi ) ;
+ }
+ return label ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static const char * float64_avp ( diam_ctx_t * c , diam_avp_t * a , tvbuff_t * tvb , diam_sub_dis_t * diam_sub_dis_inf _U_ ) {
+ char * label = NULL ;
+ proto_item * pi ;
+ gint length = tvb_reported_length ( tvb ) ;
+ if ( length == 8 ) {
+ if ( c -> tree ) {
+ pi = proto_tree_add_item ( c -> tree , a -> hf_value , tvb , 0 , length , ENC_BIG_ENDIAN ) ;
+ label = ( char * ) wmem_alloc ( wmem_packet_scope ( ) , ITEM_LABEL_LENGTH + 1 ) ;
+ proto_item_fill_label ( PITEM_FINFO ( pi ) , label ) ;
+ label = strstr ( label , ": " ) + 2 ;
+ }
+ }
+ else {
+ pi = proto_tree_add_bytes_format ( c -> tree , hf_diameter_avp_data_wrong_length , tvb , 0 , length , NULL , "Error! Bad Float64 Length" ) ;
+ expert_add_info_format ( c -> pinfo , pi , & ei_diameter_avp_len , "Bad Float64 Length (%u)" , length ) ;
+ PROTO_ITEM_SET_GENERATED ( pi ) ;
+ }
+ return label ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

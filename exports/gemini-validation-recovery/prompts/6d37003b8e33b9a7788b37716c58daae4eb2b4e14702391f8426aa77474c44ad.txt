@@ -1,0 +1,413 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+gen_intermediate_code_internal(MIPSCPU *cpu, TranslationBlock *tb,
+
+                               bool search_pc)
+
+{
+
+    CPUState *cs = CPU(cpu);
+
+    CPUMIPSState *env = &cpu->env;
+
+    DisasContext ctx;
+
+    target_ulong pc_start;
+
+    uint16_t *gen_opc_end;
+
+    CPUBreakpoint *bp;
+
+    int j, lj = -1;
+
+    int num_insns;
+
+    int max_insns;
+
+    int insn_bytes;
+
+    int is_branch;
+
+
+
+    if (search_pc)
+
+        qemu_log("search pc %d\n", search_pc);
+
+
+
+    pc_start = tb->pc;
+
+    gen_opc_end = tcg_ctx.gen_opc_buf + OPC_MAX_SIZE;
+
+    ctx.pc = pc_start;
+
+    ctx.saved_pc = -1;
+
+    ctx.singlestep_enabled = cs->singlestep_enabled;
+
+    ctx.insn_flags = env->insn_flags;
+
+    ctx.tb = tb;
+
+    ctx.bstate = BS_NONE;
+
+    /* Restore delay slot state from the tb context.  */
+
+    ctx.hflags = (uint32_t)tb->flags; /* FIXME: maybe use 64 bits here? */
+
+    restore_cpu_state(env, &ctx);
+
+#ifdef CONFIG_USER_ONLY
+
+        ctx.mem_idx = MIPS_HFLAG_UM;
+
+#else
+
+        ctx.mem_idx = ctx.hflags & MIPS_HFLAG_KSU;
+
+#endif
+
+    num_insns = 0;
+
+    max_insns = tb->cflags & CF_COUNT_MASK;
+
+    if (max_insns == 0)
+
+        max_insns = CF_COUNT_MASK;
+
+    LOG_DISAS("\ntb %p idx %d hflags %04x\n", tb, ctx.mem_idx, ctx.hflags);
+
+    gen_tb_start();
+
+    while (ctx.bstate == BS_NONE) {
+
+        if (unlikely(!QTAILQ_EMPTY(&env->breakpoints))) {
+
+            QTAILQ_FOREACH(bp, &env->breakpoints, entry) {
+
+                if (bp->pc == ctx.pc) {
+
+                    save_cpu_state(&ctx, 1);
+
+                    ctx.bstate = BS_BRANCH;
+
+                    gen_helper_0e0i(raise_exception, EXCP_DEBUG);
+
+                    /* Include the breakpoint location or the tb won't
+
+                     * be flushed when it must be.  */
+
+                    ctx.pc += 4;
+
+                    goto done_generating;
+
+                }
+
+            }
+
+        }
+
+
+
+        if (search_pc) {
+
+            j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+
+            if (lj < j) {
+
+                lj++;
+
+                while (lj < j)
+
+                    tcg_ctx.gen_opc_instr_start[lj++] = 0;
+
+            }
+
+            tcg_ctx.gen_opc_pc[lj] = ctx.pc;
+
+            gen_opc_hflags[lj] = ctx.hflags & MIPS_HFLAG_BMASK;
+
+            gen_opc_btarget[lj] = ctx.btarget;
+
+            tcg_ctx.gen_opc_instr_start[lj] = 1;
+
+            tcg_ctx.gen_opc_icount[lj] = num_insns;
+
+        }
+
+        if (num_insns + 1 == max_insns && (tb->cflags & CF_LAST_IO))
+
+            gen_io_start();
+
+
+
+        is_branch = 0;
+
+        if (!(ctx.hflags & MIPS_HFLAG_M16)) {
+
+            ctx.opcode = cpu_ldl_code(env, ctx.pc);
+
+            insn_bytes = 4;
+
+            decode_opc(env, &ctx, &is_branch);
+
+        } else if (ctx.insn_flags & ASE_MICROMIPS) {
+
+            ctx.opcode = cpu_lduw_code(env, ctx.pc);
+
+            insn_bytes = decode_micromips_opc(env, &ctx, &is_branch);
+
+        } else if (ctx.insn_flags & ASE_MIPS16) {
+
+            ctx.opcode = cpu_lduw_code(env, ctx.pc);
+
+            insn_bytes = decode_mips16_op
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    CPUState *cs = CPU(cpu);
+
+    CPUMIPSState *env = &cpu->env;
+
+    DisasContext ctx;
+
+    target_ulong pc_start;
+
+    uint16_t *gen_opc_end;
+
+    CPUBreakpoint *bp;
+
+    int j, lj = -1;
+
+    int num_insns;
+
+    int max_insns;
+
+    int insn_bytes;
+
+    int is_branch;
+
+
+
+    if (search_pc)
+
+        qemu_log("search pc %d\n", search_pc);
+
+
+
+    pc_start = tb->pc;
+
+    gen_opc_end = tcg_ctx.gen_opc_buf + OPC_MAX_SIZE;
+
+    ctx.pc = pc_start;
+
+    ctx.saved_pc = -1;
+
+    ctx.singlestep_enabled = cs->singlestep_enabled;
+
+    ctx.insn_flags = env->insn_flags;
+
+    ctx.tb = tb;
+
+    ctx.bstate = BS_NONE;
+
+    /* Restore delay slot state from the tb context.  */
+
+    ctx.hflags = (uint32_t)tb->flags; /* FIXME: maybe use 64 bits here? */
+
+    restore_cpu_state(env, &ctx);
+
+#ifdef CONFIG_USER_ONLY
+
+        ctx.mem_idx = MIPS_HFLAG_UM;
+
+#else
+
+        ctx.mem_idx = ctx.hflags & MIPS_HFLAG_KSU;
+
+#endif
+
+    num_insns = 0;
+
+    max_insns = tb->cflags & CF_COUNT_MASK;
+
+    if (max_insns == 0...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+
+        if (unlikely(!QTAILQ_EMPTY(&env->breakpoints))) {
+
+            QTAILQ_FOREACH(bp, &env->breakpoints, entry) {
+
+                if (bp->pc == ctx.pc) {
+
+                    save_cpu_state(&ctx, 1);
+
+                    ctx.bstate = BS_BRANCH;
+
+                    gen_helper_0e0i(raise_exception, EXCP_DEBUG);
+
+                    /* Include the breakpoint location or the tb won't
+
+                     * be flushed when it must be.  */
+
+                    ctx.pc += 4;
+
+                    goto done_generating;
+
+                }
+
+            }
+
+        }
+
+
+
+        if (search_pc) {
+
+            j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+
+            if (lj < j) {
+
+                lj++;
+
+                while (lj < j)
+
+                    tcg_ctx.gen_opc_instr_start[lj++] = 0;
+
+            }
+
+            tcg_ctx.gen_opc_pc[lj] = ctx.pc;
+
+            gen_opc_hflags[lj] = ctx.hflags & MIPS_HFLAG_BMASK;
+
+            gen_opc_btarget[lj] = ctx.btarget;
+
+            tcg_ctx.ge...
+      
+25769803780 | BLOCK | 
+        {
+
+            QTAILQ_FOREACH(bp, &env->breakpoints, entry) {
+
+                if (bp->pc == ctx.pc) {
+
+                    save_cpu_state(&ctx, 1);
+
+                    ctx.bstate = BS_BRANCH;
+
+                    gen_helper_0e0i(raise_exception, EXCP_DEBUG);
+
+                    /* Include the breakpoint location or the tb won't
+
+                     * be flushed when it must be.  */
+
+                    ctx.pc += 4;
+
+                    goto done_generating;
+
+                }
+
+            }
+
+        }
+      
+25769803781 | BLOCK | 
+        {
+
+                if (bp->pc == ctx.pc) {
+
+                    save_cpu_state(&ctx, 1);
+
+                    ctx.bstate = BS_BRANCH;
+
+                    gen_helper_0e0i(raise_exception, EXCP_DEBUG);
+
+                    /* Include the breakpoint location or the tb won't
+
+                     * be flushed when it must be.  */
+
+                    ctx.pc += 4;
+
+                    goto done_generating;
+
+                }
+
+            }
+      
+25769803782 | BLOCK | 
+        {
+
+                    save_cpu_state(&ctx, 1);
+
+                    ctx.bstate = BS_BRANCH;
+
+                    gen_helper_0e0i(raise_exception, EXCP_DEBUG);
+
+                    /* Include the breakpoint location or the tb won't
+
+                     * be flushed when it must be.  */
+
+                    ctx.pc += 4;
+
+                    goto done_generating;
+
+                }
+      
+25769803783 | BLOCK | 
+        {
+
+            j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+
+            if (lj < j) {
+
+                lj++;
+
+                while (lj < j)
+
+                    tcg_ctx.gen_opc_instr_start[lj++] = 0;
+
+            }
+
+            tcg_ctx.gen_opc_pc[lj] = ctx.pc;
+
+            gen_opc_hflags[lj] = ctx.hflags & MIPS_HFLAG_BMASK;
+
+            gen_opc_btarget[lj] = ctx.btarget;
+
+            tcg_ctx.gen_opc_instr_start[lj] = 1;
+
+            tcg_ctx.gen_opc_icount[lj] = num_insns;
+
+        }
+      
+25769803784 | BLOCK | { lj++; while (lj < j) tcg_ctx.gen_opc_instr_start[lj++] = 0; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+
+            ctx.opcode = cpu_ldl_code(env, ctx.pc);
+
+            insn_bytes = 4;
+
+            decode_opc(env, &ctx,
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

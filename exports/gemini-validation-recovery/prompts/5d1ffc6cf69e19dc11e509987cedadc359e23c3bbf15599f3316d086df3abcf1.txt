@@ -1,0 +1,163 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline abi_long host_to_target_timespec(abi_ulong target_addr,
+
+                                               struct timespec *host_ts)
+
+{
+
+    struct target_timespec *target_ts;
+
+
+
+    if (!lock_user_struct(VERIFY_WRITE, target_ts, target_addr, 0))
+
+        return -TARGET_EFAULT;
+
+    target_ts->tv_sec = tswapal(host_ts->tv_sec);
+
+    target_ts->tv_nsec = tswapal(host_ts->tv_nsec);
+
+    unlock_user_struct(target_ts, target_addr, 1);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+16 -> 21 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+16 -> 23 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+9 -> 25 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+43 -> 47 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+59 -> 64 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 68 [IS_AST_PARENT]
+3 -> 69 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+3 -> 70 [IS_AST_PARENT]
+77 -> 71 [FLOWS_TO]
+71 -> 74 [FLOWS_TO]
+74 -> 5 [FLOWS_TO]
+5 -> 10 [FLOWS_TO]
+10 -> 25 [FLOWS_TO]
+10 -> 29 [FLOWS_TO]
+25 -> 78 [FLOWS_TO]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static abi_long unlock_iovec(struct iovec *vec, abi_ulong target_addr,
+
+                             int count, int copy)
+
+{
+
+    struct target_iovec *target_vec;
+
+    abi_ulong base;
+
+    int i;
+
+
+
+    target_vec = lock_user(VERIFY_READ, target_addr, count * sizeof(struct target_iovec), 1);
+
+    if (!target_vec)
+
+        return -TARGET_EFAULT;
+
+    for(i = 0;i < count; i++) {
+
+        base = tswapl(target_vec[i].iov_base);
+
+        unlock_user(vec[i].iov_base, base, copy ? vec[i].iov_len : 0);
+
+    }
+
+    unlock_user (target_vec, target_addr, 0);
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

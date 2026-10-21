@@ -1,0 +1,386 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ehci_opreg_write(void *ptr, hwaddr addr,
+
+                             uint64_t val, unsigned size)
+
+{
+
+    EHCIState *s = ptr;
+
+    uint32_t *mmio = s->opreg + (addr >> 2);
+
+    uint32_t old = *mmio;
+
+    int i;
+
+
+
+    trace_usb_ehci_opreg_write(addr + s->opregbase, addr2str(addr), val);
+
+
+
+    switch (addr) {
+
+    case USBCMD:
+
+        if (val & USBCMD_HCRESET) {
+
+            ehci_reset(s);
+
+            val = s->usbcmd;
+
+            break;
+
+        }
+
+
+
+        /* not supporting dynamic frame list size at the moment */
+
+        if ((val & USBCMD_FLS) && !(s->usbcmd & USBCMD_FLS)) {
+
+            fprintf(stderr, "attempt to set frame list size -- value %d\n",
+
+                    (int)val & USBCMD_FLS);
+
+            val &= ~USBCMD_FLS;
+
+        }
+
+
+
+        if (val & USBCMD_IAAD) {
+
+            /*
+
+             * Process IAAD immediately, otherwise the Linux IAAD watchdog may
+
+             * trigger and re-use a qh without us seeing the unlink.
+
+             */
+
+            s->async_stepdown = 0;
+
+            qemu_bh_schedule(s->async_bh);
+
+            trace_usb_ehci_doorbell_ring();
+
+        }
+
+
+
+        if (((USBCMD_RUNSTOP | USBCMD_PSE | USBCMD_ASE) & val) !=
+
+            ((USBCMD_RUNSTOP | USBCMD_PSE | USBCMD_ASE) & s->usbcmd)) {
+
+            if (s->pstate == EST_INACTIVE) {
+
+                SET_LAST_RUN_CLOCK(s);
+
+            }
+
+            s->usbcmd = val; /* Set usbcmd for ehci_update_halt() */
+
+            ehci_update_halt(s);
+
+            s->async_stepdown = 0;
+
+            qemu_bh_schedule(s->async_bh);
+
+        }
+
+        break;
+
+
+
+    case USBSTS:
+
+        val &= USBSTS_RO_MASK;              // bits 6 through 31 are RO
+
+        ehci_clear_usbsts(s, val);          // bits 0 through 5 are R/WC
+
+        val = s->usbsts;
+
+        ehci_update_irq(s);
+
+        break;
+
+
+
+    case USBINTR:
+
+        val &= USBINTR_MASK;
+
+        if (ehci_enabled(s) && (USBSTS_FLR & val)) {
+
+            qemu_bh_schedule(s->async_bh);
+
+        }
+
+        break;
+
+
+
+    case FRINDEX:
+
+        val &= 0x00003ff8; /* frindex is 14bits and always a multiple of 8 */
+
+        break;
+
+
+
+    case CONFIGFLAG:
+
+        val &= 0x1;
+
+        if (val) {
+
+            for(i = 0; i < NB_PORTS; i++)
+
+                handle_port_owner_write(s, i, 0);
+
+        }
+
+        break;
+
+
+
+    case PERIODICLISTBASE:
+
+        if (ehci_periodic_enabled(s)) {
+
+            fprintf(stderr,
+
+              "ehci: PERIODIC list base register set while periodic schedule\n"
+
+              "      is enabled and HC is enabled\n");
+
+        }
+
+        break;
+
+
+
+    case ASYNCLISTADDR:
+
+        if (ehci_async_enabled(s)) {
+
+            fprintf(stderr,
+
+              "ehci: ASYNC list address register set while async schedule\n"
+
+              "      is enabled and HC is enabled\n");
+
+        }
+
+        break;
+
+    }
+
+
+
+    *mmio = val;
+
+    trace_usb_ehci_opreg_change(addr + s->opregbase, addr2str(addr),
+
+                                *mmio, old);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+18 -> 22 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+42 -> 56 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+69 -> 77 [IS_AST_PARENT]
+69 -> 83 [IS_AST_PARENT]
+64 -> 69 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void uhci_ioport_writew(void *opaque, uint32_t addr, uint32_t val)
+
+{
+
+    UHCIState *s = opaque;
+
+
+
+    addr &= 0x1f;
+
+    trace_usb_uhci_mmio_writew(addr, val);
+
+
+
+    switch(addr) {
+
+    case 0x00:
+
+        if ((val & UHCI_CMD_RS) && !(s->cmd & UHCI_CMD_RS)) {
+
+            /* start frame processing */
+
+            trace_usb_uhci_schedule_start();
+
+            s->expire_time = qemu_get_clock_ns(vm_clock) +
+
+                (get_ticks_per_sec() / FRAME_TIMER_FREQ);
+
+            qemu_mod_timer(s->frame_timer, qemu_get_clock_ns(vm_clock));
+
+            s->status &= ~UHCI_STS_HCHALTED;
+
+        } else if (!(val & UHCI_CMD_RS)) {
+
+            s->status |= UHCI_STS_HCHALTED;
+
+        }
+
+        if (val & UHCI_CMD_GRESET) {
+
+            UHCIPort *port;
+
+            int i;
+
+
+
+            /* send reset on the USB bus */
+
+            for(i = 0; i < NB_PORTS; i++) {
+
+                port = &s->ports[i];
+
+                usb_device_reset(port->port.dev);
+
+            }
+
+            uhci_reset(s);
+
+            return;
+
+        }
+
+        if (val & UHCI_CMD_HCRESET) {
+
+            uhci_reset(s);
+
+            return;
+
+        }
+
+        s->cmd = val;
+
+        break;
+
+    case 0x02:
+
+        s->status &= ~val;
+
+        /* XXX: the chip spec is not coherent, so we add a hidden
+
+           register to distinguish between IOC and SPD */
+
+        if (val & UHCI_STS_USBINT)
+
+            s->status2 = 0;
+
+        uhci_update_irq(s);
+
+        break;
+
+    case 0x04:
+
+        s->intr = val;
+
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

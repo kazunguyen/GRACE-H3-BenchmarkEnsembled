@@ -1,0 +1,254 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gint rtmpt_get_amf_length ( tvbuff_t * tvb , gint offset ) {
+ guint8 iObjType ;
+ gint remain = tvb_reported_length_remaining ( tvb , offset ) ;
+ guint32 depth = 0 ;
+ gint itemlen = 0 ;
+ gint rv = 0 ;
+ while ( rv == 0 || depth > 0 ) {
+ if ( depth > 0 ) {
+ if ( remain - rv < 2 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv ) + 2 ;
+ if ( remain - rv < itemlen + 1 ) return remain ;
+ rv += itemlen ;
+ }
+ if ( remain - rv < 1 ) return remain ;
+ iObjType = tvb_get_guint8 ( tvb , offset + rv ) ;
+ if ( depth > 0 && itemlen == 2 && iObjType == AMF0_END_OF_OBJECT ) {
+ rv ++ ;
+ depth -- ;
+ continue ;
+ }
+ switch ( iObjType ) {
+ case AMF0_NUMBER : itemlen = 9 ;
+ break ;
+ case AMF0_BOOLEAN : itemlen = 2 ;
+ break ;
+ case AMF0_STRING : if ( remain - rv < 3 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv + 1 ) + 3 ;
+ break ;
+ case AMF0_NULL : case AMF0_UNDEFINED : case AMF0_UNSUPPORTED : itemlen = 1 ;
+ break ;
+ case AMF0_DATE : itemlen = 11 ;
+ break ;
+ case AMF0_LONG_STRING : case AMF0_XML : if ( remain - rv < 5 ) return remain ;
+ itemlen = tvb_get_ntohl ( tvb , offset + rv + 1 ) + 5 ;
+ break ;
+ case AMF0_INT64 : itemlen = 9 ;
+ break ;
+ case AMF0_OBJECT : itemlen = 1 ;
+ depth ++ ;
+ break ;
+ case AMF0_ECMA_ARRAY : itemlen = 5 ;
+ depth ++ ;
+ break ;
+ default : return remain ;
+ }
+ if ( remain - rv < itemlen ) return remain ;
+ rv += itemlen ;
+ }
+ return rv ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint8 iObjType ;
+ gint remain = tvb_reported_length_remaining ( tvb , offset ) ;
+ guint32 depth = 0 ;
+ gint itemlen = 0 ;
+ gint rv = 0 ;
+ while ( rv == 0 || depth > 0 ) {
+ if ( depth > 0 ) {
+ if ( remain - rv < 2 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv ) + 2 ;
+ if ( remain - rv < itemlen + 1 ) return remain ;
+ rv += itemlen ;
+ }
+ if ( remain - rv < 1 ) return remain ;
+ iObjType = tvb_get_guint8 ( tvb , offset + rv ) ;
+ if ( depth > 0 && itemlen == 2 && iObjType == AMF0_END_OF_OBJECT ) {
+ rv ++ ;
+ depth -- ;
+ continue ;
+ }
+ switch ( iObjType ) {
+ case AMF0_NUMBER : itemlen = 9 ;
+ break ;
+ case AMF0_BOOLEAN : itemlen = 2 ;
+ break ;
+ case AMF0_STRING : if ( remain - rv < 3 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv + 1 ) + 3 ;
+ break ;
+ case AMF0_NULL : case AMF0_UNDEFINED : case AMF0_UNSUPPORTED : itemlen = 1 ;
+ break ;
+ case AMF0_DATE : itemlen = 11 ;
+ break ;
+ case AMF0_LONG_STRING : case AMF0_XML : if ( remain - rv < 5 ) return remain ...
+      
+25769803777 | BLOCK | 
+        {
+ if ( depth > 0 ) {
+ if ( remain - rv < 2 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv ) + 2 ;
+ if ( remain - rv < itemlen + 1 ) return remain ;
+ rv += itemlen ;
+ }
+ if ( remain - rv < 1 ) return remain ;
+ iObjType = tvb_get_guint8 ( tvb , offset + rv ) ;
+ if ( depth > 0 && itemlen == 2 && iObjType == AMF0_END_OF_OBJECT ) {
+ rv ++ ;
+ depth -- ;
+ continue ;
+ }
+ switch ( iObjType ) {
+ case AMF0_NUMBER : itemlen = 9 ;
+ break ;
+ case AMF0_BOOLEAN : itemlen = 2 ;
+ break ;
+ case AMF0_STRING : if ( remain - rv < 3 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv + 1 ) + 3 ;
+ break ;
+ case AMF0_NULL : case AMF0_UNDEFINED : case AMF0_UNSUPPORTED : itemlen = 1 ;
+ break ;
+ case AMF0_DATE : itemlen = 11 ;
+ break ;
+ case AMF0_LONG_STRING : case AMF0_XML : if ( remain - rv < 5 ) return remain ;
+ itemlen = tvb_get_ntohl ( tvb , offset + rv + 1 ) + 5 ;
+ break ;
+ case AMF0_INT64 : itemlen = 9 ;
+ break ;
+ case AMF0_OBJECT : itemlen = 1 ;
+ depth ++ ;
+ break ;
+ case AM...
+      
+25769803778 | BLOCK | 
+        {
+ if ( remain - rv < 2 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv ) + 2 ;
+ if ( remain - rv < itemlen + 1 ) return remain ;
+ rv += itemlen ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { rv ++ ; depth -- ; continue ; }
+25769803783 | BLOCK | 
+        {
+ case AMF0_NUMBER : itemlen = 9 ;
+ break ;
+ case AMF0_BOOLEAN : itemlen = 2 ;
+ break ;
+ case AMF0_STRING : if ( remain - rv < 3 ) return remain ;
+ itemlen = tvb_get_ntohs ( tvb , offset + rv + 1 ) + 3 ;
+ break ;
+ case AMF0_NULL : case AMF0_UNDEFINED : case AMF0_UNSUPPORTED : itemlen = 1 ;
+ break ;
+ case AMF0_DATE : itemlen = 11 ;
+ break ;
+ case AMF0_LONG_STRING : case AMF0_XML : if ( remain - rv < 5 ) return remain ;
+ itemlen = tvb_get_ntohl ( tvb , offset + rv + 1 ) + 5 ;
+ break ;
+ case AMF0_INT64 : itemlen = 9 ;
+ break ;
+ case AMF0_OBJECT : itemlen = 1 ;
+ depth ++ ;
+ break ;
+ case AMF0_ECMA_ARRAY : itemlen = 5 ;
+ depth ++ ;
+ break ;
+ default : return remain ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | remain = tvb_reported_length_remaining ( tvb , offset )
+30064771073 | CALL | tvb_reported_length_remaining ( tvb , offset )
+30064771074 | CALL | depth = 0
+30064771075 | CALL | itemlen = 0
+30064771076 | CALL | rv = 0
+30064771077 | CALL | rv == 0 || depth > 0
+30064771078 | CALL | rv == 0
+30064771079 | CALL | depth > 0
+30064771080 | CALL | depth > 0
+30064771081 | CALL | remain - rv < 2
+30064771082 | CALL | remain - rv
+30064771083 | CALL | itemlen = tvb_get_ntohs ( tvb , offset + rv ) + 2
+30064771084 | CALL | tvb_get_ntohs ( tvb , offset + rv ) + 2
+30064771085 | CALL | tvb_get_ntohs ( tvb , offset + rv )
+30064771086 | CALL | offset + rv
+30064771087 | CALL | remain - rv < itemlen + 1
+30064771088 | CALL | remain - rv
+30064771089 | CALL | itemlen + 1
+30064771090 | CALL | rv += itemlen
+30064771091 | CALL | remain - rv < 1
+30064771092 | CALL | remain - rv
+30064771093 | CALL | iObjType = tvb_get_guint8 ( tvb , offset + rv )
+30064771094 | CALL | tvb_get_guint8 ( tvb , offset + rv )
+30064771095 | CALL | offset + rv
+30064771096 | CALL | depth > 0 && itemlen == 2 && iObjType == AMF0_END_OF_OBJECT
+30064771097 | CALL | depth > 0 && itemlen == 2
+30064771098 | CALL | depth > 0
+30064771099 | CALL | itemlen == 2
+30064771100 | CALL | iObjType == AMF0_END_OF_OBJECT
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771093 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextGetBlockStatsParamsNumber ( qemuMonitorPtr mon , int * nparams ) {
+ char * info = NULL ;
+ int ret = - 1 ;
+ int num = 0 ;
+ const char * p , * eol ;
+ if ( qemuMonitorHMPCommand ( mon , "info blockstats" , & info ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( info , "\ninfo " ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+ p = info ;
+ eol = strchr ( p , '\n' ) ;
+ if ( ! eol ) eol = p + strlen ( p ) ;
+ p = strchr ( p , ' ' ) ;
+ while ( p && p < eol ) {
+ if ( STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" ) || STRPREFIX ( p , " flush_operations=" ) || STRPREFIX ( p , " flush_total_times_ns=" ) ) {
+ num ++ ;
+ }
+ else {
+ VIR_DEBUG ( "unknown block stat near %s" , p ) ;
+ }
+ p = strchr ( p + 1 , ' ' ) ;
+ }
+ * nparams = num ;
+ ret = 0 ;
+ cleanup : VIR_FREE ( info ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * info = NULL ;
+ int ret = - 1 ;
+ int num = 0 ;
+ const char * p , * eol ;
+ if ( qemuMonitorHMPCommand ( mon , "info blockstats" , & info ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( info , "\ninfo " ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+ p = info ;
+ eol = strchr ( p , '\n' ) ;
+ if ( ! eol ) eol = p + strlen ( p ) ;
+ p = strchr ( p , ' ' ) ;
+ while ( p && p < eol ) {
+ if ( STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" ) || STRPREFIX ( p , " flush_operations=" ) || STRPREFIX ( p , " flush_total_times_ns=" ) ) {
+ num ++ ;
+ }
+ else {
+ VIR_DEBUG ( "unknown block stat near %s" , p ) ;
+ }
+ p = strchr ( p + 1 , ' ...
+      
+25769803777 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ if ( STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" ) || STRPREFIX ( p , " flush_operations=" ) || STRPREFIX ( p , " flush_total_times_ns=" ) ) {
+ num ++ ;
+ }
+ else {
+ VIR_DEBUG ( "unknown block stat near %s" , p ) ;
+ }
+ p = strchr ( p + 1 , ' ' ) ;
+ }
+      
+25769803781 | BLOCK | { num ++ ; }
+25769803782 | BLOCK | { VIR_DEBUG ( "unknown block stat near %s" , p ) ; }
+30064771072 | CALL | info = NULL
+30064771073 | CALL | ret = - 1
+30064771074 | CALL | - 1
+30064771075 | CALL | num = 0
+30064771076 | CALL | qemuMonitorHMPCommand ( mon , "info blockstats" , & info ) < 0
+30064771077 | CALL | qemuMonitorHMPCommand ( mon , "info blockstats" , & info )
+30064771078 | CALL | & info
+30064771079 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) )
+      
+30064771080 | CALL | _ ( "'info blockstats' command failed" )
+30064771081 | CALL | strstr ( info , "\ninfo " )
+30064771082 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) )
+      
+30064771083 | CALL | _ ( "'info blockstats' not supported by this qemu" )
+30064771084 | CALL | p = info
+30064771085 | CALL | eol = strchr ( p , '\n' )
+30064771086 | CALL | strchr ( p , '\n' )
+30064771087 | CALL | ! eol
+30064771088 | CALL | eol = p + strlen ( p )
+30064771089 | CALL | p + strlen ( p )
+30064771090 | CALL | strlen ( p )
+30064771091 | CALL | p = strchr ( p , ' ' )
+30064771092 | CALL | strchr ( p , ' ' )
+30064771093 | CALL | p && p < eol
+30064771094 | CALL | p < eol
+30064771095 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" ) || STRPREFIX ( p , " flush_operations=" ) || STRPREFIX ( p , " flush_total_times_ns=" )
+      
+30064771096 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" ) || STRPREFIX ( p , " flush_operations=" )
+      
+30064771097 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" ) || STRPREFIX ( p , " wr_total_times_ns=" )
+      
+30064771098 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" ) || STRPREFIX ( p , " rd_total_times_ns=" )
+      
+30064771099 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" ) || STRPREFIX ( p , " wr_operations=" )
+      
+30064771100 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" ) || STRPREFIX ( p , " rd_operations=" )
+      
+30064771101 | CALL | 
+        STRPREFIX ( p , " rd_bytes=" ) || STRPREFIX ( p , " wr_bytes=" )
+      
+30064771102 | CALL | STRPREFIX ( p , " rd_bytes=" )
+30064771103 | CALL | STRPREFIX ( p , " wr_bytes=" )
+30064771104 | CALL | STRPREFIX ( p , " rd_operations=" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 30064771088 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771092 [
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void curses_connection_data_join ( void ) {
+ char src [ MAX_ASCII_ADDR_LEN ] ;
+ char dst [ MAX_ASCII_ADDR_LEN ] ;
+ char title [ 64 ] ;
+ DEBUG_MSG ( "curses_connection_data_join" ) ;
+ if ( wdg_conndata ) {
+ struct conn_object * tmp_conn = curr_conn ;
+ wdg_destroy_object ( & wdg_conndata ) ;
+ curses_destroy_conndata ( ) ;
+ curr_conn = tmp_conn ;
+ }
+ curr_conn -> flags |= CONN_VIEWING ;
+ wdg_create_object ( & wdg_conndata , WDG_COMPOUND , WDG_OBJ_WANT_FOCUS ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_SCREEN , EC_COLOR ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_WINDOW , EC_COLOR ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_FOCUS , EC_COLOR_FOCUS ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_TITLE , EC_COLOR_TITLE ) ;
+ wdg_set_title ( wdg_conndata , "Connection data" , WDG_ALIGN_LEFT ) ;
+ wdg_set_size ( wdg_conndata , 1 , 2 , - 1 , SYSMSG_WIN_SIZE - 1 ) ;
+ wdg_create_object ( & wdg_join , WDG_SCROLL , 0 ) ;
+ snprintf ( title , 64 , "%s:%d - %s:%d" , ip_addr_ntoa ( & curr_conn -> L3_addr1 , src ) , ntohs ( curr_conn -> L4_addr1 ) , ip_addr_ntoa ( & curr_conn -> L3_addr2 , dst ) , ntohs ( curr_conn -> L4_addr2 ) ) ;
+ wdg_set_title ( wdg_join , title , WDG_ALIGN_LEFT ) ;
+ wdg_set_color ( wdg_join , WDG_COLOR_TITLE , EC_COLOR_TITLE ) ;
+ wdg_set_color ( wdg_join , WDG_COLOR_FOCUS , EC_COLOR_FOCUS ) ;
+ wdg_set_size ( wdg_join , 2 , 3 , - 2 , SYSMSG_WIN_SIZE - 2 ) ;
+ wdg_scroll_set_lines ( wdg_join , GBL_CONF -> connection_buffer / ( current_screen . cols / 2 ) ) ;
+ wdg_compound_add ( wdg_conndata , wdg_join ) ;
+ wdg_add_destroy_key ( wdg_conndata , CTRL ( 'Q' ) , curses_destroy_conndata ) ;
+ wdg_compound_add_callback ( wdg_conndata , 'j' , curses_connection_data_split ) ;
+ wdg_compound_add_callback ( wdg_conndata , 'k' , curses_connection_kill_wrapper ) ;
+ wdg_compound_add_callback ( wdg_conndata , ' ' , curses_connection_data_help ) ;
+ wdg_draw_object ( wdg_conndata ) ;
+ wdg_set_focus ( wdg_conndata ) ;
+ connbuf_print ( & curr_conn -> data , join_print ) ;
+ conntrack_hook_conn_add ( curr_conn , join_print_po ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char src [ MAX_ASCII_ADDR_LEN ] ;
+ char dst [ MAX_ASCII_ADDR_LEN ] ;
+ char title [ 64 ] ;
+ DEBUG_MSG ( "curses_connection_data_join" ) ;
+ if ( wdg_conndata ) {
+ struct conn_object * tmp_conn = curr_conn ;
+ wdg_destroy_object ( & wdg_conndata ) ;
+ curses_destroy_conndata ( ) ;
+ curr_conn = tmp_conn ;
+ }
+ curr_conn -> flags |= CONN_VIEWING ;
+ wdg_create_object ( & wdg_conndata , WDG_COMPOUND , WDG_OBJ_WANT_FOCUS ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_SCREEN , EC_COLOR ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_WINDOW , EC_COLOR ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_FOCUS , EC_COLOR_FOCUS ) ;
+ wdg_set_color ( wdg_conndata , WDG_COLOR_TITLE , EC_COLOR_TITLE ) ;
+ wdg_set_title ( wdg_conndata , "Connection data" , WDG_ALIGN_LEFT ) ;
+ wdg_set_size ( wdg_conndata , 1 , 2 , - 1 , SYSMSG_WIN_SIZE - 1 ) ;
+ wdg_create_object ( & wdg_join , WDG_SCROLL , 0 ) ;
+ snprintf ( title , 64 , "%s:%d - %s:%d" , ip_addr_ntoa ( & curr_conn -> L3_addr1 , src ) , ntohs ( curr_conn -> L4_a...
+      
+25769803777 | BLOCK | 
+        {
+ struct conn_object * tmp_conn = curr_conn ;
+ wdg_destroy_object ( & wdg_conndata ) ;
+ curses_destroy_conndata ( ) ;
+ curr_conn = tmp_conn ;
+ }
+      
+30064771072 | CALL | src [ MAX_ASCII_ADDR_LEN ]
+30064771073 | CALL | src [ MAX_ASCII_ADDR_LEN ]
+30064771074 | CALL | dst [ MAX_ASCII_ADDR_LEN ]
+30064771075 | CALL | dst [ MAX_ASCII_ADDR_LEN ]
+30064771076 | CALL | title [ 64 ]
+30064771077 | CALL | title [ 64 ]
+30064771078 | CALL | DEBUG_MSG ( "curses_connection_data_join" )
+30064771079 | CALL | wdg_conndata != 0
+30064771080 | CALL | tmp_conn = curr_conn
+30064771081 | CALL | wdg_destroy_object ( & wdg_conndata )
+30064771082 | CALL | & wdg_conndata
+30064771083 | CALL | curses_destroy_conndata ( )
+30064771084 | CALL | curr_conn = tmp_conn
+30064771085 | CALL | curr_conn -> flags |= CONN_VIEWING
+30064771086 | CALL | curr_conn -> flags
+30064771087 | CALL | wdg_create_object ( & wdg_conndata , WDG_COMPOUND , WDG_OBJ_WANT_FOCUS )
+30064771088 | CALL | & wdg_conndata
+30064771089 | CALL | wdg_set_color ( wdg_conndata , WDG_COLOR_SCREEN , EC_COLOR )
+30064771090 | CALL | wdg_set_color ( wdg_conndata , WDG_COLOR_WINDOW , EC_COLOR )
+30064771091 | CALL | wdg_set_color ( wdg_conndata , WDG_COLOR_FOCUS , EC_COLOR_FOCUS )
+30064771092 | CALL | wdg_set_color ( wdg_conndata , WDG_COLOR_TITLE , EC_COLOR_TITLE )
+30064771093 | CALL | wdg_set_title ( wdg_conndata , "Connection data" , WDG_ALIGN_LEFT )
+30064771094 | CALL | wdg_set_size ( wdg_conndata , 1 , 2 , - 1 , SYSMSG_WIN_SIZE - 1 )
+30064771095 | CALL | - 1
+30064771096 | CALL | SYSMSG_WIN_SIZE - 1
+30064771097 | CALL | wdg_create_object ( & wdg_join , WDG_SCROLL , 0 )
+30064771098 | CALL | & wdg_join
+30064771099 | CALL | 
+        snprintf ( title , 64 , "%s:%d - %s:%d" , ip_addr_ntoa ( & curr_conn -> L3_addr1 , src ) , ntohs ( curr_conn -> L4_addr1 ) , ip_addr_ntoa ( & curr_conn -> L3_addr2 , dst ) , ntohs ( curr_conn -> L4_addr2 ) )
+      
+30064771100 | CALL | ip_addr_ntoa ( & curr_conn -> L3_addr1 , src )
+30064771101 | CALL | & curr_conn -> L3_addr1
+30064771102 | CALL | curr_conn -> L3_addr1
+30064771103 | CALL | ntohs ( curr_conn -> L4_addr1 )
+30064771104 | CALL | curr_conn -> L4_addr1
+30064771105 | CALL | ip_addr_ntoa ( & curr_conn -> L3_addr2 , dst )
+30064771106 | CALL | & curr_conn -> L3_addr2
+30064771107 | CALL | curr_conn -> L3_addr2
+30064771108 | CALL | ntohs ( curr_conn -> L4_addr2 )
+30064771109 | CALL | curr_conn -> L4_addr2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [CFG]
+30064771081 -> 30064771083 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771088 [REACHING_DEF]
+30064771083 -> 30064771081 [POST_DOMINATE]
+30064771085 -> 30064771086
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

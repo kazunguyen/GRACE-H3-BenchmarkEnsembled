@@ -1,0 +1,30 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rsvp_conversation_packet ( void * pct , packet_info * pinfo , epan_dissect_t * edt _U_ , const void * vip ) {
+ conv_hash_t * hash = ( conv_hash_t * ) pct ;
+ const rsvp_conversation_info * rsvph = ( const rsvp_conversation_info * ) vip ;
+ add_conversation_table_data ( hash , & rsvph -> source , & rsvph -> destination , 0 , 0 , 1 , pinfo -> fd -> pkt_len , & pinfo -> rel_ts , & pinfo -> fd -> abs_ts , & rsvp_ct_dissector_info , PT_NONE ) ;
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int rsvp_hostlist_packet ( void * pit , packet_info * pinfo , epan_dissect_t * edt _U_ , const void * vip ) {
+ conv_hash_t * hash = ( conv_hash_t * ) pit ;
+ const rsvp_conversation_info * rsvph = ( const rsvp_conversation_info * ) vip ;
+ add_hostlist_table_data ( hash , & rsvph -> source , 0 , TRUE , 1 , pinfo -> fd -> pkt_len , & rsvp_host_dissector_info , PT_NONE ) ;
+ add_hostlist_table_data ( hash , & rsvph -> destination , 0 , FALSE , 1 , pinfo -> fd -> pkt_len , & rsvp_host_dissector_info , PT_NONE ) ;
+ return 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

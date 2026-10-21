@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dictionary_load ( void ) {
+ ddict_t * d ;
+ ddict_application_t * p ;
+ ddict_vendor_t * v ;
+ ddict_cmd_t * c ;
+ ddict_typedefn_t * t ;
+ ddict_avp_t * a ;
+ gboolean do_debug_parser = getenv ( "WIRESHARK_DEBUG_DIAM_DICT_PARSER" ) ? TRUE : FALSE ;
+ gboolean do_dump_dict = getenv ( "WIRESHARK_DUMP_DIAM_DICT" ) ? TRUE : FALSE ;
+ char * dir ;
+ const avp_type_t * type ;
+ const avp_type_t * octetstring = & basic_types [ 0 ] ;
+ diam_avp_t * avp ;
+ GHashTable * vendors = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ diam_vnd_t * vnd ;
+ GArray * vnd_shrt_arr = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ build_dict . hf = wmem_array_new ( wmem_epan_scope ( ) , sizeof ( hf_register_info ) ) ;
+ build_dict . ett = g_ptr_array_new ( ) ;
+ build_dict . types = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ build_dict . avps = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ dictionary . vnds = wmem_tree_new ( wmem_epan_scope ( ) ) ;
+ dictionary . avps = wmem_tree_new ( wmem_epan_scope ( ) ) ;
+ unknown_vendor . vs_cmds = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ unknown_vendor . vs_avps = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ no_vnd . vs_cmds = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ no_vnd . vs_avps = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ all_cmds = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ wmem_tree_insert32 ( dictionary . vnds , 0 , & no_vnd ) ;
+ g_hash_table_insert ( vendors , ( gchar * ) "None" , & no_vnd ) ;
+ for ( type = basic_types ;
+ type -> name ;
+ type ++ ) {
+ g_hash_table_insert ( build_dict . types , ( gchar * ) type -> name , ( void * ) type ) ;
+ }
+ dir = g_strdup_printf ( "%s" G_DIR_SEPARATOR_S "diameter" G_DIR_SEPARATOR_S , get_datafile_dir ( ) ) ;
+ d = ddict_scan ( dir , "dictionary.xml" , do_debug_parser ) ;
+ g_free ( dir ) ;
+ if ( d == NULL ) {
+ g_hash_table_destroy ( vendors ) ;
+ g_array_free ( vnd_shrt_arr , TRUE ) ;
+ return 0 ;
+ }
+ if ( do_dump_dict ) ddict_print ( stdout , d ) ;
+ for ( t = d -> typedefns ;
+ t ;
+ t = t -> next ) {
+ const avp_type_t * parent = NULL ;
+ if ( t -> name == NULL ) {
+ report_failure ( "Diameter Dictionary: Invalid Type (empty name): parent==%s\n" , t -> parent ? t -> parent : "(null)" ) ;
+ continue ;
+ }
+ if ( g_hash_table_lookup ( build_dict . types , t -> name ) ) continue ;
+ if ( t -> parent ) {
+ parent = ( avp_type_t * ) g_hash_table_lookup ( build_dict . types , t -> parent ) ;
+ }
+ if ( ! parent ) parent = octetstring ;
+ g_hash_table_insert ( build_dict . types , t -> name , ( void * ) parent ) ;
+ }
+ if ( ( p = d -> applications ) ) {
+ wmem_array_t * arr = wmem_array_new ( wmem_epan_scope ( ) , sizeof ( value_string ) ) ;
+ value_string term [ 1 ] ;
+ term [ 0 ] . value = 0 ;
+ term [ 0 ] . strptr = NULL ;
+ for ( ;
+ p ;
+ p = p -> next ) {
+ value_string item [ 1 ] ;
+ item [ 0 ] . value = p -> code ;
+ item [ 0 ] . strptr = p -> name ;
+ if ( ! p -> name ) {
+ report_failure ( "Diameter Dictionary:
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ddict_t * d ;
+ ddict_application_t * p ;
+ ddict_vendor_t * v ;
+ ddict_cmd_t * c ;
+ ddict_typedefn_t * t ;
+ ddict_avp_t * a ;
+ gboolean do_debug_parser = getenv ( "WIRESHARK_DEBUG_DIAM_DICT_PARSER" ) ? TRUE : FALSE ;
+ gboolean do_dump_dict = getenv ( "WIRESHARK_DUMP_DIAM_DICT" ) ? TRUE : FALSE ;
+ char * dir ;
+ const avp_type_t * type ;
+ const avp_type_t * octetstring = & basic_types [ 0 ] ;
+ diam_avp_t * avp ;
+ GHashTable * vendors = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ diam_vnd_t * vnd ;
+ GArray * vnd_shrt_arr = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ build_dict . hf = wmem_array_new ( wmem_epan_scope ( ) , sizeof ( hf_register_info ) ) ;
+ build_dict . ett = g_ptr_array_new ( ) ;
+ build_dict . types = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ build_dict . avps = g_hash_table_new ( strcase_hash , strcase_equal ) ;
+ dictionary . vnds = wmem_tree_new ( wmem_epan_scope ( ) ) ;
+ dictionary . avps = wmem_tree_new ( wmem_epan_scope ( ) ) ;
+ un...
+      
+25769803777 | BLOCK | 
+        {
+ g_hash_table_insert ( build_dict . types , ( gchar * ) type -> name , ( void * ) type ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ g_hash_table_destroy ( vendors ) ;
+ g_array_free ( vnd_shrt_arr , TRUE ) ;
+ return 0 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ const avp_type_t * parent = NULL ;
+ if ( t -> name == NULL ) {
+ report_failure ( "Diameter Dictionary: Invalid Type (empty name): parent==%s\n" , t -> parent ? t -> parent : "(null)" ) ;
+ continue ;
+ }
+ if ( g_hash_table_lookup ( build_dict . types , t -> name ) ) continue ;
+ if ( t -> parent ) {
+ parent = ( avp_type_t * ) g_hash_table_lookup ( build_dict . types , t -> parent ) ;
+ }
+ if ( ! parent ) parent = octetstring ;
+ g_hash_table_insert ( build_dict . types , t -> name , ( void * ) parent ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ report_failure ( "Diameter Dictionary: Invalid Type (empty name): parent==%s\n" , t -> parent ? t -> parent : "(null)" ) ;
+ continue ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ parent = ( avp_type_t * ) g_hash_table_lookup ( build_dict . types , t -> parent ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ wmem_array_t * arr = wmem_array_new ( wmem_epan_scope ( ) , sizeof ( value_string ) ) ;
+ value_string term [ 1 ] ;
+ term [ 0 ] . value = 0 ;
+ term [ 0 ] . strptr = NULL ;
+ for ( ;
+ p ;
+ p = p -> next ) {
+ value_string item [ 1 ] ;
+ item [ 0 ] . value = p -> code ;
+ item [ 0 ] . strptr = p -> name ;
+ if ( ! p -> name ) {
+ report_failure ( "Diameter Dictionary: Invalid Application (empty name): id=%d\n" , p -> code ) ;
+ continue ;
+ }
+ wmem_array_append_one ( arr , item ) ;
+ }
+ wmem_array_sort ( arr , compare_avps ) ;
+ wmem_array_append_one ( arr , term ) ;
+ dictionary . applications = value_string_ext_new ( ( value_string * ) wmem_array_get_raw ( arr ) , wmem_array_get_count ( arr ) , wmem_strdup_printf ( wmem_epan_scope ( ) , "applications_vals_ext" ) ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ value_string item [ 1 ] ;
+ item [ 0 ] . value = p -> code ;
+ item [ 0 ] . strptr = p -> name ;
+ if ( ! p -> name ) {
+ report_failure ( "Diameter Dictionary: Invalid Application (empty name): id=%d\n" , p -> code ) ;
+ continue ;
+ }
+ wmem_array_append_one ( arr , item ) ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ report_failure ( "Diameter Dictionary: Invalid Application (empty name): id=%d\n" , p -> code ) ;
+ continue ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ for ( ;
+ v ;
+ v = v -> next ) {
+ value_string item [ 1 ] ;
+ item [ 0 ] . value = v -> code ;
+ item [ 0 ] . strptr = v -> name ;
+ if ( v -> name == NULL ) {
+ report_failure ( "Diameter Dictionary: Invalid Vendor (empty name): code==%d\n" , v -> code ) ;
+ continue ;
+ }
+ if ( g_hash_table_lookup ( vendors , v -> name ) ) continue ;
+ g_array_append_val ( vnd_shrt_arr , item ) ;
+ vnd = wmem_new ( wmem_epan_scope ( ) , diam_vnd_t ) ;
+ vnd -> code = v -> code ;
+ vnd -> vs_cmds = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ vnd -> vs_avps = g_array_new ( TRUE , TRUE , sizeof ( value_string ) ) ;
+ vnd -> vs_avps_ext = NULL ;
+ wmem_tree_insert32 ( dictionary . vnds , vnd -> code , vnd ) ;
+ g_hash_table_insert ( vendors , v -> name , vnd ) ;
+ }
+ }
+      
+25769803790 | BLOCK | <
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

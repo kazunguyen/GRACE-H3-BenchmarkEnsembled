@@ -1,0 +1,165 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_mac_fdd_rach ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ guint8 tctf ;
+ guint8 chan ;
+ guint16 bitoffs = 0 ;
+ tvbuff_t * next_tvb ;
+ proto_tree * rach_tree = NULL ;
+ proto_item * channel_type ;
+ umts_mac_info * macinf ;
+ fp_info * fpinf ;
+ rlc_info * rlcinf ;
+ proto_item * ti = NULL ;
+ guint8 c_t ;
+ tctf = tvb_get_bits8 ( tvb , 0 , 2 ) ;
+ bitoffs += 2 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" ) ;
+ col_set_str ( pinfo -> cinfo , COL_INFO , val_to_str_const ( tctf , rach_fdd_tctf_vals , "Unknown TCTF" ) ) ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ rach_tree = proto_item_add_subtree ( ti , ett_mac_rach ) ;
+ macinf = ( umts_mac_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_umts_mac , 0 ) ;
+ fpinf = ( fp_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_fp , 0 ) ;
+ rlcinf = ( rlc_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_rlc , 0 ) ;
+ if ( ! macinf || ! fpinf ) {
+ proto_tree_add_expert ( rach_tree , pinfo , & ei_mac_per_frame_info_missing , tvb , 0 , - 1 ) ;
+ return 1 ;
+ }
+ proto_tree_add_bits_item ( rach_tree , hf_mac_rach_fdd_tctf , tvb , 0 , 2 , ENC_BIG_ENDIAN ) ;
+ if ( tctf == TCTF_DCCH_DTCH_RACH_FDD ) {
+ macinf -> ctmux [ fpinf -> cur_tb ] = 1 ;
+ bitoffs = tree_add_common_dcch_dtch_fields ( tvb , pinfo , rach_tree , bitoffs , fpinf , macinf , rlcinf ) ;
+ }
+ chan = fpinf -> cur_chan ;
+ switch ( tctf ) {
+ case TCTF_CCCH_RACH_FDD : proto_item_append_text ( ti , " (CCCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_CCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs ) ;
+ add_new_data_source ( pinfo , next_tvb , "Octet-Aligned CCCH Data" ) ;
+ call_dissector_with_data ( rlc_ccch_handle , next_tvb , pinfo , tree , data ) ;
+ break ;
+ case TCTF_DCCH_DTCH_RACH_FDD : c_t = tvb_get_bits8 ( tvb , bitoffs - 4 , 4 ) ;
+ rlcinf -> mode [ chan ] = lchId_rlc_map [ c_t + 1 ] ;
+ macinf -> content [ chan ] = lchId_type_table [ c_t + 1 ] ;
+ rlcinf -> rbid [ chan ] = c_t + 1 ;
+ switch ( macinf -> content [ chan ] ) {
+ case MAC_CONTENT_DCCH : proto_item_append_text ( ti , " (DCCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_DCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs ) ;
+ add_new_data_source ( pinfo , next_tvb , "Octet-Aligned DCCH Data" ) ;
+ call_dissector_with_data ( rlc_dcch_handle , next_tvb , pinfo , tree , data ) ;
+ break ;
+ case MAC_CONTENT_PS_DTCH : proto_item_append_text ( ti , " (PS DTCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_DTCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs )
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint8 tctf ;
+ guint8 chan ;
+ guint16 bitoffs = 0 ;
+ tvbuff_t * next_tvb ;
+ proto_tree * rach_tree = NULL ;
+ proto_item * channel_type ;
+ umts_mac_info * macinf ;
+ fp_info * fpinf ;
+ rlc_info * rlcinf ;
+ proto_item * ti = NULL ;
+ guint8 c_t ;
+ tctf = tvb_get_bits8 ( tvb , 0 , 2 ) ;
+ bitoffs += 2 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" ) ;
+ col_set_str ( pinfo -> cinfo , COL_INFO , val_to_str_const ( tctf , rach_fdd_tctf_vals , "Unknown TCTF" ) ) ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ rach_tree = proto_item_add_subtree ( ti , ett_mac_rach ) ;
+ macinf = ( umts_mac_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_umts_mac , 0 ) ;
+ fpinf = ( fp_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_fp , 0 ) ;
+ rlcinf = ( rlc_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_rlc , 0 ) ;
+ if ( ! macinf || ! fpinf ) {
+ proto_tree_add_expert ( rach_tree , pinfo , & ei_mac_per_frame_info_missin...
+      
+25769803777 | BLOCK | 
+        {
+ proto_tree_add_expert ( rach_tree , pinfo , & ei_mac_per_frame_info_missing , tvb , 0 , - 1 ) ;
+ return 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ macinf -> ctmux [ fpinf -> cur_tb ] = 1 ;
+ bitoffs = tree_add_common_dcch_dtch_fields ( tvb , pinfo , rach_tree , bitoffs , fpinf , macinf , rlcinf ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ case TCTF_CCCH_RACH_FDD : proto_item_append_text ( ti , " (CCCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_CCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs ) ;
+ add_new_data_source ( pinfo , next_tvb , "Octet-Aligned CCCH Data" ) ;
+ call_dissector_with_data ( rlc_ccch_handle , next_tvb , pinfo , tree , data ) ;
+ break ;
+ case TCTF_DCCH_DTCH_RACH_FDD : c_t = tvb_get_bits8 ( tvb , bitoffs - 4 , 4 ) ;
+ rlcinf -> mode [ chan ] = lchId_rlc_map [ c_t + 1 ] ;
+ macinf -> content [ chan ] = lchId_type_table [ c_t + 1 ] ;
+ rlcinf -> rbid [ chan ] = c_t + 1 ;
+ switch ( macinf -> content [ chan ] ) {
+ case MAC_CONTENT_DCCH : proto_item_append_text ( ti , " (DCCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_DCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bi...
+      
+25769803780 | BLOCK | 
+        {
+ case MAC_CONTENT_DCCH : proto_item_append_text ( ti , " (DCCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_DCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs ) ;
+ add_new_data_source ( pinfo , next_tvb , "Octet-Aligned DCCH Data" ) ;
+ call_dissector_with_data ( rlc_dcch_handle , next_tvb , pinfo , tree , data ) ;
+ break ;
+ case MAC_CONTENT_PS_DTCH : proto_item_append_text ( ti , " (PS DTCH)" ) ;
+ channel_type = proto_tree_add_uint ( rach_tree , hf_mac_channel , tvb , 0 , 0 , MAC_DTCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ next_tvb = tvb_new_octet_aligned ( tvb , bitoffs , fpinf -> chan_tf_size [ chan ] - bitoffs ) ;
+ add_new_data_source ( pinfo , next_tvb , "Octet-Aligned DTCH Data" ) ;
+ call_dissector_with_data ( rlc_ps_dtch_handle , next_tvb , pinfo , tree , data ) ;
+ break ;
+ case MAC_CONTENT_CS_DTCH : proto_item_append_text (...
+      
+30064771072 | CALL | bitoffs = 0
+30064771073 | CALL | rach_tree = NULL
+30064771074 | CALL | ti = NULL
+30064771075 | CALL | tctf = tvb_get_bits8 ( tvb , 0 , 2 )
+30064771076 | CALL | tvb_get_bits8 ( tvb , 0 , 2 )
+30064771077 | CALL | bitoffs += 2
+30064771078 | CALL | col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" )
+30064771079 | CALL | pinfo -> cinfo
+30064771080 | CALL | 
+        col_set_str ( pinfo -> cinfo , COL_INFO , val_to_str_const ( tctf , rach_fdd_tctf_vals , "Unknown TCTF" ) )
+      
+30064771081 | CALL | pinfo -> cinfo
+30064771082 | CALL | val_to_str_const ( tctf , rach_fdd_tctf_vals , "Unknown TCTF" )
+30064771083 | CALL | ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA )
+30064771084 | CALL | proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA )
+30064771085 | CALL | - 1
+30064771086 | CALL | rach_tree = proto_item_add_subtree ( ti , ett_mac_rach )
+3006477
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

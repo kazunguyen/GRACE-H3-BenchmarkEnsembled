@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( FastUnloadTest , MAYBE_UnloadHidden ) {
+ NavigateToPage ( "no_listeners" ) ;
+ NavigateToPageInNewTab ( "unload_sets_cookie" ) ;
+ EXPECT_EQ ( "" , GetCookies ( "no_listeners" ) ) ;
+ content : : WebContentsDestroyedWatcher destroyed_watcher ( browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ) ;
+ {
+ base : : RunLoop run_loop ;
+ FastTabCloseTabStripModelObserver observer ( browser ( ) -> tab_strip_model ( ) , & run_loop ) ;
+ chrome : : CloseTab ( browser ( ) ) ;
+ run_loop . Run ( ) ;
+ }
+ CheckTitle ( "no_listeners" ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ destroyed_watcher . Wait ( ) ;
+ EXPECT_EQ ( "unloaded=ohyeah" , GetCookies ( "no_listeners" ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ NavigateToPage ( "no_listeners" ) ;
+ NavigateToPageInNewTab ( "unload_sets_cookie" ) ;
+ EXPECT_EQ ( "" , GetCookies ( "no_listeners" ) ) ;
+ content : : WebContentsDestroyedWatcher destroyed_watcher ( browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ) ;
+ {
+ base : : RunLoop run_loop ;
+ FastTabCloseTabStripModelObserver observer ( browser ( ) -> tab_strip_model ( ) , & run_loop ) ;
+ chrome : : CloseTab ( browser ( ) ) ;
+ run_loop . Run ( ) ;
+ }
+ CheckTitle ( "no_listeners" ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ destroyed_watcher . Wait ( ) ;
+ EXPECT_EQ ( "unloaded=ohyeah" , GetCookies ( "no_listeners" ) ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ base : : RunLoop run_loop ;
+ FastTabCloseTabStripModelObserver observer ( browser ( ) -> tab_strip_model ( ) , & run_loop ) ;
+ chrome : : CloseTab ( browser ( ) ) ;
+ run_loop . Run ( ) ;
+ }
+      
+30064771072 | CALL | NavigateToPage ( "no_listeners" )
+30064771073 | CALL | NavigateToPageInNewTab ( "unload_sets_cookie" )
+30064771074 | CALL | EXPECT_EQ ( "" , GetCookies ( "no_listeners" ) )
+30064771075 | CALL | GetCookies ( "no_listeners" )
+30064771076 | CALL | observer ( browser ( ) -> tab_strip_model ( ) , & run_loop )
+30064771077 | CALL | browser ( ) -> tab_strip_model ( )
+30064771078 | CALL | browser ( ) -> tab_strip_model
+30064771079 | CALL | browser ( )
+30064771080 | CALL | & run_loop
+30064771081 | CALL | run_loop . Run ( )
+30064771082 | CALL | run_loop . Run
+30064771083 | CALL | CheckTitle ( "no_listeners" )
+30064771084 | CALL | EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) )
+30064771085 | CALL | browser ( ) -> tab_strip_model ( ) -> count ( )
+30064771086 | CALL | browser ( ) -> tab_strip_model ( ) -> count
+30064771087 | CALL | browser ( ) -> tab_strip_model ( )
+30064771088 | CALL | browser ( ) -> tab_strip_model
+30064771089 | CALL | browser ( )
+30064771090 | CALL | destroyed_watcher . Wait ( )
+30064771091 | CALL | destroyed_watcher . Wait
+30064771092 | CALL | EXPECT_EQ ( "unloaded=ohyeah" , GetCookies ( "no_listeners" ) )
+30064771093 | CALL | GetCookies ( "no_listeners" )
+55834574848 | FIELD_IDENTIFIER | tab_strip_model
+55834574849 | FIELD_IDENTIFIER | Run
+55834574850 | FIELD_IDENTIFIER | tab_strip_model
+55834574851 | FIELD_IDENTIFIER | count
+55834574852 | FIELD_IDENTIFIER | Wait
+68719476736 | IDENTIFIER | <unknown> FastTabCloseTabStripModelObserver
+68719476737 | IDENTIFIER | <unknown> run_loop
+68719476738 | IDENTIFIER | <unknown> run_loop
+68719476739 | IDENTIFIER | <unknown> destroyed_watcher
+90194313216 | LITERAL | "no_listeners"
+90194313217 | LITERAL | "unload_sets_cookie"
+90194313218 | LITERAL | ""
+90194313219 | LITERAL | "no_listeners"
+90194313220 | LITERAL | "no_listeners"
+90194313221 | LITERAL | 1
+90194313222 | LITERAL | "unloaded=ohyeah"
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 68719476736 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 90194313220 [CFG]
+25769803777 -> 90194313220 [DOMINATE]
+25769803777 -> 30064771081 [POST_DOMINATE]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 90194313217 [CFG]
+30064771072 -> 90194313217 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 90194313217 [ARGUMENT]
+30064771073 -> 90194313217 [AST]
+30064771073 -> 90194313218 [CFG]
+30064771073 -> 90194313218 [DOMINATE]
+30064771073 -> 90194313217 [POST_DOMINATE]
+30064771074 -> 90194313218 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 90194313218 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476736 [CFG]
+30064771074 -> 68719476736 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 90194313219 [ARGUMENT]
+30064771075 -> 90194313219 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 90194313219 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 68719476738 [CFG]
+30064771076 -> 68719476738 [DOMINATE]
+30064771076 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476737 [CFG]
+30064771077 -> 68719476737 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [RECEIVER]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574848 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574848 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574848 [POST_DOMINATE]
+30064771079 -> 55834574848 [CFG]
+30064771079 -> 55834574848 [DOMINATE]
+30064771079 -> 68719476736 [POST_DOMINATE]
+30064771080 -> 68719476737 [ARGUMENT]
+30064771080 -> 68719476737 [AST]
+30064771080 -> 30064771076 [CFG]
+30064771080 -> 30064771076 [DOMINATE]
+30064771080 -> 68719476737 [POST_DOMINATE]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 25769803777 [CFG]
+30064771081 -> 25769803777 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771082 [RECEIVER]
+30064771082 -> 68719476738 [ARGUMENT]
+30064771082 -> 55834574849 [ARGUMENT]
+30064771082 -> 68719476738 [AST]
+30064771082 -> 55834574849 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 55834574849 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+IN_PROC_BROWSER_TEST_F ( FastUnloadTest , DISABLED_WindowCloseAfterUnloadCrash ) {
+ NavigateToPage ( "no_listeners" ) ;
+ NavigateToPageInNewTab ( "unload_sets_cookie" ) ;
+ content : : WebContents * unload_contents = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ EXPECT_EQ ( "" , GetCookies ( "no_listeners" ) ) ;
+ {
+ base : : RunLoop run_loop ;
+ FastTabCloseTabStripModelObserver observer ( browser ( ) -> tab_strip_model ( ) , & run_loop ) ;
+ chrome : : CloseTab ( browser ( ) ) ;
+ run_loop . Run ( ) ;
+ }
+ CheckTitle ( "no_listeners" ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ CrashTab ( unload_contents ) ;
+ CheckTitle ( "no_listeners" ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ content : : WindowedNotificationObserver window_observer ( chrome : : NOTIFICATION_BROWSER_CLOSED , co
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

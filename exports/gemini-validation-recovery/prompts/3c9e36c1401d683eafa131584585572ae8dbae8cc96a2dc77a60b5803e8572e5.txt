@@ -1,0 +1,331 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int url_alloc_for_protocol(URLContext **puc, struct URLProtocol *up,
+
+                                  const char *filename, int flags,
+
+                                  const AVIOInterruptCB *int_cb)
+
+{
+
+    URLContext *uc;
+
+    int err;
+
+
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK && !ff_network_init())
+
+        return AVERROR(EIO);
+
+#endif
+
+    uc = av_mallocz(sizeof(URLContext) + strlen(filename) + 1);
+
+    if (!uc) {
+
+        err = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+    uc->av_class = &ffurl_context_class;
+
+    uc->filename = (char *)&uc[1];
+
+    strcpy(uc->filename, filename);
+
+    uc->prot            = up;
+
+    uc->flags           = flags;
+
+    uc->is_streamed     = 0; /* default = not streamed */
+
+    uc->max_packet_size = 0; /* default: stream file */
+
+    if (up->priv_data_size) {
+
+        uc->priv_data = av_mallocz(up->priv_data_size);
+
+        if (!uc->priv_data) {
+
+            err = AVERROR(ENOMEM);
+
+            goto fail;
+
+        }
+
+        if (up->priv_data_class) {
+
+            *(const AVClass **)uc->priv_data = up->priv_data_class;
+
+            av_opt_set_defaults(uc->priv_data);
+
+        }
+
+    }
+
+    if (int_cb)
+
+        uc->interrupt_callback = *int_cb;
+
+
+
+    *puc = uc;
+
+    return 0;
+
+fail:
+
+    *puc = NULL;
+
+    if (uc)
+
+        av_freep(&uc->priv_data);
+
+    av_freep(&uc);
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK)
+
+        ff_network_close();
+
+#endif
+
+    return err;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    URLContext *uc;
+
+    int err;
+
+
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK && !ff_network_init())
+
+        return AVERROR(EIO);
+
+#endif
+
+    uc = av_mallocz(sizeof(URLContext) + strlen(filename) + 1);
+
+    if (!uc) {
+
+        err = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+    uc->av_class = &ffurl_context_class;
+
+    uc->filename = (char *)&uc[1];
+
+    strcpy(uc->filename, filename);
+
+    uc->prot            = up;
+
+    uc->flags           = flags;
+
+    uc->is_streamed     = 0; /* default = not streamed */
+
+    uc->max_packet_size = 0; /* default: stream file */
+
+    if (up->priv_data_size) {
+
+        uc->priv_data = av_mallocz(up->priv_data_size);
+
+        if (!uc->priv_data) {
+
+            err = AVERROR(ENOMEM);
+
+            goto fail;
+
+        }
+
+        if (up->priv_data_class) {
+
+            *(const AVClass **)uc->priv_data = up->priv_data_class;
+
+            av_opt_set_defaults(uc->priv_data);
+
+        }
+
+    }
+
+    if (int_cb)
+
+        uc->in...
+      
+25769803777 | BLOCK | { err = AVERROR(ENOMEM); goto fail; }
+25769803778 | BLOCK | 
+        {
+
+        uc->priv_data = av_mallocz(up->priv_data_size);
+
+        if (!uc->priv_data) {
+
+            err = AVERROR(ENOMEM);
+
+            goto fail;
+
+        }
+
+        if (up->priv_data_class) {
+
+            *(const AVClass **)uc->priv_data = up->priv_data_class;
+
+            av_opt_set_defaults(uc->priv_data);
+
+        }
+
+    }
+      
+25769803779 | BLOCK | { err = AVERROR(ENOMEM); goto fail; }
+25769803780 | BLOCK | 
+        {
+
+            *(const AVClass **)uc->priv_data = up->priv_data_class;
+
+            av_opt_set_defaults(uc->priv_data);
+
+        }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | uc = av_mallocz(sizeof(URLContext) + strlen(filename) + 1)
+30064771073 | CALL | av_mallocz(sizeof(URLContext) + strlen(filename) + 1)
+30064771074 | CALL | sizeof(URLContext) + strlen(filename) + 1
+30064771075 | CALL | sizeof(URLContext) + strlen(filename)
+30064771076 | CALL | sizeof(URLContext)
+30064771077 | CALL | strlen(filename)
+30064771078 | CALL | !uc
+30064771079 | CALL | err = AVERROR(ENOMEM)
+30064771080 | CALL | AVERROR(ENOMEM)
+30064771081 | CALL | uc->av_class = &ffurl_context_class
+30064771082 | CALL | uc->av_class
+30064771083 | CALL | &ffurl_context_class
+30064771084 | CALL | uc->filename = (char *)&uc[1]
+30064771085 | CALL | uc->filename
+30064771086 | CALL | (char *)&uc[1]
+30064771087 | CALL | &uc[1]
+30064771088 | CALL | uc[1]
+30064771089 | CALL | strcpy(uc->filename, filename)
+30064771090 | CALL | uc->filename
+30064771091 | CALL | uc->prot = up
+30064771092 | CALL | uc->prot
+30064771093 | CALL | uc->flags = flags
+30064771094 | CALL | uc->flags
+30064771095 | CALL | uc->is_streamed = 0
+30064771096 | CALL | uc->is_streamed
+30064771097 | CALL | uc->max_packet_size = 0
+30064771098 | CALL | uc->max_packet_size
+30064771099 | CALL | up->priv_data_size
+30064771100 | CALL | uc->priv_data = av_mallocz(up->priv_data_size)
+30064771101 | CALL | uc->priv_data
+30064771102 | CALL | av_mallocz(up->priv_data_size)
+30064771103 | CALL | up->priv_data_size
+30064771104 | CALL | !uc->priv_data
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771095 [CDG]
+30064771078 -> 30064771094 [CDG]
+30064771078 -> 30064771093 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771099 [CDG]
+30064771078 -> 30064771098 [CDG]
+30064771078 -> 30064771097 [CDG]
+30064771078 -> 30064771096 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771091 [CDG]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

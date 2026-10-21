@@ -1,0 +1,146 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_view_insert_fields ( ) {
+ MYSQL_STMT * stmt ;
+ char parm [ 11 ] [ 1000 ] ;
+ ulong l [ 11 ] ;
+ int rc , i ;
+ MYSQL_BIND my_bind [ 11 ] ;
+ const char * query = "INSERT INTO `v1` ( `K1C4` ,`K2C4` ,`K3C4` ,`K4N4` ,`F1C4` ,`F2I4` ,`F3N5` ,`F7F8` ,`F6N4` ,`F5C8` ,`F9D8` ) VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )" ;
+ myheader ( "test_view_insert_fields" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1, v1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP VIEW IF EXISTS t1, v1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE t1 (K1C4 varchar(4) NOT NULL," "K2C4 varchar(4) NOT NULL, K3C4 varchar(4) NOT NULL," "K4N4 varchar(4) NOT NULL default '0000'," "F1C4 varchar(4) NOT NULL, F2I4 int(11) NOT NULL," "F3N5 varchar(5) NOT NULL default '00000'," "F4I4 int(11) NOT NULL default '0', F5C8 varchar(8) NOT NULL," "F6N4 varchar(4) NOT NULL default '0000'," "F7F8 double NOT NULL default '0'," "F8F8 double NOT NULL default '0'," "F9D8 decimal(8,2) NOT NULL default '0.00'," "PRIMARY KEY (K1C4,K2C4,K3C4,K4N4)) " "CHARSET=latin1 COLLATE latin1_bin" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE VIEW v1 AS select sql_no_cache " " K1C4 AS K1C4, K2C4 AS K2C4, K3C4 AS K3C4, K4N4 AS K4N4, " " F1C4 AS F1C4, F2I4 AS F2I4, F3N5 AS F3N5," " F7F8 AS F7F8, F6N4 AS F6N4, F5C8 AS F5C8, F9D8 AS F9D8" " from t1 T0001" ) ;
+ memset ( my_bind , 0 , sizeof ( my_bind ) ) ;
+ for ( i = 0 ;
+ i < 11 ;
+ i ++ ) {
+ l [ i ] = 20 ;
+ my_bind [ i ] . buffer_type = MYSQL_TYPE_STRING ;
+ my_bind [ i ] . is_null = 0 ;
+ my_bind [ i ] . buffer = ( char * ) & parm [ i ] ;
+ strmov ( parm [ i ] , "1" ) ;
+ my_bind [ i ] . buffer_length = 2 ;
+ my_bind [ i ] . length = & l [ i ] ;
+ }
+ stmt = mysql_stmt_init ( mysql ) ;
+ rc = mysql_stmt_prepare ( stmt , query , strlen ( query ) ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_bind_param ( stmt , my_bind ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ query = "select * from t1" ;
+ stmt = mysql_stmt_init ( mysql ) ;
+ rc = mysql_stmt_prepare ( stmt , query , strlen ( query ) ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ rc = my_process_stmt_result ( stmt ) ;
+ DIE_UNLESS ( 1 == rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_query ( mysql , "DROP VIEW v1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP TABLE t1" ) ;
+ myquery ( rc ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ char parm [ 11 ] [ 1000 ] ;
+ ulong l [ 11 ] ;
+ int rc , i ;
+ MYSQL_BIND my_bind [ 11 ] ;
+ const char * query = "INSERT INTO `v1` ( `K1C4` ,`K2C4` ,`K3C4` ,`K4N4` ,`F1C4` ,`F2I4` ,`F3N5` ,`F7F8` ,`F6N4` ,`F5C8` ,`F9D8` ) VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )" ;
+ myheader ( "test_view_insert_fields" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1, v1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP VIEW IF EXISTS t1, v1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE t1 (K1C4 varchar(4) NOT NULL," "K2C4 varchar(4) NOT NULL, K3C4 varchar(4) NOT NULL," "K4N4 varchar(4) NOT NULL default '0000'," "F1C4 varchar(4) NOT NULL, F2I4 int(11) NOT NULL," "F3N5 varchar(5) NOT NULL default '00000'," "F4I4 int(11) NOT NULL default '0', F5C8 varchar(8) NOT NULL," "F6N4 varchar(4) NOT NULL default '0000'," "F7F8 double NOT NULL default '0'," "F8F8 double NOT NULL default '0'," "F9D8 decimal(8,2) NOT NULL default '0.00'," "PRIMARY ...
+      
+25769803777 | BLOCK | 
+        {
+ l [ i ] = 20 ;
+ my_bind [ i ] . buffer_type = MYSQL_TYPE_STRING ;
+ my_bind [ i ] . is_null = 0 ;
+ my_bind [ i ] . buffer = ( char * ) & parm [ i ] ;
+ strmov ( parm [ i ] , "1" ) ;
+ my_bind [ i ] . buffer_length = 2 ;
+ my_bind [ i ] . length = & l [ i ] ;
+ }
+      
+30064771072 | CALL | parm [ 11 ] [ 1000 ]
+30064771073 | CALL | parm [ 11 ] [ 1000 ]
+30064771074 | CALL | l [ 11 ]
+30064771075 | CALL | l [ 11 ]
+30064771076 | CALL | my_bind [ 11 ]
+30064771077 | CALL | my_bind [ 11 ]
+30064771078 | CALL | 
+        query = "INSERT INTO `v1` ( `K1C4` ,`K2C4` ,`K3C4` ,`K4N4` ,`F1C4` ,`F2I4` ,`F3N5` ,`F7F8` ,`F6N4` ,`F5C8` ,`F9D8` ) VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )"
+      
+30064771079 | CALL | myheader ( "test_view_insert_fields" )
+30064771080 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS t1, v1" )
+30064771081 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS t1, v1" )
+30064771082 | CALL | myquery ( rc )
+30064771083 | CALL | rc = mysql_query ( mysql , "DROP VIEW IF EXISTS t1, v1" )
+30064771084 | CALL | mysql_query ( mysql , "DROP VIEW IF EXISTS t1, v1" )
+30064771085 | CALL | myquery ( rc )
+30064771086 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE t1 (K1C4 varchar(4) NOT NULL," "K2C4 varchar(4) NOT NULL, K3C4 varchar(4) NOT NULL," "K4N4 varchar(4) NOT NULL default '0000'," "F1C4 varchar(4) NOT NULL, F2I4 int(11) NOT NULL," "F3N5 varchar(5) NOT NULL default '00000'," "F4I4 int(11) NOT NULL default '0', F5C8 varchar(8) NOT NULL," "F6N4 varchar(4) NOT NULL default '0000'," "F7F8 double NOT NULL default '0'," "F8F8 double NOT NULL default '0'," "F9D8 decimal(8,2) NOT NULL default '0.00'," "PRIMARY KEY (K1C4,K2C4,K3C4,K4N4)) " "CHARSET=latin1 COLLATE latin1_bin" )
+      
+30064771087 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE t1 (K1C4 varchar(4) NOT NULL," "K2C4 varchar(4) NOT NULL, K3C4 varchar(4) NOT NULL," "K4N4 varchar(4) NOT NULL default '0000'," "F1C4 varchar(4) NOT NULL, F2I4 int(11) NOT NULL," "F3N5 varchar(5) NOT NULL default '00000'," "F4I4 int(11) NOT NULL default '0', F5C8 varchar(8) NOT NULL," "F6N4 varchar(4) NOT NULL default '0000'," "F7F8 double NOT NULL default '0'," "F8F8 double NOT NULL default '0'," "F9D8 decimal(8,2) NOT NULL default '0.00'," "PRIMARY KEY (K1C4,K2C4,K3C4,K4N4)) " "CHARSET=latin1 COLLATE latin1_bin" )
+      
+30064771088 | CALL | myquery ( rc )
+30064771089 | CALL | 
+        rc = mysql_query ( mysql , "CREATE VIEW v1 AS select sql_no_cache " " K1C4 AS K1C4, K2C4 AS K2C4, K3C4 AS K3C4, K4N4 AS K4N4, " " F1C4 AS F1C4, F2I4 AS F2I4, F3N5 AS F3N5," " F7F8 AS F7F8, F6N4 AS F6N4, F5C8 AS F5C8, F9D8 AS F9D8" " from t1 T0001" )
+      
+30064771090 | CALL | 
+        mysql_query ( mysql , "CREATE VIEW v1 AS select sql_no_cache " " K1C4 AS K1C4, K2C4 AS K2C4, K3C4 AS K3C4, K4N4 AS K4N4, " " F1C4 AS F1C4, F2I4 AS F2I4, F3N5 AS F3N5," " F7F8 AS F7F8, F6N4 AS F6N4, F5C8 AS F5C8, F9D8 AS F9D8" " from t1 T0001" )
+      
+30064771091 | CALL | memset ( my_bind , 0 , sizeof ( my_bind ) )
+30064771092 | CALL | sizeof ( my_bind )
+30064771093 | CALL | i = 0
+30064771094 | CALL | i < 11
+30064771095 | CALL | i ++
+30064771096 | CALL | l [ i ] = 20
+30064771097 | CALL | l [ i ]
+30064771098 | CALL | my_bind [ i ] . buffer_type = MYSQL_TYPE_STRING
+30064771099 | CALL | my_bind [ i ] . buffer_type
+30064771100 | CALL | my_bind [ i ]
+30064771101 | CALL | my_bind [ i ] . is_null = 0
+30064771102 | CALL | my_bind [ i ] . is_null
+30064771103 | CALL | my_bind [ i ]
+30064771104 | CALL | my_bind [ i ] . buffer = ( char * ) & parm [ i ]
+30064771105 | CALL | my_bind [ i ] . buffer
+30064771106 | CALL | my_bind [ i ]
+30064771107 | CALL | ( char * ) & parm [ i ]
+30064771108 | CALL | & parm [ i ]
+30064771109 | CALL | parm [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

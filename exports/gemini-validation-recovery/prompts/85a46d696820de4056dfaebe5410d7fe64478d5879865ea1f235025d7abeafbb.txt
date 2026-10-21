@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static cmsBool Type_LUT16_Write ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , void * Ptr , cmsUInt32Number nItems ) {
+ cmsUInt32Number nTabSize ;
+ cmsPipeline * NewLUT = ( cmsPipeline * ) Ptr ;
+ cmsStage * mpe ;
+ _cmsStageToneCurvesData * PreMPE = NULL , * PostMPE = NULL ;
+ _cmsStageMatrixData * MatMPE = NULL ;
+ _cmsStageCLutData * clut = NULL ;
+ int i , InputChannels , OutputChannels , clutPoints ;
+ mpe = NewLUT -> Elements ;
+ if ( mpe != NULL && mpe -> Type == cmsSigMatrixElemType ) {
+ MatMPE = ( _cmsStageMatrixData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCurveSetElemType ) {
+ PreMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCLutElemType ) {
+ clut = ( _cmsStageCLutData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCurveSetElemType ) {
+ PostMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL ) {
+ cmsSignalError ( mpe -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "LUT is not suitable to be saved as LUT16" ) ;
+ return FALSE ;
+ }
+ InputChannels = cmsPipelineInputChannels ( NewLUT ) ;
+ OutputChannels = cmsPipelineOutputChannels ( NewLUT ) ;
+ if ( clut == NULL ) clutPoints = 0 ;
+ else clutPoints = clut -> Params -> nSamples [ 0 ] ;
+ if ( ! _cmsWriteUInt8Number ( io , ( cmsUInt8Number ) InputChannels ) ) return FALSE ;
+ if ( ! _cmsWriteUInt8Number ( io , ( cmsUInt8Number ) OutputChannels ) ) return FALSE ;
+ if ( ! _cmsWriteUInt8Number ( io , ( cmsUInt8Number ) clutPoints ) ) return FALSE ;
+ if ( ! _cmsWriteUInt8Number ( io , 0 ) ) return FALSE ;
+ if ( MatMPE != NULL ) {
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 0 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 1 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 2 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 3 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 4 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 5 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 6 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 7 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 8 ] ) ) return FALSE ;
+ }
+ else {
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ }
+ if
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsUInt32Number nTabSize ;
+ cmsPipeline * NewLUT = ( cmsPipeline * ) Ptr ;
+ cmsStage * mpe ;
+ _cmsStageToneCurvesData * PreMPE = NULL , * PostMPE = NULL ;
+ _cmsStageMatrixData * MatMPE = NULL ;
+ _cmsStageCLutData * clut = NULL ;
+ int i , InputChannels , OutputChannels , clutPoints ;
+ mpe = NewLUT -> Elements ;
+ if ( mpe != NULL && mpe -> Type == cmsSigMatrixElemType ) {
+ MatMPE = ( _cmsStageMatrixData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCurveSetElemType ) {
+ PreMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCLutElemType ) {
+ clut = ( _cmsStageCLutData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL && mpe -> Type == cmsSigCurveSetElemType ) {
+ PostMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+ if ( mpe != NULL ) {
+ cmsSignalError ( mpe -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "LUT is not suitable to be saved as LUT16" ) ;
+...
+      
+25769803777 | BLOCK | { MatMPE = ( _cmsStageMatrixData * ) mpe -> Data ; mpe = mpe -> Next ; }
+25769803778 | BLOCK | { PreMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ; mpe = mpe -> Next ; }
+25769803779 | BLOCK | { clut = ( _cmsStageCLutData * ) mpe -> Data ; mpe = mpe -> Next ; }
+25769803780 | BLOCK | 
+        {
+ PostMPE = ( _cmsStageToneCurvesData * ) mpe -> Data ;
+ mpe = mpe -> Next ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ cmsSignalError ( mpe -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "LUT is not suitable to be saved as LUT16" ) ;
+ return FALSE ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 0 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 1 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 2 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 3 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 4 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 5 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 6 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 7 ] ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , MatMPE -> Double [ 8 ] ) ) return FALSE ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 0 ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , 1 ) ) return FALSE ;
+ }
+      
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | <empty>
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | <empty>
+25769803804 | BLOCK | <empty>
+25769803805 | BLOCK | <empty>
+25769803806 | BLOCK | <empty>
+25769803807 | BLOCK | <empty>
+25769803808 | BLOCK | 
+        {
+ if ( ! _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) PreMPE -> TheCurves [ 0 ] -> nEntries ) ) return FALSE ;
+ }
+      
+25769803809 | BLOCK | <empty>
+25769803810 | BLOCK | { if ( ! _cmsWriteUInt16Number ( io , 2 ) ) return FALSE ; }
+25769803811 | BLOCK | <empty>
+25769803812 | BLOCK | 
+        {
+ if ( ! _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) PostMPE -> TheCurves [ 0 ] -> nEntries ) ) return FALSE ;
+ }
+      
+25769803813 | BLOCK | <empty>
+25769803814 | BLOCK | { if ( ! _cmsWriteUInt16Number ( io , 2 ) ) return FALSE ; }
+25769803815 | BLOCK | <empty>
+EDGES:
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static cmsBool Type_LUT8_Write ( struct _cms_typehandler_struct * 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

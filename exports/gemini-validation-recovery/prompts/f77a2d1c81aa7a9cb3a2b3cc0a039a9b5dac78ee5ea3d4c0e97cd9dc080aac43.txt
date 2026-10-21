@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void read_intra_frame_mode_info ( VP9_COMMON * const cm , MACROBLOCKD * const xd , int mi_row , int mi_col , vp9_reader * r ) {
+ MODE_INFO * const mi = xd -> mi [ 0 ] ;
+ MB_MODE_INFO * const mbmi = & mi -> mbmi ;
+ const MODE_INFO * above_mi = xd -> mi [ - cm -> mi_stride ] ;
+ const MODE_INFO * left_mi = xd -> left_available ? xd -> mi [ - 1 ] : NULL ;
+ const BLOCK_SIZE bsize = mbmi -> sb_type ;
+ int i ;
+ mbmi -> segment_id = read_intra_segment_id ( cm , xd , mi_row , mi_col , r ) ;
+ mbmi -> skip = read_skip ( cm , xd , mbmi -> segment_id , r ) ;
+ mbmi -> tx_size = read_tx_size ( cm , xd , cm -> tx_mode , bsize , 1 , r ) ;
+ mbmi -> ref_frame [ 0 ] = INTRA_FRAME ;
+ mbmi -> ref_frame [ 1 ] = NONE ;
+ switch ( bsize ) {
+ case BLOCK_4X4 : for ( i = 0 ;
+ i < 4 ;
+ ++ i ) mi -> bmi [ i ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , i ) ) ;
+ mbmi -> mode = mi -> bmi [ 3 ] . as_mode ;
+ break ;
+ case BLOCK_4X8 : mi -> bmi [ 0 ] . as_mode = mi -> bmi [ 2 ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ mi -> bmi [ 1 ] . as_mode = mi -> bmi [ 3 ] . as_mode = mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 1 ) ) ;
+ break ;
+ case BLOCK_8X4 : mi -> bmi [ 0 ] . as_mode = mi -> bmi [ 1 ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ mi -> bmi [ 2 ] . as_mode = mi -> bmi [ 3 ] . as_mode = mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 2 ) ) ;
+ break ;
+ default : mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ }
+ mbmi -> uv_mode = read_intra_mode ( r , vp9_kf_uv_mode_prob [ mbmi -> mode ] ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MODE_INFO * const mi = xd -> mi [ 0 ] ;
+ MB_MODE_INFO * const mbmi = & mi -> mbmi ;
+ const MODE_INFO * above_mi = xd -> mi [ - cm -> mi_stride ] ;
+ const MODE_INFO * left_mi = xd -> left_available ? xd -> mi [ - 1 ] : NULL ;
+ const BLOCK_SIZE bsize = mbmi -> sb_type ;
+ int i ;
+ mbmi -> segment_id = read_intra_segment_id ( cm , xd , mi_row , mi_col , r ) ;
+ mbmi -> skip = read_skip ( cm , xd , mbmi -> segment_id , r ) ;
+ mbmi -> tx_size = read_tx_size ( cm , xd , cm -> tx_mode , bsize , 1 , r ) ;
+ mbmi -> ref_frame [ 0 ] = INTRA_FRAME ;
+ mbmi -> ref_frame [ 1 ] = NONE ;
+ switch ( bsize ) {
+ case BLOCK_4X4 : for ( i = 0 ;
+ i < 4 ;
+ ++ i ) mi -> bmi [ i ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , i ) ) ;
+ mbmi -> mode = mi -> bmi [ 3 ] . as_mode ;
+ break ;
+ case BLOCK_4X8 : mi -> bmi [ 0 ] . as_mode = mi -> bmi [ 2 ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ mi -> bmi [ 1 ] . as_mode = mi -> bmi [ 3 ]...
+      
+25769803777 | BLOCK | 
+        {
+ case BLOCK_4X4 : for ( i = 0 ;
+ i < 4 ;
+ ++ i ) mi -> bmi [ i ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , i ) ) ;
+ mbmi -> mode = mi -> bmi [ 3 ] . as_mode ;
+ break ;
+ case BLOCK_4X8 : mi -> bmi [ 0 ] . as_mode = mi -> bmi [ 2 ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ mi -> bmi [ 1 ] . as_mode = mi -> bmi [ 3 ] . as_mode = mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 1 ) ) ;
+ break ;
+ case BLOCK_8X4 : mi -> bmi [ 0 ] . as_mode = mi -> bmi [ 1 ] . as_mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ mi -> bmi [ 2 ] . as_mode = mi -> bmi [ 3 ] . as_mode = mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 2 ) ) ;
+ break ;
+ default : mbmi -> mode = read_intra_mode ( r , get_y_mode_probs ( mi , above_mi , left_mi , 0 ) ) ;
+ }
+      
+30064771072 | CALL | const mi = xd -> mi [ 0 ]
+30064771073 | CALL | xd -> mi [ 0 ]
+30064771074 | CALL | xd -> mi
+30064771075 | CALL | const mbmi = & mi -> mbmi
+30064771076 | CALL | & mi -> mbmi
+30064771077 | CALL | mi -> mbmi
+30064771078 | CALL | above_mi = xd -> mi [ - cm -> mi_stride ]
+30064771079 | CALL | xd -> mi [ - cm -> mi_stride ]
+30064771080 | CALL | xd -> mi
+30064771081 | CALL | - cm -> mi_stride
+30064771082 | CALL | cm -> mi_stride
+30064771083 | CALL | left_mi = xd -> left_available ? xd -> mi [ - 1 ] : NULL
+30064771084 | CALL | xd -> left_available ? xd -> mi [ - 1 ] : NULL
+30064771085 | CALL | xd -> left_available
+30064771086 | CALL | xd -> mi [ - 1 ]
+30064771087 | CALL | xd -> mi
+30064771088 | CALL | - 1
+30064771089 | CALL | bsize = mbmi -> sb_type
+30064771090 | CALL | mbmi -> sb_type
+30064771091 | CALL | mbmi -> segment_id = read_intra_segment_id ( cm , xd , mi_row , mi_col , r )
+30064771092 | CALL | mbmi -> segment_id
+30064771093 | CALL | read_intra_segment_id ( cm , xd , mi_row , mi_col , r )
+30064771094 | CALL | mbmi -> skip = read_skip ( cm , xd , mbmi -> segment_id , r )
+30064771095 | CALL | mbmi -> skip
+30064771096 | CALL | read_skip ( cm , xd , mbmi -> segment_id , r )
+30064771097 | CALL | mbmi -> segment_id
+30064771098 | CALL | mbmi -> tx_size = read_tx_size ( cm , xd , cm -> tx_mode , bsize , 1 , r )
+30064771099 | CALL | mbmi -> tx_size
+30064771100 | CALL | read_tx_size ( cm , xd , cm -> tx_mode , bsize , 1 , r )
+30064771101 | CALL | cm -> tx_mode
+30064771102 | CALL | mbmi -> ref_frame [ 0 ] = INTRA_FRAME
+30064771103 | CALL | mbmi -> ref_frame [ 0 ]
+30064771104 | CALL | mbmi -> ref_frame
+30064771105 | CALL | mbmi -> ref_frame [ 1 ] = NONE
+30064771106 | CALL | mbmi -> ref_frame [ 1 ]
+30064771107 | CALL | mbmi -> ref_frame
+30064771108 | CALL | i = 0
+30064771109 | CALL | i < 4
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771080 [REACHING_DEF]
+30064771073 -> 30064771087 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771087 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

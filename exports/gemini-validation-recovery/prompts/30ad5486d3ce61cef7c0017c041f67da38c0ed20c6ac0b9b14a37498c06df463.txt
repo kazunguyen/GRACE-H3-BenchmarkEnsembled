@@ -1,0 +1,323 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int init_processing_chain(AVFilterContext *ctx, int in_width, int in_height,
+
+                                 int out_width, int out_height)
+
+{
+
+    NPPScaleContext *s = ctx->priv;
+
+
+
+    AVHWFramesContext *in_frames_ctx;
+
+
+
+    enum AVPixelFormat in_format;
+
+    enum AVPixelFormat out_format;
+
+    enum AVPixelFormat in_deinterleaved_format;
+
+    enum AVPixelFormat out_deinterleaved_format;
+
+
+
+    int i, ret, last_stage = -1;
+
+
+
+    /* check that we have a hw context */
+
+    if (!ctx->inputs[0]->hw_frames_ctx) {
+
+        av_log(ctx, AV_LOG_ERROR, "No hw context provided on input\n");
+
+        return AVERROR(EINVAL);
+
+    }
+
+    in_frames_ctx = (AVHWFramesContext*)ctx->inputs[0]->hw_frames_ctx->data;
+
+    in_format     = in_frames_ctx->sw_format;
+
+    out_format    = (s->format == AV_PIX_FMT_NONE) ? in_format : s->format;
+
+
+
+    if (!format_is_supported(in_format)) {
+
+        av_log(ctx, AV_LOG_ERROR, "Unsupported input format: %s\n",
+
+               av_get_pix_fmt_name(in_format));
+
+        return AVERROR(ENOSYS);
+
+    }
+
+    if (!format_is_supported(out_format)) {
+
+        av_log(ctx, AV_LOG_ERROR, "Unsupported output format: %s\n",
+
+               av_get_pix_fmt_name(out_format));
+
+        return AVERROR(ENOSYS);
+
+    }
+
+
+
+    in_deinterleaved_format  = get_deinterleaved_format(in_format);
+
+    out_deinterleaved_format = get_deinterleaved_format(out_format);
+
+    if (in_deinterleaved_format  == AV_PIX_FMT_NONE ||
+
+        out_deinterleaved_format == AV_PIX_FMT_NONE)
+
+        return AVERROR_BUG;
+
+
+
+    /* figure out which stages need to be done */
+
+    if (in_width != out_width || in_height != out_height ||
+
+        in_deinterleaved_format != out_deinterleaved_format) {
+
+        s->stages[STAGE_RESIZE].stage_needed = 1;
+
+
+
+        if (s->interp_algo == NPPI_INTER_SUPER &&
+
+            (out_width > in_width && out_height > in_height)) {
+
+            s->interp_algo = NPPI_INTER_LANCZOS;
+
+            av_log(ctx, AV_LOG_WARNING, "super-sampling not supported for output dimensions, using lanczos instead.\n");
+
+        }
+
+        if (s->interp_algo == NPPI_INTER_SUPER &&
+
+            !(out_width < in_width && out_height < in_height)) {
+
+            s->interp_algo = NPPI_INTER_CUBIC;
+
+            av_log(ctx, AV_LOG_WARNING, "super-sampling not supported for output dimensions, using cubic instead.\n");
+
+        }
+
+    }
+
+
+
+    if (!s->stages[STAGE_RESIZE].stage_needed && in_format == out_format)
+
+        s->passthrough = 1;
+
+
+
+    if (!s->passthrough) {
+
+        if (in_format != in_deinterleaved_format)
+
+            s->stages[STAGE_DEINTERLEAVE].stage_needed = 1;
+
+        if (out_format != out_deinterleaved_format)
+
+            s->stages[STAGE_INTERLEAVE].stage_needed = 1;
+
+    }
+
+
+
+    s->stages[STAGE_DEINTERLEAVE].in_fmt              = in_format;
+
+    s->stages[STAGE_DEINTERLEAVE].out_fmt             = in_deinterleaved_format;
+
+    s->stages[STAGE_DEINTERLEAVE].planes_in[0].width  = in_width;
+
+    s->stages[STAGE_DEINTERLEAVE].planes_in[0].hei
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+34 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+34 -> 41 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 58 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 59 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+65 -> 70 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+60 -> 72 [IS_AST_PARENT]
+49 -> 60 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int fbdev_write_packet(AVFormatContext *h, AVPacket *pkt)
+
+{
+
+    FBDevContext *fbdev = h->priv_data;
+
+    uint8_t *pin, *pout;
+
+    enum AVPixelFormat fb_pix_fmt;
+
+    int disp_height;
+
+    int bytes_to_copy;
+
+    AVCodecContext *codec_ctx = h->streams[fbdev->index]->codec;
+
+    enum AVPixelFormat video_pix_fmt = codec_ctx->pix_fmt;
+
+    int video_width = codec_ctx->width;
+
+    int video_height = codec_ctx->height;
+
+    int bytes_per_pixel = ((codec_ctx->bits_per_coded_sample + 7) >> 3);
+
+    int src_line_size = video_width * bytes_per_pixel;
+
+    int i;
+
+
+
+    if (fbdev->index != pkt->stream_index)
+
+        return 0;
+
+
+
+    if (ioctl(fbdev->fd, FBIOGET_VSCREENINFO, &fbdev->varinfo) < 0)
+
+        av_log(h, AV_LOG_WARNING,
+
+               "Error refreshing variable info: %s\n", av_err2str(AVERROR(errno)));
+
+
+
+    fb_pix_fmt = ff_get_pixfmt_from_fb_varinfo(&fbdev->varinfo);
+
+
+
+    if (fb_pix_fmt != video_pix_fmt) {
+
+        av_log(h, AV_LOG_ERROR, "Pixel format %s is not supported, use %s\n",
+
+               av_get_pix_fmt_name(video_pix_fmt), av_get_pix_fmt_name(fb_pix_fmt));
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    disp_height = FFMIN(fbdev->varinfo.yres, video_height);
+
+    bytes_to_copy = FFMIN(fbdev->varinfo.xres, video_width) * bytes_per_pixel;
+
+
+
+    pin  = pkt->data;
+
+    pout = fbdev->data +
+
+           bytes_per_pixel * fbdev->varinfo.xoffset +
+
+           fbdev->varinfo.yoffset * fbdev->fixinfo.line_length;
+
+
+
+    if (fbdev->xoffset) {
+
+        if (fbde
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

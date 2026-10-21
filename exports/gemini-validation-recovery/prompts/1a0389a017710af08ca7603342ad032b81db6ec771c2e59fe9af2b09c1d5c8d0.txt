@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void calc_psnr ( const YV12_BUFFER_CONFIG * a , const YV12_BUFFER_CONFIG * b , PSNR_STATS * psnr ) {
+ const int widths [ 3 ] = {
+ a -> y_width , a -> uv_width , a -> uv_width }
+ ;
+ const int heights [ 3 ] = {
+ a -> y_height , a -> uv_height , a -> uv_height }
+ ;
+ const uint8_t * a_planes [ 3 ] = {
+ a -> y_buffer , a -> u_buffer , a -> v_buffer }
+ ;
+ const int a_strides [ 3 ] = {
+ a -> y_stride , a -> uv_stride , a -> uv_stride }
+ ;
+ const uint8_t * b_planes [ 3 ] = {
+ b -> y_buffer , b -> u_buffer , b -> v_buffer }
+ ;
+ const int b_strides [ 3 ] = {
+ b -> y_stride , b -> uv_stride , b -> uv_stride }
+ ;
+ int i ;
+ uint64_t total_sse = 0 ;
+ uint32_t total_samples = 0 ;
+ for ( i = 0 ;
+ i < 3 ;
+ ++ i ) {
+ const int w = widths [ i ] ;
+ const int h = heights [ i ] ;
+ const uint32_t samples = w * h ;
+ const uint64_t sse = get_sse ( a_planes [ i ] , a_strides [ i ] , b_planes [ i ] , b_strides [ i ] , w , h ) ;
+ psnr -> sse [ 1 + i ] = sse ;
+ psnr -> samples [ 1 + i ] = samples ;
+ psnr -> psnr [ 1 + i ] = vpx_sse_to_psnr ( samples , 255.0 , ( double ) sse ) ;
+ total_sse += sse ;
+ total_samples += samples ;
+ }
+ psnr -> sse [ 0 ] = total_sse ;
+ psnr -> samples [ 0 ] = total_samples ;
+ psnr -> psnr [ 0 ] = vpx_sse_to_psnr ( ( double ) total_samples , 255.0 , ( double ) total_sse ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int widths [ 3 ] = {
+ a -> y_width , a -> uv_width , a -> uv_width }
+ ;
+ const int heights [ 3 ] = {
+ a -> y_height , a -> uv_height , a -> uv_height }
+ ;
+ const uint8_t * a_planes [ 3 ] = {
+ a -> y_buffer , a -> u_buffer , a -> v_buffer }
+ ;
+ const int a_strides [ 3 ] = {
+ a -> y_stride , a -> uv_stride , a -> uv_stride }
+ ;
+ const uint8_t * b_planes [ 3 ] = {
+ b -> y_buffer , b -> u_buffer , b -> v_buffer }
+ ;
+ const int b_strides [ 3 ] = {
+ b -> y_stride , b -> uv_stride , b -> uv_stride }
+ ;
+ int i ;
+ uint64_t total_sse = 0 ;
+ uint32_t total_samples = 0 ;
+ for ( i = 0 ;
+ i < 3 ;
+ ++ i ) {
+ const int w = widths [ i ] ;
+ const int h = heights [ i ] ;
+ const uint32_t samples = w * h ;
+ const uint64_t sse = get_sse ( a_planes [ i ] , a_strides [ i ] , b_planes [ i ] , b_strides [ i ] , w , h ) ;
+ psnr -> sse [ 1 + i ] = sse ;
+ psnr -> samples [ 1 + i ] = samples ;
+ psnr -> psnr [ 1 + i ] = vpx_sse_to_psnr ( samples , 255.0 , ( double ) sse ) ;
+ total_sse += sse ;
+ total_sam...
+      
+25769803777 | BLOCK | 
+        {
+ const int w = widths [ i ] ;
+ const int h = heights [ i ] ;
+ const uint32_t samples = w * h ;
+ const uint64_t sse = get_sse ( a_planes [ i ] , a_strides [ i ] , b_planes [ i ] , b_strides [ i ] , w , h ) ;
+ psnr -> sse [ 1 + i ] = sse ;
+ psnr -> samples [ 1 + i ] = samples ;
+ psnr -> psnr [ 1 + i ] = vpx_sse_to_psnr ( samples , 255.0 , ( double ) sse ) ;
+ total_sse += sse ;
+ total_samples += samples ;
+ }
+      
+30064771072 | CALL | widths [ 3 ] = { a -> y_width , a -> uv_width , a -> uv_width }
+30064771073 | CALL | widths [ 3 ] = { a -> y_width , a -> uv_width , a -> uv_width }
+30064771074 | CALL | widths [ 3 ] = { a -> y_width , a -> uv_width , a -> uv_width }
+30064771075 | CALL | { a -> y_width , a -> uv_width , a -> uv_width }
+30064771076 | CALL | a -> y_width
+30064771077 | CALL | a -> uv_width
+30064771078 | CALL | a -> uv_width
+30064771079 | CALL | heights [ 3 ] = { a -> y_height , a -> uv_height , a -> uv_height }
+30064771080 | CALL | heights [ 3 ] = { a -> y_height , a -> uv_height , a -> uv_height }
+30064771081 | CALL | heights [ 3 ] = { a -> y_height , a -> uv_height , a -> uv_height }
+30064771082 | CALL | { a -> y_height , a -> uv_height , a -> uv_height }
+30064771083 | CALL | a -> y_height
+30064771084 | CALL | a -> uv_height
+30064771085 | CALL | a -> uv_height
+30064771086 | CALL | * a_planes [ 3 ] = { a -> y_buffer , a -> u_buffer , a -> v_buffer }
+30064771087 | CALL | * a_planes [ 3 ] = { a -> y_buffer , a -> u_buffer , a -> v_buffer }
+30064771088 | CALL | a_planes [ 3 ] = { a -> y_buffer , a -> u_buffer , a -> v_buffer }
+30064771089 | CALL | { a -> y_buffer , a -> u_buffer , a -> v_buffer }
+30064771090 | CALL | a -> y_buffer
+30064771091 | CALL | a -> u_buffer
+30064771092 | CALL | a -> v_buffer
+30064771093 | CALL | a_strides [ 3 ] = { a -> y_stride , a -> uv_stride , a -> uv_stride }
+30064771094 | CALL | a_strides [ 3 ] = { a -> y_stride , a -> uv_stride , a -> uv_stride }
+30064771095 | CALL | a_strides [ 3 ] = { a -> y_stride , a -> uv_stride , a -> uv_stride }
+30064771096 | CALL | { a -> y_stride , a -> uv_stride , a -> uv_stride }
+30064771097 | CALL | a -> y_stride
+30064771098 | CALL | a -> uv_stride
+30064771099 | CALL | a -> uv_stride
+30064771100 | CALL | * b_planes [ 3 ] = { b -> y_buffer , b -> u_buffer , b -> v_buffer }
+30064771101 | CALL | * b_planes [ 3 ] = { b -> y_buffer , b -> u_buffer , b -> v_buffer }
+30064771102 | CALL | b_planes [ 3 ] = { b -> y_buffer , b -> u_buffer , b -> v_buffer }
+30064771103 | CALL | { b -> y_buffer , b -> u_buffer , b -> v_buffer }
+30064771104 | CALL | b -> y_buffer
+30064771105 | CALL | b -> u_buffer
+30064771106 | CALL | b -> v_buffer
+30064771107 | CALL | b_strides [ 3 ] = { b -> y_stride , b -> uv_stride , b -> uv_stride }
+30064771108 | CALL | b_strides [ 3 ] = { b -> y_stride , b -> uv_stride , b -> uv_stride }
+30064771109 | CALL | b_strides [ 3 ] = { b -> y_stride , b -> uv_stride , b -> uv_stride }
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771107 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771075 [CFG]
+30064771078 -> 30064771075 [DOMINATE]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

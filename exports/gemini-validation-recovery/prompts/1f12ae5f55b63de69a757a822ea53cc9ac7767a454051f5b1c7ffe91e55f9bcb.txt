@@ -1,0 +1,190 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextGetBlockStatsInfo ( qemuMonitorPtr mon , const char * dev_name , long long * rd_req , long long * rd_bytes , long long * rd_total_times , long long * wr_req , long long * wr_bytes , long long * wr_total_times , long long * flush_req , long long * flush_total_times , long long * errs ) {
+ char * info = NULL ;
+ int ret = - 1 ;
+ char * dummy ;
+ const char * p , * eol ;
+ int devnamelen = strlen ( dev_name ) ;
+ if ( qemuMonitorHMPCommand ( mon , "info blockstats" , & info ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( info , "\ninfo " ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+ * rd_req = * rd_bytes = - 1 ;
+ * wr_req = * wr_bytes = * errs = - 1 ;
+ if ( rd_total_times ) * rd_total_times = - 1 ;
+ if ( wr_total_times ) * wr_total_times = - 1 ;
+ if ( flush_req ) * flush_req = - 1 ;
+ if ( flush_total_times ) * flush_total_times = - 1 ;
+ p = info ;
+ while ( * p ) {
+ if ( STRPREFIX ( p , QEMU_DRIVE_HOST_PREFIX ) ) p += strlen ( QEMU_DRIVE_HOST_PREFIX ) ;
+ if ( STREQLEN ( p , dev_name , devnamelen ) && p [ devnamelen ] == ':' && p [ devnamelen + 1 ] == ' ' ) {
+ eol = strchr ( p , '\n' ) ;
+ if ( ! eol ) eol = p + strlen ( p ) ;
+ p += devnamelen + 2 ;
+ while ( * p ) {
+ if ( STRPREFIX ( p , "rd_bytes=" ) ) {
+ p += strlen ( "rd_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_bytes ) == - 1 ) VIR_DEBUG ( "error reading rd_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_bytes=" ) ) {
+ p += strlen ( "wr_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_bytes ) == - 1 ) VIR_DEBUG ( "error reading wr_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "rd_operations=" ) ) {
+ p += strlen ( "rd_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_req ) == - 1 ) VIR_DEBUG ( "error reading rd_req: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_operations=" ) ) {
+ p += strlen ( "wr_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_req ) == - 1 ) VIR_DEBUG ( "error reading wr_req: %s" , p ) ;
+ }
+ else if ( rd_total_times && STRPREFIX ( p , "rd_total_times_ns=" ) ) {
+ p += strlen ( "rd_total_times_ns=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_total_times ) == - 1 ) VIR_DEBUG ( "error reading rd_total_times: %s" , p ) ;
+ }
+ else if ( wr_total_times && STRPREFIX ( p , "wr_total_times_ns=" ) ) {
+ p += strlen ( "wr_total_times_ns=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_total_times ) == - 1 ) VIR_DEBUG ( "error reading wr_total_times: %s" , p ) ;
+ }
+ else if ( flush_req && STRPREFIX ( p , "flush_operations=" ) ) {
+ p += strlen ( "flush_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , flush_req ) == - 1 ) VIR_DEBUG ( "error reading flush_req: %s" , p ) ;
+ }
+ else if ( flush_total_times && STRPREFIX ( p , "flush_total_times_ns=" ) ) {
+ p += strlen ( "flush_total_times_ns=" ) ;
+ if ( virStrToLong_ll ( p , &
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * info = NULL ;
+ int ret = - 1 ;
+ char * dummy ;
+ const char * p , * eol ;
+ int devnamelen = strlen ( dev_name ) ;
+ if ( qemuMonitorHMPCommand ( mon , "info blockstats" , & info ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( info , "\ninfo " ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+ * rd_req = * rd_bytes = - 1 ;
+ * wr_req = * wr_bytes = * errs = - 1 ;
+ if ( rd_total_times ) * rd_total_times = - 1 ;
+ if ( wr_total_times ) * wr_total_times = - 1 ;
+ if ( flush_req ) * flush_req = - 1 ;
+ if ( flush_total_times ) * flush_total_times = - 1 ;
+ p = info ;
+ while ( * p ) {
+ if ( STRPREFIX ( p , QEMU_DRIVE_HOST_PREFIX ) ) p += strlen ( QEMU_DRIVE_HOST_PREFIX ) ;
+ if ( STREQLEN ( p , dev_name , devnamelen ) && p [ devnamelen ] == ':' && p [ devnamelen + 1 ] == ' ' ) {
+ eol = strchr ( p , '\n' ) ;
+ i...
+      
+25769803777 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "'info blockstats' command failed" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "'info blockstats' not supported by this qemu" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( STRPREFIX ( p , QEMU_DRIVE_HOST_PREFIX ) ) p += strlen ( QEMU_DRIVE_HOST_PREFIX ) ;
+ if ( STREQLEN ( p , dev_name , devnamelen ) && p [ devnamelen ] == ':' && p [ devnamelen + 1 ] == ' ' ) {
+ eol = strchr ( p , '\n' ) ;
+ if ( ! eol ) eol = p + strlen ( p ) ;
+ p += devnamelen + 2 ;
+ while ( * p ) {
+ if ( STRPREFIX ( p , "rd_bytes=" ) ) {
+ p += strlen ( "rd_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_bytes ) == - 1 ) VIR_DEBUG ( "error reading rd_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_bytes=" ) ) {
+ p += strlen ( "wr_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_bytes ) == - 1 ) VIR_DEBUG ( "error reading wr_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "rd_operations=" ) ) {
+ p += strlen ( "rd_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_req ) == - 1 ) VIR_DEBUG ( "error reading rd_req: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_operations=" ) ) {
+ p += strlen ( "wr_operations=" ) ;
+ if ( virStrToLong_ll ( p , & ...
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ eol = strchr ( p , '\n' ) ;
+ if ( ! eol ) eol = p + strlen ( p ) ;
+ p += devnamelen + 2 ;
+ while ( * p ) {
+ if ( STRPREFIX ( p , "rd_bytes=" ) ) {
+ p += strlen ( "rd_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_bytes ) == - 1 ) VIR_DEBUG ( "error reading rd_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_bytes=" ) ) {
+ p += strlen ( "wr_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_bytes ) == - 1 ) VIR_DEBUG ( "error reading wr_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "rd_operations=" ) ) {
+ p += strlen ( "rd_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_req ) == - 1 ) VIR_DEBUG ( "error reading rd_req: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_operations=" ) ) {
+ p += strlen ( "wr_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_req ) == - 1 ) VIR_DEBUG ( "error reading wr_req: %s" , p ) ;
+ }
+ else if ( rd_total_times && STRPREFIX ( p , "rd_total_times_ns=" ) ) {
+ p += strlen ( "rd_total_times_ns=" ) ;
+ if ...
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( STRPREFIX ( p , "rd_bytes=" ) ) {
+ p += strlen ( "rd_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_bytes ) == - 1 ) VIR_DEBUG ( "error reading rd_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_bytes=" ) ) {
+ p += strlen ( "wr_bytes=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_bytes ) == - 1 ) VIR_DEBUG ( "error reading wr_bytes: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "rd_operations=" ) ) {
+ p += strlen ( "rd_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , rd_req ) == - 1 ) VIR_DEBUG ( "error reading rd_req: %s" , p ) ;
+ }
+ else if ( STRPREFIX ( p , "wr_operations=" ) ) {
+ p += strlen ( "wr_operations=" ) ;
+ if ( virStrToLong_ll ( p , & dummy , 10 , wr_req ) == - 1 ) VIR_DEBU
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

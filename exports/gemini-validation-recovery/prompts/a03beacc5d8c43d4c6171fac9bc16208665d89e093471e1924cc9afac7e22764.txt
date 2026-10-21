@@ -1,0 +1,249 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+vpx_codec_err_t vp9_parse_superframe_index ( const uint8_t * data , size_t data_sz , uint32_t sizes [ 8 ] , int * count , vpx_decrypt_cb decrypt_cb , void * decrypt_state ) {
+ uint8_t marker ;
+ assert ( data_sz ) ;
+ marker = read_marker ( decrypt_cb , decrypt_state , data + data_sz - 1 ) ;
+ * count = 0 ;
+ if ( ( marker & 0xe0 ) == 0xc0 ) {
+ const uint32_t frames = ( marker & 0x7 ) + 1 ;
+ const uint32_t mag = ( ( marker >> 3 ) & 0x3 ) + 1 ;
+ const size_t index_sz = 2 + mag * frames ;
+ if ( data_sz < index_sz ) return VPX_CODEC_CORRUPT_FRAME ;
+ {
+ const uint8_t marker2 = read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz ) ;
+ if ( marker != marker2 ) return VPX_CODEC_CORRUPT_FRAME ;
+ }
+ {
+ uint32_t i , j ;
+ const uint8_t * x = & data [ data_sz - index_sz + 1 ] ;
+ uint8_t clear_buffer [ 32 ] ;
+ assert ( sizeof ( clear_buffer ) >= frames * mag ) ;
+ if ( decrypt_cb ) {
+ decrypt_cb ( decrypt_state , x , clear_buffer , frames * mag ) ;
+ x = clear_buffer ;
+ }
+ for ( i = 0 ;
+ i < frames ;
+ ++ i ) {
+ uint32_t this_sz = 0 ;
+ for ( j = 0 ;
+ j < mag ;
+ ++ j ) this_sz |= ( * x ++ ) << ( j * 8 ) ;
+ sizes [ i ] = this_sz ;
+ }
+ * count = frames ;
+ }
+ }
+ return VPX_CODEC_OK ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t marker ;
+ assert ( data_sz ) ;
+ marker = read_marker ( decrypt_cb , decrypt_state , data + data_sz - 1 ) ;
+ * count = 0 ;
+ if ( ( marker & 0xe0 ) == 0xc0 ) {
+ const uint32_t frames = ( marker & 0x7 ) + 1 ;
+ const uint32_t mag = ( ( marker >> 3 ) & 0x3 ) + 1 ;
+ const size_t index_sz = 2 + mag * frames ;
+ if ( data_sz < index_sz ) return VPX_CODEC_CORRUPT_FRAME ;
+ {
+ const uint8_t marker2 = read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz ) ;
+ if ( marker != marker2 ) return VPX_CODEC_CORRUPT_FRAME ;
+ }
+ {
+ uint32_t i , j ;
+ const uint8_t * x = & data [ data_sz - index_sz + 1 ] ;
+ uint8_t clear_buffer [ 32 ] ;
+ assert ( sizeof ( clear_buffer ) >= frames * mag ) ;
+ if ( decrypt_cb ) {
+ decrypt_cb ( decrypt_state , x , clear_buffer , frames * mag ) ;
+ x = clear_buffer ;
+ }
+ for ( i = 0 ;
+ i < frames ;
+ ++ i ) {
+ uint32_t this_sz = 0 ;
+ for ( j = 0 ;
+ j < mag ;
+ ++ j ) this_sz |= ( * x ++ ) << ( j * 8 ) ;
+ sizes [ i ] = this_sz ;
+ }
+ * count = frames ;
+ }
+ ...
+      
+25769803777 | BLOCK | 
+        {
+ const uint32_t frames = ( marker & 0x7 ) + 1 ;
+ const uint32_t mag = ( ( marker >> 3 ) & 0x3 ) + 1 ;
+ const size_t index_sz = 2 + mag * frames ;
+ if ( data_sz < index_sz ) return VPX_CODEC_CORRUPT_FRAME ;
+ {
+ const uint8_t marker2 = read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz ) ;
+ if ( marker != marker2 ) return VPX_CODEC_CORRUPT_FRAME ;
+ }
+ {
+ uint32_t i , j ;
+ const uint8_t * x = & data [ data_sz - index_sz + 1 ] ;
+ uint8_t clear_buffer [ 32 ] ;
+ assert ( sizeof ( clear_buffer ) >= frames * mag ) ;
+ if ( decrypt_cb ) {
+ decrypt_cb ( decrypt_state , x , clear_buffer , frames * mag ) ;
+ x = clear_buffer ;
+ }
+ for ( i = 0 ;
+ i < frames ;
+ ++ i ) {
+ uint32_t this_sz = 0 ;
+ for ( j = 0 ;
+ j < mag ;
+ ++ j ) this_sz |= ( * x ++ ) << ( j * 8 ) ;
+ sizes [ i ] = this_sz ;
+ }
+ * count = frames ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ const uint8_t marker2 = read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz ) ;
+ if ( marker != marker2 ) return VPX_CODEC_CORRUPT_FRAME ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ uint32_t i , j ;
+ const uint8_t * x = & data [ data_sz - index_sz + 1 ] ;
+ uint8_t clear_buffer [ 32 ] ;
+ assert ( sizeof ( clear_buffer ) >= frames * mag ) ;
+ if ( decrypt_cb ) {
+ decrypt_cb ( decrypt_state , x , clear_buffer , frames * mag ) ;
+ x = clear_buffer ;
+ }
+ for ( i = 0 ;
+ i < frames ;
+ ++ i ) {
+ uint32_t this_sz = 0 ;
+ for ( j = 0 ;
+ j < mag ;
+ ++ j ) this_sz |= ( * x ++ ) << ( j * 8 ) ;
+ sizes [ i ] = this_sz ;
+ }
+ * count = frames ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ decrypt_cb ( decrypt_state , x , clear_buffer , frames * mag ) ;
+ x = clear_buffer ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ uint32_t this_sz = 0 ;
+ for ( j = 0 ;
+ j < mag ;
+ ++ j ) this_sz |= ( * x ++ ) << ( j * 8 ) ;
+ sizes [ i ] = this_sz ;
+ }
+      
+30064771072 | CALL | assert ( data_sz )
+30064771073 | CALL | marker = read_marker ( decrypt_cb , decrypt_state , data + data_sz - 1 )
+30064771074 | CALL | read_marker ( decrypt_cb , decrypt_state , data + data_sz - 1 )
+30064771075 | CALL | data + data_sz - 1
+30064771076 | CALL | data + data_sz
+30064771077 | CALL | * count = 0
+30064771078 | CALL | * count
+30064771079 | CALL | ( marker & 0xe0 ) == 0xc0
+30064771080 | CALL | marker & 0xe0
+30064771081 | CALL | frames = ( marker & 0x7 ) + 1
+30064771082 | CALL | ( marker & 0x7 ) + 1
+30064771083 | CALL | marker & 0x7
+30064771084 | CALL | mag = ( ( marker >> 3 ) & 0x3 ) + 1
+30064771085 | CALL | ( ( marker >> 3 ) & 0x3 ) + 1
+30064771086 | CALL | ( marker >> 3 ) & 0x3
+30064771087 | CALL | marker >> 3
+30064771088 | CALL | index_sz = 2 + mag * frames
+30064771089 | CALL | 2 + mag * frames
+30064771090 | CALL | mag * frames
+30064771091 | CALL | data_sz < index_sz
+30064771092 | CALL | marker2 = read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz )
+30064771093 | CALL | read_marker ( decrypt_cb , decrypt_state , data + data_sz - index_sz )
+30064771094 | CALL | data + data_sz - index_sz
+30064771095 | CALL | data + data_sz
+30064771096 | CALL | marker != marker2
+30064771097 | CALL | x = & data [ data_sz - index_sz + 1 ]
+30064771098 | CALL | & data [ data_sz - index_sz + 1 ]
+30064771099 | CALL | data [ data_sz - index_sz + 1 ]
+30064771100 | CALL | data_sz - index_sz + 1
+30064771101 | CALL | data_sz - index_sz
+30064771102 | CALL | clear_buffer [ 32 ]
+30064771103 | CALL | clear_buffer [ 32 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 25769803779 [AST]
+25769803777 -> 25769803781 [AST]
+25769803779 -> 30064771092 [AST]
+25769803781 -> 30064771097 [AST]
+25769803781 -> 30064771102 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [A
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

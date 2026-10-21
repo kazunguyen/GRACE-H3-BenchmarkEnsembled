@@ -1,0 +1,153 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( WebRtcApprtcBrowserTest , MANUAL_WorksOnApprtc ) {
+ DetectErrorsInJavaScript ( ) ;
+ ASSERT_TRUE ( LaunchApprtcInstanceOnLocalhost ( "9999" ) ) ;
+ ASSERT_TRUE ( LaunchColliderOnLocalHost ( "http://localhost:9999" , "8089" ) ) ;
+ while ( ! LocalApprtcInstanceIsUp ( ) ) DVLOG ( 1 ) << "Waiting for AppRTC to come up..." ;
+ GURL room_url = GURL ( "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false" ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ content : : WebContents * left_tab = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ PermissionBubbleManager : : FromWebContents ( left_tab ) -> set_auto_response_for_test ( PermissionBubbleManager : : ACCEPT_ALL ) ;
+ InfoBarResponder left_infobar_responder ( InfoBarService : : FromWebContents ( left_tab ) , InfoBarResponder : : ACCEPT ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , room_url ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ content : : WebContents * right_tab = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ PermissionBubbleManager : : FromWebContents ( right_tab ) -> set_auto_response_for_test ( PermissionBubbleManager : : ACCEPT_ALL ) ;
+ InfoBarResponder right_infobar_responder ( InfoBarService : : FromWebContents ( right_tab ) , InfoBarResponder : : ACCEPT ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , room_url ) ;
+ ASSERT_TRUE ( WaitForCallToComeUp ( left_tab ) ) ;
+ ASSERT_TRUE ( WaitForCallToComeUp ( right_tab ) ) ;
+ ASSERT_TRUE ( DetectRemoteVideoPlaying ( left_tab ) ) ;
+ ASSERT_TRUE ( DetectRemoteVideoPlaying ( right_tab ) ) ;
+ chrome : : CloseWebContents ( browser ( ) , left_tab , false ) ;
+ chrome : : CloseWebContents ( browser ( ) , right_tab , false ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DetectErrorsInJavaScript ( ) ;
+ ASSERT_TRUE ( LaunchApprtcInstanceOnLocalhost ( "9999" ) ) ;
+ ASSERT_TRUE ( LaunchColliderOnLocalHost ( "http://localhost:9999" , "8089" ) ) ;
+ while ( ! LocalApprtcInstanceIsUp ( ) ) DVLOG ( 1 ) << "Waiting for AppRTC to come up..." ;
+ GURL room_url = GURL ( "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false" ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ content : : WebContents * left_tab = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ PermissionBubbleManager : : FromWebContents ( left_tab ) -> set_auto_response_for_test ( PermissionBubbleManager : : ACCEPT_ALL ) ;
+ InfoBarResponder left_infobar_responder ( InfoBarService : : FromWebContents ( left_tab ) , InfoBarResponder : : ACCEPT ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , room_url ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ content : : WebContents * right_tab = browser ( ) -> tab_strip_model ( ) -> ...
+      
+30064771072 | CALL | DetectErrorsInJavaScript ( )
+30064771073 | CALL | ASSERT_TRUE ( LaunchApprtcInstanceOnLocalhost ( "9999" ) )
+30064771074 | CALL | LaunchApprtcInstanceOnLocalhost ( "9999" )
+30064771075 | CALL | 
+        ASSERT_TRUE ( LaunchColliderOnLocalHost ( "http://localhost:9999" , "8089" ) )
+      
+30064771076 | CALL | LaunchColliderOnLocalHost ( "http://localhost:9999" , "8089" )
+30064771077 | CALL | ! LocalApprtcInstanceIsUp ( )
+30064771078 | CALL | LocalApprtcInstanceIsUp ( )
+30064771079 | CALL | DVLOG ( 1 ) << "Waiting for AppRTC to come up..."
+30064771080 | CALL | DVLOG ( 1 )
+30064771081 | CALL | 
+        room_url = GURL ( "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false" )
+      
+30064771082 | CALL | 
+        GURL ( "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false" )
+      
+30064771083 | CALL | ASSERT_TRUE ( WaitForCallToComeUp ( left_tab ) )
+30064771084 | CALL | WaitForCallToComeUp ( left_tab )
+30064771085 | CALL | ASSERT_TRUE ( WaitForCallToComeUp ( right_tab ) )
+30064771086 | CALL | WaitForCallToComeUp ( right_tab )
+30064771087 | CALL | ASSERT_TRUE ( DetectRemoteVideoPlaying ( left_tab ) )
+30064771088 | CALL | DetectRemoteVideoPlaying ( left_tab )
+30064771089 | CALL | ASSERT_TRUE ( DetectRemoteVideoPlaying ( right_tab ) )
+30064771090 | CALL | DetectRemoteVideoPlaying ( right_tab )
+47244640256 | CONTROL_STRUCTURE | while (! LocalApprtcInstanceIsUp ( ))
+68719476736 | IDENTIFIER | room_url
+68719476737 | IDENTIFIER | <unknown> InfoBarResponder
+68719476738 | IDENTIFIER | <unknown> InfoBarResponder
+68719476739 | IDENTIFIER | <unknown> left_tab
+68719476740 | IDENTIFIER | <unknown> right_tab
+68719476741 | IDENTIFIER | <unknown> left_tab
+68719476742 | IDENTIFIER | <unknown> right_tab
+90194313216 | LITERAL | "9999"
+90194313217 | LITERAL | "http://localhost:9999"
+90194313218 | LITERAL | "8089"
+90194313219 | LITERAL | 1
+90194313220 | LITERAL | "Waiting for AppRTC to come up..."
+90194313221 | LITERAL | 
+        "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false"
+      
+94489280512 | LOCAL | GURL room_url
+94489280513 | LOCAL | <unknown> right_tab
+94489280514 | LOCAL | <unknown> left_tab
+94489280515 | LOCAL | <unknown> InfoBarResponder
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( WebRtcApprtcBrowserTest , MANUAL_WorksOnApprtc ) {
+ DetectErrorsInJavaScript ( ) ;
+ ASSERT_TRUE ( LaunchApprtcInstanceOnLocalhost ( "9999" ) ) ;
+ ASSERT_TRUE ( LaunchColliderOnLocalHost ( "http://localhost:9999" , "8089" ) ) ;
+ while ( ! LocalApprtcInstanceIsUp ( ) ) DVLOG ( 1 ) << "Waiting for AppRTC to come up..." ;
+ GURL room_url = GURL ( "http://localhost:9999/r/some_room" "?wshpp=localhost:8089&wstls=false" ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ content : : WebContents * left_tab = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ PermissionBubbleManager : : FromWebContents ( left_tab ) -> set_auto_response_for_test ( PermissionBubbleManager : : ACCEPT_ALL ) ;
+ InfoBarResponder left_infobar_responder ( InfoBarService : : FromWebContents ( left_tab ) , InfoBarResponder : : ACCEPT ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , room_url ) ;
+ chrome : : AddTabAt ( browser ( ) , GURL ( ) , - 1 , true ) ;
+ co...
+      
+111669149696 | METHOD_PARAMETER_IN | WebRtcApprtcBrowserTest
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 68719476737 [AST]
+25769803776 -> 68719476738 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+30064771072 -> 90194313216 [CFG]
+30064771072 -> 90194313216 [DOMINATE]
+30064771072 -> 107374182400 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 90194313217 [CFG]
+30064771073 -> 90194313217 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 90194313216 [ARGUMENT]
+30064771074 -> 90194313216 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [CFG]
+30064771075 -> 30064771078 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

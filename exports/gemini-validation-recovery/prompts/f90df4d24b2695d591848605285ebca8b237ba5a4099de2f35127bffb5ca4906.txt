@@ -1,0 +1,361 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static CCPrepare gen_prepare_cc(DisasContext *s, int b, TCGv reg)
+
+{
+
+    int inv, jcc_op, size, cond;
+
+    CCPrepare cc;
+
+    TCGv t0;
+
+
+
+    inv = b & 1;
+
+    jcc_op = (b >> 1) & 7;
+
+
+
+    switch (s->cc_op) {
+
+    case CC_OP_SUBB ... CC_OP_SUBQ:
+
+        /* We optimize relational operators for the cmp/jcc case.  */
+
+        size = s->cc_op - CC_OP_SUBB;
+
+        switch (jcc_op) {
+
+        case JCC_BE:
+
+            tcg_gen_add_tl(cpu_tmp4, cpu_cc_dst, cpu_cc_src);
+
+            gen_extu(size, cpu_tmp4);
+
+            t0 = gen_ext_tl(cpu_tmp0, cpu_cc_src, size, false);
+
+            cc = (CCPrepare) { .cond = TCG_COND_LEU, .reg = cpu_tmp4,
+
+                               .reg2 = t0, .mask = -1, .use_reg2 = true };
+
+            break;
+
+
+
+        case JCC_L:
+
+            cond = TCG_COND_LT;
+
+            goto fast_jcc_l;
+
+        case JCC_LE:
+
+            cond = TCG_COND_LE;
+
+        fast_jcc_l:
+
+            tcg_gen_add_tl(cpu_tmp4, cpu_cc_dst, cpu_cc_src);
+
+            gen_exts(size, cpu_tmp4);
+
+            t0 = gen_ext_tl(cpu_tmp0, cpu_cc_src, size, true);
+
+            cc = (CCPrepare) { .cond = cond, .reg = cpu_tmp4,
+
+                               .reg2 = t0, .mask = -1, .use_reg2 = true };
+
+            break;
+
+
+
+        default:
+
+            goto slow_jcc;
+
+        }
+
+        break;
+
+
+
+    default:
+
+    slow_jcc:
+
+        /* This actually generates good code for JC, JZ and JS.  */
+
+        switch (jcc_op) {
+
+        case JCC_O:
+
+            cc = gen_prepare_eflags_o(s, reg);
+
+            break;
+
+        case JCC_B:
+
+            cc = gen_prepare_eflags_c(s, reg);
+
+            break;
+
+        case JCC_Z:
+
+            cc = gen_prepare_eflags_z(s, reg);
+
+            break;
+
+        case JCC_BE:
+
+            gen_compute_eflags(s);
+
+            cc = (CCPrepare) { .cond = TCG_COND_NE, .reg = cpu_cc_src,
+
+                               .mask = CC_Z | CC_C };
+
+            break;
+
+        case JCC_S:
+
+            cc = gen_prepare_eflags_s(s, reg);
+
+            break;
+
+        case JCC_P:
+
+            cc = gen_prepare_eflags_p(s, reg);
+
+            break;
+
+        case JCC_L:
+
+            gen_compute_eflags(s);
+
+            if (TCGV_EQUAL(reg, cpu_cc_src)) {
+
+                reg = cpu_tmp0;
+
+            }
+
+            tcg_gen_shri_tl(reg, cpu_cc_src, 4); /* CC_O -> CC_S */
+
+            tcg_gen_xor_tl(reg, reg, cpu_cc_src);
+
+            cc = (CCPrepare) { .cond = TCG_COND_NE, .reg = reg,
+
+                               .mask = CC_S };
+
+            break;
+
+        default:
+
+        case JCC_LE:
+
+            gen_compute_eflags(s);
+
+            if (TCGV_EQUAL(reg, cpu_cc_src)) {
+
+                reg = cpu_tmp0;
+
+            }
+
+            tcg_gen_shri_tl(reg, cpu_cc_src, 4); /* CC_O -> CC_S */
+
+            tcg_gen_xor_tl(reg, reg, cpu_cc_src);
+
+            cc = (CCPrepare) { .cond = TCG_COND_NE, .reg = reg,
+
+                               .mask = CC_S | CC_Z };
+
+            break;
+
+        }
+
+        break;
+
+    }
+
+
+
+    if (inv) {
+
+        cc.cond = tcg_invert_
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+45 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 58 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+45 -> 51 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+69 -> 74 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+62 -> 76 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+92 -> 93 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static CCPrepare gen_prepare_eflags_c(DisasContext *s, TCGv reg)
+
+{
+
+    TCGv t0, t1;
+
+    int size, shift;
+
+
+
+    switch (s->cc_op) {
+
+    case CC_OP_SUBB ... CC_OP_SUBQ:
+
+        /* (DATA_TYPE)(CC_DST + CC_SRC) < (DATA_TYPE)CC_SRC */
+
+        size = s->cc_op - CC_OP_SUBB;
+
+        t1 = gen_ext_tl(cpu_tmp0, cpu_cc_src, size, false);
+
+        /* If no temporary was used, be careful not to alias t1 and t0.  */
+
+        t0 = TCGV_EQUAL(t1, cpu_cc_src) ? cpu_tmp0 : reg;
+
+        tcg_gen_add_tl(t0, cpu_cc_dst, cpu_cc_src);
+
+        gen_extu(size, t0);
+
+        goto add_sub;
+
+
+
+    case CC_OP_ADDB ... CC_OP_ADDQ:
+
+        /* (DATA_TYPE)CC_DST < (DATA_TYPE)CC_SRC */
+
+        size = s->cc_op - CC_OP_ADDB;
+
+        t1 = gen_ext_tl(cpu_tmp0, cpu_cc_src, size, false);
+
+        t0 = gen_ext_tl(reg, cpu_cc_dst, size, false);
+
+    add_sub:
+
+        return (CCPrepare) { .cond = TCG_COND_LTU, .reg = t0,
+
+                             .reg2 = t1, .mask = -1, .use_reg2 = true };
+
+
+
+    case CC_OP_SBBB ... CC_OP_SBBQ:
+
+        /* (DATA_TYPE)(CC_DST + CC_SRC + 1) <= (DATA_TYPE)CC_SRC */
+
+        size = s->cc_op - CC_OP_SBBB;
+
+        t1 = gen_ext_tl(cpu_tmp0, cpu_cc_src, size, false);
+
+        if (TCGV_EQUAL(t1, reg) && TCGV_EQUAL(reg, cpu_cc_src)) {
+
+            tcg_gen_mov_tl(cpu_tmp0, cpu_cc_src);
+
+            t1 = cpu_tmp0;
+
+        }
+
+
+
+        tcg_gen_add_tl(reg, cpu_cc_dst, cpu_cc_src);
+
+        tcg_gen_addi_tl(reg, reg, 1);
+
+        gen_extu(size, reg);
+
+        t0 = reg;
+
+        goto a
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

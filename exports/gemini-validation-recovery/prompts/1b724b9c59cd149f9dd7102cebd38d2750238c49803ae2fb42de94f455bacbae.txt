@@ -1,0 +1,177 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( FullscreenControllerInteractiveTest , DISABLED_MouseLockAndFullscreen ) {
+ ASSERT_TRUE ( test_server ( ) -> Start ( ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , test_server ( ) -> GetURL ( kFullscreenMouseLockHTML ) ) ;
+ ASSERT_FALSE ( IsFullscreenBubbleDisplayed ( ) ) ;
+ {
+ FullscreenNotificationObserver fullscreen_observer ;
+ ASSERT_TRUE ( ui_test_utils : : SendKeyPressAndWait ( browser ( ) , ui : : VKEY_B , false , true , false , false , chrome : : NOTIFICATION_MOUSE_LOCK_CHANGED , content : : NotificationService : : AllSources ( ) ) ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+ ASSERT_TRUE ( IsFullscreenBubbleDisplayed ( ) ) ;
+ ASSERT_TRUE ( IsFullscreenPermissionRequested ( ) ) ;
+ ASSERT_TRUE ( IsMouseLockPermissionRequested ( ) ) ;
+ ASSERT_FALSE ( IsMouseLocked ( ) ) ;
+ ASSERT_TRUE ( IsWindowFullscreenForTabOrPending ( ) ) ;
+ {
+ FullscreenNotificationObserver fullscreen_observer ;
+ DenyCurrentFullscreenOrMouseLockRequest ( ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+ ASSERT_FALSE ( IsMouseLocked ( ) ) ;
+ ASSERT_FALSE ( IsWindowFullscreenForTabOrPending ( ) ) ;
+ ASSERT_FALSE ( IsFullscreenPermissionRequested ( ) ) ;
+ {
+ FullscreenNotificationObserver fullscreen_observer ;
+ ASSERT_TRUE ( ui_test_utils : : SendKeyPressAndWait ( browser ( ) , ui : : VKEY_B , false , true , false , false , chrome : : NOTIFICATION_MOUSE_LOCK_CHANGED , content : : NotificationService : : AllSources ( ) ) ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+ ASSERT_TRUE ( IsFullscreenBubbleDisplayed ( ) ) ;
+ ASSERT_TRUE ( IsFullscreenPermissionRequested ( ) ) ;
+ ASSERT_TRUE ( IsMouseLockPermissionRequested ( ) ) ;
+ ASSERT_FALSE ( IsMouseLocked ( ) ) ;
+ ASSERT_TRUE ( IsWindowFullscreenForTabOrPending ( ) ) ;
+ AcceptCurrentFullscreenOrMouseLockRequest ( ) ;
+ ASSERT_TRUE ( IsMouseLocked ( ) ) ;
+ ASSERT_TRUE ( IsWindowFullscreenForTabOrPending ( ) ) ;
+ ASSERT_FALSE ( IsFullscreenPermissionRequested ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ASSERT_TRUE ( test_server ( ) -> Start ( ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , test_server ( ) -> GetURL ( kFullscreenMouseLockHTML ) ) ;
+ ASSERT_FALSE ( IsFullscreenBubbleDisplayed ( ) ) ;
+ {
+ FullscreenNotificationObserver fullscreen_observer ;
+ ASSERT_TRUE ( ui_test_utils : : SendKeyPressAndWait ( browser ( ) , ui : : VKEY_B , false , true , false , false , chrome : : NOTIFICATION_MOUSE_LOCK_CHANGED , content : : NotificationService : : AllSources ( ) ) ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+ ASSERT_TRUE ( IsFullscreenBubbleDisplayed ( ) ) ;
+ ASSERT_TRUE ( IsFullscreenPermissionRequested ( ) ) ;
+ ASSERT_TRUE ( IsMouseLockPermissionRequested ( ) ) ;
+ ASSERT_FALSE ( IsMouseLocked ( ) ) ;
+ ASSERT_TRUE ( IsWindowFullscreenForTabOrPending ( ) ) ;
+ {
+ FullscreenNotificationObserver fullscreen_observer ;
+ DenyCurrentFullscreenOrMouseLockRequest ( ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+ ASSERT_FALSE ( IsMouseLocked ( ) ) ;
+ ASSERT_FALSE ( IsWindowFullscreenForTabO...
+      
+25769803777 | BLOCK | 
+        {
+ FullscreenNotificationObserver fullscreen_observer ;
+ ASSERT_TRUE ( ui_test_utils : : SendKeyPressAndWait ( browser ( ) , ui : : VKEY_B , false , true , false , false , chrome : : NOTIFICATION_MOUSE_LOCK_CHANGED , content : : NotificationService : : AllSources ( ) ) ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ FullscreenNotificationObserver fullscreen_observer ;
+ DenyCurrentFullscreenOrMouseLockRequest ( ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ FullscreenNotificationObserver fullscreen_observer ;
+ ASSERT_TRUE ( ui_test_utils : : SendKeyPressAndWait ( browser ( ) , ui : : VKEY_B , false , true , false , false , chrome : : NOTIFICATION_MOUSE_LOCK_CHANGED , content : : NotificationService : : AllSources ( ) ) ) ;
+ fullscreen_observer . Wait ( ) ;
+ }
+      
+30064771072 | CALL | ASSERT_TRUE ( test_server ( ) -> Start ( ) )
+30064771073 | CALL | test_server ( ) -> Start ( )
+30064771074 | CALL | test_server ( ) -> Start
+30064771075 | CALL | test_server ( )
+30064771076 | CALL | ASSERT_FALSE ( IsFullscreenBubbleDisplayed ( ) )
+30064771077 | CALL | IsFullscreenBubbleDisplayed ( )
+30064771078 | CALL | fullscreen_observer . Wait ( )
+30064771079 | CALL | fullscreen_observer . Wait
+30064771080 | CALL | ASSERT_TRUE ( IsFullscreenBubbleDisplayed ( ) )
+30064771081 | CALL | IsFullscreenBubbleDisplayed ( )
+30064771082 | CALL | ASSERT_TRUE ( IsFullscreenPermissionRequested ( ) )
+30064771083 | CALL | IsFullscreenPermissionRequested ( )
+30064771084 | CALL | ASSERT_TRUE ( IsMouseLockPermissionRequested ( ) )
+30064771085 | CALL | IsMouseLockPermissionRequested ( )
+30064771086 | CALL | ASSERT_FALSE ( IsMouseLocked ( ) )
+30064771087 | CALL | IsMouseLocked ( )
+30064771088 | CALL | ASSERT_TRUE ( IsWindowFullscreenForTabOrPending ( ) )
+30064771089 | CALL | IsWindowFullscreenForTabOrPending ( )
+30064771090 | CALL | DenyCurrentFullscreenOrMouseLockRequest ( )
+30064771091 | CALL | fullscreen_observer . Wait ( )
+30064771092 | CALL | fullscreen_observer . Wait
+30064771093 | CALL | ASSERT_FALSE ( IsMouseLocked ( ) )
+30064771094 | CALL | IsMouseLocked ( )
+30064771095 | CALL | ASSERT_FALSE ( IsWindowFullscreenForTabOrPending ( ) )
+30064771096 | CALL | IsWindowFullscreenForTabOrPending ( )
+30064771097 | CALL | ASSERT_FALSE ( IsFullscreenPermissionRequested ( ) )
+30064771098 | CALL | IsFullscreenPermissionRequested ( )
+30064771099 | CALL | fullscreen_observer . Wait ( )
+30064771100 | CALL | fullscreen_observer . Wait
+30064771101 | CALL | ASSERT_TRUE ( IsFullscreenBubbleDisplayed ( ) )
+30064771102 | CALL | IsFullscreenBubbleDisplayed ( )
+30064771103 | CALL | ASSERT_TRUE ( IsFullscreenPermissionRequested ( ) )
+30064771104 | CALL | IsFullscreenPermissionRequested ( )
+30064771105 | CALL | ASSERT_TRUE ( IsMouseLockPermissionRequested ( ) )
+30064771106 | CALL | IsMouseLockPermissionRequested ( )
+30064771107 | CALL | ASSERT_FALSE ( IsMouseLocked ( ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 25769803778 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 25769803779 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771107 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [CFG]
+25769803777 -> 30064771081 [DOMINATE]
+25769803777 -> 30064771078 [POST_DOMINATE]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771091 [AST]
+25769803778 -> 30064771094 [CFG]
+25769803778 -> 30064771094 [DOMINATE]
+25769803778 -> 30064771091 [POST_DOMINATE]
+25769803779 -> 30064771099 [AST]
+25769803779 -> 30064771102 [CFG]
+25769803779 -> 30064771102 [DOMINATE]
+25769803779 -> 30064771099 [POST_DOMINATE]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771077 [CFG]
+30064771072 -> 30064771077 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static long dtls1_get_message_fragment ( SSL * s , int st1 , int stn , long max , int * ok ) {
+ unsigned char wire [ DTLS1_HM_HEADER_LENGTH ] ;
+ unsigned long len , frag_off , frag_len ;
+ int i , al ;
+ struct hm_header_st msg_hdr ;
+ if ( ( frag_len = dtls1_retrieve_buffered_fragment ( s , max , ok ) ) || * ok ) {
+ if ( * ok ) s -> init_num = frag_len ;
+ return frag_len ;
+ }
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , 0 ) ;
+ if ( i <= 0 ) {
+ s -> rwstate = SSL_READING ;
+ * ok = 0 ;
+ return i ;
+ }
+ if ( i != DTLS1_HM_HEADER_LENGTH ) {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+ dtls1_get_message_header ( wire , & msg_hdr ) ;
+ if ( msg_hdr . seq != s -> d1 -> handshake_read_seq && ! ( s -> d1 -> listen && msg_hdr . seq == 1 ) ) return dtls1_process_out_of_seq_message ( s , & msg_hdr , ok ) ;
+ len = msg_hdr . msg_len ;
+ frag_off = msg_hdr . frag_off ;
+ frag_len = msg_hdr . frag_len ;
+ if ( frag_len && frag_len < len ) return dtls1_reassemble_fragment ( s , & msg_hdr , ok ) ;
+ if ( ! s -> server && s -> d1 -> r_msg_hdr . frag_off == 0 && wire [ 0 ] == SSL3_MT_HELLO_REQUEST ) {
+ if ( wire [ 1 ] == 0 && wire [ 2 ] == 0 && wire [ 3 ] == 0 ) {
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , s -> version , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , s , s -> msg_callback_arg ) ;
+ s -> init_num = 0 ;
+ return dtls1_get_message_fragment ( s , st1 , stn , max , ok ) ;
+ }
+ else {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+ }
+ if ( ( al = dtls1_preprocess_fragment ( s , & msg_hdr , max ) ) ) goto f_err ;
+ s -> state = stn ;
+ if ( frag_len > 0 ) {
+ unsigned char * p = ( unsigned char * ) s -> init_buf -> data + DTLS1_HM_HEADER_LENGTH ;
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , & p [ frag_off ] , frag_len , 0 ) ;
+ if ( i <= 0 ) {
+ s -> rwstate = SSL_READING ;
+ * ok = 0 ;
+ return i ;
+ }
+ }
+ else i = 0 ;
+ if ( i != ( int ) frag_len ) {
+ al = SSL3_AD_ILLEGAL_PARAMETER ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL3_AD_ILLEGAL_PARAMETER ) ;
+ goto f_err ;
+ }
+ * ok = 1 ;
+ s -> init_num = frag_len ;
+ return frag_len ;
+ f_err : ssl3_send_alert ( s , SSL3_AL_FATAL , al ) ;
+ s -> init_num = 0 ;
+ * ok = 0 ;
+ return ( - 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned char wire [ DTLS1_HM_HEADER_LENGTH ] ;
+ unsigned long len , frag_off , frag_len ;
+ int i , al ;
+ struct hm_header_st msg_hdr ;
+ if ( ( frag_len = dtls1_retrieve_buffered_fragment ( s , max , ok ) ) || * ok ) {
+ if ( * ok ) s -> init_num = frag_len ;
+ return frag_len ;
+ }
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , 0 ) ;
+ if ( i <= 0 ) {
+ s -> rwstate = SSL_READING ;
+ * ok = 0 ;
+ return i ;
+ }
+ if ( i != DTLS1_HM_HEADER_LENGTH ) {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+ dtls1_get_message_header ( wire , & msg_hdr ) ;
+ if ( msg_hdr . seq != s -> d1 -> handshake_read_seq && ! ( s -> d1 -> listen && msg_hdr . seq == 1 ) ) return dtls1_process_out_of_seq_message ( s , & msg_hdr , ok ) ;
+ len = msg_hdr . msg_len ;
+ frag_off = msg_hdr . frag_off ;
+ frag_len = msg_hdr . frag_len ;
+ if ( frag_len && frag_len < len ) return dtls1_reassemble_fragmen...
+      
+25769803777 | BLOCK | { if ( * ok ) s -> init_num = frag_len ; return frag_len ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { s -> rwstate = SSL_READING ; * ok = 0 ; return i ; }
+25769803780 | BLOCK | 
+        {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( wire [ 1 ] == 0 && wire [ 2 ] == 0 && wire [ 3 ] == 0 ) {
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , s -> version , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , s , s -> msg_callback_arg ) ;
+ s -> init_num = 0 ;
+ return dtls1_get_message_fragment ( s , st1 , stn , max , ok ) ;
+ }
+ else {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , s -> version , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , s , s -> msg_callback_arg ) ;
+ s -> init_num = 0 ;
+ return dtls1_get_message_fragment ( s , st1 , stn , max , ok ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ al = SSL_AD_UNEXPECTED_MESSAGE ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE ) ;
+ goto f_err ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ unsigned char * p = ( unsigned char * ) s -> init_buf -> data + DTLS1_HM_HEADER_LENGTH ;
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , & p [ frag_off ] , frag_len , 0 ) ;
+ if ( i <= 0 ) {
+ s -> rwstate = SSL_READING ;
+ * ok = 0 ;
+ return i ;
+ }
+ }
+      
+25769803789 | BLOCK | { s -> rwstate = SSL_READING ; * ok = 0 ; return i ; }
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ al = SSL3_AD_ILLEGAL_PARAMETER ;
+ SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL3_AD_ILLEGAL_PARAMETER ) ;
+ goto f_err ;
+ }
+      
+30064771072 | CALL | wire [ DTLS1_HM_HEADER_LENGTH ]
+30064771073 | CALL | wire [ DTLS1_HM_HEADER_LENGTH ]
+30064771074 | CALL | ( frag_len = dtls1_retrieve_buffered_fragment ( s , max , ok ) ) || * ok
+30064771075 | CALL | frag_len = dtls1_retrieve_buffered_fragment ( s , max , ok )
+30064771076 | CALL | dtls1_retrieve_buffered_fragment ( s , max , ok )
+30064771077 | CALL | * ok
+30064771078 | CALL | * ok
+30064771079 | CALL | s -> init_num = frag_len
+30064771080 | CALL | s -> init_num
+30064771081 | CALL | 
+        i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , 0 )
+      
+30064771082 | CALL | 
+        s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , wire , DTLS1_HM_HEADER_LENGTH , 0 )
+      
+30064771083 | CALL | s -> method -> ssl_read_bytes
+30064771084 | CALL | s -> method
+30064771085 | CALL | i <= 0
+30064771086 | CALL | s -> rwstate = SSL_READING
+30064771087 | CALL | s -> rwstate
+30064771088 | CALL | * ok = 0
+30064771089 | CALL | * ok
+30064771090 | CALL | i != DTLS1_HM_HEADER_LENGTH
+30064771091 | CALL | al = SSL_AD_UNEXPECTED_MESSAGE
+30064771092 | CALL | SSLerr ( SSL_F_DTLS1_GET_MESSAGE_FRAGMENT , SSL_R_UNEXPECTED_MESSAGE )
+30064771093 | CALL | dtls1_get_message_header ( wire , & msg_hdr )
+30064771094 | CALL | & msg_hdr
+30064771095 | CALL | 
+        msg_hdr . seq != s -> d1 -> handshake_read_seq && ! ( s -> d1 -> listen && msg_hdr . seq == 1 )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771093 [AST]
+25769803778 -> 30064771079 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771091 [AST]
+25769803780 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGU
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

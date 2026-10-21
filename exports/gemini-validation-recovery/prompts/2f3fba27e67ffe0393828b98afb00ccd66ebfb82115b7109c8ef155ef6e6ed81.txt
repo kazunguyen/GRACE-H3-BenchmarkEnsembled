@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void set_stream_dimensions ( struct stream_state * stream , unsigned int w , unsigned int h ) {
+ if ( ! stream -> config . cfg . g_w ) {
+ if ( ! stream -> config . cfg . g_h ) stream -> config . cfg . g_w = w ;
+ else stream -> config . cfg . g_w = w * stream -> config . cfg . g_h / h ;
+ }
+ if ( ! stream -> config . cfg . g_h ) {
+ stream -> config . cfg . g_h = h * stream -> config . cfg . g_w / w ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ! stream -> config . cfg . g_w ) {
+ if ( ! stream -> config . cfg . g_h ) stream -> config . cfg . g_w = w ;
+ else stream -> config . cfg . g_w = w * stream -> config . cfg . g_h / h ;
+ }
+ if ( ! stream -> config . cfg . g_h ) {
+ stream -> config . cfg . g_h = h * stream -> config . cfg . g_w / w ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! stream -> config . cfg . g_h ) stream -> config . cfg . g_w = w ;
+ else stream -> config . cfg . g_w = w * stream -> config . cfg . g_h / h ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { stream -> config . cfg . g_h = h * stream -> config . cfg . g_w / w ; }
+30064771072 | CALL | ! stream -> config . cfg . g_w
+30064771073 | CALL | stream -> config . cfg . g_w
+30064771074 | CALL | stream -> config . cfg
+30064771075 | CALL | stream -> config
+30064771076 | CALL | ! stream -> config . cfg . g_h
+30064771077 | CALL | stream -> config . cfg . g_h
+30064771078 | CALL | stream -> config . cfg
+30064771079 | CALL | stream -> config
+30064771080 | CALL | stream -> config . cfg . g_w = w
+30064771081 | CALL | stream -> config . cfg . g_w
+30064771082 | CALL | stream -> config . cfg
+30064771083 | CALL | stream -> config
+30064771084 | CALL | stream -> config . cfg . g_w = w * stream -> config . cfg . g_h / h
+30064771085 | CALL | stream -> config . cfg . g_w
+30064771086 | CALL | stream -> config . cfg
+30064771087 | CALL | stream -> config
+30064771088 | CALL | w * stream -> config . cfg . g_h / h
+30064771089 | CALL | w * stream -> config . cfg . g_h
+30064771090 | CALL | stream -> config . cfg . g_h
+30064771091 | CALL | stream -> config . cfg
+30064771092 | CALL | stream -> config
+30064771093 | CALL | ! stream -> config . cfg . g_h
+30064771094 | CALL | stream -> config . cfg . g_h
+30064771095 | CALL | stream -> config . cfg
+30064771096 | CALL | stream -> config
+30064771097 | CALL | stream -> config . cfg . g_h = h * stream -> config . cfg . g_w / w
+30064771098 | CALL | stream -> config . cfg . g_h
+30064771099 | CALL | stream -> config . cfg
+30064771100 | CALL | stream -> config
+30064771101 | CALL | h * stream -> config . cfg . g_w / w
+30064771102 | CALL | h * stream -> config . cfg . g_w
+30064771103 | CALL | stream -> config . cfg . g_w
+30064771104 | CALL | stream -> config . cfg
+30064771105 | CALL | stream -> config
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! stream -> config . cfg . g_w ) {
+ if ( ! stream -> config . cfg . g_h ) stream -> config . cfg . g_w = w ;
+ else stream -> config . cfg . g_w = w * stream -> config . cfg . g_h / h ;
+ }
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771084 [AST]
+25769803780 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771103 [REACHING_DEF]
+30064771073 -> 30064771078 [REACHING_DEF]
+30064771073 -> 30064771086 [REACHING_DEF]
+30064771073 -> 30064771082 [REACHING_DEF]
+30064771073 -> 30064771099 [REACHING_DEF]
+30064771073 -> 30064771104 [REACHING_DEF]
+30064771073 -> 30064771095 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771091 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771086 [REACHING_DEF]
+30064771077 -> 30064771094 [REACHING_DEF]
+30064771077 -> 30064771082 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771077 -> 30064771090 [REACHING_DEF]
+30064771077 -> 30064771091 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771103 [REACHING_DEF]
+30064771081 -> 30064771099 [REACHING_DEF]
+30064771081 -> 30064771104 [REACHING_DEF]
+30064771081 -> 30064771095 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771088 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771088 [AST]
+30064771084 -> 30064771088 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771103 [REACHING_DEF]
+30064771085 -> 30064771099 [REACHING_DEF]
+30064771085 -> 30064771104 [REACHING_DEF]
+30064771085 -> 30064771095 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void set_default_kf_interval ( struct stream_state * stream , struct VpxEncoderConfig * global ) {
+ if ( ! stream -> config . have_kf_max_dist ) {
+ double framerate = ( double ) global -> framerate . num / global -> framerate . den ;
+ if ( framerate > 0.0 ) stream -> config . cfg . kf_max_dist = ( unsigned int ) ( 5.0 * framerate ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int gs_main_run_file_open ( gs_main_instance * minst , const char * file_name , ref * pfref ) {
+ gs_main_set_lib_paths ( minst ) ;
+ if ( gs_main_lib_open ( minst , file_name , pfref ) < 0 ) {
+ emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name ) ;
+ return_error ( gs_error_Fatal ) ;
+ }
+ r_set_attrs ( pfref , a_execute + a_executable ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gs_main_set_lib_paths ( minst ) ;
+ if ( gs_main_lib_open ( minst , file_name , pfref ) < 0 ) {
+ emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name ) ;
+ return_error ( gs_error_Fatal ) ;
+ }
+ r_set_attrs ( pfref , a_execute + a_executable ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name ) ;
+ return_error ( gs_error_Fatal ) ;
+ }
+      
+30064771072 | CALL | gs_main_set_lib_paths ( minst )
+30064771073 | CALL | gs_main_lib_open ( minst , file_name , pfref ) < 0
+30064771074 | CALL | gs_main_lib_open ( minst , file_name , pfref )
+30064771075 | CALL | 
+        emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name )
+      
+30064771076 | CALL | minst -> heap
+30064771077 | CALL | return_error ( gs_error_Fatal )
+30064771078 | CALL | r_set_attrs ( pfref , a_execute + a_executable )
+30064771079 | CALL | a_execute + a_executable
+47244640256 | CONTROL_STRUCTURE | 
+        if ( gs_main_lib_open ( minst , file_name , pfref ) < 0 ) {
+ emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name ) ;
+ return_error ( gs_error_Fatal ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | heap
+68719476736 | IDENTIFIER | minst
+68719476737 | IDENTIFIER | minst
+68719476738 | IDENTIFIER | file_name
+68719476739 | IDENTIFIER | pfref
+68719476740 | IDENTIFIER | minst
+68719476741 | IDENTIFIER | file_name
+68719476742 | IDENTIFIER | <unknown> gs_error_Fatal
+68719476743 | IDENTIFIER | pfref
+68719476744 | IDENTIFIER | <unknown> a_execute
+68719476745 | IDENTIFIER | <unknown> a_executable
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | "Can't find initialization file %s.\n"
+90194313218 | LITERAL | 0
+94489280512 | LOCAL | <unknown> a_executable
+94489280513 | LOCAL | <unknown> a_execute
+94489280514 | LOCAL | <unknown> gs_error_Fatal
+107374182400 | METHOD | 
+        int gs_main_run_file_open ( gs_main_instance * minst , const char * file_name , ref * pfref ) {
+ gs_main_set_lib_paths ( minst ) ;
+ if ( gs_main_lib_open ( minst , file_name , pfref ) < 0 ) {
+ emprintf1 ( minst -> heap , "Can't find initialization file %s.\n" , file_name ) ;
+ return_error ( gs_error_Fatal ) ;
+ }
+ r_set_attrs ( pfref , a_execute + a_executable ) ;
+ return 0 ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | gs_main_instance * minst
+111669149697 | METHOD_PARAMETER_IN | const char * file_name
+111669149698 | METHOD_PARAMETER_IN | ref * pfref
+115964116992 | METHOD_PARAMETER_OUT | gs_main_instance * minst
+115964116993 | METHOD_PARAMETER_OUT | const char * file_name
+115964116994 | METHOD_PARAMETER_OUT | ref * pfref
+124554051584 | METHOD_RETURN | RET
+141733920768 | RETURN | return 0 ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771077 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 68719476740 [CDG]
+30064771073 -> 55834574848 [CDG]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 90194313217 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476743 [CFG]
+30064771073 -> 68719476743 [DOMINATE]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 90194313216 [CFG]
+30064771074 -> 90194313216 [DOMINATE]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 68719476741 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 90194313217 [CFG]
+30064771076 -> 90194313217 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 115964116992 [REACHING_DEF]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 90194313218 [CFG]
+30064771078 -> 90194313218 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 68719476745 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int gs_main_run_file ( gs_main_instance * minst , const char * file_name , int user_errors , int * pexit_code , ref * perror_object ) {
+ ref initial_file ;
+ int code = gs_main_run_file_open ( minst , file_name , & initial_file ) ;
+ if ( code < 0 ) return code ;
+ return gs_main_interpret ( minst , & initial_file , user_errors , pexit_code , perror_object ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

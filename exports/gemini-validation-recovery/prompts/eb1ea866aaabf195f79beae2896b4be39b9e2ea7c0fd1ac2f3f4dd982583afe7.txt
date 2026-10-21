@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int socket_connect ( int fd , const char * address , unsigned short port ) {
+ struct addrinfo * ai = make_addrinfo ( address , port ) ;
+ int res = - 1 ;
+ if ( ai == NULL ) {
+ event_debug ( ( "%s: make_addrinfo: \"%s:%d\"" , __func__ , address , port ) ) ;
+ return ( - 1 ) ;
+ }
+ if ( connect ( fd , ai -> ai_addr , ai -> ai_addrlen ) == - 1 ) {
+ # ifdef WIN32 int tmp_error = WSAGetLastError ( ) ;
+ if ( tmp_error != WSAEWOULDBLOCK && tmp_error != WSAEINVAL && tmp_error != WSAEINPROGRESS ) {
+ goto out ;
+ }
+ # else if ( errno != EINPROGRESS ) {
+ goto out ;
+ }
+ # endif }
+ res = 0 ;
+ out : # ifdef HAVE_GETADDRINFO freeaddrinfo ( ai ) ;
+ # else fake_freeaddrinfo ( ai ) ;
+ # endif return ( res ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct addrinfo * ai = make_addrinfo ( address , port ) ;
+ int res = - 1 ;
+ if ( ai == NULL ) {
+ event_debug ( ( "%s: make_addrinfo: \"%s:%d\"" , __func__ , address , port ) ) ;
+ return ( - 1 ) ;
+ }
+ if ( connect ( fd , ai -> ai_addr , ai -> ai_addrlen ) == - 1 ) {
+ # ifdef WIN32 int tmp_error = WSAGetLastError ( ) ;
+ if ( tmp_error != WSAEWOULDBLOCK && tmp_error != WSAEINVAL && tmp_error != WSAEINPROGRESS ) {
+ goto out ;
+ }
+ # else if ( errno != EINPROGRESS ) {
+ goto out ;
+ }
+ # endif }
+ res = 0 ;
+ out : # ifdef HAVE_GETADDRINFO freeaddrinfo ( ai ) ;
+ # else fake_freeaddrinfo ( ai ) ;
+ # endif return ( res ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ event_debug ( ( "%s: make_addrinfo: \"%s:%d\"" , __func__ , address , port ) ) ;
+ return ( - 1 ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ # ifdef WIN32 int tmp_error = WSAGetLastError ( ) ;
+ if ( tmp_error != WSAEWOULDBLOCK && tmp_error != WSAEINVAL && tmp_error != WSAEINPROGRESS ) {
+ goto out ;
+ }
+ # else if ( errno != EINPROGRESS ) {
+ goto out ;
+ }
+      
+30064771072 | CALL | ai = make_addrinfo ( address , port )
+30064771073 | CALL | make_addrinfo ( address , port )
+30064771074 | CALL | res = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | ai == NULL
+30064771077 | CALL | 
+        event_debug ( ( "%s: make_addrinfo: \"%s:%d\"" , __func__ , address , port ) )
+      
+30064771078 | CALL | - 1
+30064771079 | CALL | connect ( fd , ai -> ai_addr , ai -> ai_addrlen ) == - 1
+30064771080 | CALL | connect ( fd , ai -> ai_addr , ai -> ai_addrlen )
+30064771081 | CALL | ai -> ai_addr
+30064771082 | CALL | ai -> ai_addrlen
+30064771083 | CALL | - 1
+30064771084 | CALL | res = 0
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ai == NULL ) {
+ event_debug ( ( "%s: make_addrinfo: \"%s:%d\"" , __func__ , address , port ) ) ;
+ return ( - 1 ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( connect ( fd , ai -> ai_addr , ai -> ai_addrlen ) == - 1 ) {
+ # ifdef WIN32 int tmp_error = WSAGetLastError ( ) ;
+ if ( tmp_error != WSAEWOULDBLOCK && tmp_error != WSAEINVAL && tmp_error != WSAEINPROGRESS ) {
+ goto out ;
+ }
+ # else if ( errno != EINPROGRESS ) {
+ goto out ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | goto out;
+55834574848 | FIELD_IDENTIFIER | ai_addr
+55834574849 | FIELD_IDENTIFIER | ai_addrlen
+68719476736 | IDENTIFIER | ai
+68719476737 | IDENTIFIER | address
+68719476738 | IDENTIFIER | port
+68719476739 | IDENTIFIER | res
+68719476740 | IDENTIFIER | ai
+68719476741 | IDENTIFIER | <unknown> NULL
+68719476742 | IDENTIFIER | <global> __func__
+68719476743 | IDENTIFIER | address
+68719476744 | IDENTIFIER | port
+68719476745 | IDENTIFIER | fd
+68719476746 | IDENTIFIER | ai
+68719476747 | IDENTIFIER | ai
+68719476748 | IDENTIFIER | res
+77309411328 | JUMP_LABEL | out
+90194313216 | LITERAL | 1
+90194313217 | LITERAL | "%s: make_addrinfo: \"%s:%d\""
+90194313218 | LITERAL | 1
+90194313219 | LITERAL | 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771084 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 90194313217 [AST]
+25769803778 -> 68719476742 [AST]
+25769803778 -> 68719476743 [AST]
+25769803778 -> 68719476744 [AST]
+25769803778 -> 30064771077 [CFG]
+25769803778 -> 30064771077 [DOMINATE]
+25769803778 -> 68719476744 [POST_DOMINATE]
+25769803778 -> 30064771077 [REACHING_DEF]
+25769803778 -> 30064771077 [REACHING_DEF]
+25769803779 -> 47244640258 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 90194313216 [ARGUMENT]
+30064771075 -> 90194313216 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 90194313216 [POST_DOMINATE]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 25769803778 [CDG]
+30064771076 -> 68719476748 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476747 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 55834574848 [CDG]
+30064771076 -> 90194313219 [CDG]
+30064771076 -> 90194313217 [CDG]
+30064771076 -> 90194313218 [CDG]
+30064771076 -> 90194313217 [CFG]
+30064771076 -> 68719476745 [CFG]
+30064771076 -> 90194313217 [DOMINATE]
+30064771076 -> 68719476745 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 25769803778 [ARGUMENT]
+30064771077 -> 25769803778 [AST]
+30064771077 -> 90194313218 [CFG]
+30064771077 -> 90194313218 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int bind_socket ( const char * address , u_short port , int reuse ) {
+ int fd ;
+ struct addrinfo * aitop = NULL ;
+ if ( address == NULL && port == 0 ) return bind_socket_ai ( NULL , 0 ) ;
+ aitop = make_addrinfo ( address , port ) ;
+ if ( aitop == NULL ) return ( - 1 ) ;
+ fd = bind_socket_ai ( aitop , reuse ) ;
+ # ifdef HAVE_GETADDRINFO freeaddrinfo ( aitop ) ;
+ # else fake_freeaddrinfo ( aitop ) ;
+ # endif return ( fd ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

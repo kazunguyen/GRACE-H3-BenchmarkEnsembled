@@ -1,0 +1,347 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static av_always_inline float quantize_and_encode_band_cost_template(
+
+                                struct AACEncContext *s,
+
+                                PutBitContext *pb, const float *in,
+
+                                const float *scaled, int size, int scale_idx,
+
+                                int cb, const float lambda, const float uplim,
+
+                                int *bits, int BT_ZERO, int BT_UNSIGNED,
+
+                                int BT_PAIR, int BT_ESC)
+
+{
+
+    const int q_idx = POW_SF2_ZERO - scale_idx + SCALE_ONE_POS - SCALE_DIV_512;
+
+    const float Q   = ff_aac_pow2sf_tab [q_idx];
+
+    const float Q34 = ff_aac_pow34sf_tab[q_idx];
+
+    const float IQ  = ff_aac_pow2sf_tab [POW_SF2_ZERO + scale_idx - SCALE_ONE_POS + SCALE_DIV_512];
+
+    const float CLIPPED_ESCAPE = 165140.0f*IQ;
+
+    int i, j;
+
+    float cost = 0;
+
+    const int dim = BT_PAIR ? 2 : 4;
+
+    int resbits = 0;
+
+    const int range  = aac_cb_range[cb];
+
+    const int maxval = aac_cb_maxval[cb];
+
+    int off;
+
+
+
+    if (BT_ZERO) {
+
+        for (i = 0; i < size; i++)
+
+            cost += in[i]*in[i];
+
+        if (bits)
+
+            *bits = 0;
+
+        return cost * lambda;
+
+    }
+
+    if (!scaled) {
+
+        abs_pow34_v(s->scoefs, in, size);
+
+        scaled = s->scoefs;
+
+    }
+
+    quantize_bands(s->qcoefs, in, scaled, size, Q34, !BT_UNSIGNED, maxval);
+
+    if (BT_UNSIGNED) {
+
+        off = 0;
+
+    } else {
+
+        off = maxval;
+
+    }
+
+    for (i = 0; i < size; i += dim) {
+
+        const float *vec;
+
+        int *quants = s->qcoefs + i;
+
+        int curidx = 0;
+
+        int curbits;
+
+        float rd = 0.0f;
+
+        for (j = 0; j < dim; j++) {
+
+            curidx *= range;
+
+            curidx += quants[j] + off;
+
+        }
+
+        curbits =  ff_aac_spectral_bits[cb-1][curidx];
+
+        vec     = &ff_aac_codebook_vectors[cb-1][curidx*dim];
+
+        if (BT_UNSIGNED) {
+
+            for (j = 0; j < dim; j++) {
+
+                float t = fabsf(in[i+j]);
+
+                float di;
+
+                if (BT_ESC && vec[j] == 64.0f) { //FIXME: slow
+
+                    if (t >= CLIPPED_ESCAPE) {
+
+                        di = t - CLIPPED_ESCAPE;
+
+                        curbits += 21;
+
+                    } else {
+
+                        int c = av_clip_uintp2(quant(t, Q), 13);
+
+                        di = t - c*cbrtf(c)*IQ;
+
+                        curbits += av_log2(c)*2 - 4 + 1;
+
+                    }
+
+                } else {
+
+                    di = t - vec[j]*IQ;
+
+                }
+
+                if (vec[j] != 0.0f)
+
+                    curbits++;
+
+                rd += di*di;
+
+            }
+
+        } else {
+
+            for (j = 0; j < dim; j++) {
+
+                float di = in[i+j] - vec[j]*IQ;
+
+                rd += di*di;
+
+            }
+
+        }
+
+        cost    += rd * lambda + curbits;
+
+        resbits += curbits;
+
+        if (cost >= uplim)
+
+            return uplim;
+
+        if (pb) {
+
+            put_bits(pb, ff_aac_spectral_bits[cb-1][curid
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+4 -> 74 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static float quantize_and_encode_band_cost(struct AACEncContext *s,
+
+                                PutBitContext *pb, const float *in,
+
+                                const float *scaled, int size, int scale_idx,
+
+                                int cb, const float lambda, const float uplim,
+
+                                int *bits)
+
+{
+
+    const float IQ = ff_aac_pow2sf_tab[200 + scale_idx - SCALE_ONE_POS + SCALE_DIV_512];
+
+    const float  Q = ff_aac_pow2sf_tab[200 - scale_idx + SCALE_ONE_POS - SCALE_DIV_512];
+
+    const float CLIPPED_ESCAPE = 165140.0f*IQ;
+
+    int i, j, k;
+
+    float cost = 0;
+
+    const int dim = cb < FIRST_PAIR_BT ? 4 : 2;
+
+    int resbits = 0;
+
+#ifndef USE_REALLY_FULL_SEARCH
+
+    const float  Q34 = sqrtf(Q * sqrtf(Q));
+
+    const int range  = aac_cb_range[cb];
+
+    const int maxval = aac_cb_maxval[cb];
+
+    int offs[4];
+
+#endif /* USE_REALLY_FULL_SEARCH */
+
+
+
+    if (!cb) {
+
+        for (i = 0; i < size; i++)
+
+            cost += in[i]*in[i];
+
+        if (bits)
+
+            *bits = 0;
+
+        return cost * lambda;
+
+    }
+
+#ifndef USE_REALLY_FULL_SEARCH
+
+    offs[0] = 1;
+
+    for (i = 1; i < dim; i++)
+
+        offs[i] = offs[i-1]*range;
+
+    if (!scaled) {
+
+        abs_pow34_v(s->scoefs, in, size);
+
+        scaled = s->scoefs;
+
+    }
+
+    quantize_bands(s->qcoefs, in, scaled, size, Q34, !IS_CODEBOOK_UNSIGNED(cb), maxval);
+
+#endif /* USE_REALLY_FULL_SEARCH */
+
+    for (i = 0; i < size; i += dim) {
+
+        float mincost;
+
+        int minidx  = 0;
+
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

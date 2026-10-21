@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void setos2 ( struct os2 * os2 , struct alltabs * at , SplineFont * sf , enum fontformat format ) {
+ int i , cnt1 , cnt2 , first , last , avg1 , avg2 , gid ;
+ char * pt ;
+ static int const weightFactors [ 26 ] = {
+ 64 , 14 , 27 , 35 , 100 , 20 , 14 , 42 , 63 , 3 , 6 , 35 , 20 , 56 , 56 , 17 , 4 , 49 , 56 , 71 , 31 , 10 , 18 , 3 , 18 , 2 }
+ ;
+ EncMap * map ;
+ SplineChar * sc ;
+ int modformat = format ;
+ os2 -> version = 1 ;
+ if ( format == ff_otf || format == ff_otfcid ) os2 -> version = 3 ;
+ if ( sf -> use_typo_metrics || sf -> weight_width_slope_only ) os2 -> version = 4 ;
+ if ( sf -> os2_version > os2 -> version ) os2 -> version = sf -> os2_version ;
+ if ( ( format >= ff_ttf && format <= ff_otfdfont ) && ( at -> gi . flags & ttf_flag_symbol ) ) modformat = ff_ttfsym ;
+ os2 -> weightClass = sf -> pfminfo . weight ;
+ os2 -> widthClass = sf -> pfminfo . width ;
+ os2 -> fstype = 0x8 ;
+ if ( sf -> pfminfo . fstype != - 1 ) os2 -> fstype = sf -> pfminfo . fstype ;
+ if ( ! sf -> pfminfo . subsuper_set ) SFDefaultOS2SubSuper ( & sf -> pfminfo , sf -> ascent + sf -> descent , sf -> italicangle ) ;
+ os2 -> ysupYSize = sf -> pfminfo . os2_supysize ;
+ os2 -> ysubXSize = sf -> pfminfo . os2_subxsize ;
+ os2 -> ysubYSize = sf -> pfminfo . os2_subysize ;
+ os2 -> ysupXSize = sf -> pfminfo . os2_supxsize ;
+ os2 -> ysubYOff = sf -> pfminfo . os2_subyoff ;
+ os2 -> ysubXOff = sf -> pfminfo . os2_subxoff ;
+ os2 -> ysupXOff = sf -> pfminfo . os2_supxoff ;
+ os2 -> ysupYOff = sf -> pfminfo . os2_supyoff ;
+ os2 -> yStrikeoutSize = sf -> pfminfo . os2_strikeysize ;
+ os2 -> yStrikeoutPos = sf -> pfminfo . os2_strikeypos ;
+ if ( sf -> pfminfo . stylemap != - 1 ) {
+ int changed = 0 ;
+ os2 -> fsSel = sf -> pfminfo . stylemap ;
+ if ( at -> head . macstyle & 1 && ! ( os2 -> fsSel & 32 ) ) {
+ at -> head . macstyle &= 0x7E ;
+ changed = 1 ;
+ }
+ if ( at -> head . macstyle & 2 && ! ( os2 -> fsSel & 1 ) ) {
+ at -> head . macstyle &= 0x7D ;
+ changed = 1 ;
+ }
+ if ( changed ) redohead ( at ) ;
+ }
+ else {
+ os2 -> fsSel = ( at -> head . macstyle & 1 ? 32 : 0 ) | ( at -> head . macstyle & 2 ? 1 : 0 ) ;
+ if ( os2 -> fsSel == 0 && sf -> pfminfo . weight == 400 ) os2 -> fsSel = 64 ;
+ }
+ if ( sf -> fullname != NULL && strstrmatch ( sf -> fullname , "outline" ) != NULL ) os2 -> fsSel |= 8 ;
+ if ( os2 -> version >= 4 ) {
+ if ( strstrmatch ( sf -> fontname , "Obli" ) != NULL ) {
+ os2 -> fsSel |= 512 ;
+ }
+ if ( sf -> use_typo_metrics ) os2 -> fsSel |= 128 ;
+ if ( sf -> weight_width_slope_only ) os2 -> fsSel |= 256 ;
+ }
+ if ( sf -> pfminfo . typoascent_add ) os2 -> ascender = sf -> ascent + sf -> pfminfo . os2_typoascent ;
+ else os2 -> ascender = sf -> pfminfo . os2_typoascent ;
+ if ( sf -> pfminfo . typodescent_add ) os2 -> descender = - sf -> descent + sf -> pfminfo . os2_typodescent ;
+ else os2 -> descender = sf -> pfminfo . os2_typodescent ;
+ WinBB ( sf , & os2 -> winascent , & os2 -> windescent , at ) ;
+ os2 -> linegap = sf -> pfminfo . os2_typolinegap ;
+ os2 -> sFamilyClass = sf -> pf
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , cnt1 , cnt2 , first , last , avg1 , avg2 , gid ;
+ char * pt ;
+ static int const weightFactors [ 26 ] = {
+ 64 , 14 , 27 , 35 , 100 , 20 , 14 , 42 , 63 , 3 , 6 , 35 , 20 , 56 , 56 , 17 , 4 , 49 , 56 , 71 , 31 , 10 , 18 , 3 , 18 , 2 }
+ ;
+ EncMap * map ;
+ SplineChar * sc ;
+ int modformat = format ;
+ os2 -> version = 1 ;
+ if ( format == ff_otf || format == ff_otfcid ) os2 -> version = 3 ;
+ if ( sf -> use_typo_metrics || sf -> weight_width_slope_only ) os2 -> version = 4 ;
+ if ( sf -> os2_version > os2 -> version ) os2 -> version = sf -> os2_version ;
+ if ( ( format >= ff_ttf && format <= ff_otfdfont ) && ( at -> gi . flags & ttf_flag_symbol ) ) modformat = ff_ttfsym ;
+ os2 -> weightClass = sf -> pfminfo . weight ;
+ os2 -> widthClass = sf -> pfminfo . width ;
+ os2 -> fstype = 0x8 ;
+ if ( sf -> pfminfo . fstype != - 1 ) os2 -> fstype = sf -> pfminfo . fstype ;
+ if ( ! sf -> pfminfo . subsuper_set ) SFDefaultOS2SubSuper ( & sf -> pfminfo , sf -> ascent + sf -> descent , sf -> ita...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ int changed = 0 ;
+ os2 -> fsSel = sf -> pfminfo . stylemap ;
+ if ( at -> head . macstyle & 1 && ! ( os2 -> fsSel & 32 ) ) {
+ at -> head . macstyle &= 0x7E ;
+ changed = 1 ;
+ }
+ if ( at -> head . macstyle & 2 && ! ( os2 -> fsSel & 1 ) ) {
+ at -> head . macstyle &= 0x7D ;
+ changed = 1 ;
+ }
+ if ( changed ) redohead ( at ) ;
+ }
+      
+25769803784 | BLOCK | { at -> head . macstyle &= 0x7E ; changed = 1 ; }
+25769803785 | BLOCK | { at -> head . macstyle &= 0x7D ; changed = 1 ; }
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ os2 -> fsSel = ( at -> head . macstyle & 1 ? 32 : 0 ) | ( at -> head . macstyle & 2 ? 1 : 0 ) ;
+ if ( os2 -> fsSel == 0 && sf -> pfminfo . weight == 400 ) os2 -> fsSel = 64 ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( strstrmatch ( sf -> fontname , "Obli" ) != NULL ) {
+ os2 -> fsSel |= 512 ;
+ }
+ if ( sf -> use_typo_metrics ) os2 -> fsSel |= 128 ;
+ if ( sf -> weight_width_slope_only ) os2 -> fsSel |= 256 ;
+ }
+      
+25769803791 | BLOCK | { os2 -> fsSel |= 512 ; }
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ if ( SCWorthOutputting ( sc ) && sc -> unicodeenc != - 1 ) {
+ if ( ( format >= ff_ttf && format <= ff_otfdfont && sc -> ttf_glyph > 2 ) || ( format >= ff_ttf && format <= ff_otfdfont && sc -> ttf_glyph > 0 ) ) {
+ if ( sc -> unicodeenc <= 0xffff ) {
+ if ( sc -> unicodeenc < first ) first = sc -> unicodeenc ;
+ if ( sc -> unicodeenc > last ) last = sc -> unicodeenc ;
+ }
+ else {
+ last = 0xffff ;
+ }
+ }
+ if ( sc -> width != 0 ) {
+ avg2 += sc -> width ;
+ ++ cnt2 ;
+ }
+ if ( sc -> unicodeenc == ' ' ) {
+ avg1 += sc -> width * 166 ;
+ ++ cnt1 ;
+ }
+ else if ( sc -> unicodeenc >= 'a' && sc -> unicodeenc <= 'z' ) {
+ avg1 += sc -> width * weightFactors [ sc -> unicodeenc - 'a' ] ;
+ ++ cnt1 ;
+ }
+ }
+ }
+      
+25769803799 | BLOCK | 
+        {
+ if ( ( format >= ff_ttf && format <= ff_otfdfont && sc -> ttf_glyph > 2 ) || ( format >= ff_ttf && format <= ff_otfdfont && sc -> ttf_glyph > 0 ) ) {
+ if ( sc -> unicodeenc <= 0xffff ) {
+ if ( sc -> unicodeenc < first ) first = sc -> unicodeenc ;
+ if ( sc -> unicodeenc > last ) last = sc -> unicodeenc ;
+ }
+ else {
+ last = 0xffff ;
+ }
+ }
+ if ( sc -> width != 0 ) {
+ avg2 += sc -> width ;
+ ++ cnt2 ;
+ }
+ if ( sc -> unicodeenc == ' ' ) {
+ avg1 += sc -> width * 166 ;
+ ++ cnt1 ;
+ }
+ else if ( sc -> unicodeenc >= 'a' && sc -> unicodeenc <= 'z' ) {
+ avg1 += sc -> width * weightFactors [ sc -> unicodeenc - 'a' ] ;
+ ++ cnt1 ;
+ }
+ }
+      
+25769803800 | BLOCK | 
+        {
+ if ( sc -> unicodeenc <= 0xffff ) {
+ if ( sc -> unicodeenc < first ) first = sc -> unicodeenc ;
+ if ( sc -> unicodeenc > last ) last = sc -> unicodeenc ;
+ }
+ else {
+ last = 0xffff ;
+ }
+ }
+      
+25769803801 | BLOCK | 
+        {
+ if ( sc -> unicodeenc < first ) first = sc -> unicodeenc ;
+ if ( sc -> unicodeenc > last ) last = sc -> unicodeenc ;
+ }
+      
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | <empty>
+25769803804 | BLOCK |
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

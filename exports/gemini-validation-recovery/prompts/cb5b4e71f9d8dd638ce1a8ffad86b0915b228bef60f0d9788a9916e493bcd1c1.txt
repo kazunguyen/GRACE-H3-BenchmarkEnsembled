@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void execve_shell ( const char * shellname , char * args [ ] , char * const envp [ ] ) {
+ int err ;
+ ( void ) execve ( shellname , ( char * * ) args , envp ) ;
+ err = errno ;
+ if ( access ( shellname , R_OK | X_OK ) == 0 ) {
+ size_t n_args = 0 ;
+ char * * targs ;
+ while ( NULL != args [ n_args ] ) {
+ n_args ++ ;
+ }
+ targs = ( char * * ) xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) ) ;
+ targs [ 0 ] = "sh" ;
+ targs [ 1 ] = "-" ;
+ targs [ 2 ] = xstrdup ( shellname ) ;
+ targs [ n_args + 2 ] = NULL ;
+ while ( 1 != n_args ) {
+ targs [ n_args + 1 ] = args [ n_args - 1 ] ;
+ n_args -- ;
+ }
+ ( void ) execve ( SHELL , targs , envp ) ;
+ }
+ else {
+ errno = err ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int err ;
+ ( void ) execve ( shellname , ( char * * ) args , envp ) ;
+ err = errno ;
+ if ( access ( shellname , R_OK | X_OK ) == 0 ) {
+ size_t n_args = 0 ;
+ char * * targs ;
+ while ( NULL != args [ n_args ] ) {
+ n_args ++ ;
+ }
+ targs = ( char * * ) xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) ) ;
+ targs [ 0 ] = "sh" ;
+ targs [ 1 ] = "-" ;
+ targs [ 2 ] = xstrdup ( shellname ) ;
+ targs [ n_args + 2 ] = NULL ;
+ while ( 1 != n_args ) {
+ targs [ n_args + 1 ] = args [ n_args - 1 ] ;
+ n_args -- ;
+ }
+ ( void ) execve ( SHELL , targs , envp ) ;
+ }
+ else {
+ errno = err ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ size_t n_args = 0 ;
+ char * * targs ;
+ while ( NULL != args [ n_args ] ) {
+ n_args ++ ;
+ }
+ targs = ( char * * ) xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) ) ;
+ targs [ 0 ] = "sh" ;
+ targs [ 1 ] = "-" ;
+ targs [ 2 ] = xstrdup ( shellname ) ;
+ targs [ n_args + 2 ] = NULL ;
+ while ( 1 != n_args ) {
+ targs [ n_args + 1 ] = args [ n_args - 1 ] ;
+ n_args -- ;
+ }
+ ( void ) execve ( SHELL , targs , envp ) ;
+ }
+      
+25769803778 | BLOCK | { n_args ++ ; }
+25769803779 | BLOCK | { targs [ n_args + 1 ] = args [ n_args - 1 ] ; n_args -- ; }
+25769803780 | BLOCK | { errno = err ; }
+30064771072 | CALL | ( void ) execve ( shellname , ( char * * ) args , envp )
+30064771073 | CALL | execve ( shellname , ( char * * ) args , envp )
+30064771074 | CALL | ( char * * ) args
+30064771075 | CALL | err = errno
+30064771076 | CALL | access ( shellname , R_OK | X_OK ) == 0
+30064771077 | CALL | access ( shellname , R_OK | X_OK )
+30064771078 | CALL | R_OK | X_OK
+30064771079 | CALL | n_args = 0
+30064771080 | CALL | NULL != args [ n_args ]
+30064771081 | CALL | args [ n_args ]
+30064771082 | CALL | n_args ++
+30064771083 | CALL | targs = ( char * * ) xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) )
+30064771084 | CALL | ( char * * ) xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) )
+30064771085 | CALL | xmalloc ( ( n_args + 3 ) * sizeof ( args [ 0 ] ) )
+30064771086 | CALL | ( n_args + 3 ) * sizeof ( args [ 0 ] )
+30064771087 | CALL | n_args + 3
+30064771088 | CALL | sizeof ( args [ 0 ] )
+30064771089 | CALL | args [ 0 ]
+30064771090 | CALL | targs [ 0 ] = "sh"
+30064771091 | CALL | targs [ 0 ]
+30064771092 | CALL | targs [ 1 ] = "-"
+30064771093 | CALL | targs [ 1 ]
+30064771094 | CALL | targs [ 2 ] = xstrdup ( shellname )
+30064771095 | CALL | targs [ 2 ]
+30064771096 | CALL | xstrdup ( shellname )
+30064771097 | CALL | targs [ n_args + 2 ] = NULL
+30064771098 | CALL | targs [ n_args + 2 ]
+30064771099 | CALL | n_args + 2
+30064771100 | CALL | 1 != n_args
+30064771101 | CALL | targs [ n_args + 1 ] = args [ n_args - 1 ]
+30064771102 | CALL | targs [ n_args + 1 ]
+30064771103 | CALL | n_args + 1
+30064771104 | CALL | args [ n_args - 1 ]
+30064771105 | CALL | n_args - 1
+30064771106 | CALL | n_args --
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771097 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771093 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771098 [CDG]
+30064771076 -> 30064771099 [CDG]
+30064771076 -> 30064771100 [CDG]
+30064771076 -> 30064771094 [CDG]
+30064771076 -> 30064771095 [CDG]
+30064771076 -> 30064771096 [CDG]
+30064771076 -> 30064771097 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * * create_argv_help ( const char * path , const char * command , const char * subcommand ) {
+ char * * req_argv = NULL ;
+ const char * program ;
+ if ( subcommand == NULL ) req_argv = xcalloc ( 3 , sizeof ( char * ) ) ;
+ else req_argv = xcalloc ( 4 , sizeof ( char * ) ) ;
+ program = strrchr ( path , '/' ) ;
+ if ( program == NULL ) program = path ;
+ else program ++ ;
+ req_argv [ 0 ] = xstrdup ( program ) ;
+ req_argv [ 1 ] = xstrdup ( command ) ;
+ if ( subcommand == NULL ) req_argv [ 2 ] = NULL ;
+ else {
+ req_argv [ 2 ] = xstrdup ( subcommand ) ;
+ req_argv [ 3 ] = NULL ;
+ }
+ return req_argv ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

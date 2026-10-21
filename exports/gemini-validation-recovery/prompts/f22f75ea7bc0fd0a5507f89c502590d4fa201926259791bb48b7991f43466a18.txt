@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ipvideo_decode_block_opcode_0xC_16 ( IpvideoContext * s ) {
+ int x , y ;
+ uint16_t * pixel_ptr = ( uint16_t * ) s -> pixel_ptr ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y ;
+ uint16_t * pixel_ptr = ( uint16_t * ) s -> pixel_ptr ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ }
+      
+30064771072 | CALL | pixel_ptr = ( uint16_t * ) s -> pixel_ptr
+30064771073 | CALL | ( uint16_t * ) s -> pixel_ptr
+30064771074 | CALL | s -> pixel_ptr
+30064771075 | CALL | y = 0
+30064771076 | CALL | y < 8
+30064771077 | CALL | y += 2
+30064771078 | CALL | x = 0
+30064771079 | CALL | x < 8
+30064771080 | CALL | x += 2
+30064771081 | CALL | 
+        pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr )
+      
+30064771082 | CALL | pixel_ptr [ x ]
+30064771083 | CALL | 
+        pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr )
+      
+30064771084 | CALL | pixel_ptr [ x + 1 ]
+30064771085 | CALL | x + 1
+30064771086 | CALL | 
+        pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr )
+      
+30064771087 | CALL | pixel_ptr [ x + s -> stride ]
+30064771088 | CALL | x + s -> stride
+30064771089 | CALL | s -> stride
+30064771090 | CALL | 
+        pixel_ptr [ x + 1 + s -> stride ] = bytestream2_get_le16 ( & s -> stream_ptr )
+      
+30064771091 | CALL | pixel_ptr [ x + 1 + s -> stride ]
+30064771092 | CALL | x + 1 + s -> stride
+30064771093 | CALL | x + 1
+30064771094 | CALL | s -> stride
+30064771095 | CALL | bytestream2_get_le16 ( & s -> stream_ptr )
+30064771096 | CALL | & s -> stream_ptr
+30064771097 | CALL | s -> stream_ptr
+30064771098 | CALL | pixel_ptr += s -> stride * 2
+30064771099 | CALL | s -> stride * 2
+30064771100 | CALL | s -> stride
+47244640256 | CONTROL_STRUCTURE | for (y = 0 ;y < 8;y += 2)
+47244640257 | CONTROL_STRUCTURE | for (x = 0 ;x < 8;x += 2)
+55834574848 | FIELD_IDENTIFIER | pixel_ptr
+55834574849 | FIELD_IDENTIFIER | stride
+55834574850 | FIELD_IDENTIFIER | stride
+55834574851 | FIELD_IDENTIFIER | stream_ptr
+55834574852 | FIELD_IDENTIFIER | stride
+68719476736 | IDENTIFIER | pixel_ptr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771098 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 55834574852 [CDG]
+30064771076 -> 30064771099 [CDG]
+30064771076 -> 30064771098 [CDG]
+30064771076 -> 30064771100 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771079 -> 55834574849 [CDG]
+30064771079 -> 55834574851 [CDG]
+30064771079 -> 55834574850 [CDG]
+30064771079 -> 30064771097 [CDG]
+30064771079 -> 30064771096 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771095 [CDG]
+30064771079 -> 30064771094 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771086 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771090 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771090 [AST]
+30064771086 -> 30064771083 [CFG]
+30064771086 -> 30064771083 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int ipvideo_decode_block_opcode_0xB_16 ( IpvideoContext * s ) {
+ int x , y ;
+ uint16_t * pixel_ptr = ( uint16_t * ) s -> pixel_ptr ;
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ ) pixel_ptr [ x ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ pixel_ptr += s -> stride ;
+ }
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

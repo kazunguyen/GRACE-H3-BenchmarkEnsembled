@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decodearr ( char * str , int * narr , l_fp * lfparr ) {
+ register char * cp , * bp ;
+ register l_fp * lfp ;
+ char buf [ 60 ] ;
+ lfp = lfparr ;
+ cp = str ;
+ * narr = 0 ;
+ while ( * narr < 8 ) {
+ while ( isspace ( ( int ) * cp ) ) cp ++ ;
+ if ( * cp == '\0' ) break ;
+ bp = buf ;
+ while ( ! isspace ( ( int ) * cp ) && * cp != '\0' ) * bp ++ = * cp ++ ;
+ * bp ++ = '\0' ;
+ if ( ! decodetime ( buf , lfp ) ) return 0 ;
+ ( * narr ) ++ ;
+ lfp ++ ;
+ }
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ register char * cp , * bp ;
+ register l_fp * lfp ;
+ char buf [ 60 ] ;
+ lfp = lfparr ;
+ cp = str ;
+ * narr = 0 ;
+ while ( * narr < 8 ) {
+ while ( isspace ( ( int ) * cp ) ) cp ++ ;
+ if ( * cp == '\0' ) break ;
+ bp = buf ;
+ while ( ! isspace ( ( int ) * cp ) && * cp != '\0' ) * bp ++ = * cp ++ ;
+ * bp ++ = '\0' ;
+ if ( ! decodetime ( buf , lfp ) ) return 0 ;
+ ( * narr ) ++ ;
+ lfp ++ ;
+ }
+ return 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ while ( isspace ( ( int ) * cp ) ) cp ++ ;
+ if ( * cp == '\0' ) break ;
+ bp = buf ;
+ while ( ! isspace ( ( int ) * cp ) && * cp != '\0' ) * bp ++ = * cp ++ ;
+ * bp ++ = '\0' ;
+ if ( ! decodetime ( buf , lfp ) ) return 0 ;
+ ( * narr ) ++ ;
+ lfp ++ ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | buf [ 60 ]
+30064771073 | CALL | buf [ 60 ]
+30064771074 | CALL | lfp = lfparr
+30064771075 | CALL | cp = str
+30064771076 | CALL | * narr = 0
+30064771077 | CALL | * narr
+30064771078 | CALL | * narr < 8
+30064771079 | CALL | * narr
+30064771080 | CALL | isspace ( ( int ) * cp )
+30064771081 | CALL | ( int ) * cp
+30064771082 | CALL | * cp
+30064771083 | CALL | cp ++
+30064771084 | CALL | * cp == '\0'
+30064771085 | CALL | * cp
+30064771086 | CALL | bp = buf
+30064771087 | CALL | ! isspace ( ( int ) * cp ) && * cp != '\0'
+30064771088 | CALL | ! isspace ( ( int ) * cp )
+30064771089 | CALL | isspace ( ( int ) * cp )
+30064771090 | CALL | ( int ) * cp
+30064771091 | CALL | * cp
+30064771092 | CALL | * cp != '\0'
+30064771093 | CALL | * cp
+30064771094 | CALL | * bp ++ = * cp ++
+30064771095 | CALL | * bp ++
+30064771096 | CALL | bp ++
+30064771097 | CALL | * cp ++
+30064771098 | CALL | cp ++
+30064771099 | CALL | * bp ++ = '\0'
+30064771100 | CALL | * bp ++
+30064771101 | CALL | bp ++
+30064771102 | CALL | ! decodetime ( buf , lfp )
+30064771103 | CALL | decodetime ( buf , lfp )
+30064771104 | CALL | ( * narr ) ++
+30064771105 | CALL | * narr
+30064771106 | CALL | lfp ++
+47244640256 | CONTROL_STRUCTURE | while (* narr < 8)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771099 [AST]
+25769803777 -> 30064771104 [AST]
+25769803777 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771105 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771085 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771091 [CDG]
+30064771084 -> 30064771090 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771099 [CDG]
+30064771084 -> 30064771101 [CDG]
+30064771084 -> 30064771100 [CDG]
+30064771084 -> 30064771103 [CDG]
+30064771084 -> 30064771102 [CDG]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771091 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771092 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771092 [AST]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771087 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771098 [CDG]
+30064771087 -> 30064771095 [CDG]
+30064771087 -> 30064771094 [CDG]
+30064771087 -> 30064771097 [CDG]
+30064771087 -> 30064771096 [CDG]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771092 [POST_DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771092 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void outputarr ( FILE * fp , char * name , int narr , l_fp * lfp ) {
+ register char * bp ;
+ register char * cp ;
+ register int i ;
+ register int len ;
+ char buf [ 256 ] ;
+ bp = buf ;
+ for ( i = ( int ) strlen ( name ) ;
+ i < 11 ;
+ i ++ ) * bp ++ = ' ' ;
+ for ( i = narr ;
+ i > 0 ;
+ i -- ) {
+ if ( i != narr ) * bp ++ = ' ' ;
+ cp = lfptoms ( lfp , 2 ) ;
+ len = strlen ( cp ) ;
+ if ( len > 7 ) {
+ cp [ 7 ] = '\0' ;
+ len = 7 ;
+ }
+ while ( len < 7 ) {
+ * bp ++ = ' ' ;
+ len ++ ;
+ }
+ while ( * cp != '\0' ) * bp ++ = * cp ++ ;
+ lfp ++ ;
+ }
+ * bp = '\0' ;
+ output ( fp , name , buf ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

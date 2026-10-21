@@ -1,0 +1,161 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qcms_transform_module_clut ( struct qcms_modular_transform * transform , float * src , float * dest , size_t length ) {
+ size_t i ;
+ int xy_len = 1 ;
+ int x_len = transform -> grid_size ;
+ int len = x_len * x_len ;
+ float * r_table = transform -> r_clut ;
+ float * g_table = transform -> g_clut ;
+ float * b_table = transform -> b_clut ;
+ assert ( transform -> grid_size >= 1 ) ;
+ for ( i = 0 ;
+ i < length ;
+ i ++ ) {
+ float device_r = * src ++ ;
+ float device_g = * src ++ ;
+ float device_b = * src ++ ;
+ float linear_r = lut_interp_linear_float ( device_r , transform -> input_clut_table_r , transform -> input_clut_table_length ) ;
+ float linear_g = lut_interp_linear_float ( device_g , transform -> input_clut_table_g , transform -> input_clut_table_length ) ;
+ float linear_b = lut_interp_linear_float ( device_b , transform -> input_clut_table_b , transform -> input_clut_table_length ) ;
+ int x = floor ( linear_r * ( transform -> grid_size - 1 ) ) ;
+ int y = floor ( linear_g * ( transform -> grid_size - 1 ) ) ;
+ int z = floor ( linear_b * ( transform -> grid_size - 1 ) ) ;
+ int x_n = ceil ( linear_r * ( transform -> grid_size - 1 ) ) ;
+ int y_n = ceil ( linear_g * ( transform -> grid_size - 1 ) ) ;
+ int z_n = ceil ( linear_b * ( transform -> grid_size - 1 ) ) ;
+ float x_d = linear_r * ( transform -> grid_size - 1 ) - x ;
+ float y_d = linear_g * ( transform -> grid_size - 1 ) - y ;
+ float z_d = linear_b * ( transform -> grid_size - 1 ) - z ;
+ float r_x1 = lerp ( CLU ( r_table , x , y , z ) , CLU ( r_table , x_n , y , z ) , x_d ) ;
+ float r_x2 = lerp ( CLU ( r_table , x , y_n , z ) , CLU ( r_table , x_n , y_n , z ) , x_d ) ;
+ float r_y1 = lerp ( r_x1 , r_x2 , y_d ) ;
+ float r_x3 = lerp ( CLU ( r_table , x , y , z_n ) , CLU ( r_table , x_n , y , z_n ) , x_d ) ;
+ float r_x4 = lerp ( CLU ( r_table , x , y_n , z_n ) , CLU ( r_table , x_n , y_n , z_n ) , x_d ) ;
+ float r_y2 = lerp ( r_x3 , r_x4 , y_d ) ;
+ float clut_r = lerp ( r_y1 , r_y2 , z_d ) ;
+ float g_x1 = lerp ( CLU ( g_table , x , y , z ) , CLU ( g_table , x_n , y , z ) , x_d ) ;
+ float g_x2 = lerp ( CLU ( g_table , x , y_n , z ) , CLU ( g_table , x_n , y_n , z ) , x_d ) ;
+ float g_y1 = lerp ( g_x1 , g_x2 , y_d ) ;
+ float g_x3 = lerp ( CLU ( g_table , x , y , z_n ) , CLU ( g_table , x_n , y , z_n ) , x_d ) ;
+ float g_x4 = lerp ( CLU ( g_table , x , y_n , z_n ) , CLU ( g_table , x_n , y_n , z_n ) , x_d ) ;
+ float g_y2 = lerp ( g_x3 , g_x4 , y_d ) ;
+ float clut_g = lerp ( g_y1 , g_y2 , z_d ) ;
+ float b_x1 = lerp ( CLU ( b_table , x , y , z ) , CLU ( b_table , x_n , y , z ) , x_d ) ;
+ float b_x2 = lerp ( CLU ( b_table , x , y_n , z ) , CLU ( b_table , x_n , y_n , z ) , x_d ) ;
+ float b_y1 = lerp ( b_x1 , b_x2 , y_d ) ;
+ float b_x3 = lerp ( CLU ( b_table , x , y , z_n ) , CLU ( b_table , x_n , y , z_n ) , x_d ) ;
+ float b_x4 = lerp ( CLU ( b_table , x , y_n , z_n ) , CLU ( b_table , x_n , y_n , z_n ) , x_d ) ;
+ float b_y2 = lerp ( b_x3 , b_x4 , y_d ) ;
+ float clut_b = lerp ( b_y1 , b_y2 , z_d
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ size_t i ;
+ int xy_len = 1 ;
+ int x_len = transform -> grid_size ;
+ int len = x_len * x_len ;
+ float * r_table = transform -> r_clut ;
+ float * g_table = transform -> g_clut ;
+ float * b_table = transform -> b_clut ;
+ assert ( transform -> grid_size >= 1 ) ;
+ for ( i = 0 ;
+ i < length ;
+ i ++ ) {
+ float device_r = * src ++ ;
+ float device_g = * src ++ ;
+ float device_b = * src ++ ;
+ float linear_r = lut_interp_linear_float ( device_r , transform -> input_clut_table_r , transform -> input_clut_table_length ) ;
+ float linear_g = lut_interp_linear_float ( device_g , transform -> input_clut_table_g , transform -> input_clut_table_length ) ;
+ float linear_b = lut_interp_linear_float ( device_b , transform -> input_clut_table_b , transform -> input_clut_table_length ) ;
+ int x = floor ( linear_r * ( transform -> grid_size - 1 ) ) ;
+ int y = floor ( linear_g * ( transform -> grid_size - 1 ) ) ;
+ int z = floor ( linear_b * ( transform -> grid_size - 1 ) ) ;
+ int x_n = ceil ( linear_r * (...
+      
+25769803777 | BLOCK | 
+        {
+ float device_r = * src ++ ;
+ float device_g = * src ++ ;
+ float device_b = * src ++ ;
+ float linear_r = lut_interp_linear_float ( device_r , transform -> input_clut_table_r , transform -> input_clut_table_length ) ;
+ float linear_g = lut_interp_linear_float ( device_g , transform -> input_clut_table_g , transform -> input_clut_table_length ) ;
+ float linear_b = lut_interp_linear_float ( device_b , transform -> input_clut_table_b , transform -> input_clut_table_length ) ;
+ int x = floor ( linear_r * ( transform -> grid_size - 1 ) ) ;
+ int y = floor ( linear_g * ( transform -> grid_size - 1 ) ) ;
+ int z = floor ( linear_b * ( transform -> grid_size - 1 ) ) ;
+ int x_n = ceil ( linear_r * ( transform -> grid_size - 1 ) ) ;
+ int y_n = ceil ( linear_g * ( transform -> grid_size - 1 ) ) ;
+ int z_n = ceil ( linear_b * ( transform -> grid_size - 1 ) ) ;
+ float x_d = linear_r * ( transform -> grid_size - 1 ) - x ;
+ float y_d = linear_g * ( transform -> grid_size - 1 ) - y ;
+ float z_d = li...
+      
+30064771072 | CALL | xy_len = 1
+30064771073 | CALL | x_len = transform -> grid_size
+30064771074 | CALL | transform -> grid_size
+30064771075 | CALL | len = x_len * x_len
+30064771076 | CALL | x_len * x_len
+30064771077 | CALL | r_table = transform -> r_clut
+30064771078 | CALL | transform -> r_clut
+30064771079 | CALL | g_table = transform -> g_clut
+30064771080 | CALL | transform -> g_clut
+30064771081 | CALL | b_table = transform -> b_clut
+30064771082 | CALL | transform -> b_clut
+30064771083 | CALL | assert ( transform -> grid_size >= 1 )
+30064771084 | CALL | transform -> grid_size >= 1
+30064771085 | CALL | transform -> grid_size
+30064771086 | CALL | i = 0
+30064771087 | CALL | i < length
+30064771088 | CALL | i ++
+30064771089 | CALL | device_r = * src ++
+30064771090 | CALL | * src ++
+30064771091 | CALL | src ++
+30064771092 | CALL | device_g = * src ++
+30064771093 | CALL | * src ++
+30064771094 | CALL | src ++
+30064771095 | CALL | device_b = * src ++
+30064771096 | CALL | * src ++
+30064771097 | CALL | src ++
+30064771098 | CALL | 
+        linear_r = lut_interp_linear_float ( device_r , transform -> input_clut_table_r , transform -> input_clut_table_length )
+      
+30064771099 | CALL | 
+        lut_interp_linear_float ( device_r , transform -> input_clut_table_r , transform -> input_clut_table_length )
+      
+30064771100 | CALL | transform -> input_clut_table_r
+30064771101 | CALL | transform -> input_clut_table_length
+30064771102 | CALL | 
+        linear_g = lut_interp_linear_float ( device_g , transform -> input_clut_table_g , transform -> input_clut_table_length )
+      
+30064771103 | CALL | 
+        lut_interp_linear_float ( device_g , transform -> input_clut_table_g , transform -> input_clut_table_length )
+      
+30064771104 | CALL | transform -> input_clut_table_g
+30064771105 | CALL | transform -> input_clut_table_length
+30064771106 | CALL | 
+        linear_b = lut_interp_linear_float ( device_b , transform -> input_clut_table_b , transform -> input_clut_table_length )
+      
+30064771107 | CALL | 
+        lut_interp_linear_float ( device_b , transform -> input_clut_table_b , transform -> input_clut_table_length )
+      
+30064771108 | CALL | transform -> input_clut_table_b
+30064771109 | CALL | transform -> input_clut_table_length
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

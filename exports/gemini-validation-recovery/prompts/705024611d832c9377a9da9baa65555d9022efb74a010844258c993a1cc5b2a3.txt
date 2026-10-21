@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_set_mb_mi ( VP9_COMMON * cm , int width , int height ) {
+ const int aligned_width = ALIGN_POWER_OF_TWO ( width , MI_SIZE_LOG2 ) ;
+ const int aligned_height = ALIGN_POWER_OF_TWO ( height , MI_SIZE_LOG2 ) ;
+ cm -> mi_cols = aligned_width >> MI_SIZE_LOG2 ;
+ cm -> mi_rows = aligned_height >> MI_SIZE_LOG2 ;
+ cm -> mi_stride = calc_mi_size ( cm -> mi_cols ) ;
+ cm -> mb_cols = ( cm -> mi_cols + 1 ) >> 1 ;
+ cm -> mb_rows = ( cm -> mi_rows + 1 ) >> 1 ;
+ cm -> MBs = cm -> mb_rows * cm -> mb_cols ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int aligned_width = ALIGN_POWER_OF_TWO ( width , MI_SIZE_LOG2 ) ;
+ const int aligned_height = ALIGN_POWER_OF_TWO ( height , MI_SIZE_LOG2 ) ;
+ cm -> mi_cols = aligned_width >> MI_SIZE_LOG2 ;
+ cm -> mi_rows = aligned_height >> MI_SIZE_LOG2 ;
+ cm -> mi_stride = calc_mi_size ( cm -> mi_cols ) ;
+ cm -> mb_cols = ( cm -> mi_cols + 1 ) >> 1 ;
+ cm -> mb_rows = ( cm -> mi_rows + 1 ) >> 1 ;
+ cm -> MBs = cm -> mb_rows * cm -> mb_cols ;
+ }
+      
+30064771072 | CALL | aligned_width = ALIGN_POWER_OF_TWO ( width , MI_SIZE_LOG2 )
+30064771073 | CALL | ALIGN_POWER_OF_TWO ( width , MI_SIZE_LOG2 )
+30064771074 | CALL | aligned_height = ALIGN_POWER_OF_TWO ( height , MI_SIZE_LOG2 )
+30064771075 | CALL | ALIGN_POWER_OF_TWO ( height , MI_SIZE_LOG2 )
+30064771076 | CALL | cm -> mi_cols = aligned_width >> MI_SIZE_LOG2
+30064771077 | CALL | cm -> mi_cols
+30064771078 | CALL | aligned_width >> MI_SIZE_LOG2
+30064771079 | CALL | cm -> mi_rows = aligned_height >> MI_SIZE_LOG2
+30064771080 | CALL | cm -> mi_rows
+30064771081 | CALL | aligned_height >> MI_SIZE_LOG2
+30064771082 | CALL | cm -> mi_stride = calc_mi_size ( cm -> mi_cols )
+30064771083 | CALL | cm -> mi_stride
+30064771084 | CALL | calc_mi_size ( cm -> mi_cols )
+30064771085 | CALL | cm -> mi_cols
+30064771086 | CALL | cm -> mb_cols = ( cm -> mi_cols + 1 ) >> 1
+30064771087 | CALL | cm -> mb_cols
+30064771088 | CALL | ( cm -> mi_cols + 1 ) >> 1
+30064771089 | CALL | cm -> mi_cols + 1
+30064771090 | CALL | cm -> mi_cols
+30064771091 | CALL | cm -> mb_rows = ( cm -> mi_rows + 1 ) >> 1
+30064771092 | CALL | cm -> mb_rows
+30064771093 | CALL | ( cm -> mi_rows + 1 ) >> 1
+30064771094 | CALL | cm -> mi_rows + 1
+30064771095 | CALL | cm -> mi_rows
+30064771096 | CALL | cm -> MBs = cm -> mb_rows * cm -> mb_cols
+30064771097 | CALL | cm -> MBs
+30064771098 | CALL | cm -> mb_rows * cm -> mb_cols
+30064771099 | CALL | cm -> mb_rows
+30064771100 | CALL | cm -> mb_cols
+55834574848 | FIELD_IDENTIFIER | mi_cols
+55834574849 | FIELD_IDENTIFIER | mi_rows
+55834574850 | FIELD_IDENTIFIER | mi_stride
+55834574851 | FIELD_IDENTIFIER | mi_cols
+55834574852 | FIELD_IDENTIFIER | mb_cols
+55834574853 | FIELD_IDENTIFIER | mi_cols
+55834574854 | FIELD_IDENTIFIER | mb_rows
+55834574855 | FIELD_IDENTIFIER | mi_rows
+55834574856 | FIELD_IDENTIFIER | MBs
+55834574857 | FIELD_IDENTIFIER | mb_rows
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771085 [REACHING_DEF]
+30064771078 -> 30064771076 [CFG]
+30064771078 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 55834574849 [ARGUMENT]
+30064771080 -> 55834574849 [AST]
+30064771080 -> 55834574849 [POST_DOMINATE]
+30064771080 -> 30064771095 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 55834574850 [ARGUMENT]
+30064771083 -> 55834574850 [AST]
+30064771083 -> 55834574850 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 55834574851 [ARGUMENT]
+30064771085 -> 55834574851 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 55834574851 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771090 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 55834574852 [ARGUMENT]
+30064771087 -> 55834574852 [AST]
+30064771087 -> 55834574852 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int vp9_alloc_context_buffers ( VP9_COMMON * cm , int width , int height ) {
+ vp9_free_context_buffers ( cm ) ;
+ vp9_set_mb_mi ( cm , width , height ) ;
+ if ( alloc_mi ( cm , cm -> mi_stride * calc_mi_size ( cm -> mi_rows ) ) ) goto fail ;
+ cm -> last_frame_seg_map = ( uint8_t * ) vpx_calloc ( cm -> mi_rows * cm -> mi_cols , 1 ) ;
+ if ( ! cm -> last_frame_seg_map ) goto fail ;
+ cm -> above_context = ( ENTROPY_CONTEXT * ) vpx_calloc ( * mi_cols_aligned_to_sb ( cm -> mi_cols ) * MAX_MB_PLANE , sizeof ( * cm -> above_context ) ) ;
+ if ( ! cm -> above_context ) goto fail ;
+ cm -> above_seg_context = ( PARTITION_CONTEXT * ) vpx_calloc ( mi_cols_aligned_to_sb ( cm -> mi_cols ) , sizeof ( * cm -> above_seg_context ) ) ;
+ if ( ! cm -> above_seg_context ) goto fail ;
+ return 0 ;
+ fail : vp9_free_context_buffers ( cm ) ;
+ return 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

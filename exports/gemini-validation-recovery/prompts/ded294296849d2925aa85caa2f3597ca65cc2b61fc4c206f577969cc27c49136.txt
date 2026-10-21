@@ -1,0 +1,361 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void tcg_out_qemu_st_slow_path(TCGContext *s, TCGLabelQemuLdst *l)
+
+{
+
+    TCGMemOp opc = l->opc;
+
+    TCGMemOp s_bits = opc & MO_SIZE;
+
+    uint8_t **label_ptr = &l->label_ptr[0];
+
+    TCGReg retaddr;
+
+
+
+    /* resolve label address */
+
+    *(uint32_t *)label_ptr[0] = (uint32_t)(s->code_ptr - label_ptr[0] - 4);
+
+    if (TARGET_LONG_BITS > TCG_TARGET_REG_BITS) {
+
+        *(uint32_t *)label_ptr[1] = (uint32_t)(s->code_ptr - label_ptr[1] - 4);
+
+    }
+
+
+
+    if (TCG_TARGET_REG_BITS == 32) {
+
+        int ofs = 0;
+
+
+
+        tcg_out_st(s, TCG_TYPE_PTR, TCG_AREG0, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->addrlo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (TARGET_LONG_BITS == 64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->addrhi_reg, TCG_REG_ESP, ofs);
+
+            ofs += 4;
+
+        }
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->datalo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (s_bits == MO_64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->datahi_reg, TCG_REG_ESP, ofs);
+
+            ofs += 4;
+
+        }
+
+
+
+        tcg_out_sti(s, TCG_TYPE_I32, TCG_REG_ESP, ofs, l->mem_index);
+
+        ofs += 4;
+
+
+
+        retaddr = TCG_REG_EAX;
+
+        tcg_out_movi(s, TCG_TYPE_I32, retaddr, (uintptr_t)l->raddr);
+
+        tcg_out_st(s, TCG_TYPE_I32, retaddr, TCG_REG_ESP, ofs);
+
+    } else {
+
+        tcg_out_mov(s, TCG_TYPE_PTR, tcg_target_call_iarg_regs[0], TCG_AREG0);
+
+        /* The second argument is already loaded with addrlo.  */
+
+        tcg_out_mov(s, (s_bits == MO_64 ? TCG_TYPE_I64 : TCG_TYPE_I32),
+
+                    tcg_target_call_iarg_regs[2], l->datalo_reg);
+
+        tcg_out_movi(s, TCG_TYPE_I32, tcg_target_call_iarg_regs[3],
+
+                     l->mem_index);
+
+
+
+        if (ARRAY_SIZE(tcg_target_call_iarg_regs) > 4) {
+
+            retaddr = tcg_target_call_iarg_regs[4];
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+        } else {
+
+            retaddr = TCG_REG_RAX;
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+            tcg_out_st(s, TCG_TYPE_PTR, retaddr, TCG_REG_ESP, 0);
+
+        }
+
+    }
+
+
+
+    /* "Tail call" to the helper, with the return address back inline.  */
+
+    tcg_out_push(s, retaddr);
+
+    tcg_out_jmp(s, (uintptr_t)qemu_st_helpers[opc]);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    TCGMemOp opc = l->opc;
+
+    TCGMemOp s_bits = opc & MO_SIZE;
+
+    uint8_t **label_ptr = &l->label_ptr[0];
+
+    TCGReg retaddr;
+
+
+
+    /* resolve label address */
+
+    *(uint32_t *)label_ptr[0] = (uint32_t)(s->code_ptr - label_ptr[0] - 4);
+
+    if (TARGET_LONG_BITS > TCG_TARGET_REG_BITS) {
+
+        *(uint32_t *)label_ptr[1] = (uint32_t)(s->code_ptr - label_ptr[1] - 4);
+
+    }
+
+
+
+    if (TCG_TARGET_REG_BITS == 32) {
+
+        int ofs = 0;
+
+
+
+        tcg_out_st(s, TCG_TYPE_PTR, TCG_AREG0, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->addrlo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (TARGET_LONG_BITS == 64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->addrhi_reg, TCG_REG_ESP, ofs);
+
+            ofs += 4;
+
+        }
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->datalo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (s_bits == MO_64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->datahi_reg, TCG_REG_ESP, ofs);
+
+            ofs +=...
+      
+25769803777 | BLOCK | { *(uint32_t *)label_ptr[1] = (uint32_t)(s->code_ptr - label_ptr[1] - 4); }
+25769803778 | BLOCK | 
+        {
+
+        int ofs = 0;
+
+
+
+        tcg_out_st(s, TCG_TYPE_PTR, TCG_AREG0, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->addrlo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (TARGET_LONG_BITS == 64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->addrhi_reg, TCG_REG_ESP, ofs);
+
+            ofs += 4;
+
+        }
+
+
+
+        tcg_out_st(s, TCG_TYPE_I32, l->datalo_reg, TCG_REG_ESP, ofs);
+
+        ofs += 4;
+
+
+
+        if (s_bits == MO_64) {
+
+            tcg_out_st(s, TCG_TYPE_I32, l->datahi_reg, TCG_REG_ESP, ofs);
+
+            ofs += 4;
+
+        }
+
+
+
+        tcg_out_sti(s, TCG_TYPE_I32, TCG_REG_ESP, ofs, l->mem_index);
+
+        ofs += 4;
+
+
+
+        retaddr = TCG_REG_EAX;
+
+        tcg_out_movi(s, TCG_TYPE_I32, retaddr, (uintptr_t)l->raddr);
+
+        tcg_out_st(s, TCG_TYPE_I32, retaddr, TCG_REG_ESP, ofs);
+
+    }
+      
+25769803779 | BLOCK | { tcg_out_st(s, TCG_TYPE_I32, l->addrhi_reg, TCG_REG_ESP, ofs); ofs += 4; }
+25769803780 | BLOCK | { tcg_out_st(s, TCG_TYPE_I32, l->datahi_reg, TCG_REG_ESP, ofs); ofs += 4; }
+25769803781 | BLOCK | 
+        {
+
+        tcg_out_mov(s, TCG_TYPE_PTR, tcg_target_call_iarg_regs[0], TCG_AREG0);
+
+        /* The second argument is already loaded with addrlo.  */
+
+        tcg_out_mov(s, (s_bits == MO_64 ? TCG_TYPE_I64 : TCG_TYPE_I32),
+
+                    tcg_target_call_iarg_regs[2], l->datalo_reg);
+
+        tcg_out_movi(s, TCG_TYPE_I32, tcg_target_call_iarg_regs[3],
+
+                     l->mem_index);
+
+
+
+        if (ARRAY_SIZE(tcg_target_call_iarg_regs) > 4) {
+
+            retaddr = tcg_target_call_iarg_regs[4];
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+        } else {
+
+            retaddr = TCG_REG_RAX;
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+            tcg_out_st(s, TCG_TYPE_PTR, retaddr, TCG_REG_ESP, 0);
+
+        }
+
+    }
+      
+25769803782 | BLOCK | 
+        {
+
+            retaddr = tcg_target_call_iarg_regs[4];
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+        }
+      
+25769803783 | BLOCK | 
+        {
+
+            retaddr = TCG_REG_RAX;
+
+            tcg_out_movi(s, TCG_TYPE_PTR, retaddr, (uintptr_t)l->raddr);
+
+            tcg_out_st(s, TCG_TYPE_PTR, retaddr, TCG_REG_ESP, 0);
+
+        }
+      
+30064771072 | CALL | opc = l->opc
+30064771073 | CALL | l->opc
+30064771074 | CALL | s_bits = opc & MO_SIZE
+30064771075 | CALL | opc & MO_SIZE
+30064771076 | CALL | label_ptr = &l->label_ptr[0]
+30064771077 | CALL | &l->label_ptr[0]
+30064771078 | CALL | l->label_ptr[0]
+30064771079 | CALL | l->label_ptr
+30064771080 | CALL | *(uint32_t *)label_ptr[0] = (uint32_t)(s->code_ptr - label_ptr[0] - 4)
+30064771081 | CALL | *(uint32_t *)label_ptr[0]
+30064771082 | CALL | (uint32_t *)label_ptr[0]
+30064771083 | CALL | label_ptr[0]
+30064771084 | CALL | (uint32_t)(s->code_ptr - label_ptr[0] - 4)
+30064771085 | CALL | s->code_ptr - label_ptr[0] - 4
+30064771086 | CALL | s->code_ptr - label_ptr[0]
+30064771087 | CALL | s->code_ptr
+30064771088 | CALL | label_ptr[0]
+30064771089 | CALL | TARGET_LONG_BITS > TCG_TARGET_REG_BITS
+30064771090 | CALL | *(uint32_t *)label_ptr[1] = (uint32_t)(s->code_ptr - label_ptr[1] - 4)
+30064771091 | CALL | *(uint32_t *)label_ptr[1]
+30064771092 | CALL | (uint32_t *)label_ptr[1]
+30064771093 | CALL | label_ptr[1]
+30064771094 | CALL | (uint32_t)(s->code_ptr - label_ptr[1] - 4)
+30064771095 | CALL | s->code_ptr - label_ptr[1] - 4
+30064771096 | CALL | s->code_ptr - label_ptr[1]
+30064771097 | CALL | s->code_ptr
+30064771098 | CALL | label_ptr[1]
+30064771099 | CALL | TCG_TARGET_REG_BITS == 32
+30064771100 | CALL | ofs = 0
+30064771101 | CALL | tcg_out_st(s, TCG_TYPE_PTR, TCG_AREG0, TCG_REG_ESP, ofs)
+30064771102 | CALL | ofs += 4
+30064771103 | CALL | tcg_out_st(s, TCG_TYPE_I32, l->addrlo_reg, TCG_REG_ESP, ofs)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

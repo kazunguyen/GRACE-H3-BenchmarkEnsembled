@@ -1,0 +1,333 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ipvideo_decode_block_opcode_0x9_16 ( IpvideoContext * s , AVFrame * frame ) {
+ int x , y ;
+ uint16_t P [ 4 ] ;
+ uint16_t * pixel_ptr = ( uint16_t * ) s -> pixel_ptr ;
+ for ( x = 0 ;
+ x < 4 ;
+ x ++ ) P [ x ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ if ( ! ( P [ 0 ] & 0x8000 ) ) {
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ int flags = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) * pixel_ptr ++ = P [ flags & 0x03 ] ;
+ pixel_ptr += s -> line_inc ;
+ }
+ }
+ else {
+ uint32_t flags ;
+ flags = bytestream2_get_le32 ( & s -> stream_ptr ) ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+ }
+ else {
+ uint64_t flags ;
+ flags = bytestream2_get_le64 ( & s -> stream_ptr ) ;
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride ;
+ }
+ }
+ else {
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y ;
+ uint16_t P [ 4 ] ;
+ uint16_t * pixel_ptr = ( uint16_t * ) s -> pixel_ptr ;
+ for ( x = 0 ;
+ x < 4 ;
+ x ++ ) P [ x ] = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ if ( ! ( P [ 0 ] & 0x8000 ) ) {
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ int flags = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) * pixel_ptr ++ = P [ flags & 0x03 ] ;
+ pixel_ptr += s -> line_inc ;
+ }
+ }
+ else {
+ uint32_t flags ;
+ flags = bytestream2_get_le32 ( & s -> stream_ptr ) ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+ }
+ else {
+ uint64_t flags ;
+ flags = bytestream2_get_le64 ( & s -> stream_ptr ) ;
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pix...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ int flags = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) * pixel_ptr ++ = P [ flags & 0x03 ] ;
+ pixel_ptr += s -> line_inc ;
+ }
+ }
+ else {
+ uint32_t flags ;
+ flags = bytestream2_get_le32 ( & s -> stream_ptr ) ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ int flags = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) * pixel_ptr ++ = P [ flags & 0x03 ] ;
+ pixel_ptr += s -> line_inc ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int flags = bytestream2_get_le16 ( & s -> stream_ptr ) ;
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) * pixel_ptr ++ = P [ flags & 0x03 ] ;
+ pixel_ptr += s -> line_inc ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ uint32_t flags ;
+ flags = bytestream2_get_le32 ( & s -> stream_ptr ) ;
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = pixel_ptr [ x + s -> stride ] = pixel_ptr [ x + 1 + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ uint64_t flags ;
+ flags = bytestream2_get_le64 ( & s -> stream_ptr ) ;
+ if ( ! ( P [ 2 ] & 0x8000 ) ) {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride ;
+ }
+ }
+ else {
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < 8 ;
+ x += 2 , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | { pixel_ptr [ x ] = pixel_ptr [ x + 1 ] = P [ flags & 0x03 ] ; }
+25769803790 | BLOCK | 
+        {
+ for ( y = 0 ;
+ y < 8 ;
+ y += 2 ) {
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+ }
+      
+25769803791 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < 8 ;
+ x ++ , flags >>= 2 ) {
+ pixel_ptr [ x ] = pixel_ptr [ x + s -> stride ] = P [ flags & 0x03 ] ;
+ }
+ pixel_ptr += s -> stride * 2 ;
+ }
+      
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | { pixel_ptr [ x ] = pixel_ptr [ x + s -> stride ] = P [ flags & 0x03 ] ; }
+30064771072 | CALL | P [ 4 ]
+30064771073 | CALL | P [ 4 ]
+30064771074 | CALL | pixel_ptr = ( uint16_t * ) s -> pixel_ptr
+30064771075 | CALL | ( uint16_t * ) s -> pixel_ptr
+30064771076 | CALL | s -> pixel_ptr
+30064771077 | CALL | x = 0
+30064771078 | CALL | x < 4
+30064771079 | CALL | x ++
+30064771080 | CALL | P [ x ] = bytestream2_get_le16 ( & s -> stream_ptr )
+30064771081 | CALL | P [ x ]
+30064771082 | CALL | bytestream2_get_le16 ( & s -> stream_ptr )
+30064771083 | CALL | & s -> stream_ptr
+30064771084 | CALL | s -> stream_ptr
+30064771085 | CALL | ! ( P [ 0 ] & 0x8000 )
+30064771086 | CALL | P [ 0 ] & 0x8000
+30064771087 | CALL | P [ 0 ]
+30064771088 | CALL | ! ( P [ 2 ] & 0x8000 )
+30064771089 | CALL | P [ 2 ] & 0x8000
+30064771090 | CALL | P [ 2 ]
+30064771091 | CALL | y = 0
+30064771092 | CALL | y < 8
+30064771093 | CALL | y ++
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 3006
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

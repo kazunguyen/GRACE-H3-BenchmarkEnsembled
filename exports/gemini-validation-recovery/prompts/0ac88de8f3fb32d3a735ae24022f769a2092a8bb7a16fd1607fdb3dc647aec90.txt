@@ -1,0 +1,309 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int h263_mv4_search(MpegEncContext *s, int mx, int my, int shift)
+
+{
+
+    MotionEstContext * const c= &s->me;
+
+    const int size= 1;
+
+    const int h=8;
+
+    int block;
+
+    int P[10][2];
+
+    int dmin_sum=0, mx4_sum=0, my4_sum=0;
+
+    int same=1;
+
+    const int stride= c->stride;
+
+    uint8_t *mv_penalty= c->current_mv_penalty;
+
+
+
+    init_mv4_ref(c);
+
+
+
+    for(block=0; block<4; block++){
+
+        int mx4, my4;
+
+        int pred_x4, pred_y4;
+
+        int dmin4;
+
+        static const int off[4]= {2, 1, 1, -1};
+
+        const int mot_stride = s->b8_stride;
+
+        const int mot_xy = s->block_index[block];
+
+
+
+        P_LEFT[0] = s->current_picture.motion_val[0][mot_xy - 1][0];
+
+        P_LEFT[1] = s->current_picture.motion_val[0][mot_xy - 1][1];
+
+
+
+        if(P_LEFT[0]       > (c->xmax<<shift)) P_LEFT[0]       = (c->xmax<<shift);
+
+
+
+        /* special case for first line */
+
+        if (s->first_slice_line && block<2) {
+
+            c->pred_x= pred_x4= P_LEFT[0];
+
+            c->pred_y= pred_y4= P_LEFT[1];
+
+        } else {
+
+            P_TOP[0]      = s->current_picture.motion_val[0][mot_xy - mot_stride             ][0];
+
+            P_TOP[1]      = s->current_picture.motion_val[0][mot_xy - mot_stride             ][1];
+
+            P_TOPRIGHT[0] = s->current_picture.motion_val[0][mot_xy - mot_stride + off[block]][0];
+
+            P_TOPRIGHT[1] = s->current_picture.motion_val[0][mot_xy - mot_stride + off[block]][1];
+
+            if(P_TOP[1]      > (c->ymax<<shift)) P_TOP[1]     = (c->ymax<<shift);
+
+            if(P_TOPRIGHT[0] < (c->xmin<<shift)) P_TOPRIGHT[0]= (c->xmin<<shift);
+
+            if(P_TOPRIGHT[0] > (c->xmax<<shift)) P_TOPRIGHT[0]= (c->xmax<<shift);
+
+            if(P_TOPRIGHT[1] > (c->ymax<<shift)) P_TOPRIGHT[1]= (c->ymax<<shift);
+
+
+
+            P_MEDIAN[0]= mid_pred(P_LEFT[0], P_TOP[0], P_TOPRIGHT[0]);
+
+            P_MEDIAN[1]= mid_pred(P_LEFT[1], P_TOP[1], P_TOPRIGHT[1]);
+
+
+
+            c->pred_x= pred_x4 = P_MEDIAN[0];
+
+            c->pred_y= pred_y4 = P_MEDIAN[1];
+
+        }
+
+        P_MV1[0]= mx;
+
+        P_MV1[1]= my;
+
+
+
+        dmin4 = epzs_motion_search4(s, &mx4, &my4, P, block, block, s->p_mv_table, (1<<16)>>shift);
+
+
+
+        dmin4= c->sub_motion_search(s, &mx4, &my4, dmin4, block, block, size, h);
+
+
+
+        if(s->dsp.me_sub_cmp[0] != s->dsp.mb_cmp[0]){
+
+            int dxy;
+
+            const int offset= ((block&1) + (block>>1)*stride)*8;
+
+            uint8_t *dest_y = c->scratchpad + offset;
+
+            if(s->quarter_sample){
+
+                uint8_t *ref= c->ref[block][0] + (mx4>>2) + (my4>>2)*stride;
+
+                dxy = ((my4 & 3) << 2) | (mx4 & 3);
+
+
+
+                if(s->no_rounding)
+
+                    s->dsp.put_no_rnd_qpel_pixels_tab[1][dxy](dest_y   , ref    , stride);
+
+                else
+
+                    s->dsp.put_qpel_pixels_tab       [1][dxy](dest_y   , ref    , stride);
+
+            }else{
+
+                uint8_t *ref= c->ref[block][0] + (mx4>>1) + (my4>>1)*stride;
+
+                
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Statement
+AST 2 | CompoundStatement
+AST 3 | FunctionDef
+EDGES (original Joern endpoint IDs):
+4 -> 5 [IS_AST_PARENT]
+4 -> 6 [IS_AST_PARENT]
+4 -> 7 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+4 -> 8 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+41 -> 48 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+54 -> 57 [IS_AST_PARENT]
+41 -> 54 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int ff_pre_estimate_p_frame_motion(MpegEncContext * s,
+
+                                    int mb_x, int mb_y)
+
+{
+
+    MotionEstContext * const c= &s->me;
+
+    int mx, my, dmin;
+
+    int P[10][2];
+
+    const int shift= 1+s->quarter_sample;
+
+    const int xy= mb_x + mb_y*s->mb_stride;
+
+    init_ref(c, s->new_picture.f.data, s->last_picture.f.data, NULL, 16*mb_x, 16*mb_y, 0);
+
+
+
+    assert(s->quarter_sample==0 || s->quarter_sample==1);
+
+
+
+    c->pre_penalty_factor    = get_penalty_factor(s->lambda, s->lambda2, c->avctx->me_pre_cmp);
+
+    c->current_mv_penalty= c->mv_penalty[s->f_code] + MAX_MV;
+
+
+
+    get_limits(s, 16*mb_x, 16*mb_y);
+
+    c->skip=0;
+
+
+
+    P_LEFT[0]       = s->p_mv_table[xy + 1][0];
+
+    P_LEFT[1]       = s->p_mv_table[xy + 1][1];
+
+
+
+    if(P_LEFT[0]       < (c->xmin<<shift)) P_LEFT[0]       = (c->xmin<<shift);
+
+
+
+    /* special case for first line */
+
+    if (s->first_slice_line) {
+
+        c->pred_x= P_LEFT[0];
+
+        c->pred_y= P_LEFT[1];
+
+        P_TOP[0]= P_TOPRIGHT[0]= P_MEDIAN[0]=
+
+        P_TOP[1]= P_TOPRIGHT[1]= P_MEDIAN[1]= 0; //FIXME
+
+    } else {
+
+        P_TOP[0]      = s->p_mv_table[xy + s->mb_stride    ][0];
+
+        P_TOP[1]      = s->p_mv_table[xy + s->mb_stride    ][1];
+
+        P_TOPRIGHT[0] = s->p_mv_table[xy + s->mb_stride - 1][0];
+
+        P_TOPRIGHT[1] = s->p_mv_table[xy + s->mb_stride - 1][1];
+
+        if(P_TOP[1]      < (c->ymin<<shift)) P_TOP[1]     = (c->ymin<<shift);
+
+        if(P_TOPRIGHT[0] > (c->xmax<<shift)) P_TOPRIGHT[0]= (c-
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

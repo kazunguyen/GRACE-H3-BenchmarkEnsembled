@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void count_node_types ( cmap_splay * node , void * arg ) {
+ int * counts = ( int * ) arg ;
+ if ( node -> many ) counts [ 2 ] ++ ;
+ else if ( node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF ) counts [ 0 ] ++ ;
+ else counts [ 1 ] ++ ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int * counts = ( int * ) arg ;
+ if ( node -> many ) counts [ 2 ] ++ ;
+ else if ( node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF ) counts [ 0 ] ++ ;
+ else counts [ 1 ] ++ ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | counts = ( int * ) arg
+30064771073 | CALL | ( int * ) arg
+30064771074 | CALL | node -> many
+30064771075 | CALL | counts [ 2 ] ++
+30064771076 | CALL | counts [ 2 ]
+30064771077 | CALL | 
+        node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF
+      
+30064771078 | CALL | node -> low <= 0xffff && node -> high <= 0xFFFF
+30064771079 | CALL | node -> low <= 0xffff
+30064771080 | CALL | node -> low
+30064771081 | CALL | node -> high <= 0xFFFF
+30064771082 | CALL | node -> high
+30064771083 | CALL | node -> out <= 0xFFFF
+30064771084 | CALL | node -> out
+30064771085 | CALL | counts [ 0 ] ++
+30064771086 | CALL | counts [ 0 ]
+30064771087 | CALL | counts [ 1 ] ++
+30064771088 | CALL | counts [ 1 ]
+47244640256 | CONTROL_STRUCTURE | 
+        if ( node -> many ) counts [ 2 ] ++ ;
+ else if ( node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF ) counts [ 0 ] ++ ;
+ else counts [ 1 ] ++ ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF ) counts [ 0 ] ++ ;
+ else counts [ 1 ] ++ ;
+      
+55834574848 | FIELD_IDENTIFIER | many
+55834574849 | FIELD_IDENTIFIER | low
+55834574850 | FIELD_IDENTIFIER | high
+55834574851 | FIELD_IDENTIFIER | out
+68719476736 | IDENTIFIER | counts
+68719476737 | IDENTIFIER | arg
+68719476738 | IDENTIFIER | node
+68719476739 | IDENTIFIER | counts
+68719476740 | IDENTIFIER | node
+68719476741 | IDENTIFIER | node
+68719476742 | IDENTIFIER | node
+68719476743 | IDENTIFIER | counts
+68719476744 | IDENTIFIER | counts
+90194313216 | LITERAL | 2
+90194313217 | LITERAL | 0xffff
+90194313218 | LITERAL | 0xFFFF
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 47244640257 [AST]
+25769803779 -> 30064771085 [AST]
+25769803780 -> 30064771087 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 90194313216 [CDG]
+30064771074 -> 90194313217 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 90194313216 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771083 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771083 [AST]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476744 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476744 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771083 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 68719476742 [CDG]
+30064771078 -> 55834574851 [CDG]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476742 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void copy_node_types ( cmap_splay * node , void * arg ) {
+ pdf_cmap * cmap = ( pdf_cmap * ) arg ;
+ if ( node -> many ) {
+ assert ( node -> low == node -> high ) ;
+ cmap -> mranges [ cmap -> mlen ] . low = node -> low ;
+ cmap -> mranges [ cmap -> mlen ] . out = node -> out ;
+ cmap -> mlen ++ ;
+ }
+ else if ( node -> low <= 0xffff && node -> high <= 0xFFFF && node -> out <= 0xFFFF ) {
+ cmap -> ranges [ cmap -> rlen ] . low = node -> low ;
+ cmap -> ranges [ cmap -> rlen ] . high = node -> high ;
+ cmap -> ranges [ cmap -> rlen ] . out = node -> out ;
+ cmap -> rlen ++ ;
+ }
+ else {
+ cmap -> xranges [ cmap -> xlen ] . low = node -> low ;
+ cmap -> xranges [ cmap -> xlen ] . high = node -> high ;
+ cmap -> xranges [ cmap -> xlen ] . out = node -> out ;
+ cmap -> xlen ++ ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,236 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dca_exss_parse_asset_header ( DCAContext * s ) {
+ int header_pos = get_bits_count ( & s -> gb ) ;
+ int header_size ;
+ int channels ;
+ int embedded_stereo = 0 ;
+ int embedded_6ch = 0 ;
+ int drc_code_present ;
+ int extensions_mask ;
+ int i , j ;
+ if ( get_bits_left ( & s -> gb ) < 16 ) return - 1 ;
+ header_size = get_bits ( & s -> gb , 9 ) + 1 ;
+ skip_bits ( & s -> gb , 3 ) ;
+ if ( s -> static_fields ) {
+ if ( get_bits1 ( & s -> gb ) ) skip_bits ( & s -> gb , 4 ) ;
+ if ( get_bits1 ( & s -> gb ) ) skip_bits_long ( & s -> gb , 24 ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int text_length = get_bits ( & s -> gb , 10 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < text_length * 8 ) return - 1 ;
+ skip_bits_long ( & s -> gb , text_length * 8 ) ;
+ }
+ skip_bits ( & s -> gb , 5 ) ;
+ skip_bits ( & s -> gb , 4 ) ;
+ channels = get_bits ( & s -> gb , 8 ) + 1 ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int spkr_remap_sets ;
+ int spkr_mask_size = 16 ;
+ int num_spkrs [ 7 ] ;
+ if ( channels > 2 ) embedded_stereo = get_bits1 ( & s -> gb ) ;
+ if ( channels > 6 ) embedded_6ch = get_bits1 ( & s -> gb ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ spkr_mask_size = ( get_bits ( & s -> gb , 2 ) + 1 ) << 2 ;
+ skip_bits ( & s -> gb , spkr_mask_size ) ;
+ }
+ spkr_remap_sets = get_bits ( & s -> gb , 3 ) ;
+ for ( i = 0 ;
+ i < spkr_remap_sets ;
+ i ++ ) {
+ num_spkrs [ i ] = dca_exss_mask2count ( get_bits ( & s -> gb , spkr_mask_size ) ) ;
+ }
+ for ( i = 0 ;
+ i < spkr_remap_sets ;
+ i ++ ) {
+ int num_dec_ch_remaps = get_bits ( & s -> gb , 5 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < 0 ) return - 1 ;
+ for ( j = 0 ;
+ j < num_spkrs [ i ] ;
+ j ++ ) {
+ int remap_dec_ch_mask = get_bits_long ( & s -> gb , num_dec_ch_remaps ) ;
+ int num_dec_ch = av_popcount ( remap_dec_ch_mask ) ;
+ skip_bits_long ( & s -> gb , num_dec_ch * 5 ) ;
+ }
+ }
+ }
+ else {
+ skip_bits ( & s -> gb , 3 ) ;
+ }
+ }
+ drc_code_present = get_bits1 ( & s -> gb ) ;
+ if ( drc_code_present ) get_bits ( & s -> gb , 8 ) ;
+ if ( get_bits1 ( & s -> gb ) ) skip_bits ( & s -> gb , 5 ) ;
+ if ( drc_code_present && embedded_stereo ) get_bits ( & s -> gb , 8 ) ;
+ if ( s -> mix_metadata && get_bits1 ( & s -> gb ) ) {
+ skip_bits ( & s -> gb , 1 ) ;
+ skip_bits ( & s -> gb , 6 ) ;
+ if ( get_bits ( & s -> gb , 2 ) != 3 ) skip_bits ( & s -> gb , 3 ) ;
+ else skip_bits ( & s -> gb , 8 ) ;
+ if ( get_bits1 ( & s -> gb ) ) for ( i = 0 ;
+ i < s -> num_mix_configs ;
+ i ++ ) skip_bits_long ( & s -> gb , s -> mix_config_num_ch [ i ] * 6 ) ;
+ else skip_bits_long ( & s -> gb , s -> num_mix_configs * 6 ) ;
+ for ( i = 0 ;
+ i < s -> num_mix_configs ;
+ i ++ ) {
+ if ( get_bits_left ( & s -> gb ) < 0 ) return - 1 ;
+ dca_exss_skip_mix_coeffs ( & s -> gb , channels , s -> mix_config_num_ch [ i ] ) ;
+ if ( embedded_6ch ) dca_exss_skip_mix_coeffs ( & s -> gb , 6 , s -> mix_config_num_ch [ i ] ) ;
+ if ( embedded_stereo ) dca_exss_skip_mix_coeffs ( & s -> gb , 2 , s -> mix_config_num_ch [ i ] ) ;
+ }
+ }
+ switch ( get_bits ( & s -> gb , 2 ) ) {
+ case 0 : extensions_mask = get_bits 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int header_pos = get_bits_count ( & s -> gb ) ;
+ int header_size ;
+ int channels ;
+ int embedded_stereo = 0 ;
+ int embedded_6ch = 0 ;
+ int drc_code_present ;
+ int extensions_mask ;
+ int i , j ;
+ if ( get_bits_left ( & s -> gb ) < 16 ) return - 1 ;
+ header_size = get_bits ( & s -> gb , 9 ) + 1 ;
+ skip_bits ( & s -> gb , 3 ) ;
+ if ( s -> static_fields ) {
+ if ( get_bits1 ( & s -> gb ) ) skip_bits ( & s -> gb , 4 ) ;
+ if ( get_bits1 ( & s -> gb ) ) skip_bits_long ( & s -> gb , 24 ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int text_length = get_bits ( & s -> gb , 10 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < text_length * 8 ) return - 1 ;
+ skip_bits_long ( & s -> gb , text_length * 8 ) ;
+ }
+ skip_bits ( & s -> gb , 5 ) ;
+ skip_bits ( & s -> gb , 4 ) ;
+ channels = get_bits ( & s -> gb , 8 ) + 1 ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int spkr_remap_sets ;
+ int spkr_mask_size = 16 ;
+ int num_spkrs [ 7 ] ;
+ if ( channels > 2 ) embedded_stereo = get_bits1 ( & s -> gb ) ;
+ if ( channels > 6 ) e...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( get_bits1 ( & s -> gb ) ) skip_bits ( & s -> gb , 4 ) ;
+ if ( get_bits1 ( & s -> gb ) ) skip_bits_long ( & s -> gb , 24 ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int text_length = get_bits ( & s -> gb , 10 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < text_length * 8 ) return - 1 ;
+ skip_bits_long ( & s -> gb , text_length * 8 ) ;
+ }
+ skip_bits ( & s -> gb , 5 ) ;
+ skip_bits ( & s -> gb , 4 ) ;
+ channels = get_bits ( & s -> gb , 8 ) + 1 ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int spkr_remap_sets ;
+ int spkr_mask_size = 16 ;
+ int num_spkrs [ 7 ] ;
+ if ( channels > 2 ) embedded_stereo = get_bits1 ( & s -> gb ) ;
+ if ( channels > 6 ) embedded_6ch = get_bits1 ( & s -> gb ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ spkr_mask_size = ( get_bits ( & s -> gb , 2 ) + 1 ) << 2 ;
+ skip_bits ( & s -> gb , spkr_mask_size ) ;
+ }
+ spkr_remap_sets = get_bits ( & s -> gb , 3 ) ;
+ for ( i = 0 ;
+ i < spkr_remap_sets ;
+ i ++ ) {
+ num_spkrs [ i ] = dca_exss_mask2count ( get_bits ( & s -> gb , spkr_mask_size )...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ int text_length = get_bits ( & s -> gb , 10 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < text_length * 8 ) return - 1 ;
+ skip_bits_long ( & s -> gb , text_length * 8 ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ int spkr_remap_sets ;
+ int spkr_mask_size = 16 ;
+ int num_spkrs [ 7 ] ;
+ if ( channels > 2 ) embedded_stereo = get_bits1 ( & s -> gb ) ;
+ if ( channels > 6 ) embedded_6ch = get_bits1 ( & s -> gb ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ spkr_mask_size = ( get_bits ( & s -> gb , 2 ) + 1 ) << 2 ;
+ skip_bits ( & s -> gb , spkr_mask_size ) ;
+ }
+ spkr_remap_sets = get_bits ( & s -> gb , 3 ) ;
+ for ( i = 0 ;
+ i < spkr_remap_sets ;
+ i ++ ) {
+ num_spkrs [ i ] = dca_exss_mask2count ( get_bits ( & s -> gb , spkr_mask_size ) ) ;
+ }
+ for ( i = 0 ;
+ i < spkr_remap_sets ;
+ i ++ ) {
+ int num_dec_ch_remaps = get_bits ( & s -> gb , 5 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < 0 ) return - 1 ;
+ for ( j = 0 ;
+ j < num_spkrs [ i ] ;
+ j ++ ) {
+ int remap_dec_ch_mask = get_bits_long ( & s -> gb , num_dec_ch_remaps ) ;
+ int num_dec_ch = av_popcount ( remap_dec_ch_mask ) ;
+ skip_bits_long ( & s -> gb , num_dec_ch * 5 ) ;
+ }
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ spkr_mask_size = ( get_bits ( & s -> gb , 2 ) + 1 ) << 2 ;
+ skip_bits ( & s -> gb , spkr_mask_size ) ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ num_spkrs [ i ] = dca_exss_mask2count ( get_bits ( & s -> gb , spkr_mask_size ) ) ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ int num_dec_ch_remaps = get_bits ( & s -> gb , 5 ) + 1 ;
+ if ( get_bits_left ( & s -> gb ) < 0 ) return - 1 ;
+ for ( j = 0 ;
+ j < num_spkrs [ i ] ;
+ j ++ ) {
+ int remap_dec_ch_mask = get_bits_long ( & s -> gb , num_dec_ch_remaps ) ;
+ int num_dec_ch = av_popcount ( remap_dec_ch_mask ) ;
+ skip_bits_long ( & s -> gb , num_dec_ch * 5 ) ;
+ }
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ int remap_dec_ch_mask = get_bits_long ( & s -> gb , num_dec_ch_remaps ) ;
+ int num_dec_ch = av_popcount ( remap_dec_ch_mask ) ;
+ skip_bits_long ( & s -> gb , num_dec_ch * 5 ) ;
+ }
+      
+25769803791 | BLOCK | { skip_bits ( & s -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

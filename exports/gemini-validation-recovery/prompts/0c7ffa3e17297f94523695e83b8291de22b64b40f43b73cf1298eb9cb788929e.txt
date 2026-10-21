@@ -1,0 +1,50 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void spl_filesystem_tree_it_current_data ( zend_object_iterator * iter , zval * * * data TSRMLS_DC ) {
+ spl_filesystem_iterator * iterator = ( spl_filesystem_iterator * ) iter ;
+ spl_filesystem_object * object = spl_filesystem_iterator_to_object ( iterator ) ;
+ if ( SPL_FILE_DIR_CURRENT ( object , SPL_FILE_DIR_CURRENT_AS_PATHNAME ) ) {
+ if ( ! iterator -> current ) {
+ ALLOC_INIT_ZVAL ( iterator -> current ) ;
+ spl_filesystem_object_get_file_name ( object TSRMLS_CC ) ;
+ ZVAL_STRINGL ( iterator -> current , object -> file_name , object -> file_name_len , 1 ) ;
+ }
+ * data = & iterator -> current ;
+ }
+ else if ( SPL_FILE_DIR_CURRENT ( object , SPL_FILE_DIR_CURRENT_AS_FILEINFO ) ) {
+ if ( ! iterator -> current ) {
+ ALLOC_INIT_ZVAL ( iterator -> current ) ;
+ spl_filesystem_object_get_file_name ( object TSRMLS_CC ) ;
+ spl_filesystem_object_create_type ( 0 , object , SPL_FS_INFO , NULL , iterator -> current TSRMLS_CC ) ;
+ }
+ * data = & iterator -> current ;
+ }
+ else {
+ * data = ( zval * * ) & iterator -> intern . data ;
+ }
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void spl_filesystem_tree_it_current_key ( zend_object_iterator * iter , zval * key TSRMLS_DC ) {
+ spl_filesystem_object * object = spl_filesystem_iterator_to_object ( ( spl_filesystem_iterator * ) iter ) ;
+ if ( SPL_FILE_DIR_KEY ( object , SPL_FILE_DIR_KEY_AS_FILENAME ) ) {
+ ZVAL_STRING ( key , object -> u . dir . entry . d_name , 1 ) ;
+ }
+ else {
+ spl_filesystem_object_get_file_name ( object TSRMLS_CC ) ;
+ ZVAL_STRINGL ( key , object -> file_name , object -> file_name_len , 1 ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

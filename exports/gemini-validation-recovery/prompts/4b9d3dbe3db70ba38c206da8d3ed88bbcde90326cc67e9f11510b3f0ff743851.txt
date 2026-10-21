@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void examine_simple_variable ( PlannerInfo * root , Var * var , VariableStatData * vardata ) {
+ RangeTblEntry * rte = root -> simple_rte_array [ var -> varno ] ;
+ Assert ( IsA ( rte , RangeTblEntry ) ) ;
+ if ( get_relation_stats_hook && ( * get_relation_stats_hook ) ( root , rte , var -> varattno , vardata ) ) {
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) && ! vardata -> freefunc ) elog ( ERROR , "no function provided to release variable stats with" ) ;
+ }
+ else if ( rte -> rtekind == RTE_RELATION ) {
+ vardata -> statsTuple = SearchSysCache3 ( STATRELATTINH , ObjectIdGetDatum ( rte -> relid ) , Int16GetDatum ( var -> varattno ) , BoolGetDatum ( rte -> inh ) ) ;
+ vardata -> freefunc = ReleaseSysCache ;
+ }
+ else if ( rte -> rtekind == RTE_SUBQUERY && ! rte -> inh ) {
+ Query * subquery = rte -> subquery ;
+ RelOptInfo * rel ;
+ TargetEntry * ste ;
+ if ( var -> varattno == InvalidAttrNumber ) return ;
+ if ( subquery -> setOperations || subquery -> groupClause ) return ;
+ rel = find_base_rel ( root , var -> varno ) ;
+ if ( rel -> subroot == NULL ) return ;
+ Assert ( IsA ( rel -> subroot , PlannerInfo ) ) ;
+ subquery = rel -> subroot -> parse ;
+ Assert ( IsA ( subquery , Query ) ) ;
+ ste = get_tle_by_resno ( subquery -> targetList , var -> varattno ) ;
+ if ( ste == NULL || ste -> resjunk ) elog ( ERROR , "subquery %s does not have attribute %d" , rte -> eref -> aliasname , var -> varattno ) ;
+ var = ( Var * ) ste -> expr ;
+ if ( subquery -> distinctClause ) {
+ if ( list_length ( subquery -> distinctClause ) == 1 && targetIsInSortList ( ste , InvalidOid , subquery -> distinctClause ) ) vardata -> isunique = true ;
+ return ;
+ }
+ if ( rte -> security_barrier ) return ;
+ if ( var && IsA ( var , Var ) && var -> varlevelsup == 0 ) {
+ examine_simple_variable ( rel -> subroot , var , vardata ) ;
+ }
+ }
+ else {
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ RangeTblEntry * rte = root -> simple_rte_array [ var -> varno ] ;
+ Assert ( IsA ( rte , RangeTblEntry ) ) ;
+ if ( get_relation_stats_hook && ( * get_relation_stats_hook ) ( root , rte , var -> varattno , vardata ) ) {
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) && ! vardata -> freefunc ) elog ( ERROR , "no function provided to release variable stats with" ) ;
+ }
+ else if ( rte -> rtekind == RTE_RELATION ) {
+ vardata -> statsTuple = SearchSysCache3 ( STATRELATTINH , ObjectIdGetDatum ( rte -> relid ) , Int16GetDatum ( var -> varattno ) , BoolGetDatum ( rte -> inh ) ) ;
+ vardata -> freefunc = ReleaseSysCache ;
+ }
+ else if ( rte -> rtekind == RTE_SUBQUERY && ! rte -> inh ) {
+ Query * subquery = rte -> subquery ;
+ RelOptInfo * rel ;
+ TargetEntry * ste ;
+ if ( var -> varattno == InvalidAttrNumber ) return ;
+ if ( subquery -> setOperations || subquery -> groupClause ) return ;
+ rel = find_base_rel ( root , var -> varno ) ;
+ if ( rel -> subroot == NULL ) return ;
+ Assert ( IsA ( rel...
+      
+25769803777 | BLOCK | 
+        {
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) && ! vardata -> freefunc ) elog ( ERROR , "no function provided to release variable stats with" ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ vardata -> statsTuple = SearchSysCache3 ( STATRELATTINH , ObjectIdGetDatum ( rte -> relid ) , Int16GetDatum ( var -> varattno ) , BoolGetDatum ( rte -> inh ) ) ;
+ vardata -> freefunc = ReleaseSysCache ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ Query * subquery = rte -> subquery ;
+ RelOptInfo * rel ;
+ TargetEntry * ste ;
+ if ( var -> varattno == InvalidAttrNumber ) return ;
+ if ( subquery -> setOperations || subquery -> groupClause ) return ;
+ rel = find_base_rel ( root , var -> varno ) ;
+ if ( rel -> subroot == NULL ) return ;
+ Assert ( IsA ( rel -> subroot , PlannerInfo ) ) ;
+ subquery = rel -> subroot -> parse ;
+ Assert ( IsA ( subquery , Query ) ) ;
+ ste = get_tle_by_resno ( subquery -> targetList , var -> varattno ) ;
+ if ( ste == NULL || ste -> resjunk ) elog ( ERROR , "subquery %s does not have attribute %d" , rte -> eref -> aliasname , var -> varattno ) ;
+ var = ( Var * ) ste -> expr ;
+ if ( subquery -> distinctClause ) {
+ if ( list_length ( subquery -> distinctClause ) == 1 && targetIsInSortList ( ste , InvalidOid , subquery -> distinctClause ) ) vardata -> isunique = true ;
+ return ;
+ }
+ if ( rte -> security_barrier ) return ;
+ if ( var && IsA ( var , Var ) && var -> varlevelsup == 0 ) {
+ examine_simple_variab...
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( list_length ( subquery -> distinctClause ) == 1 && targetIsInSortList ( ste , InvalidOid , subquery -> distinctClause ) ) vardata -> isunique = true ;
+ return ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | { examine_simple_variable ( rel -> subroot , var , vardata ) ; }
+25769803791 | BLOCK | { }
+30064771072 | CALL | rte = root -> simple_rte_array [ var -> varno ]
+30064771073 | CALL | root -> simple_rte_array [ var -> varno ]
+30064771074 | CALL | root -> simple_rte_array
+30064771075 | CALL | var -> varno
+30064771076 | CALL | Assert ( IsA ( rte , RangeTblEntry ) )
+30064771077 | CALL | IsA ( rte , RangeTblEntry )
+30064771078 | CALL | 
+        get_relation_stats_hook && ( * get_relation_stats_hook ) ( root , rte , var -> varattno , vardata )
+      
+30064771079 | CALL | ( * get_relation_stats_hook ) ( root , rte , var -> varattno , vardata )
+30064771080 | CALL | * get_relation_stats_hook
+30064771081 | CALL | var -> varattno
+30064771082 | CALL | HeapTupleIsValid ( vardata -> statsTuple ) && ! vardata -> freefunc
+30064771083 | CALL | HeapTupleIsValid ( vardata -> statsTuple )
+30064771084 | CALL | vardata -> statsTuple
+30064771085 | CALL | ! vardata -> freefunc
+30064771086 | CALL | vardata -> freefunc
+30064771087 | CALL | elog ( ERROR , "no function provided to release variable stats with" )
+30064771088 | CALL | rte -> rtekind == RTE_RELATION
+30064771089 | CALL | rte -> rtekind
+30064771090 | CALL | 
+        vardata -> statsTuple = SearchSysCache3 ( STATRELATTINH , ObjectIdGetDatum ( rte -> relid ) , Int16GetDatum ( var -> varattno ) , BoolGetDatum ( rte -> inh ) )
+      
+30064771091 | CALL | vardata -> statsTuple
+30064771092 | CALL | 
+        SearchSysCache3 ( STATRELATTINH , ObjectIdGetDatum ( rte -> relid ) , Int16GetDatum ( var -> varattno ) , BoolGetDatum ( rte -> inh ) )
+      
+30064771093 | CALL | ObjectIdGetDatum ( rte -> relid )
+30064771094 | CALL | rte -> relid
+30064771095 | CALL | Int16GetDatum ( var -> varattno )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803778 -> 30064771087 [AST]
+25769803780 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

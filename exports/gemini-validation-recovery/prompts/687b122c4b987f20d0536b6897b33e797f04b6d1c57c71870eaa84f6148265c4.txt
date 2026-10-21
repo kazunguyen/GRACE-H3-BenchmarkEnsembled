@@ -1,0 +1,126 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( BrowsingDataRemoverImplTest , MultipleTasks ) {
+ BrowsingDataRemoverImpl * remover = static_cast < BrowsingDataRemoverImpl * > ( BrowsingDataRemoverFactory : : GetForBrowserContext ( GetBrowserContext ( ) ) ) ;
+ EXPECT_FALSE ( remover -> is_removing ( ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_1 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_2 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) ) ;
+ filter_builder_2 -> AddRegisterableDomain ( "example.com" ) ;
+ MultipleTasksObserver observer ( remover ) ;
+ BrowsingDataRemoverCompletionInhibitor completion_inhibitor ;
+ std : : list < BrowsingDataRemoverImpl : : RemovalTask > tasks ;
+ tasks . emplace_back ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_HISTORY , BrowsingDataHelper : : UNPROTECTED_WEB , BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) , observer . target_a ( ) ) ;
+ tasks . emplace_back ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_COOKIES , BrowsingDataHelper : : PROTECTED_WEB , BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) , nullptr ) ;
+ tasks . emplace_back ( base : : Time : : Now ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_PASSWORDS , BrowsingDataHelper : : ALL , BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) , observer . target_b ( ) ) ;
+ tasks . emplace_back ( base : : Time ( ) , base : : Time : : UnixEpoch ( ) , BrowsingDataRemover : : REMOVE_WEBSQL , BrowsingDataHelper : : UNPROTECTED_WEB , std : : move ( filter_builder_1 ) , observer . target_b ( ) ) ;
+ tasks . emplace_back ( base : : Time : : UnixEpoch ( ) , base : : Time : : Now ( ) , BrowsingDataRemover : : REMOVE_CHANNEL_IDS , BrowsingDataHelper : : ALL , std : : move ( filter_builder_2 ) , nullptr ) ;
+ for ( BrowsingDataRemoverImpl : : RemovalTask & task : tasks ) {
+ if ( ! task . observer && task . filter_builder -> IsEmptyBlacklist ( ) ) {
+ remover -> Remove ( task . delete_begin , task . delete_end , task . remove_mask , task . origin_type_mask ) ;
+ }
+ else if ( task . filter_builder -> IsEmptyBlacklist ( ) ) {
+ remover -> RemoveAndReply ( task . delete_begin , task . delete_end , task . remove_mask , task . origin_type_mask , task . observer ) ;
+ }
+ else if ( ! task . observer ) {
+ remover -> RemoveWithFilter ( task . delete_begin , task . delete_end , task . remove_mask , task . origin_type_mask , std : : move ( task . filter_builder ) ) ;
+ }
+ else {
+ remover -> RemoveWithFilterAndReply ( task . delete_begin , task . delete_end , task . remove_mask , task . origin_type_mask , std : : move ( task . filter_builder ) , task . observer ) ;
+ }
+ }
+ for ( BrowsingDataRemoverImpl : : RemovalTask & task : tasks ) {
+ EXPECT_TRUE ( remover -> is_removing ( ) ) ;
+ observ
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ BrowsingDataRemoverImpl * remover = static_cast < BrowsingDataRemoverImpl * > ( BrowsingDataRemoverFactory : : GetForBrowserContext ( GetBrowserContext ( ) ) ) ;
+ EXPECT_FALSE ( remover -> is_removing ( ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_1 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_2 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) ) ;
+ filter_builder_2 -> AddRegisterableDomain ( "example.com" ) ;
+ MultipleTasksObserver observer ( remover ) ;
+ BrowsingDataRemoverCompletionInhibitor completion_inhibitor ;
+ std : : list < BrowsingDataRemoverImpl : : RemovalTask > tasks ;
+ tasks . emplace_back ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_HISTORY , BrowsingDataHelper : : UNPROTECTED_WEB , BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) , ob...
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | EXPECT_FALSE ( remover -> is_removing ( ) )
+30064771073 | CALL | remover -> is_removing ( )
+30064771074 | CALL | remover -> is_removing
+30064771075 | CALL | filter_builder_2 -> AddRegisterableDomain ( "example.com" )
+30064771076 | CALL | filter_builder_2 -> AddRegisterableDomain
+30064771077 | CALL | EXPECT_FALSE ( remover -> is_removing ( ) )
+30064771078 | CALL | remover -> is_removing ( )
+30064771079 | CALL | remover -> is_removing
+55834574848 | FIELD_IDENTIFIER | is_removing
+55834574849 | FIELD_IDENTIFIER | AddRegisterableDomain
+55834574850 | FIELD_IDENTIFIER | is_removing
+68719476736 | IDENTIFIER | <unknown> remover
+68719476737 | IDENTIFIER | <unknown> filter_builder_2
+68719476738 | IDENTIFIER | <unknown> remover
+90194313216 | LITERAL | "example.com"
+94489280512 | LOCAL | BrowsingDataRemoverCompletionInhibitor completion_inhibitor
+94489280513 | LOCAL | <unknown> remover
+94489280514 | LOCAL | <unknown> filter_builder_2
+107374182400 | METHOD | 
+        TEST_F ( BrowsingDataRemoverImplTest , MultipleTasks ) {
+ BrowsingDataRemoverImpl * remover = static_cast < BrowsingDataRemoverImpl * > ( BrowsingDataRemoverFactory : : GetForBrowserContext ( GetBrowserContext ( ) ) ) ;
+ EXPECT_FALSE ( remover -> is_removing ( ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_1 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder_2 ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : BLACKLIST ) ) ;
+ filter_builder_2 -> AddRegisterableDomain ( "example.com" ) ;
+ MultipleTasksObserver observer ( remover ) ;
+ BrowsingDataRemoverCompletionInhibitor completion_inhibitor ;
+ std : : list < BrowsingDataRemoverImpl : : RemovalTask > tasks ;
+ tasks . emplace_back ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_HISTORY , BrowsingDataHelper : : UNPROTECTED_WEB , BrowsingDataFilterBuilder : : ...
+      
+107374182403 | METHOD | MultipleTasksObserver observer ( remover ) ;
+111669149696 | METHOD_PARAMETER_IN | BrowsingDataRemoverImplTest
+111669149697 | METHOD_PARAMETER_IN | MultipleTasks
+111669149698 | METHOD_PARAMETER_IN | remover
+115964116992 | METHOD_PARAMETER_OUT | BrowsingDataRemoverImplTest
+115964116993 | METHOD_PARAMETER_OUT | MultipleTasks
+115964116994 | METHOD_PARAMETER_OUT | remover
+124554051584 | METHOD_RETURN | RET
+124554051587 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 5583457
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

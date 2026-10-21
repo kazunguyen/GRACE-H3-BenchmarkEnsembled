@@ -1,0 +1,233 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void libopenjpeg_copyto8 ( AVFrame * picture , opj_image_t * image ) {
+ int * comp_data ;
+ uint8_t * img_ptr ;
+ int index , x , y ;
+ for ( index = 0 ;
+ index < image -> numcomps ;
+ index ++ ) {
+ comp_data = image -> comps [ index ] . data ;
+ for ( y = 0 ;
+ y < image -> comps [ index ] . h ;
+ y ++ ) {
+ img_ptr = picture -> data [ index ] + y * picture -> linesize [ index ] ;
+ for ( x = 0 ;
+ x < image -> comps [ index ] . w ;
+ x ++ ) {
+ * img_ptr = ( uint8_t ) * comp_data ;
+ img_ptr ++ ;
+ comp_data ++ ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int * comp_data ;
+ uint8_t * img_ptr ;
+ int index , x , y ;
+ for ( index = 0 ;
+ index < image -> numcomps ;
+ index ++ ) {
+ comp_data = image -> comps [ index ] . data ;
+ for ( y = 0 ;
+ y < image -> comps [ index ] . h ;
+ y ++ ) {
+ img_ptr = picture -> data [ index ] + y * picture -> linesize [ index ] ;
+ for ( x = 0 ;
+ x < image -> comps [ index ] . w ;
+ x ++ ) {
+ * img_ptr = ( uint8_t ) * comp_data ;
+ img_ptr ++ ;
+ comp_data ++ ;
+ }
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ comp_data = image -> comps [ index ] . data ;
+ for ( y = 0 ;
+ y < image -> comps [ index ] . h ;
+ y ++ ) {
+ img_ptr = picture -> data [ index ] + y * picture -> linesize [ index ] ;
+ for ( x = 0 ;
+ x < image -> comps [ index ] . w ;
+ x ++ ) {
+ * img_ptr = ( uint8_t ) * comp_data ;
+ img_ptr ++ ;
+ comp_data ++ ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ img_ptr = picture -> data [ index ] + y * picture -> linesize [ index ] ;
+ for ( x = 0 ;
+ x < image -> comps [ index ] . w ;
+ x ++ ) {
+ * img_ptr = ( uint8_t ) * comp_data ;
+ img_ptr ++ ;
+ comp_data ++ ;
+ }
+ }
+      
+25769803779 | BLOCK | { * img_ptr = ( uint8_t ) * comp_data ; img_ptr ++ ; comp_data ++ ; }
+30064771072 | CALL | index = 0
+30064771073 | CALL | index < image -> numcomps
+30064771074 | CALL | image -> numcomps
+30064771075 | CALL | index ++
+30064771076 | CALL | comp_data = image -> comps [ index ] . data
+30064771077 | CALL | image -> comps [ index ] . data
+30064771078 | CALL | image -> comps [ index ]
+30064771079 | CALL | image -> comps
+30064771080 | CALL | y = 0
+30064771081 | CALL | y < image -> comps [ index ] . h
+30064771082 | CALL | image -> comps [ index ] . h
+30064771083 | CALL | image -> comps [ index ]
+30064771084 | CALL | image -> comps
+30064771085 | CALL | y ++
+30064771086 | CALL | img_ptr = picture -> data [ index ] + y * picture -> linesize [ index ]
+30064771087 | CALL | picture -> data [ index ] + y * picture -> linesize [ index ]
+30064771088 | CALL | picture -> data [ index ]
+30064771089 | CALL | picture -> data
+30064771090 | CALL | y * picture -> linesize [ index ]
+30064771091 | CALL | picture -> linesize [ index ]
+30064771092 | CALL | picture -> linesize
+30064771093 | CALL | x = 0
+30064771094 | CALL | x < image -> comps [ index ] . w
+30064771095 | CALL | image -> comps [ index ] . w
+30064771096 | CALL | image -> comps [ index ]
+30064771097 | CALL | image -> comps
+30064771098 | CALL | x ++
+30064771099 | CALL | * img_ptr = ( uint8_t ) * comp_data
+30064771100 | CALL | * img_ptr
+30064771101 | CALL | ( uint8_t ) * comp_data
+30064771102 | CALL | img_ptr ++
+30064771103 | CALL | comp_data ++
+47244640256 | CONTROL_STRUCTURE | for (index = 0 ;index < image -> numcomps;index ++)
+47244640257 | CONTROL_STRUCTURE | for (y = 0 ;y < image -> comps [ index ] . h;y ++)
+47244640258 | CONTROL_STRUCTURE | for (x = 0 ;x < image -> comps [ index ] . w;x ++)
+55834574848 | FIELD_IDENTIFIER | numcomps
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771099 [AST]
+25769803779 -> 30064771102 [AST]
+25769803779 -> 30064771103 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 55834574848 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771084 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771073 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771083 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771097 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771081 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771096 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771090 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771090 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void libopenjpeg_copy_to_packed16 ( AVFrame * picture , opj_image_t * image ) {
+ uint16_t * img_ptr ;
+ int index , x , y , c ;
+ int adjust [ 4 ] ;
+ for ( x = 0 ;
+ x < image -> numcomps ;
+ x ++ ) adjust [ x ] = FFMAX ( FFMIN ( 16 - image -> comps [ x ] . prec , 8 ) , 0 ) ;
+ for ( y = 0 ;
+ y < picture -> height ;
+ y ++ ) {
+ index = y * picture -> width ;
+ img_ptr = ( uint16_t * ) ( picture -> data [ 0 ] + y * picture -> linesize [ 0 ] ) ;
+ for ( x = 0 ;
+ x < picture -> width ;
+ x ++ , index ++ ) {
+ for ( c = 0 ;
+ c < image -> numcomps ;
+ c ++ ) {
+ * img_ptr ++ = image -> comps [ c ] . data [ index ] << adjust [ c ] ;
+ }
+ }
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_field_names ( ) {
+ int rc ;
+ MYSQL_RES * result ;
+ myheader ( "test_field_names" ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\n %d, %d, %d" , MYSQL_TYPE_DECIMAL , MYSQL_TYPE_NEWDATE , MYSQL_TYPE_ENUM ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names2" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_field_names1(id int, name varchar(50))" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_field_names2(id int, name varchar(50))" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "SELECT id as 'id-alias' FROM test_field_names1" ) ;
+ myquery ( rc ) ;
+ result = mysql_use_result ( mysql ) ;
+ mytest ( result ) ;
+ rc = my_process_result_set ( result ) ;
+ DIE_UNLESS ( rc == 0 ) ;
+ mysql_free_result ( result ) ;
+ rc = mysql_query ( mysql , "SELECT t1.id as 'id-alias', test_field_names2.name FROM test_field_names1 t1, test_field_names2" ) ;
+ myquery ( rc ) ;
+ result = mysql_use_result ( mysql ) ;
+ mytest ( result ) ;
+ rc = my_process_result_set ( result ) ;
+ DIE_UNLESS ( rc == 0 ) ;
+ mysql_free_result ( result ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int rc ;
+ MYSQL_RES * result ;
+ myheader ( "test_field_names" ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\n %d, %d, %d" , MYSQL_TYPE_DECIMAL , MYSQL_TYPE_NEWDATE , MYSQL_TYPE_ENUM ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names2" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_field_names1(id int, name varchar(50))" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_field_names2(id int, name varchar(50))" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "SELECT id as 'id-alias' FROM test_field_names1" ) ;
+ myquery ( rc ) ;
+ result = mysql_use_result ( mysql ) ;
+ mytest ( result ) ;
+ rc = my_process_result_set ( result ) ;
+ DIE_UNLESS ( rc == 0 ) ;
+ mysql_free_result ( result ) ;
+ rc = mysql_query ( mysql , "SELECT t1.id as 'id-alias', test_field_names2.name FROM test_field_names1 t1, test_field_names2" ) ;
+ myquery ( rc ) ;
+ r...
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | myheader ( "test_field_names" )
+30064771073 | CALL | ! opt_silent
+30064771074 | CALL | 
+        fprintf ( stdout , "\n %d, %d, %d" , MYSQL_TYPE_DECIMAL , MYSQL_TYPE_NEWDATE , MYSQL_TYPE_ENUM )
+      
+30064771075 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names1" )
+30064771076 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names1" )
+30064771077 | CALL | myquery ( rc )
+30064771078 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names2" )
+30064771079 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS test_field_names2" )
+30064771080 | CALL | myquery ( rc )
+30064771081 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE test_field_names1(id int, name varchar(50))" )
+      
+30064771082 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE test_field_names1(id int, name varchar(50))" )
+      
+30064771083 | CALL | myquery ( rc )
+30064771084 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE test_field_names2(id int, name varchar(50))" )
+      
+30064771085 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE test_field_names2(id int, name varchar(50))" )
+      
+30064771086 | CALL | myquery ( rc )
+30064771087 | CALL | 
+        rc = mysql_query ( mysql , "SELECT id as 'id-alias' FROM test_field_names1" )
+      
+30064771088 | CALL | mysql_query ( mysql , "SELECT id as 'id-alias' FROM test_field_names1" )
+30064771089 | CALL | myquery ( rc )
+30064771090 | CALL | result = mysql_use_result ( mysql )
+30064771091 | CALL | mysql_use_result ( mysql )
+30064771092 | CALL | mytest ( result )
+30064771093 | CALL | rc = my_process_result_set ( result )
+30064771094 | CALL | my_process_result_set ( result )
+30064771095 | CALL | DIE_UNLESS ( rc == 0 )
+30064771096 | CALL | rc == 0
+30064771097 | CALL | mysql_free_result ( result )
+30064771098 | CALL | 
+        rc = mysql_query ( mysql , "SELECT t1.id as 'id-alias', test_field_names2.name FROM test_field_names1 t1, test_field_names2" )
+      
+30064771099 | CALL | 
+        mysql_query ( mysql , "SELECT t1.id as 'id-alias', test_field_names2.name FROM test_field_names1 t1, test_field_names2" )
+      
+30064771100 | CALL | myquery ( rc )
+30064771101 | CALL | result = mysql_use_result ( mysql )
+30064771102 | CALL | mysql_use_result ( mysql )
+30064771103 | CALL | mytest ( result )
+30064771104 | CALL | rc = my_process_result_set ( result )
+30064771105 | CALL | my_process_result_set ( result )
+30064771106 | CALL | DIE_UNLESS ( rc == 0 )
+30064771107 | CALL | rc == 0
+30064771108 | CALL | mysql_free_result ( result )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! opt_silent ) fprintf ( stdout , "\n %d, %d, %d" , MYSQL_TYPE_DECIMAL , MYSQL_TYPE_NEWDATE , MYSQL_TYPE_ENUM ) ;
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771108 [AST]
+25769803777 -> 30064771074 [AST]
+30064771073 -> 30064771074 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771094 [POST_DOMINATE]
+30064771094 -> 30064771093 [CFG]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

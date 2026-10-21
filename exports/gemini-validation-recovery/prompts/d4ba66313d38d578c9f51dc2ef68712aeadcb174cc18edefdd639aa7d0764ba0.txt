@@ -1,0 +1,183 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int parse_CContentRestriction ( tvbuff_t * tvb , int offset , proto_tree * parent_tree , proto_tree * pad_tree , struct CContentRestriction * v , const char * fmt , ... ) {
+ proto_tree * tree ;
+ proto_item * item ;
+ va_list ap ;
+ guint32 cc ;
+ const char * txt ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CContentRestriction , & item , txt ) ;
+ offset = parse_CFullPropSpec ( tvb , offset , tree , pad_tree , & v -> property , "Property" ) ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding1" ) ;
+ cc = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_ccontentrestrict_cc , tvb , offset , 4 , cc ) ;
+ offset += 4 ;
+ proto_tree_add_item_ret_string ( tree , hf_mswsp_ccontentrestrict_phrase , tvb , offset , 2 * cc , ENC_LITTLE_ENDIAN | ENC_UCS_2 , wmem_packet_scope ( ) , & v -> phrase ) ;
+ offset += 2 * cc ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding2" ) ;
+ v -> lcid = tvb_get_letohl ( tvb , offset ) ;
+ offset = parse_lcid ( tvb , offset , tree , "lcid" ) ;
+ v -> method = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_ccontentrestrict_method , tvb , offset , 4 , v -> method ) ;
+ offset += 4 ;
+ proto_item_set_end ( item , tvb , offset ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_tree * tree ;
+ proto_item * item ;
+ va_list ap ;
+ guint32 cc ;
+ const char * txt ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CContentRestriction , & item , txt ) ;
+ offset = parse_CFullPropSpec ( tvb , offset , tree , pad_tree , & v -> property , "Property" ) ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding1" ) ;
+ cc = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_ccontentrestrict_cc , tvb , offset , 4 , cc ) ;
+ offset += 4 ;
+ proto_tree_add_item_ret_string ( tree , hf_mswsp_ccontentrestrict_phrase , tvb , offset , 2 * cc , ENC_LITTLE_ENDIAN | ENC_UCS_2 , wmem_packet_scope ( ) , & v -> phrase ) ;
+ offset += 2 * cc ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding2" ) ;
+ v -> lcid = tvb_get_letohl ( tvb , offset ) ;
+ offset = parse_lcid ( tvb , offset , tree , "lcid" ) ;
+ v -> met...
+      
+30064771072 | CALL | va_start ( ap , fmt )
+30064771073 | CALL | txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771074 | CALL | wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771075 | CALL | wmem_packet_scope ( )
+30064771076 | CALL | va_end ( ap )
+30064771077 | CALL | 
+        tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CContentRestriction , & item , txt )
+      
+30064771078 | CALL | 
+        proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CContentRestriction , & item , txt )
+      
+30064771079 | CALL | & item
+30064771080 | CALL | 
+        offset = parse_CFullPropSpec ( tvb , offset , tree , pad_tree , & v -> property , "Property" )
+      
+30064771081 | CALL | 
+        parse_CFullPropSpec ( tvb , offset , tree , pad_tree , & v -> property , "Property" )
+      
+30064771082 | CALL | & v -> property
+30064771083 | CALL | v -> property
+30064771084 | CALL | offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding1" )
+30064771085 | CALL | parse_padding ( tvb , offset , 4 , pad_tree , "Padding1" )
+30064771086 | CALL | cc = tvb_get_letohl ( tvb , offset )
+30064771087 | CALL | tvb_get_letohl ( tvb , offset )
+30064771088 | CALL | proto_tree_add_uint ( tree , hf_mswsp_ccontentrestrict_cc , tvb , offset , 4 , cc )
+30064771089 | CALL | offset += 4
+30064771090 | CALL | 
+        proto_tree_add_item_ret_string ( tree , hf_mswsp_ccontentrestrict_phrase , tvb , offset , 2 * cc , ENC_LITTLE_ENDIAN | ENC_UCS_2 , wmem_packet_scope ( ) , & v -> phrase )
+      
+30064771091 | CALL | 2 * cc
+30064771092 | CALL | ENC_LITTLE_ENDIAN | ENC_UCS_2
+30064771093 | CALL | wmem_packet_scope ( )
+30064771094 | CALL | & v -> phrase
+30064771095 | CALL | v -> phrase
+30064771096 | CALL | offset += 2 * cc
+30064771097 | CALL | 2 * cc
+30064771098 | CALL | offset = parse_padding ( tvb , offset , 4 , pad_tree , "Padding2" )
+30064771099 | CALL | parse_padding ( tvb , offset , 4 , pad_tree , "Padding2" )
+30064771100 | CALL | v -> lcid = tvb_get_letohl ( tvb , offset )
+30064771101 | CALL | v -> lcid
+30064771102 | CALL | tvb_get_letohl ( tvb , offset )
+30064771103 | CALL | offset = parse_lcid ( tvb , offset , tree , "lcid" )
+30064771104 | CALL | parse_lcid ( tvb , offset , tree , "lcid" )
+30064771105 | CALL | v -> method = tvb_get_letohl ( tvb , offset )
+30064771106 | CALL | v -> method
+30064771107 | CALL | tvb_get_letohl ( tvb , offset )
+30064771108 | CALL | 
+        proto_tree_add_uint ( tree , hf_mswsp_ccontentrestrict_method , tvb , offset , 4 , v -> method )
+      
+30064771109 | CALL | v -> method
+30064771110 | CALL | offset += 4
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771108 [AST]
+25769803776 -> 30064771110 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGU
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

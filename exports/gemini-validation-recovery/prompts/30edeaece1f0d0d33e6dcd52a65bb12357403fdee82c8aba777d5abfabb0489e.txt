@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ogg_read_header ( AVFormatContext * s ) {
+ struct ogg * ogg = s -> priv_data ;
+ int ret , i ;
+ ogg -> curidx = - 1 ;
+ do {
+ ret = ogg_packet ( s , NULL , NULL , NULL , NULL ) ;
+ if ( ret < 0 ) {
+ ogg_read_close ( s ) ;
+ return ret ;
+ }
+ }
+ while ( ! ogg -> headers ) ;
+ av_log ( s , AV_LOG_TRACE , "found headers\n" ) ;
+ for ( i = 0 ;
+ i < ogg -> nstreams ;
+ i ++ ) {
+ struct ogg_stream * os = ogg -> streams + i ;
+ if ( ogg -> streams [ i ] . header < 0 ) {
+ av_log ( s , AV_LOG_ERROR , "Header parsing failed for stream %d\n" , i ) ;
+ ogg -> streams [ i ] . codec = NULL ;
+ }
+ else if ( os -> codec && os -> nb_header < os -> codec -> nb_header ) {
+ av_log ( s , AV_LOG_WARNING , "Headers mismatch for stream %d: " "expected %d received %d.\n" , i , os -> codec -> nb_header , os -> nb_header ) ;
+ if ( s -> error_recognition & AV_EF_EXPLODE ) return AVERROR_INVALIDDATA ;
+ }
+ if ( os -> start_granule != OGG_NOGRANULE_VALUE ) os -> lastpts = s -> streams [ i ] -> start_time = ogg_gptopts ( s , i , os -> start_granule , NULL ) ;
+ }
+ ret = ogg_get_length ( s ) ;
+ if ( ret < 0 ) {
+ ogg_read_close ( s ) ;
+ return ret ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct ogg * ogg = s -> priv_data ;
+ int ret , i ;
+ ogg -> curidx = - 1 ;
+ do {
+ ret = ogg_packet ( s , NULL , NULL , NULL , NULL ) ;
+ if ( ret < 0 ) {
+ ogg_read_close ( s ) ;
+ return ret ;
+ }
+ }
+ while ( ! ogg -> headers ) ;
+ av_log ( s , AV_LOG_TRACE , "found headers\n" ) ;
+ for ( i = 0 ;
+ i < ogg -> nstreams ;
+ i ++ ) {
+ struct ogg_stream * os = ogg -> streams + i ;
+ if ( ogg -> streams [ i ] . header < 0 ) {
+ av_log ( s , AV_LOG_ERROR , "Header parsing failed for stream %d\n" , i ) ;
+ ogg -> streams [ i ] . codec = NULL ;
+ }
+ else if ( os -> codec && os -> nb_header < os -> codec -> nb_header ) {
+ av_log ( s , AV_LOG_WARNING , "Headers mismatch for stream %d: " "expected %d received %d.\n" , i , os -> codec -> nb_header , os -> nb_header ) ;
+ if ( s -> error_recognition & AV_EF_EXPLODE ) return AVERROR_INVALIDDATA ;
+ }
+ if ( os -> start_granule != OGG_NOGRANULE_VALUE ) os -> lastpts = s -> streams [ i ] -> start_time = ogg_gptopts ( s , i , os -> start_granule , NULL ) ;
+ }
+ ...
+      
+25769803777 | BLOCK | 
+        {
+ ret = ogg_packet ( s , NULL , NULL , NULL , NULL ) ;
+ if ( ret < 0 ) {
+ ogg_read_close ( s ) ;
+ return ret ;
+ }
+ }
+      
+25769803778 | BLOCK | { ogg_read_close ( s ) ; return ret ; }
+25769803779 | BLOCK | 
+        {
+ struct ogg_stream * os = ogg -> streams + i ;
+ if ( ogg -> streams [ i ] . header < 0 ) {
+ av_log ( s , AV_LOG_ERROR , "Header parsing failed for stream %d\n" , i ) ;
+ ogg -> streams [ i ] . codec = NULL ;
+ }
+ else if ( os -> codec && os -> nb_header < os -> codec -> nb_header ) {
+ av_log ( s , AV_LOG_WARNING , "Headers mismatch for stream %d: " "expected %d received %d.\n" , i , os -> codec -> nb_header , os -> nb_header ) ;
+ if ( s -> error_recognition & AV_EF_EXPLODE ) return AVERROR_INVALIDDATA ;
+ }
+ if ( os -> start_granule != OGG_NOGRANULE_VALUE ) os -> lastpts = s -> streams [ i ] -> start_time = ogg_gptopts ( s , i , os -> start_granule , NULL ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( s , AV_LOG_ERROR , "Header parsing failed for stream %d\n" , i ) ;
+ ogg -> streams [ i ] . codec = NULL ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ av_log ( s , AV_LOG_WARNING , "Headers mismatch for stream %d: " "expected %d received %d.\n" , i , os -> codec -> nb_header , os -> nb_header ) ;
+ if ( s -> error_recognition & AV_EF_EXPLODE ) return AVERROR_INVALIDDATA ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { ogg_read_close ( s ) ; return ret ; }
+30064771072 | CALL | ogg = s -> priv_data
+30064771073 | CALL | s -> priv_data
+30064771074 | CALL | ogg -> curidx = - 1
+30064771075 | CALL | ogg -> curidx
+30064771076 | CALL | - 1
+30064771077 | CALL | ret = ogg_packet ( s , NULL , NULL , NULL , NULL )
+30064771078 | CALL | ogg_packet ( s , NULL , NULL , NULL , NULL )
+30064771079 | CALL | ret < 0
+30064771080 | CALL | ogg_read_close ( s )
+30064771081 | CALL | ! ogg -> headers
+30064771082 | CALL | ogg -> headers
+30064771083 | CALL | av_log ( s , AV_LOG_TRACE , "found headers\n" )
+30064771084 | CALL | i = 0
+30064771085 | CALL | i < ogg -> nstreams
+30064771086 | CALL | ogg -> nstreams
+30064771087 | CALL | i ++
+30064771088 | CALL | os = ogg -> streams + i
+30064771089 | CALL | ogg -> streams + i
+30064771090 | CALL | ogg -> streams
+30064771091 | CALL | ogg -> streams [ i ] . header < 0
+30064771092 | CALL | ogg -> streams [ i ] . header
+30064771093 | CALL | ogg -> streams [ i ]
+30064771094 | CALL | ogg -> streams
+30064771095 | CALL | av_log ( s , AV_LOG_ERROR , "Header parsing failed for stream %d\n" , i )
+30064771096 | CALL | ogg -> streams [ i ] . codec = NULL
+30064771097 | CALL | ogg -> streams [ i ] . codec
+30064771098 | CALL | ogg -> streams [ i ]
+30064771099 | CALL | ogg -> streams
+30064771100 | CALL | os -> codec && os -> nb_header < os -> codec -> nb_header
+30064771101 | CALL | os -> codec
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771083 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771095 [AST]
+25769803780 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771079 [CDG]
+30064771081 -> 30064771078 [CDG]
+30064771081 -> 30064771077 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

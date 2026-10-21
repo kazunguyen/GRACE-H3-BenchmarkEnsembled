@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int64_t vp9_block_error_c ( const int16_t * coeff , const int16_t * dqcoeff , intptr_t block_size , int64_t * ssz ) {
+ int i ;
+ int64_t error = 0 , sqcoeff = 0 ;
+ for ( i = 0 ;
+ i < block_size ;
+ i ++ ) {
+ const int diff = coeff [ i ] - dqcoeff [ i ] ;
+ error += diff * diff ;
+ sqcoeff += coeff [ i ] * coeff [ i ] ;
+ }
+ * ssz = sqcoeff ;
+ return error ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ int64_t error = 0 , sqcoeff = 0 ;
+ for ( i = 0 ;
+ i < block_size ;
+ i ++ ) {
+ const int diff = coeff [ i ] - dqcoeff [ i ] ;
+ error += diff * diff ;
+ sqcoeff += coeff [ i ] * coeff [ i ] ;
+ }
+ * ssz = sqcoeff ;
+ return error ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ const int diff = coeff [ i ] - dqcoeff [ i ] ;
+ error += diff * diff ;
+ sqcoeff += coeff [ i ] * coeff [ i ] ;
+ }
+      
+30064771072 | CALL | error = 0
+30064771073 | CALL | sqcoeff = 0
+30064771074 | CALL | i = 0
+30064771075 | CALL | i < block_size
+30064771076 | CALL | i ++
+30064771077 | CALL | diff = coeff [ i ] - dqcoeff [ i ]
+30064771078 | CALL | coeff [ i ] - dqcoeff [ i ]
+30064771079 | CALL | coeff [ i ]
+30064771080 | CALL | dqcoeff [ i ]
+30064771081 | CALL | error += diff * diff
+30064771082 | CALL | diff * diff
+30064771083 | CALL | sqcoeff += coeff [ i ] * coeff [ i ]
+30064771084 | CALL | coeff [ i ] * coeff [ i ]
+30064771085 | CALL | coeff [ i ]
+30064771086 | CALL | coeff [ i ]
+30064771087 | CALL | * ssz = sqcoeff
+30064771088 | CALL | * ssz
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < block_size;i ++)
+68719476736 | IDENTIFIER | error
+68719476737 | IDENTIFIER | sqcoeff
+68719476738 | IDENTIFIER | i
+68719476739 | IDENTIFIER | i
+68719476740 | IDENTIFIER | block_size
+68719476741 | IDENTIFIER | i
+68719476742 | IDENTIFIER | diff
+68719476743 | IDENTIFIER | coeff
+68719476744 | IDENTIFIER | i
+68719476745 | IDENTIFIER | dqcoeff
+68719476746 | IDENTIFIER | i
+68719476747 | IDENTIFIER | error
+68719476748 | IDENTIFIER | diff
+68719476749 | IDENTIFIER | diff
+68719476750 | IDENTIFIER | sqcoeff
+68719476751 | IDENTIFIER | coeff
+68719476752 | IDENTIFIER | i
+68719476753 | IDENTIFIER | coeff
+68719476754 | IDENTIFIER | i
+68719476755 | IDENTIFIER | ssz
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771086 [CDG]
+30064771075 -> 68719476739 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 68719476748 [CDG]
+30064771075 -> 68719476749 [CDG]
+30064771075 -> 68719476750 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476751 [CDG]
+30064771075 -> 68719476752 [CDG]
+30064771075 -> 68719476753 [CDG]
+30064771075 -> 68719476754 [CDG]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476755 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 68719476755 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476739 [CFG]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476747 [CFG]
+30064771077 -> 68719476747 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 68719476744 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int64_t vp9_block_error_c ( const tran_low_t * coeff , const tran_low_t * dqcoeff , intptr_t block_size , int64_t * ssz ) {
+ int i ;
+ int64_t error = 0 , sqcoeff = 0 ;
+ for ( i = 0 ;
+ i < block_size ;
+ i ++ ) {
+ const int diff = coeff [ i ] - dqcoeff [ i ] ;
+ error += diff * diff ;
+ sqcoeff += coeff [ i ] * coeff [ i ] ;
+ }
+ * ssz = sqcoeff ;
+ return error ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

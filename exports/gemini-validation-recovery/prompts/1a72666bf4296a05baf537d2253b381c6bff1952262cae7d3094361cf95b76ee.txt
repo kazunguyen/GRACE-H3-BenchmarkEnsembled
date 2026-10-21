@@ -1,0 +1,344 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int sync(AVFormatContext *s, int64_t *timestamp, int *flags, int *stream_index, int64_t *pos){
+
+    RMDemuxContext *rm = s->priv_data;
+
+    ByteIOContext *pb = s->pb;
+
+    int len, num, res, i;
+
+    AVStream *st;
+
+    uint32_t state=0xFFFFFFFF;
+
+
+
+    while(!url_feof(pb)){
+
+        *pos= url_ftell(pb) - 3;
+
+        if(rm->remaining_len > 0){
+
+            num= rm->current_stream;
+
+            len= rm->remaining_len;
+
+            *timestamp = AV_NOPTS_VALUE;
+
+            *flags= 0;
+
+        }else{
+
+            state= (state<<8) + get_byte(pb);
+
+
+
+            if(state == MKBETAG('I', 'N', 'D', 'X')){
+
+                int n_pkts, expected_len;
+
+                len = get_be32(pb);
+
+                url_fskip(pb, 2);
+
+                n_pkts = get_be32(pb);
+
+                expected_len = 20 + n_pkts * 14;
+
+                if (len == 20)
+
+                    /* some files don't add index entries to chunk size... */
+
+                    len = expected_len;
+
+                else if (len != expected_len)
+
+                    av_log(s, AV_LOG_WARNING,
+
+                           "Index size %d (%d pkts) is wrong, should be %d.\n",
+
+                           len, n_pkts, expected_len);
+
+                len -= 14; // we already read part of the index header
+
+                if(len<0)
+
+                    continue;
+
+                goto skip;
+
+            }
+
+
+
+            if(state > (unsigned)0xFFFF || state < 12)
+
+                continue;
+
+            len=state;
+
+            state= 0xFFFFFFFF;
+
+
+
+            num = get_be16(pb);
+
+            *timestamp = get_be32(pb);
+
+            res= get_byte(pb); /* reserved */
+
+            *flags = get_byte(pb); /* flags */
+
+
+
+
+
+            len -= 12;
+
+        }
+
+        for(i=0;i<s->nb_streams;i++) {
+
+            st = s->streams[i];
+
+            if (num == st->id)
+
+                break;
+
+        }
+
+        if (i == s->nb_streams) {
+
+skip:
+
+            /* skip packet if unknown number */
+
+            url_fskip(pb, len);
+
+            rm->remaining_len = 0;
+
+            continue;
+
+        }
+
+        *stream_index= i;
+
+
+
+        return len;
+
+    }
+
+    return -1;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+23 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+23 -> 33 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+51 -> 54 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 70 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+88 -> 90 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int sync(AVFormatContext *s, int64_t *timestamp, int *flags, int *stream_index, int64_t *pos){
+
+    RMDemuxContext *rm = s->priv_data;
+
+    ByteIOContext *pb = s->pb;
+
+    int len, num, res, i;
+
+    AVStream *st;
+
+    uint32_t state=0xFFFFFFFF;
+
+
+
+    while(!url_feof(pb)){
+
+        *pos= url_ftell(pb) - 3;
+
+        if(rm->remaining_len > 0){
+
+            num= rm->current_stream;
+
+            len= rm->remaining_len;
+
+            *timestamp = AV_NOPTS_VALUE;
+
+            *flags= 0;
+
+        }else{
+
+            state= (state<<8) + get_byte(pb);
+
+
+
+            if(state == MKBETAG('I', 'N', 'D', 'X')){
+
+                len = get_be16(pb) - 6;
+
+                if(len<0)
+
+                    continue;
+
+                goto skip;
+
+            }
+
+
+
+            if(state > (unsigned)0xFFFF || state < 12)
+
+                continue;
+
+            len=state;
+
+            state= 0xFFFFFFFF;
+
+
+
+            num = get_be16(pb);
+
+            *timestamp = get_be32(pb);
+
+            res= get_byte(pb); /* reserved */
+
+            *flags = get_byte(pb); /* flags */
+
+
+
+
+
+            len -= 12;
+
+        }
+
+        for(i=0;i<s->nb_streams;i++) {
+
+            st = s->streams[i];
+
+            if (num == st->id)
+
+                break;
+
+        }
+
+        if (i == s->nb_streams) {
+
+skip:
+
+            /* skip packet if unknown number */
+
+            url_fskip(pb, len);
+
+            rm->remaining_len -= len;
+
+            continue;
+
+        }
+
+        *stream_index= i;
+
+
+
+        return len;
+
+    }
+
+ 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

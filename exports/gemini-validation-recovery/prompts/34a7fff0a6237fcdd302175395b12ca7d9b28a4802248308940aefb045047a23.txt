@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_matrix_params ( MLPDecodeContext * m , unsigned int substr , GetBitContext * gbp ) {
+ SubStream * s = & m -> substream [ substr ] ;
+ unsigned int mat , ch ;
+ const int max_primitive_matrices = m -> avctx -> codec_id == AV_CODEC_ID_MLP ? MAX_MATRICES_MLP : MAX_MATRICES_TRUEHD ;
+ if ( m -> matrix_changed ++ > 1 ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Matrices may change only once per access unit.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ s -> num_primitive_matrices = get_bits ( gbp , 4 ) ;
+ if ( s -> num_primitive_matrices > max_primitive_matrices ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Number of primitive matrices cannot be greater than %d.\n" , max_primitive_matrices ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( mat = 0 ;
+ mat < s -> num_primitive_matrices ;
+ mat ++ ) {
+ int frac_bits , max_chan ;
+ s -> matrix_out_ch [ mat ] = get_bits ( gbp , 4 ) ;
+ frac_bits = get_bits ( gbp , 4 ) ;
+ s -> lsb_bypass [ mat ] = get_bits1 ( gbp ) ;
+ if ( s -> matrix_out_ch [ mat ] > s -> max_matrix_channel ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Invalid channel %d specified as output from matrix.\n" , s -> matrix_out_ch [ mat ] ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( frac_bits > 14 ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Too many fractional bits specified.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ max_chan = s -> max_matrix_channel ;
+ if ( ! s -> noise_type ) max_chan += 2 ;
+ for ( ch = 0 ;
+ ch <= max_chan ;
+ ch ++ ) {
+ int coeff_val = 0 ;
+ if ( get_bits1 ( gbp ) ) coeff_val = get_sbits ( gbp , frac_bits + 2 ) ;
+ s -> matrix_coeff [ mat ] [ ch ] = coeff_val << ( 14 - frac_bits ) ;
+ }
+ if ( s -> noise_type ) s -> matrix_noise_shift [ mat ] = get_bits ( gbp , 4 ) ;
+ else s -> matrix_noise_shift [ mat ] = 0 ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ SubStream * s = & m -> substream [ substr ] ;
+ unsigned int mat , ch ;
+ const int max_primitive_matrices = m -> avctx -> codec_id == AV_CODEC_ID_MLP ? MAX_MATRICES_MLP : MAX_MATRICES_TRUEHD ;
+ if ( m -> matrix_changed ++ > 1 ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Matrices may change only once per access unit.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ s -> num_primitive_matrices = get_bits ( gbp , 4 ) ;
+ if ( s -> num_primitive_matrices > max_primitive_matrices ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Number of primitive matrices cannot be greater than %d.\n" , max_primitive_matrices ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( mat = 0 ;
+ mat < s -> num_primitive_matrices ;
+ mat ++ ) {
+ int frac_bits , max_chan ;
+ s -> matrix_out_ch [ mat ] = get_bits ( gbp , 4 ) ;
+ frac_bits = get_bits ( gbp , 4 ) ;
+ s -> lsb_bypass [ mat ] = get_bits1 ( gbp ) ;
+ if ( s -> matrix_out_ch [ mat ] > s -> max_matrix_channel ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Invalid channel %d specified a...
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Matrices may change only once per access unit.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Number of primitive matrices cannot be greater than %d.\n" , max_primitive_matrices ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int frac_bits , max_chan ;
+ s -> matrix_out_ch [ mat ] = get_bits ( gbp , 4 ) ;
+ frac_bits = get_bits ( gbp , 4 ) ;
+ s -> lsb_bypass [ mat ] = get_bits1 ( gbp ) ;
+ if ( s -> matrix_out_ch [ mat ] > s -> max_matrix_channel ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Invalid channel %d specified as output from matrix.\n" , s -> matrix_out_ch [ mat ] ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( frac_bits > 14 ) {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Too many fractional bits specified.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ max_chan = s -> max_matrix_channel ;
+ if ( ! s -> noise_type ) max_chan += 2 ;
+ for ( ch = 0 ;
+ ch <= max_chan ;
+ ch ++ ) {
+ int coeff_val = 0 ;
+ if ( get_bits1 ( gbp ) ) coeff_val = get_sbits ( gbp , frac_bits + 2 ) ;
+ s -> matrix_coeff [ mat ] [ ch ] = coeff_val << ( 14 - frac_bits ) ;
+ }
+ if ( s -> noise_type ) s -> matrix_noise_shift [ mat ] = get_bits ( gbp , 4 ) ;
+ else s -> matrix_noise_shift [ mat ] = 0 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Invalid channel %d specified as output from matrix.\n" , s -> matrix_out_ch [ mat ] ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ av_log ( m -> avctx , AV_LOG_ERROR , "Too many fractional bits specified.\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ int coeff_val = 0 ;
+ if ( get_bits1 ( gbp ) ) coeff_val = get_sbits ( gbp , frac_bits + 2 ) ;
+ s -> matrix_coeff [ mat ] [ ch ] = coeff_val << ( 14 - frac_bits ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | s = & m -> substream [ substr ]
+30064771073 | CALL | & m -> substream [ substr ]
+30064771074 | CALL | m -> substream [ substr ]
+30064771075 | CALL | m -> substream
+30064771076 | CALL | 
+        max_primitive_matrices = m -> avctx -> codec_id == AV_CODEC_ID_MLP ? MAX_MATRICES_MLP : MAX_MATRICES_TRUEHD
+      
+30064771077 | CALL | 
+        m -> avctx -> codec_id == AV_CODEC_ID_MLP ? MAX_MATRICES_MLP : MAX_MATRICES_TRUEHD
+      
+30064771078 | CALL | m -> avctx -> codec_id == AV_CODEC_ID_MLP
+30064771079 | CALL | m -> avctx -> codec_id
+30064771080 | CALL | m -> avctx
+30064771081 | CALL | m -> matrix_changed ++ > 1
+30064771082 | CALL | m -> matrix_changed ++
+30064771083 | CALL | m -> matrix_changed
+30064771084 | CALL | 
+        av_log ( m -> avctx , AV_LOG_ERROR , "Matrices may change only once per access unit.\n" )
+      
+30064771085 | CALL | m -> avctx
+30064771086 | CALL | s -> num_primitive_matrices = get_bits ( gbp , 4 )
+30064771087 | CALL | s -> num_primitive_matrices
+30064771088 | CALL | get_bits ( gbp , 4 )
+30064771089 | CALL | s -> num_primitive_matrices > max_primitive_matrices
+30064771090 | CALL | s -> num_primitive_matrices
+30064771091 | CALL | 
+        av_log ( m -> avctx , AV_LOG_ERROR , "Number of primitive matrices cannot be greater than %d.\n" , max_primitive_matrices )
+      
+30064771092 | CALL | m -> avctx
+30064771093 | CALL | mat = 0
+30064771094 | CALL | mat < s -> num_primitive_matrices
+30064771095 | CALL | s -> num_primitive_matrices
+30064771096 | CALL | mat ++
+30064771097 | CALL | s -> matrix_out_ch [ mat ] = get_bits ( gbp , 4 )
+30064771098 | CALL | s -> matrix_out_ch [ mat ]
+30064771099 | CALL | s -> matrix_out_ch
+30064771100 | CALL | get_bits ( gbp , 4 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771086 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

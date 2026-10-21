@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int vp9_get_reference_mode_context ( const VP9_COMMON * cm , const MACROBLOCKD * xd ) {
+ int ctx ;
+ const MB_MODE_INFO * const above_mbmi = get_mbmi ( get_above_mi ( xd ) ) ;
+ const MB_MODE_INFO * const left_mbmi = get_mbmi ( get_left_mi ( xd ) ) ;
+ const int has_above = above_mbmi != NULL ;
+ const int has_left = left_mbmi != NULL ;
+ if ( has_above && has_left ) {
+ if ( ! has_second_ref ( above_mbmi ) && ! has_second_ref ( left_mbmi ) ) ctx = ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ^ ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ;
+ else if ( ! has_second_ref ( above_mbmi ) ) ctx = 2 + ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( above_mbmi ) ) ;
+ else if ( ! has_second_ref ( left_mbmi ) ) ctx = 2 + ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( left_mbmi ) ) ;
+ else ctx = 4 ;
+ }
+ else if ( has_above || has_left ) {
+ const MB_MODE_INFO * edge_mbmi = has_above ? above_mbmi : left_mbmi ;
+ if ( ! has_second_ref ( edge_mbmi ) ) ctx = edge_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ;
+ else ctx = 3 ;
+ }
+ else {
+ ctx = 1 ;
+ }
+ assert ( ctx >= 0 && ctx < COMP_INTER_CONTEXTS ) ;
+ return ctx ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ctx ;
+ const MB_MODE_INFO * const above_mbmi = get_mbmi ( get_above_mi ( xd ) ) ;
+ const MB_MODE_INFO * const left_mbmi = get_mbmi ( get_left_mi ( xd ) ) ;
+ const int has_above = above_mbmi != NULL ;
+ const int has_left = left_mbmi != NULL ;
+ if ( has_above && has_left ) {
+ if ( ! has_second_ref ( above_mbmi ) && ! has_second_ref ( left_mbmi ) ) ctx = ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ^ ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ;
+ else if ( ! has_second_ref ( above_mbmi ) ) ctx = 2 + ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( above_mbmi ) ) ;
+ else if ( ! has_second_ref ( left_mbmi ) ) ctx = 2 + ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( left_mbmi ) ) ;
+ else ctx = 4 ;
+ }
+ else if ( has_above || has_left ) {
+ const MB_MODE_INFO * edge_mbmi = has_above ? above_mbmi : left_mbmi ;
+ if ( ! has_second_ref ( edge_mbmi ) ) ctx = edge_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! has_second_ref ( above_mbmi ) && ! has_second_ref ( left_mbmi ) ) ctx = ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ^ ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ;
+ else if ( ! has_second_ref ( above_mbmi ) ) ctx = 2 + ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( above_mbmi ) ) ;
+ else if ( ! has_second_ref ( left_mbmi ) ) ctx = 2 + ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref || ! is_inter_block ( left_mbmi ) ) ;
+ else ctx = 4 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ const MB_MODE_INFO * edge_mbmi = has_above ? above_mbmi : left_mbmi ;
+ if ( ! has_second_ref ( edge_mbmi ) ) ctx = edge_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ;
+ else ctx = 3 ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | { ctx = 1 ; }
+30064771072 | CALL | const above_mbmi = get_mbmi ( get_above_mi ( xd ) )
+30064771073 | CALL | get_mbmi ( get_above_mi ( xd ) )
+30064771074 | CALL | get_above_mi ( xd )
+30064771075 | CALL | const left_mbmi = get_mbmi ( get_left_mi ( xd ) )
+30064771076 | CALL | get_mbmi ( get_left_mi ( xd ) )
+30064771077 | CALL | get_left_mi ( xd )
+30064771078 | CALL | has_above = above_mbmi != NULL
+30064771079 | CALL | above_mbmi != NULL
+30064771080 | CALL | has_left = left_mbmi != NULL
+30064771081 | CALL | left_mbmi != NULL
+30064771082 | CALL | has_above && has_left
+30064771083 | CALL | ! has_second_ref ( above_mbmi ) && ! has_second_ref ( left_mbmi )
+30064771084 | CALL | ! has_second_ref ( above_mbmi )
+30064771085 | CALL | has_second_ref ( above_mbmi )
+30064771086 | CALL | ! has_second_ref ( left_mbmi )
+30064771087 | CALL | has_second_ref ( left_mbmi )
+30064771088 | CALL | 
+        ctx = ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ^ ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref )
+      
+30064771089 | CALL | 
+        ( above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref ) ^ ( left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref )
+      
+30064771090 | CALL | above_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref
+30064771091 | CALL | above_mbmi -> ref_frame [ 0 ]
+30064771092 | CALL | above_mbmi -> ref_frame
+30064771093 | CALL | cm -> comp_fixed_ref
+30064771094 | CALL | left_mbmi -> ref_frame [ 0 ] == cm -> comp_fixed_ref
+30064771095 | CALL | left_mbmi -> ref_frame [ 0 ]
+30064771096 | CALL | left_mbmi -> ref_frame
+30064771097 | CALL | cm -> comp_fixed_ref
+30064771098 | CALL | ! has_second_ref ( above_mbmi )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803778 -> 30064771088 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771096 [CDG]
+30064771083 -> 30064771095 [CDG]
+30064771083 -> 30064771094 [CDG]
+30064771083 -> 30064771093 [CDG]
+30064771083 -> 30064771098 [CDG]
+30064771083 -> 30064771097 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771086 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

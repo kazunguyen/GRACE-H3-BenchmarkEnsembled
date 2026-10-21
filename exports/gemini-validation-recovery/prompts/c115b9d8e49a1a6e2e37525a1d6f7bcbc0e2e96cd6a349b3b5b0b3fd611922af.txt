@@ -1,0 +1,129 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ProfileInfoCacheTest , GAIAPicture ) {
+ const int kDefaultAvatarIndex = 0 ;
+ const int kOtherAvatarIndex = 1 ;
+ const int kGaiaPictureSize = 256 ;
+ GetCache ( ) -> AddProfileToCache ( GetProfilePath ( "path_1" ) , ASCIIToUTF16 ( "name_1" ) , base : : string16 ( ) , kDefaultAvatarIndex , std : : string ( ) ) ;
+ GetCache ( ) -> AddProfileToCache ( GetProfilePath ( "path_2" ) , ASCIIToUTF16 ( "name_2" ) , base : : string16 ( ) , kDefaultAvatarIndex , std : : string ( ) ) ;
+ EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 ) ) ;
+ EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 0 ) ) ;
+ EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 0 ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) ) ;
+ int default_avatar_id = profiles : : GetDefaultAvatarIconResourceIDAtIndex ( kDefaultAvatarIndex ) ;
+ const gfx : : Image & default_avatar_image ( ResourceBundle : : GetSharedInstance ( ) . GetImageNamed ( default_avatar_id ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( default_avatar_image , GetCache ( ) -> GetAvatarIconOfProfileAtIndex ( 1 ) ) ) ;
+ gfx : : Image gaia_image ( gfx : : test : : CreateImage ( kGaiaPictureSize , kGaiaPictureSize ) ) ;
+ GetCache ( ) -> SetGAIAPictureOfProfileAtIndex ( 1 , & gaia_image ) ;
+ EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( gaia_image , * GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 ) ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( gaia_image , GetCache ( ) -> GetAvatarIconOfProfileAtIndex ( 1 ) ) ) ;
+ GetCache ( ) -> SetAvatarIconOfProfileAtIndex ( 1 , kOtherAvatarIndex ) ;
+ GetCache ( ) -> SetProfileIsUsingDefaultAvatarAtIndex ( 1 , false ) ;
+ EXPECT_FALSE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) ) ;
+ EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ int other_avatar_id = profiles : : GetDefaultAvatarIconResourceIDAtIndex ( kOtherAvatarIndex ) ;
+ const gfx : : Image & other_avatar_image ( ResourceBundle : : GetSharedInstance ( ) . GetImageNamed ( other_avatar_id ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( other_avatar_image , GetCache ( ) -> GetAvatarIconOfProfileAtIndex ( 1 ) ) ) ;
+ GetCache ( ) -> SetIsUsingGAIAPictureOfProfileAtIndex ( 1 , true ) ;
+ EXPECT_TRUE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( gaia_image , * GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 ) ) ) ;
+ EXPECT_TRUE ( gfx : : test : : IsEqual ( gaia_image , GetCache ( ) -> GetAvatarIconOfProfileAtIndex ( 1 ) ) ) ;
+ GetCache ( ) -> SetIsUsingGAIAPictureOfProfileAtInde
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int kDefaultAvatarIndex = 0 ;
+ const int kOtherAvatarIndex = 1 ;
+ const int kGaiaPictureSize = 256 ;
+ GetCache ( ) -> AddProfileToCache ( GetProfilePath ( "path_1" ) , ASCIIToUTF16 ( "name_1" ) , base : : string16 ( ) , kDefaultAvatarIndex , std : : string ( ) ) ;
+ GetCache ( ) -> AddProfileToCache ( GetProfilePath ( "path_2" ) , ASCIIToUTF16 ( "name_2" ) , base : : string16 ( ) , kDefaultAvatarIndex , std : : string ( ) ) ;
+ EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 ) ) ;
+ EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 0 ) ) ;
+ EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 0 ) ) ;
+ EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) ) ;
+ int default_avatar_id = profiles : : GetDefaultAvatarIconResourceIDAtIndex ( kDefaultAvatarIndex )...
+      
+30064771072 | CALL | kDefaultAvatarIndex = 0
+30064771073 | CALL | kOtherAvatarIndex = 1
+30064771074 | CALL | kGaiaPictureSize = 256
+30064771075 | CALL | EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 ) )
+30064771076 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 )
+30064771077 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex
+30064771078 | CALL | GetCache ( )
+30064771079 | CALL | EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 ) )
+30064771080 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 1 )
+30064771081 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex
+30064771082 | CALL | GetCache ( )
+30064771083 | CALL | EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 0 ) )
+30064771084 | CALL | GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 0 )
+30064771085 | CALL | GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex
+30064771086 | CALL | GetCache ( )
+30064771087 | CALL | EXPECT_FALSE ( GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 ) )
+30064771088 | CALL | GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex ( 1 )
+30064771089 | CALL | GetCache ( ) -> IsUsingGAIAPictureOfProfileAtIndex
+30064771090 | CALL | GetCache ( )
+30064771091 | CALL | EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 0 ) )
+30064771092 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 0 )
+30064771093 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex
+30064771094 | CALL | GetCache ( )
+30064771095 | CALL | EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) )
+30064771096 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 )
+30064771097 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex
+30064771098 | CALL | GetCache ( )
+30064771099 | CALL | default_avatar_id = profiles
+30064771100 | CALL | GetCache ( ) -> SetGAIAPictureOfProfileAtIndex ( 1 , & gaia_image )
+30064771101 | CALL | GetCache ( ) -> SetGAIAPictureOfProfileAtIndex
+30064771102 | CALL | GetCache ( )
+30064771103 | CALL | & gaia_image
+30064771104 | CALL | EXPECT_EQ ( NULL , GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 ) )
+30064771105 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex ( 0 )
+30064771106 | CALL | GetCache ( ) -> GetGAIAPictureOfProfileAtIndex
+30064771107 | CALL | GetCache ( )
+30064771108 | CALL | EXPECT_TRUE ( GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 ) )
+30064771109 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex ( 1 )
+30064771110 | CALL | GetCache ( ) -> ProfileIsUsingDefaultAvatarAtIndex
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771108 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 30064771078 [ARG
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

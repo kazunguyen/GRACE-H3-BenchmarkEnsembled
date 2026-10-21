@@ -1,0 +1,49 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static char * ts_format ( netdissect_options * ndo # ifndef HAVE_PCAP_SET_TSTAMP_PRECISION _U_ # endif , int sec , int usec , char * buf ) {
+ const char * format ;
+ # ifdef HAVE_PCAP_SET_TSTAMP_PRECISION switch ( ndo -> ndo_tstamp_precision ) {
+ case PCAP_TSTAMP_PRECISION_MICRO : format = "%02d:%02d:%02d.%06u" ;
+ break ;
+ case PCAP_TSTAMP_PRECISION_NANO : format = "%02d:%02d:%02d.%09u" ;
+ break ;
+ default : format = "%02d:%02d:%02d.{
+unknown}
+" ;
+ break ;
+ }
+ # else format = "%02d:%02d:%02d.%06u" ;
+ # endif snprintf ( buf , TS_BUF_SIZE , format , sec / 3600 , ( sec % 3600 ) / 60 , sec % 60 , usec ) ;
+ return buf ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * ts_unix_format ( netdissect_options * ndo # ifndef HAVE_PCAP_SET_TSTAMP_PRECISION _U_ # endif , int sec , int usec , char * buf ) {
+ const char * format ;
+ # ifdef HAVE_PCAP_SET_TSTAMP_PRECISION switch ( ndo -> ndo_tstamp_precision ) {
+ case PCAP_TSTAMP_PRECISION_MICRO : format = "%u.%06u" ;
+ break ;
+ case PCAP_TSTAMP_PRECISION_NANO : format = "%u.%09u" ;
+ break ;
+ default : format = "%u.{
+unknown}
+" ;
+ break ;
+ }
+ # else format = "%u.%06u" ;
+ # endif snprintf ( buf , TS_BUF_SIZE , format , ( unsigned ) sec , ( unsigned ) usec ) ;
+ return buf ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

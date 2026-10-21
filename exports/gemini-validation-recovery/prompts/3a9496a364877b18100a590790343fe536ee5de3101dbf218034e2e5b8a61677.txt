@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void commit_command_data ( int cmd ) {
+ char error_string [ MAX_INPUT_BUFFER ] ;
+ service * temp_service ;
+ host * temp_host ;
+ hostgroup * temp_hostgroup ;
+ comment * temp_comment ;
+ scheduled_downtime * temp_downtime ;
+ servicegroup * temp_servicegroup = NULL ;
+ contact * temp_contact = NULL ;
+ int x = 0 ;
+ int e = 0 ;
+ short error_found = FALSE ;
+ short cmd_has_objects = FALSE ;
+ short row_color = 0 ;
+ get_authentication_information ( & current_authdata ) ;
+ is_authorized [ x ] = FALSE ;
+ if ( lock_author_names == TRUE ) {
+ temp_contact = find_contact ( current_authdata . username ) ;
+ if ( temp_contact != NULL && temp_contact -> alias != NULL ) comment_author = temp_contact -> alias ;
+ else comment_author = current_authdata . username ;
+ }
+ switch ( cmd ) {
+ case CMD_ADD_HOST_COMMENT : case CMD_ADD_SVC_COMMENT : case CMD_ACKNOWLEDGE_HOST_PROBLEM : case CMD_ACKNOWLEDGE_SVC_PROBLEM : case CMD_SEND_CUSTOM_HOST_NOTIFICATION : case CMD_SEND_CUSTOM_SVC_NOTIFICATION : check_comment_sanity ( & e ) ;
+ clean_comment_data ( comment_author ) ;
+ clean_comment_data ( comment_data ) ;
+ if ( use_ack_end_time == TRUE && ( cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM || cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM ) ) {
+ time ( & start_time ) ;
+ check_time_sanity ( & e ) ;
+ }
+ else end_time = 0L ;
+ for ( x = 0 ;
+ x < NUMBER_OF_STRUCTS ;
+ x ++ ) {
+ cmd_has_objects = TRUE ;
+ if ( commands [ x ] . host_name == NULL ) continue ;
+ is_authorized [ x ] = FALSE ;
+ if ( cmd == CMD_ADD_HOST_COMMENT || cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM || cmd == CMD_SEND_CUSTOM_HOST_NOTIFICATION ) {
+ temp_host = find_host ( commands [ x ] . host_name ) ;
+ if ( is_authorized_for_host_commands ( temp_host , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ else {
+ temp_service = find_service ( commands [ x ] . host_name , commands [ x ] . description ) ;
+ if ( is_authorized_for_service_commands ( temp_service , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ }
+ break ;
+ case CMD_DEL_HOST_COMMENT : case CMD_DEL_SVC_COMMENT : if ( enforce_comments_on_actions == TRUE ) {
+ check_comment_sanity ( & e ) ;
+ clean_comment_data ( comment_author ) ;
+ clean_comment_data ( comment_data ) ;
+ }
+ for ( x = 0 ;
+ x < NUMBER_OF_STRUCTS ;
+ x ++ ) {
+ cmd_has_objects = TRUE ;
+ if ( multi_ids [ x ] == FALSE ) continue ;
+ if ( multi_ids [ x ] == 0 ) {
+ error [ e ++ ] . message = strdup ( "Comment id cannot be 0" ) ;
+ continue ;
+ }
+ if ( cmd == CMD_DEL_HOST_COMMENT ) temp_comment = find_host_comment ( multi_ids [ x ] ) ;
+ else temp_comment = find_service_comment ( multi_ids [ x ] ) ;
+ is_authorized [ x ] = FALSE ;
+ if ( cmd == CMD_DEL_HOST_COMMENT && temp_comment != NULL ) {
+ temp_host = find_host ( temp_comment -> host_name ) ;
+ if ( is_authorized_for_host_commands ( temp_host , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ if ( cmd == CMD_DEL_SVC_COMMENT && temp_comment != NULL ) {
+ temp_service = find_service ( temp_comment -> host_name , temp_comment -> service_description ) ;
+ 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char error_string [ MAX_INPUT_BUFFER ] ;
+ service * temp_service ;
+ host * temp_host ;
+ hostgroup * temp_hostgroup ;
+ comment * temp_comment ;
+ scheduled_downtime * temp_downtime ;
+ servicegroup * temp_servicegroup = NULL ;
+ contact * temp_contact = NULL ;
+ int x = 0 ;
+ int e = 0 ;
+ short error_found = FALSE ;
+ short cmd_has_objects = FALSE ;
+ short row_color = 0 ;
+ get_authentication_information ( & current_authdata ) ;
+ is_authorized [ x ] = FALSE ;
+ if ( lock_author_names == TRUE ) {
+ temp_contact = find_contact ( current_authdata . username ) ;
+ if ( temp_contact != NULL && temp_contact -> alias != NULL ) comment_author = temp_contact -> alias ;
+ else comment_author = current_authdata . username ;
+ }
+ switch ( cmd ) {
+ case CMD_ADD_HOST_COMMENT : case CMD_ADD_SVC_COMMENT : case CMD_ACKNOWLEDGE_HOST_PROBLEM : case CMD_ACKNOWLEDGE_SVC_PROBLEM : case CMD_SEND_CUSTOM_HOST_NOTIFICATION : case CMD_SEND_CUSTOM_SVC_NOTIFICATION : check_comment_sanity ( & e ) ;
+ clean_comment_data ( c...
+      
+25769803777 | BLOCK | 
+        {
+ temp_contact = find_contact ( current_authdata . username ) ;
+ if ( temp_contact != NULL && temp_contact -> alias != NULL ) comment_author = temp_contact -> alias ;
+ else comment_author = current_authdata . username ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ case CMD_ADD_HOST_COMMENT : case CMD_ADD_SVC_COMMENT : case CMD_ACKNOWLEDGE_HOST_PROBLEM : case CMD_ACKNOWLEDGE_SVC_PROBLEM : case CMD_SEND_CUSTOM_HOST_NOTIFICATION : case CMD_SEND_CUSTOM_SVC_NOTIFICATION : check_comment_sanity ( & e ) ;
+ clean_comment_data ( comment_author ) ;
+ clean_comment_data ( comment_data ) ;
+ if ( use_ack_end_time == TRUE && ( cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM || cmd == CMD_ACKNOWLEDGE_SVC_PROBLEM ) ) {
+ time ( & start_time ) ;
+ check_time_sanity ( & e ) ;
+ }
+ else end_time = 0L ;
+ for ( x = 0 ;
+ x < NUMBER_OF_STRUCTS ;
+ x ++ ) {
+ cmd_has_objects = TRUE ;
+ if ( commands [ x ] . host_name == NULL ) continue ;
+ is_authorized [ x ] = FALSE ;
+ if ( cmd == CMD_ADD_HOST_COMMENT || cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM || cmd == CMD_SEND_CUSTOM_HOST_NOTIFICATION ) {
+ temp_host = find_host ( commands [ x ] . host_name ) ;
+ if ( is_authorized_for_host_commands ( temp_host , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ else {
+ temp_service = find...
+      
+25769803781 | BLOCK | { time ( & start_time ) ; check_time_sanity ( & e ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ cmd_has_objects = TRUE ;
+ if ( commands [ x ] . host_name == NULL ) continue ;
+ is_authorized [ x ] = FALSE ;
+ if ( cmd == CMD_ADD_HOST_COMMENT || cmd == CMD_ACKNOWLEDGE_HOST_PROBLEM || cmd == CMD_SEND_CUSTOM_HOST_NOTIFICATION ) {
+ temp_host = find_host ( commands [ x ] . host_name ) ;
+ if ( is_authorized_for_host_commands ( temp_host , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ else {
+ temp_service = find_service ( commands [ x ] . host_name , commands [ x ] . description ) ;
+ if ( is_authorized_for_service_commands ( temp_service , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ temp_host = find_host ( commands [ x ] . host_name ) ;
+ if ( is_authorized_for_host_commands ( temp_host , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ temp_service = find_service ( commands [ x ] . host_name , commands [ x ] . description ) ;
+ if ( is_authorized_for_service_commands ( temp_service , & current_authdata ) == TRUE ) is_authorized [ x ] = TRUE ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ check_comment_sanity ( & e ) ;
+ clean_comment_data ( comment_author ) ;
+ clean_comment_data ( comment_data ) ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ cmd_has_objects = TRUE ;
+ if ( multi_ids [ x ] == FALSE ) continue ;
+ if ( multi_ids [ x ] == 0 ) {
+ error [ e ++ ] . message = strdup ( "Comment id cannot be 0" ) ;
+ continue ;
+ }
+ if ( cmd == CMD_DEL_HOST_COMMENT ) temp_comment = find_host_comment ( multi_ids [ x ] ) ;
+ else temp_comment = find_service_comment ( multi_ids [ x ] ) ;
+ is_authorized [ x ] = FALSE ;
+ if ( cmd == CMD_DEL_HOST_COMMENT && temp_comment != NULL ) {
+ temp_host = find_host ( temp_com
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

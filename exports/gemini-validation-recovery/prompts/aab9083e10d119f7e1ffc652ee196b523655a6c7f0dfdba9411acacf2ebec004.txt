@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_mac_fdd_pch ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ proto_tree * pch_tree = NULL ;
+ proto_item * channel_type ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" ) ;
+ col_set_str ( pinfo -> cinfo , COL_INFO , "PCCH" ) ;
+ if ( tree ) {
+ proto_item * ti ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ pch_tree = proto_item_add_subtree ( ti , ett_mac_pch ) ;
+ proto_item_append_text ( ti , " (PCCH)" ) ;
+ channel_type = proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ }
+ call_dissector_with_data ( rlc_pcch_handle , tvb , pinfo , tree , data ) ;
+ return tvb_captured_length ( tvb ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_tree * pch_tree = NULL ;
+ proto_item * channel_type ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" ) ;
+ col_set_str ( pinfo -> cinfo , COL_INFO , "PCCH" ) ;
+ if ( tree ) {
+ proto_item * ti ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ pch_tree = proto_item_add_subtree ( ti , ett_mac_pch ) ;
+ proto_item_append_text ( ti , " (PCCH)" ) ;
+ channel_type = proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ }
+ call_dissector_with_data ( rlc_pcch_handle , tvb , pinfo , tree , data ) ;
+ return tvb_captured_length ( tvb ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ proto_item * ti ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ pch_tree = proto_item_add_subtree ( ti , ett_mac_pch ) ;
+ proto_item_append_text ( ti , " (PCCH)" ) ;
+ channel_type = proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ }
+      
+30064771072 | CALL | pch_tree = NULL
+30064771073 | CALL | col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "MAC" )
+30064771074 | CALL | pinfo -> cinfo
+30064771075 | CALL | col_set_str ( pinfo -> cinfo , COL_INFO , "PCCH" )
+30064771076 | CALL | pinfo -> cinfo
+30064771077 | CALL | tree != NULL
+30064771078 | CALL | ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA )
+30064771079 | CALL | proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA )
+30064771080 | CALL | - 1
+30064771081 | CALL | pch_tree = proto_item_add_subtree ( ti , ett_mac_pch )
+30064771082 | CALL | proto_item_add_subtree ( ti , ett_mac_pch )
+30064771083 | CALL | proto_item_append_text ( ti , " (PCCH)" )
+30064771084 | CALL | 
+        channel_type = proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH )
+      
+30064771085 | CALL | proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH )
+30064771086 | CALL | PROTO_ITEM_SET_GENERATED ( channel_type )
+30064771087 | CALL | call_dissector_with_data ( rlc_pcch_handle , tvb , pinfo , tree , data )
+30064771088 | CALL | tvb_captured_length ( tvb )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( tree ) {
+ proto_item * ti ;
+ ti = proto_tree_add_item ( tree , proto_umts_mac , tvb , 0 , - 1 , ENC_NA ) ;
+ pch_tree = proto_item_add_subtree ( ti , ett_mac_pch ) ;
+ proto_item_append_text ( ti , " (PCCH)" ) ;
+ channel_type = proto_tree_add_uint ( pch_tree , hf_mac_channel , tvb , 0 , 0 , MAC_PCCH ) ;
+ PROTO_ITEM_SET_GENERATED ( channel_type ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | cinfo
+55834574849 | FIELD_IDENTIFIER | cinfo
+68719476736 | IDENTIFIER | pch_tree
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | pinfo
+68719476739 | IDENTIFIER | <unknown> COL_PROTOCOL
+68719476740 | IDENTIFIER | pinfo
+68719476741 | IDENTIFIER | <unknown> COL_INFO
+68719476742 | IDENTIFIER | tree
+68719476743 | IDENTIFIER | ti
+68719476744 | IDENTIFIER | tree
+68719476745 | IDENTIFIER | <unknown> proto_umts_mac
+68719476746 | IDENTIFIER | tvb
+68719476747 | IDENTIFIER | <unknown> ENC_NA
+68719476748 | IDENTIFIER | pch_tree
+68719476749 | IDENTIFIER | ti
+68719476750 | IDENTIFIER | <unknown> ett_mac_pch
+68719476751 | IDENTIFIER | ti
+68719476752 | IDENTIFIER | channel_type
+68719476753 | IDENTIFIER | pch_tree
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476740 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 68719476748 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 68719476750 [CDG]
+30064771077 -> 68719476749 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476752 [CDG]
+30064771077 -> 68719476751 [CDG]
+30064771077 -> 68719476753 [CDG]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476748 [CFG]
+30064771078 -> 68719476748 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_pkt_ccc ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ proto_item * ti = NULL ;
+ proto_tree * pkt_ccc_tree = NULL ;
+ if ( tree ) {
+ ti = proto_tree_add_item ( tree , proto_pkt_ccc , tvb , 0 , 12 , ENC_NA ) ;
+ pkt_ccc_tree = proto_item_add_subtree ( ti , ett_pkt_ccc ) ;
+ proto_tree_add_item ( pkt_ccc_tree , hf_pkt_ccc_id , tvb , 0 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

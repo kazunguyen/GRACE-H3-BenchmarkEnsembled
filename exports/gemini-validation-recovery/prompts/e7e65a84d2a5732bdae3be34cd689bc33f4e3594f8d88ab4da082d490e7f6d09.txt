@@ -1,0 +1,136 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_rsvp_ero_rro_subobjects ( proto_tree * ti , packet_info * pinfo , proto_tree * rsvp_object_tree , tvbuff_t * tvb , int offset , int obj_length , int rsvp_class ) {
+ int i , j , k , l , flags ;
+ proto_tree * ti2 = NULL , * rsvp_ro_subtree , * rsvp_rro_flags_subtree ;
+ int tree_type ;
+ switch ( rsvp_class ) {
+ case RSVP_CLASS_EXPLICIT_ROUTE : tree_type = TREE ( TT_EXPLICIT_ROUTE_SUBOBJ ) ;
+ break ;
+ case RSVP_CLASS_RECORD_ROUTE : tree_type = TREE ( TT_RECORD_ROUTE_SUBOBJ ) ;
+ break ;
+ default : return ;
+ }
+ for ( i = 1 , l = 0 ;
+ l < obj_length - 4 ;
+ i ++ ) {
+ j = tvb_get_guint8 ( tvb , offset + l ) & 0x7f ;
+ switch ( j ) {
+ case 1 : k = tvb_get_guint8 ( tvb , offset + l ) & 0x80 ;
+ rsvp_ro_subtree = proto_tree_add_subtree_format ( rsvp_object_tree , tvb , offset + l , 8 , tree_type , & ti2 , "IPv4 Subobject - %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ? ( k ? ", Loose" : ", Strict" ) : "" ) ;
+ if ( rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ) proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_loose_hop , tvb , offset + l , 1 , ENC_NA ) ;
+ proto_tree_add_uint_format_value ( rsvp_ro_subtree , hf_rsvp_type , tvb , offset + l , 1 , j , "1 (IPv4)" ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_length , tvb , offset + l + 1 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_ipv4_hop , tvb , offset + l + 2 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_prefix_length , tvb , offset + l + 6 , 1 , ENC_BIG_ENDIAN ) ;
+ if ( i < 4 ) {
+ proto_item_append_text ( ti , "IPv4 %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , k ? " [L]" : "" ) ;
+ }
+ if ( rsvp_class == RSVP_CLASS_RECORD_ROUTE ) {
+ flags = tvb_get_guint8 ( tvb , offset + l + 7 ) ;
+ if ( flags & 0x20 ) {
+ proto_item_append_text ( ti , " (Node-id)" ) ;
+ proto_item_append_text ( ti2 , " (Node-id)" ) ;
+ }
+ if ( flags & 0x01 ) proto_item_append_text ( ti2 , ", Local Protection Available" ) ;
+ if ( flags & 0x02 ) proto_item_append_text ( ti2 , ", Local Protection In Use" ) ;
+ if ( flags & 0x04 ) proto_item_append_text ( ti2 , ", Backup BW Avail" ) ;
+ if ( flags & 0x08 ) proto_item_append_text ( ti2 , ", Backup is Next-Next-Hop" ) ;
+ ti2 = proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_flags , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ rsvp_rro_flags_subtree = proto_item_add_subtree ( ti2 , TREE ( TT_RECORD_ROUTE_SUBOBJ_FLAGS ) ) ;
+ proto_tree_add_item ( rsvp_rro_flags_subtree , hf_rsvp_rro_flags_local_avail , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_rro_flags_subtree , hf_rsvp_rro_flags_local_in_use , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_rro_flags_subtree , hf_rsvp_rro_flags_bandwidth , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_rro_flags_subtree , hf_rsvp_rro_flags_node , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j , k , l , flags ;
+ proto_tree * ti2 = NULL , * rsvp_ro_subtree , * rsvp_rro_flags_subtree ;
+ int tree_type ;
+ switch ( rsvp_class ) {
+ case RSVP_CLASS_EXPLICIT_ROUTE : tree_type = TREE ( TT_EXPLICIT_ROUTE_SUBOBJ ) ;
+ break ;
+ case RSVP_CLASS_RECORD_ROUTE : tree_type = TREE ( TT_RECORD_ROUTE_SUBOBJ ) ;
+ break ;
+ default : return ;
+ }
+ for ( i = 1 , l = 0 ;
+ l < obj_length - 4 ;
+ i ++ ) {
+ j = tvb_get_guint8 ( tvb , offset + l ) & 0x7f ;
+ switch ( j ) {
+ case 1 : k = tvb_get_guint8 ( tvb , offset + l ) & 0x80 ;
+ rsvp_ro_subtree = proto_tree_add_subtree_format ( rsvp_object_tree , tvb , offset + l , 8 , tree_type , & ti2 , "IPv4 Subobject - %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ? ( k ? ", Loose" : ", Strict" ) : "" ) ;
+ if ( rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ) proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_loose_hop , tvb , offset + l , 1 , ENC_NA ) ;
+ proto_tree_add_uint_format_value ( rsvp_ro_subtree , hf_rsvp_typ...
+      
+25769803777 | BLOCK | 
+        {
+ case RSVP_CLASS_EXPLICIT_ROUTE : tree_type = TREE ( TT_EXPLICIT_ROUTE_SUBOBJ ) ;
+ break ;
+ case RSVP_CLASS_RECORD_ROUTE : tree_type = TREE ( TT_RECORD_ROUTE_SUBOBJ ) ;
+ break ;
+ default : return ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ j = tvb_get_guint8 ( tvb , offset + l ) & 0x7f ;
+ switch ( j ) {
+ case 1 : k = tvb_get_guint8 ( tvb , offset + l ) & 0x80 ;
+ rsvp_ro_subtree = proto_tree_add_subtree_format ( rsvp_object_tree , tvb , offset + l , 8 , tree_type , & ti2 , "IPv4 Subobject - %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ? ( k ? ", Loose" : ", Strict" ) : "" ) ;
+ if ( rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ) proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_loose_hop , tvb , offset + l , 1 , ENC_NA ) ;
+ proto_tree_add_uint_format_value ( rsvp_ro_subtree , hf_rsvp_type , tvb , offset + l , 1 , j , "1 (IPv4)" ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_length , tvb , offset + l + 1 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_ipv4_hop , tvb , offset + l + 2 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_prefix_length , tvb , offset + l + 6 , ...
+      
+25769803780 | BLOCK | 
+        {
+ case 1 : k = tvb_get_guint8 ( tvb , offset + l ) & 0x80 ;
+ rsvp_ro_subtree = proto_tree_add_subtree_format ( rsvp_object_tree , tvb , offset + l , 8 , tree_type , & ti2 , "IPv4 Subobject - %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ? ( k ? ", Loose" : ", Strict" ) : "" ) ;
+ if ( rsvp_class == RSVP_CLASS_EXPLICIT_ROUTE ) proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_loose_hop , tvb , offset + l , 1 , ENC_NA ) ;
+ proto_tree_add_uint_format_value ( rsvp_ro_subtree , hf_rsvp_type , tvb , offset + l , 1 , j , "1 (IPv4)" ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_length , tvb , offset + l + 1 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_ipv4_hop , tvb , offset + l + 2 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_prefix_length , tvb , offset + l + 6 , 1 , ENC_BIG_ENDIAN ) ;
+ if ( i < 4 ) {
+ proto_item_append_text ( t...
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ proto_item_append_text ( ti , "IPv4 %s%s" , tvb_ip_to_str ( tvb , offset + l + 2 ) , k ? " [L]" : "" ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ flags = tvb_get_guint8 ( tvb , offset + l + 7 ) ;
+ if ( flags & 0x20 ) {
+ proto_item_append_text ( ti , " (Node-id)" ) ;
+ proto_item_append_text ( ti2 , " (Node-id)" ) ;
+ }
+ if ( flags & 0x01 ) proto_item_append_text ( ti2 , ", Local Protection Available" ) ;
+ if ( flags & 0x02 ) proto_item_append_text ( ti2 , ", Local Protection In Use" ) ;
+ if ( flags & 0x04 ) proto_item_append_text ( ti2 , ", Backup BW Avail" ) ;
+ if ( flags & 0x08 ) proto_item_append_text ( ti2 , ", Backup is Next-Next-Hop" ) ;
+ ti2 = proto_tree_add_item ( rsvp_ro_subtree , hf_rsvp_ero_rro_subobjects_flags , tvb , offset + l + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ rsvp_rro_flags_subtree = proto_item_add_subtree ( ti2 , TREE ( TT_RECORD_ROUTE_SUBOBJ_FLAGS ) ) ;
+ proto_tree_add_item ( rsvp_rro_flags_subtree , hf
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

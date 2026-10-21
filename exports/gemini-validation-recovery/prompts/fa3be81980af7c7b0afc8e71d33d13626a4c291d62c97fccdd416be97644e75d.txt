@@ -1,0 +1,306 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void nfs_refresh_filename(BlockDriverState *bs, QDict *options)
+
+{
+
+    NFSClient *client = bs->opaque;
+
+    QDict *opts = qdict_new();
+
+    QObject *server_qdict;
+
+    Visitor *ov;
+
+
+
+    qdict_put(opts, "driver", qstring_from_str("nfs"));
+
+
+
+    if (client->uid && !client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64, client->server->host, client->path,
+
+                 client->uid);
+
+    } else if (!client->uid && client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?gid=%" PRId64, client->server->host, client->path,
+
+                 client->gid);
+
+    } else if (client->uid && client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64 "&gid=%" PRId64,
+
+                 client->server->host, client->path, client->uid, client->gid);
+
+    } else {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s", client->server->host, client->path);
+
+    }
+
+
+
+    ov = qobject_output_visitor_new(&server_qdict);
+
+    visit_type_NFSServer(ov, NULL, &client->server, &error_abort);
+
+    visit_complete(ov, &server_qdict);
+
+    assert(qobject_type(server_qdict) == QTYPE_QDICT);
+
+
+
+    qdict_put_obj(opts, "server", server_qdict);
+
+    qdict_put(opts, "path", qstring_from_str(client->path));
+
+
+
+    if (client->uid) {
+
+        qdict_put(opts, "uid", qint_from_int(client->uid));
+
+    }
+
+    if (client->gid) {
+
+        qdict_put(opts, "gid", qint_from_int(client->gid));
+
+    }
+
+    if (client->tcp_syncnt) {
+
+        qdict_put(opts, "tcp-syncnt",
+
+                      qint_from_int(client->tcp_syncnt));
+
+    }
+
+    if (client->readahead) {
+
+        qdict_put(opts, "readahead",
+
+                      qint_from_int(client->readahead));
+
+    }
+
+    if (client->pagecache) {
+
+        qdict_put(opts, "pagecache",
+
+                      qint_from_int(client->pagecache));
+
+    }
+
+    if (client->debug) {
+
+        qdict_put(opts, "debug", qint_from_int(client->debug));
+
+    }
+
+
+
+    visit_free(ov);
+
+    qdict_flatten(opts);
+
+    bs->full_open_options = opts;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    NFSClient *client = bs->opaque;
+
+    QDict *opts = qdict_new();
+
+    QObject *server_qdict;
+
+    Visitor *ov;
+
+
+
+    qdict_put(opts, "driver", qstring_from_str("nfs"));
+
+
+
+    if (client->uid && !client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64, client->server->host, client->path,
+
+                 client->uid);
+
+    } else if (!client->uid && client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?gid=%" PRId64, client->server->host, client->path,
+
+                 client->gid);
+
+    } else if (client->uid && client->gid) {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64 "&gid=%" PRId64,
+
+                 client->server->host, client->path, client->uid, client->gid);
+
+    } else {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s", client->...
+      
+25769803777 | BLOCK | 
+        {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64, client->server->host, client->path,
+
+                 client->uid);
+
+    }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?gid=%" PRId64, client->server->host, client->path,
+
+                 client->gid);
+
+    }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s?uid=%" PRId64 "&gid=%" PRId64,
+
+                 client->server->host, client->path, client->uid, client->gid);
+
+    }
+      
+25769803782 | BLOCK | 
+        {
+
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s", client->server->host, client->path);
+
+    }
+      
+25769803783 | BLOCK | { qdict_put(opts, "uid", qint_from_int(client->uid)); }
+25769803784 | BLOCK | { qdict_put(opts, "gid", qint_from_int(client->gid)); }
+25769803785 | BLOCK | { qdict_put(opts, "tcp-syncnt", qint_from_int(client->tcp_syncnt)); }
+25769803786 | BLOCK | { qdict_put(opts, "readahead", qint_from_int(client->readahead)); }
+25769803787 | BLOCK | { qdict_put(opts, "pagecache", qint_from_int(client->pagecache)); }
+25769803788 | BLOCK | { qdict_put(opts, "debug", qint_from_int(client->debug)); }
+30064771072 | CALL | client = bs->opaque
+30064771073 | CALL | bs->opaque
+30064771074 | CALL | opts = qdict_new()
+30064771075 | CALL | qdict_new()
+30064771076 | CALL | qdict_put(opts, "driver", qstring_from_str("nfs"))
+30064771077 | CALL | qstring_from_str("nfs")
+30064771078 | CALL | client->uid && !client->gid
+30064771079 | CALL | client->uid
+30064771080 | CALL | !client->gid
+30064771081 | CALL | client->gid
+30064771082 | CALL | !client->uid && client->gid
+30064771083 | CALL | !client->uid
+30064771084 | CALL | client->uid
+30064771085 | CALL | client->gid
+30064771086 | CALL | client->uid && client->gid
+30064771087 | CALL | client->uid
+30064771088 | CALL | client->gid
+30064771089 | CALL | 
+        snprintf(bs->exact_filename, sizeof(bs->exact_filename),
+
+                 "nfs://%s%s", client->server->host, client->path)
+      
+30064771090 | CALL | bs->exact_filename
+30064771091 | CALL | sizeof(bs->exact_filename)
+30064771092 | CALL | bs->exact_filename
+30064771093 | CALL | client->server->host
+30064771094 | CALL | client->server
+30064771095 | CALL | client->path
+30064771096 | CALL | ov = qobject_output_visitor_new(&server_qdict)
+30064771097 | CALL | qobject_output_visitor_new(&server_qdict)
+30064771098 | CALL | &server_qdict
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771096 [AST]
+25769803782 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771084 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771078 [R
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

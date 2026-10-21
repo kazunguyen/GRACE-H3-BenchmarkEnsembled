@@ -1,0 +1,261 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int hw_device_setup_for_decode(InputStream *ist)
+
+{
+
+    enum AVHWDeviceType type;
+
+    HWDevice *dev;
+
+    int err;
+
+
+
+    if (ist->hwaccel_device) {
+
+        dev = hw_device_get_by_name(ist->hwaccel_device);
+
+        if (!dev) {
+
+            char *tmp;
+
+            type = hw_device_match_type_by_hwaccel(ist->hwaccel_id);
+
+            if (type == AV_HWDEVICE_TYPE_NONE) {
+
+                // No match - this isn't necessarily invalid, though,
+
+                // because an explicit device might not be needed or
+
+                // the hwaccel setup could be handled elsewhere.
+
+                return 0;
+
+            }
+
+            tmp = av_asprintf("%s:%s", av_hwdevice_get_type_name(type),
+
+                              ist->hwaccel_device);
+
+            if (!tmp)
+
+                return AVERROR(ENOMEM);
+
+            err = hw_device_init_from_string(tmp, &dev);
+
+            av_free(tmp);
+
+            if (err < 0)
+
+                return err;
+
+        }
+
+    } else {
+
+        if (ist->hwaccel_id != HWACCEL_NONE)
+
+            type = hw_device_match_type_by_hwaccel(ist->hwaccel_id);
+
+        else
+
+            type = hw_device_match_type_in_name(ist->dec->name);
+
+        if (type != AV_HWDEVICE_TYPE_NONE) {
+
+            dev = hw_device_get_by_type(type);
+
+            if (!dev) {
+
+                hw_device_init_from_string(av_hwdevice_get_type_name(type),
+
+                                           &dev);
+
+            }
+
+        } else {
+
+            // No device required.
+
+            return 0;
+
+        }
+
+    }
+
+
+
+    if (!dev) {
+
+        av_log(ist->dec_ctx, AV_LOG_WARNING, "No device available "
+
+               "for decoder (device type %s for codec %s).\n",
+
+               av_hwdevice_get_type_name(type), ist->dec->name);
+
+        return 0;
+
+    }
+
+
+
+    ist->dec_ctx->hw_device_ctx = av_buffer_ref(dev->device_ref);
+
+    if (!ist->dec_ctx->hw_device_ctx)
+
+        return AVERROR(ENOMEM);
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+39 -> 44 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+55 -> 60 [IS_AST_PARENT]
+39 -> 55 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+69 -> 79 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+39 -> 63 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int hw_device_setup_for_encode(OutputStream *ost)
+
+{
+
+    enum AVHWDeviceType type;
+
+    HWDevice *dev;
+
+
+
+    type = hw_device_match_type_in_name(ost->enc->name);
+
+    if (type != AV_HWDEVICE_TYPE_NONE) {
+
+        dev = hw_device_get_by_type(type);
+
+        if (!dev) {
+
+            av_log(ost->enc_ctx, AV_LOG_WARNING, "No device available "
+
+                   "for encoder (device type %s for codec %s).\n",
+
+                   av_hwdevice_get_type_name(type), ost->enc->name);
+
+            return 0;
+
+        }
+
+        ost->enc_ctx->hw_device_ctx = av_buffer_ref(dev->device_ref);
+
+        if (!ost->enc_ctx->hw_device_ctx)
+
+            return AVERROR(ENOMEM);
+
+        return 0;
+
+    } else {
+
+        // No device required.
+
+        return 0;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,296 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nvdec_mpeg12_start_frame(AVCodecContext *avctx, const uint8_t *buffer, uint32_t size)
+
+{
+
+    MpegEncContext *s = avctx->priv_data;
+
+
+
+    NVDECContext      *ctx = avctx->internal->hwaccel_priv_data;
+
+    CUVIDPICPARAMS     *pp = &ctx->pic_params;
+
+    CUVIDMPEG2PICPARAMS *ppc = &pp->CodecSpecific.mpeg2;
+
+    FrameDecodeData *fdd;
+
+    NVDECFrame *cf;
+
+    AVFrame *cur_frame = s->current_picture.f;
+
+
+
+    int ret, i;
+
+
+
+    ret = ff_nvdec_start_frame(avctx, cur_frame);
+
+    if (ret < 0)
+
+        return ret;
+
+
+
+    fdd = (FrameDecodeData*)cur_frame->private_ref->data;
+
+    cf  = (NVDECFrame*)fdd->hwaccel_priv;
+
+
+
+    *pp = (CUVIDPICPARAMS) {
+
+        .PicWidthInMbs     = (cur_frame->width  + 15) / 16,
+
+        .FrameHeightInMbs  = (cur_frame->height + 15) / 16,
+
+        .CurrPicIdx        = cf->idx,
+
+
+
+        .intra_pic_flag    = s->pict_type == AV_PICTURE_TYPE_I,
+
+        .ref_pic_flag      = s->pict_type == AV_PICTURE_TYPE_I ||
+
+                             s->pict_type == AV_PICTURE_TYPE_P,
+
+
+
+        .CodecSpecific.mpeg2 = {
+
+            .ForwardRefIdx     = get_ref_idx(s->last_picture.f),
+
+            .BackwardRefIdx    = get_ref_idx(s->next_picture.f),
+
+
+
+            .picture_coding_type        = s->pict_type,
+
+            .full_pel_forward_vector    = s->full_pel[0],
+
+            .full_pel_backward_vector   = s->full_pel[1],
+
+            .f_code                     = { { s->mpeg_f_code[0][0],
+
+                                              s->mpeg_f_code[0][1] },
+
+                                            { s->mpeg_f_code[1][0],
+
+                                              s->mpeg_f_code[1][1] } },
+
+            .intra_dc_precision         = s->intra_dc_precision,
+
+            .frame_pred_frame_dct       = s->frame_pred_frame_dct,
+
+            .concealment_motion_vectors = s->concealment_motion_vectors,
+
+            .q_scale_type               = s->q_scale_type,
+
+            .intra_vlc_format           = s->intra_vlc_format,
+
+            .alternate_scan             = s->alternate_scan,
+
+            .top_field_first            = s->top_field_first,
+
+        }
+
+    };
+
+
+
+    for (i = 0; i < 64; ++i) {
+
+        ppc->QuantMatrixIntra[i] = s->intra_matrix[i];
+
+        ppc->QuantMatrixInter[i] = s->inter_matrix[i];
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 24 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+68 -> 72 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+78 -> 81 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int nvdec_vc1_start_frame(AVCodecContext *avctx, const uint8_t *buffer, uint32_t size)
+
+{
+
+    VC1Context *v = avctx->priv_data;
+
+    MpegEncContext *s = &v->s;
+
+
+
+    NVDECContext      *ctx = avctx->internal->hwaccel_priv_data;
+
+    CUVIDPICPARAMS     *pp = &ctx->pic_params;
+
+    FrameDecodeData *fdd;
+
+    NVDECFrame *cf;
+
+    AVFrame *cur_frame = s->current_picture.f;
+
+
+
+    int ret;
+
+
+
+    ret = ff_nvdec_start_frame(avctx, cur_frame);
+
+    if (ret < 0)
+
+        return ret;
+
+
+
+    fdd = (FrameDecodeData*)cur_frame->private_ref->data;
+
+    cf  = (NVDECFrame*)fdd->hwaccel_priv;
+
+
+
+    *pp = (CUVIDPICPARAMS) {
+
+        .PicWidthInMbs     = (cur_frame->width  + 15) / 16,
+
+        .FrameHeightInMbs  = (cur_frame->height + 15) / 16,
+
+        .CurrPicIdx        = cf->idx,
+
+        .field_pic_flag    = v->field_mode,
+
+        .bottom_field_flag = v->cur_field_type,
+
+        .second_field      = v->second_field,
+
+
+
+        .intra_pic_flag    = s->pict_type == AV_PICTURE_TYPE_I ||
+
+                             s->pict_type == AV_PICTURE_TYPE_BI,
+
+        .ref_pic_flag      = s->pict_type == AV_PICTURE_TYPE_I ||
+
+                             s->pict_type == AV_PICTURE_TYPE_P,
+
+
+
+        .CodecSpecific.vc1 = {
+
+            .ForwardRefIdx     = get_ref_idx(s->last_picture.f),
+
+            .BackwardRefIdx    = get_ref_idx(s->next_picture.f),
+
+            .FrameWidth        = cur_frame->width,
+
+            .FrameHeight       = cur_frame->height,
+
+
+
+            .intra_pic_flag    = 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

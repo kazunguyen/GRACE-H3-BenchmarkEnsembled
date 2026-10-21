@@ -1,0 +1,369 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pci_rocker_init(PCIDevice *dev)
+
+{
+
+    Rocker *r = to_rocker(dev);
+
+    const MACAddr zero = { .a = { 0, 0, 0, 0, 0, 0 } };
+
+    const MACAddr dflt = { .a = { 0x52, 0x54, 0x00, 0x12, 0x35, 0x01 } };
+
+    static int sw_index;
+
+    int i, err = 0;
+
+
+
+    /* allocate worlds */
+
+
+
+    r->worlds[ROCKER_WORLD_TYPE_OF_DPA] = of_dpa_world_alloc(r);
+
+
+
+    if (!r->world_name) {
+
+        r->world_name = g_strdup(world_name(r->worlds[ROCKER_WORLD_TYPE_OF_DPA]));
+
+    }
+
+
+
+    r->world_dflt = rocker_world_type_by_name(r, r->world_name);
+
+    if (!r->world_dflt) {
+
+        fprintf(stderr,
+
+                "rocker: requested world \"%s\" does not exist\n",
+
+                r->world_name);
+
+        err = -EINVAL;
+
+        goto err_world_type_by_name;
+
+    }
+
+
+
+    /* set up memory-mapped region at BAR0 */
+
+
+
+    memory_region_init_io(&r->mmio, OBJECT(r), &rocker_mmio_ops, r,
+
+                          "rocker-mmio", ROCKER_PCI_BAR0_SIZE);
+
+    pci_register_bar(dev, ROCKER_PCI_BAR0_IDX,
+
+                     PCI_BASE_ADDRESS_SPACE_MEMORY, &r->mmio);
+
+
+
+    /* set up memory-mapped region for MSI-X */
+
+
+
+    memory_region_init(&r->msix_bar, OBJECT(r), "rocker-msix-bar",
+
+                       ROCKER_PCI_MSIX_BAR_SIZE);
+
+    pci_register_bar(dev, ROCKER_PCI_MSIX_BAR_IDX,
+
+                     PCI_BASE_ADDRESS_SPACE_MEMORY, &r->msix_bar);
+
+
+
+    /* MSI-X init */
+
+
+
+    err = rocker_msix_init(r);
+
+    if (err) {
+
+        goto err_msix_init;
+
+    }
+
+
+
+    /* validate switch properties */
+
+
+
+    if (!r->name) {
+
+        r->name = g_strdup(ROCKER);
+
+    }
+
+
+
+    if (rocker_find(r->name)) {
+
+        err = -EEXIST;
+
+        goto err_duplicate;
+
+    }
+
+
+
+    /* Rocker name is passed in port name requests to OS with the intention
+
+     * that the name is used in interface names. Limit the length of the
+
+     * rocker name to avoid naming problems in the OS. Also, adding the
+
+     * port number as p# and unganged breakout b#, where # is at most 2
+
+     * digits, so leave room for it too (-1 for string terminator, -3 for
+
+     * p# and -3 for b#)
+
+     */
+
+#define ROCKER_IFNAMSIZ 16
+
+#define MAX_ROCKER_NAME_LEN  (ROCKER_IFNAMSIZ - 1 - 3 - 3)
+
+    if (strlen(r->name) > MAX_ROCKER_NAME_LEN) {
+
+        fprintf(stderr,
+
+                "rocker: name too long; please shorten to at most %d chars\n",
+
+                MAX_ROCKER_NAME_LEN);
+
+        return -EINVAL;
+
+    }
+
+
+
+    if (memcmp(&r->fp_start_macaddr, &zero, sizeof(zero)) == 0) {
+
+        memcpy(&r->fp_start_macaddr, &dflt, sizeof(dflt));
+
+        r->fp_start_macaddr.a[4] += (sw_index++);
+
+    }
+
+
+
+    if (!r->switch_id) {
+
+        memcpy(&r->switch_id, &r->fp_start_macaddr,
+
+               sizeof(r->fp_start_macaddr));
+
+    }
+
+
+
+    if (r->fp_ports > ROCKER_FP_PORTS_MAX) {
+
+        r->fp_ports = ROCKER_FP_PORTS_MAX;
+
+    }
+
+
+
+    r->rings = g_new(DescRing *, rocker_pci_ring_count(r));
+
+
+
+    /* Rings are ordered like this:
+
+     * - command ring
+
+     * - event ring
+
+     * - port0 tx ring
+
+     * - port0 rx ri
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+21 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+25 -> 29 [IS_AST_PARENT]
+25 -> 30 [IS_AST_PARENT]
+25 -> 31 [IS_AST_PARENT]
+25 -> 32 [IS_AST_PARENT]
+25 -> 33 [IS_AST_PARENT]
+25 -> 34 [IS_AST_PARENT]
+25 -> 35 [IS_AST_PARENT]
+25 -> 36 [IS_AST_PARENT]
+21 -> 25 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+46 -> 50 [IS_AST_PARENT]
+46 -> 51 [IS_AST_PARENT]
+46 -> 52 [IS_AST_PARENT]
+46 -> 53 [IS_AST_PARENT]
+46 -> 54 [IS_AST_PARENT]
+46 -> 55 [IS_AST_PARENT]
+46 -> 56 [IS_AST_PARENT]
+46 -> 57 [IS_AST_PARENT]
+42 -> 46 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+64 -> 68 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+75 -> 81 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void megasas_scsi_realize(PCIDevice *dev, Error **errp)
+
+{
+
+    DeviceState *d = DEVICE(dev);
+
+    MegasasState *s = MEGASAS(dev);
+
+    MegasasBaseClass *b = MEGASAS_DEVICE_GET_CLASS(s);
+
+    uint8_t *pci_conf;
+
+    int i, bar_type;
+
+    Error *err = NULL;
+
+    int ret;
+
+
+
+    pci_conf = dev->config;
+
+
+
+    /* PCI latency timer = 0 */
+
+    pci_conf[PCI_LATENCY_TIMER] = 0;
+
+    /* Interrupt pin 1 */
+
+    pci_conf[PCI_INTERRUPT_PIN] = 0x01;
+
+
+
+    if (s->msi != ON_OFF_AUTO_OFF) {
+
+        ret = msi_init(dev, 0x50, 1, true, false, &err);
+
+        /* Any error other than -ENOTSUP(board's MSI support is broken)
+
+         * is a programming error */
+
+        assert(!ret || ret == -ENOTSUP);
+
+        if (ret && s->msi == ON_OFF_AUTO_ON) {
+
+            /* Can't satisfy user's explicit msi=on request, fail */
+
+            error_append_hint(&err, "You have to use msi=auto (default) or "
+
+                    "msi=off with this machine type.\n");
+
+            error_propagate(errp, err);
+
+            return;
+
+        } else if (ret) {
+
+            /* With msi=auto, we fall back to MSI off silently */
+
+            s->msi = ON_OFF_AUTO_OFF;
+
+            error_free(err);
+
+        }
+
+    }
+
+
+
+    memory_region_init_io(&s->mmio_io, OBJECT(s), &megasas_mmio_ops, s,
+
+                          "megasas-mmio", 0x4000);
+
+    memory_region_init_io(&s->port_io, OBJECT(s), &megasas_port_ops, s,
+
+                          "megasas-io", 256);
+
+    memory_region_init_io(&s->queue_io, OBJECT(s), &m
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,43 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void parseNodeClassMask ( proto_tree * tree , tvbuff_t * tvb , packet_info * pinfo _U_ , gint * pOffset ) {
+ static const int * nodeclass_mask [ ] = {
+ & hf_opcua_nodeClassMask_object , & hf_opcua_nodeClassMask_variable , & hf_opcua_nodeClassMask_method , & hf_opcua_nodeClassMask_objecttype , & hf_opcua_nodeClassMask_variabletype , & hf_opcua_nodeClassMask_referencetype , & hf_opcua_nodeClassMask_datatype , & hf_opcua_nodeClassMask_view , NULL }
+ ;
+ guint8 NodeClassMask = tvb_get_guint8 ( tvb , * pOffset ) ;
+ if ( NodeClassMask == NODECLASSMASK_ALL ) {
+ proto_tree_add_item ( tree , hf_opcua_nodeClassMask_all , tvb , * pOffset , 4 , ENC_LITTLE_ENDIAN ) ;
+ }
+ else {
+ proto_tree_add_bitmask ( tree , tvb , * pOffset , hf_opcua_nodeClassMask , ett_opcua_nodeClassMask , nodeclass_mask , ENC_LITTLE_ENDIAN ) ;
+ }
+ * pOffset += 4 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void parseResultMask ( proto_tree * tree , tvbuff_t * tvb , packet_info * pinfo _U_ , gint * pOffset ) {
+ static const int * browseresult_mask [ ] = {
+ & hf_opcua_resultMask_referencetype , & hf_opcua_resultMask_isforward , & hf_opcua_resultMask_nodeclass , & hf_opcua_resultMask_browsename , & hf_opcua_resultMask_displayname , & hf_opcua_resultMask_typedefinition , NULL }
+ ;
+ guint8 ResultMask = tvb_get_guint8 ( tvb , * pOffset ) ;
+ if ( ResultMask == RESULTMASK_ALL ) {
+ proto_tree_add_item ( tree , hf_opcua_resultMask_all , tvb , * pOffset , 4 , ENC_LITTLE_ENDIAN ) ;
+ }
+ else {
+ proto_tree_add_bitmask ( tree , tvb , * pOffset , hf_opcua_resultMask , ett_opcua_resultMask , browseresult_mask , ENC_LITTLE_ENDIAN ) ;
+ }
+ * pOffset += 4 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

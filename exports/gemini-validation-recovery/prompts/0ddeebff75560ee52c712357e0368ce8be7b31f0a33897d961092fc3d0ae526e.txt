@@ -1,0 +1,40 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_h245_T_returnedFunction ( tvbuff_t * tvb _U_ , int offset _U_ , asn1_ctx_t * actx _U_ , proto_tree * tree _U_ , int hf_index _U_ ) {
+ # line 990 "../../asn1/h245/h245.cnf" tvbuff_t * next_tvb = NULL ;
+ proto_item * item ;
+ proto_tree * subtree ;
+ h245_packet_info * saved_h245_pi ;
+ offset = dissect_per_octet_string ( tvb , offset , actx , tree , hf_index , NO_BOUND , NO_BOUND , FALSE , & next_tvb ) ;
+ if ( next_tvb && tvb_length ( next_tvb ) ) {
+ saved_h245_pi = h245_pi ;
+ h245_pi = NULL ;
+ item = proto_tree_add_text ( tree , next_tvb , 0 , - 1 , "The returned function" ) ;
+ subtree = proto_item_add_subtree ( item , ett_h245_returnedFunction ) ;
+ PROTO_ITEM_SET_GENERATED ( item ) ;
+ dissect_h245_MultimediaSystemControlMessage ( next_tvb , 0 , actx , subtree , hf_h245_pdu_type ) ;
+ h245_pi = saved_h245_pi ;
+ }
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int dissect_h225_ParallelH245Control_item ( tvbuff_t * tvb _U_ , int offset _U_ , asn1_ctx_t * actx _U_ , proto_tree * tree _U_ , int hf_index _U_ ) {
+ # line 361 "./asn1/h225/h225.cnf" tvbuff_t * h245_tvb = NULL ;
+ offset = dissect_per_octet_string ( tvb , offset , actx , tree , hf_index , NO_BOUND , NO_BOUND , FALSE , & h245_tvb ) ;
+ next_tvb_add_handle ( & h245_list , h245_tvb , ( h225_h245_in_tree ) ? tree : NULL , h245dg_handle ) ;
+ return offset ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

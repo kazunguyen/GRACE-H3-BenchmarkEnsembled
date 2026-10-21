@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int do_open_tray(const char *device, bool force, Error **errp)
+
+{
+
+    BlockBackend *blk;
+
+    bool locked;
+
+
+
+    blk = blk_by_name(device);
+
+    if (!blk) {
+
+        error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
+
+                  "Device '%s' not found", device);
+
+        return -ENODEV;
+
+    }
+
+
+
+    if (!blk_dev_has_removable_media(blk)) {
+
+        error_setg(errp, "Device '%s' is not removable", device);
+
+        return -ENOTSUP;
+
+    }
+
+
+
+    if (!blk_dev_has_tray(blk)) {
+
+        /* Ignore this command on tray-less devices */
+
+        return ENOSYS;
+
+    }
+
+
+
+    if (blk_dev_is_tray_open(blk)) {
+
+        return 0;
+
+    }
+
+
+
+    locked = blk_dev_is_medium_locked(blk);
+
+    if (locked) {
+
+        blk_dev_eject_request(blk, force);
+
+    }
+
+
+
+    if (!locked || force) {
+
+        blk_dev_change_media_cb(blk, false);
+
+    }
+
+
+
+    if (locked && !force) {
+
+        return EINPROGRESS;
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+32 -> 37 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+32 -> 39 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+27 -> 41 [IS_AST_PARENT]
+22 -> 27 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+60 -> 65 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+55 -> 67 [IS_AST_PARENT]
+45 -> 55 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+71 -> 81 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int monitor_read_block_device_key(Monitor *mon, const char *device,
+
+                                  BlockCompletionFunc *completion_cb,
+
+                                  void *opaque)
+
+{
+
+    Error *err = NULL;
+
+    BlockBackend *blk;
+
+
+
+    blk = blk_by_name(device);
+
+    if (!blk) {
+
+        monitor_printf(mon, "Device not found %s\n", device);
+
+        return -1;
+
+    }
+
+    if (!blk_bs(blk)) {
+
+        monitor_printf(mon, "Device '%s' has no medium\n", device);
+
+        return -1;
+
+    }
+
+
+
+    bdrv_add_key(blk_bs(blk), NULL, &err);
+
+    if (err) {
+
+        error_free(err);
+
+        return monitor_read_bdrv_key_start(mon, blk_bs(blk), completion_cb, opaque);
+
+    }
+
+
+
+    if (completion_cb) {
+
+        completion_cb(opaque, 0);
+
+    }
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

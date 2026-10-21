@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vc1_mc_4mv_luma ( VC1Context * v , int n , int dir ) {
+ MpegEncContext * s = & v -> s ;
+ DSPContext * dsp = & v -> s . dsp ;
+ uint8_t * srcY ;
+ int dxy , mx , my , src_x , src_y ;
+ int off ;
+ int fieldmv = ( v -> fcm == ILACE_FRAME ) ? v -> blk_mv_type [ s -> block_index [ n ] ] : 0 ;
+ int v_edge_pos = s -> v_edge_pos >> v -> field_mode ;
+ if ( ( ! v -> field_mode || ( v -> ref_field_type [ dir ] == 1 && v -> cur_field_type == 1 ) ) && ! v -> s . last_picture . f . data [ 0 ] ) return ;
+ mx = s -> mv [ dir ] [ n ] [ 0 ] ;
+ my = s -> mv [ dir ] [ n ] [ 1 ] ;
+ if ( ! dir ) {
+ if ( v -> field_mode ) {
+ if ( ( v -> cur_field_type != v -> ref_field_type [ dir ] ) && v -> cur_field_type ) srcY = s -> current_picture . f . data [ 0 ] ;
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+ else srcY = s -> next_picture . f . data [ 0 ] ;
+ if ( v -> field_mode ) {
+ if ( v -> cur_field_type != v -> ref_field_type [ dir ] ) my = my - 2 + 4 * v -> cur_field_type ;
+ }
+ if ( s -> pict_type == AV_PICTURE_TYPE_P && n == 3 && v -> field_mode ) {
+ int same_count = 0 , opp_count = 0 , k ;
+ int chosen_mv [ 2 ] [ 4 ] [ 2 ] , f ;
+ int tx , ty ;
+ for ( k = 0 ;
+ k < 4 ;
+ k ++ ) {
+ f = v -> mv_f [ 0 ] [ s -> block_index [ k ] + v -> blocks_off ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 0 ] = s -> mv [ 0 ] [ k ] [ 0 ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 1 ] = s -> mv [ 0 ] [ k ] [ 1 ] ;
+ opp_count += f ;
+ same_count += 1 - f ;
+ }
+ f = opp_count > same_count ;
+ switch ( f ? opp_count : same_count ) {
+ case 4 : tx = median4 ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] , chosen_mv [ f ] [ 3 ] [ 0 ] ) ;
+ ty = median4 ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1 ] , chosen_mv [ f ] [ 3 ] [ 1 ] ) ;
+ break ;
+ case 3 : tx = mid_pred ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] ) ;
+ ty = mid_pred ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1 ] ) ;
+ break ;
+ case 2 : tx = ( chosen_mv [ f ] [ 0 ] [ 0 ] + chosen_mv [ f ] [ 1 ] [ 0 ] ) / 2 ;
+ ty = ( chosen_mv [ f ] [ 0 ] [ 1 ] + chosen_mv [ f ] [ 1 ] [ 1 ] ) / 2 ;
+ break ;
+ }
+ s -> current_picture . f . motion_val [ 1 ] [ s -> block_index [ 0 ] + v -> blocks_off ] [ 0 ] = tx ;
+ s -> current_picture . f . motion_val [ 1 ] [ s -> block_index [ 0 ] + v -> blocks_off ] [ 1 ] = ty ;
+ for ( k = 0 ;
+ k < 4 ;
+ k ++ ) v -> mv_f [ 1 ] [ s -> block_index [ k ] + v -> blocks_off ] = f ;
+ }
+ if ( v -> fcm == ILACE_FRAME ) {
+ int qx , qy ;
+ int width = s -> avctx -> coded_width ;
+ int height = s -> avctx -> coded_height >> 1 ;
+ qx = ( s -> mb_x * 16 ) + ( mx >> 2 ) ;
+ qy = ( s -> mb_y * 8 ) + ( my >> 3 ) ;
+ if ( qx < - 17 ) mx -= 4 * ( qx + 17 ) ;
+ else if ( qx > width ) mx -= 4 * ( qx - width ) ;
+ if ( qy < - 18 ) my -= 8 * ( qy + 18 ) ;
+ else if ( qy > height + 1 ) my -= 8 * ( qy - he
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MpegEncContext * s = & v -> s ;
+ DSPContext * dsp = & v -> s . dsp ;
+ uint8_t * srcY ;
+ int dxy , mx , my , src_x , src_y ;
+ int off ;
+ int fieldmv = ( v -> fcm == ILACE_FRAME ) ? v -> blk_mv_type [ s -> block_index [ n ] ] : 0 ;
+ int v_edge_pos = s -> v_edge_pos >> v -> field_mode ;
+ if ( ( ! v -> field_mode || ( v -> ref_field_type [ dir ] == 1 && v -> cur_field_type == 1 ) ) && ! v -> s . last_picture . f . data [ 0 ] ) return ;
+ mx = s -> mv [ dir ] [ n ] [ 0 ] ;
+ my = s -> mv [ dir ] [ n ] [ 1 ] ;
+ if ( ! dir ) {
+ if ( v -> field_mode ) {
+ if ( ( v -> cur_field_type != v -> ref_field_type [ dir ] ) && v -> cur_field_type ) srcY = s -> current_picture . f . data [ 0 ] ;
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+ else srcY = s -> next_picture . f . data [ 0 ] ;
+ if ( v -> field_mode ) {
+ if ( v -> cur_field_type != v -> ref_field_type [ dir ] ) my = my - 2 + 4 * v -> cur_field_type ;
+ }
+ if ( s -> pict_type == AV_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( v -> field_mode ) {
+ if ( ( v -> cur_field_type != v -> ref_field_type [ dir ] ) && v -> cur_field_type ) srcY = s -> current_picture . f . data [ 0 ] ;
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( ( v -> cur_field_type != v -> ref_field_type [ dir ] ) && v -> cur_field_type ) srcY = s -> current_picture . f . data [ 0 ] ;
+ else srcY = s -> last_picture . f . data [ 0 ] ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( v -> cur_field_type != v -> ref_field_type [ dir ] ) my = my - 2 + 4 * v -> cur_field_type ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ int same_count = 0 , opp_count = 0 , k ;
+ int chosen_mv [ 2 ] [ 4 ] [ 2 ] , f ;
+ int tx , ty ;
+ for ( k = 0 ;
+ k < 4 ;
+ k ++ ) {
+ f = v -> mv_f [ 0 ] [ s -> block_index [ k ] + v -> blocks_off ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 0 ] = s -> mv [ 0 ] [ k ] [ 0 ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 1 ] = s -> mv [ 0 ] [ k ] [ 1 ] ;
+ opp_count += f ;
+ same_count += 1 - f ;
+ }
+ f = opp_count > same_count ;
+ switch ( f ? opp_count : same_count ) {
+ case 4 : tx = median4 ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] , chosen_mv [ f ] [ 3 ] [ 0 ] ) ;
+ ty = median4 ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1 ] , chosen_mv [ f ] [ 3 ] [ 1 ] ) ;
+ break ;
+ case 3 : tx = mid_pred ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] ) ;
+ ty = mid_pred ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1...
+      
+25769803787 | BLOCK | 
+        {
+ f = v -> mv_f [ 0 ] [ s -> block_index [ k ] + v -> blocks_off ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 0 ] = s -> mv [ 0 ] [ k ] [ 0 ] ;
+ chosen_mv [ f ] [ f ? opp_count : same_count ] [ 1 ] = s -> mv [ 0 ] [ k ] [ 1 ] ;
+ opp_count += f ;
+ same_count += 1 - f ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ case 4 : tx = median4 ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] , chosen_mv [ f ] [ 3 ] [ 0 ] ) ;
+ ty = median4 ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1 ] , chosen_mv [ f ] [ 3 ] [ 1 ] ) ;
+ break ;
+ case 3 : tx = mid_pred ( chosen_mv [ f ] [ 0 ] [ 0 ] , chosen_mv [ f ] [ 1 ] [ 0 ] , chosen_mv [ f ] [ 2 ] [ 0 ] ) ;
+ ty = mid_pred ( chosen_mv [ f ] [ 0 ] [ 1 ] , chosen_mv [ f ] [ 1 ] [ 1 ] , chosen_mv [ f ] [ 2 ] [ 1 ] ) ;
+ break ;
+ case 2 : tx = ( chosen_mv [ f ] [ 0 ] [ 0 ] + chosen_mv [ f ] [ 1 ] [ 0 ] ) / 2 ;
+ ty = ( chosen_mv [ f ] [ 0 ] [ 1 ] + chosen_mv [ f ] [ 1 ] [ 1 ] ) / 2 ;
+ break ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ int qx , qy ;
+ int width = s -> avctx -> coded_width ;
+ int height = s -> avctx -> coded_height >> 1 ;
+ qx = ( s -> mb_x * 16 ) + ( mx >> 2 ) ;
+ qy = ( s -> mb_y * 8 ) + ( my >> 3 ) ;
+ if ( qx < - 17 ) mx -= 4 * ( qx + 17 ) ;
+ else if ( qx > width ) mx -= 4 * ( qx - width ) ;
+ if ( qy < - 18 ) my -= 8 * ( qy + 18 ) ;
+ else if ( qy > height + 1 ) my -= 8 * 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

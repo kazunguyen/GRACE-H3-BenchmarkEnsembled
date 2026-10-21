@@ -1,0 +1,256 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+unsigned long ssl3_output_cert_chain ( SSL * s , X509 * x ) {
+ unsigned char * p ;
+ int i ;
+ unsigned long l = 7 ;
+ BUF_MEM * buf ;
+ int no_chain ;
+ if ( ( s -> mode & SSL_MODE_NO_AUTO_CHAIN ) || s -> ctx -> extra_certs ) no_chain = 1 ;
+ else no_chain = 0 ;
+ buf = s -> init_buf ;
+ if ( ! BUF_MEM_grow_clean ( buf , 10 ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_BUF_LIB ) ;
+ return ( 0 ) ;
+ }
+ if ( x != NULL ) {
+ if ( no_chain ) {
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ;
+ }
+ else {
+ X509_STORE_CTX xs_ctx ;
+ if ( ! X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB ) ;
+ return ( 0 ) ;
+ }
+ X509_verify_cert ( & xs_ctx ) ;
+ ERR_clear_error ( ) ;
+ for ( i = 0 ;
+ i < sk_X509_num ( xs_ctx . chain ) ;
+ i ++ ) {
+ x = sk_X509_value ( xs_ctx . chain , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) {
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ return 0 ;
+ }
+ }
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < sk_X509_num ( s -> ctx -> extra_certs ) ;
+ i ++ ) {
+ x = sk_X509_value ( s -> ctx -> extra_certs , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ;
+ }
+ l -= 7 ;
+ p = ( unsigned char * ) & ( buf -> data [ 4 ] ) ;
+ l2n3 ( l , p ) ;
+ l += 3 ;
+ p = ( unsigned char * ) & ( buf -> data [ 0 ] ) ;
+ * ( p ++ ) = SSL3_MT_CERTIFICATE ;
+ l2n3 ( l , p ) ;
+ l += 4 ;
+ return ( l ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned char * p ;
+ int i ;
+ unsigned long l = 7 ;
+ BUF_MEM * buf ;
+ int no_chain ;
+ if ( ( s -> mode & SSL_MODE_NO_AUTO_CHAIN ) || s -> ctx -> extra_certs ) no_chain = 1 ;
+ else no_chain = 0 ;
+ buf = s -> init_buf ;
+ if ( ! BUF_MEM_grow_clean ( buf , 10 ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_BUF_LIB ) ;
+ return ( 0 ) ;
+ }
+ if ( x != NULL ) {
+ if ( no_chain ) {
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ;
+ }
+ else {
+ X509_STORE_CTX xs_ctx ;
+ if ( ! X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB ) ;
+ return ( 0 ) ;
+ }
+ X509_verify_cert ( & xs_ctx ) ;
+ ERR_clear_error ( ) ;
+ for ( i = 0 ;
+ i < sk_X509_num ( xs_ctx . chain ) ;
+ i ++ ) {
+ x = sk_X509_value ( xs_ctx . chain , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) {
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ return 0 ;
+ }
+ }
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < sk_X509_num ( s -> ctx ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_BUF_LIB ) ; return ( 0 ) ; }
+25769803780 | BLOCK | 
+        {
+ if ( no_chain ) {
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ;
+ }
+ else {
+ X509_STORE_CTX xs_ctx ;
+ if ( ! X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB ) ;
+ return ( 0 ) ;
+ }
+ X509_verify_cert ( & xs_ctx ) ;
+ ERR_clear_error ( ) ;
+ for ( i = 0 ;
+ i < sk_X509_num ( xs_ctx . chain ) ;
+ i ++ ) {
+ x = sk_X509_value ( xs_ctx . chain , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) {
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ return 0 ;
+ }
+ }
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ }
+ }
+      
+25769803781 | BLOCK | { if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ X509_STORE_CTX xs_ctx ;
+ if ( ! X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL ) ) {
+ SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB ) ;
+ return ( 0 ) ;
+ }
+ X509_verify_cert ( & xs_ctx ) ;
+ ERR_clear_error ( ) ;
+ for ( i = 0 ;
+ i < sk_X509_num ( xs_ctx . chain ) ;
+ i ++ ) {
+ x = sk_X509_value ( xs_ctx . chain , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) {
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ return 0 ;
+ }
+ }
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ }
+      
+25769803784 | BLOCK | { SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB ) ; return ( 0 ) ; }
+25769803785 | BLOCK | 
+        {
+ x = sk_X509_value ( xs_ctx . chain , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) {
+ X509_STORE_CTX_cleanup ( & xs_ctx ) ;
+ return 0 ;
+ }
+ }
+      
+25769803786 | BLOCK | { X509_STORE_CTX_cleanup ( & xs_ctx ) ; return 0 ; }
+25769803787 | BLOCK | 
+        {
+ x = sk_X509_value ( s -> ctx -> extra_certs , i ) ;
+ if ( ssl3_add_cert_to_buf ( buf , & l , x ) ) return ( 0 ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | l = 7
+30064771073 | CALL | ( s -> mode & SSL_MODE_NO_AUTO_CHAIN ) || s -> ctx -> extra_certs
+30064771074 | CALL | s -> mode & SSL_MODE_NO_AUTO_CHAIN
+30064771075 | CALL | s -> mode
+30064771076 | CALL | s -> ctx -> extra_certs
+30064771077 | CALL | s -> ctx
+30064771078 | CALL | no_chain = 1
+30064771079 | CALL | no_chain = 0
+30064771080 | CALL | buf = s -> init_buf
+30064771081 | CALL | s -> init_buf
+30064771082 | CALL | ! BUF_MEM_grow_clean ( buf , 10 )
+30064771083 | CALL | BUF_MEM_grow_clean ( buf , 10 )
+30064771084 | CALL | SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_BUF_LIB )
+30064771085 | CALL | x != NULL
+30064771086 | CALL | no_chain != 0
+30064771087 | CALL | ssl3_add_cert_to_buf ( buf , & l , x )
+30064771088 | CALL | & l
+30064771089 | CALL | ! X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL )
+30064771090 | CALL | X509_STORE_CTX_init ( & xs_ctx , s -> ctx -> cert_store , x , NULL )
+30064771091 | CALL | & xs_ctx
+30064771092 | CALL | s -> ctx -> cert_store
+30064771093 | CALL | s -> ctx
+30064771094 | CALL | SSLerr ( SSL_F_SSL3_OUTPUT_CERT_CHAIN , ERR_R_X509_LIB )
+30064771095 | CALL | X509_verify_cert ( & xs_ctx )
+30064771096 | CALL | & xs_ctx
+30064771097 | CALL | ERR_clear_error ( )
+30064771098 | CALL | i = 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771079 [AST]
+25769803779 -> 30064771084 [AST]
+25769803783 -> 30064771095 [AST]
+25769803783 -> 30064771097 [AST]
+25769803784 -> 30064771094 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771073 [CFG]
+30064771076 -> 30064771093 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

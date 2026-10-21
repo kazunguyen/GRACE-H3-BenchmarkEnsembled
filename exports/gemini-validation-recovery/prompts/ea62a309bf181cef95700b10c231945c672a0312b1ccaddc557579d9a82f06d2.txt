@@ -1,0 +1,276 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ipvideo_decode_block_opcode_0x9(IpvideoContext *s)
+
+{
+
+    int x, y;
+
+    unsigned char P[4];
+
+
+
+    /* 4-color encoding */
+
+    CHECK_STREAM_PTR(4);
+
+
+
+    memcpy(P, s->stream_ptr, 4);
+
+    s->stream_ptr += 4;
+
+
+
+    if (P[0] <= P[1]) {
+
+        if (P[2] <= P[3]) {
+
+
+
+            /* 1 of 4 colors for each pixel, need 16 more bytes */
+
+            CHECK_STREAM_PTR(16);
+
+
+
+            for (y = 0; y < 8; y++) {
+
+                /* get the next set of 8 2-bit flags */
+
+                int flags = bytestream_get_le16(&s->stream_ptr);
+
+                for (x = 0; x < 8; x++, flags >>= 2)
+
+                    *s->pixel_ptr++ = P[flags & 0x03];
+
+                s->pixel_ptr += s->line_inc;
+
+            }
+
+
+
+        } else {
+
+            uint32_t flags;
+
+
+
+            /* 1 of 4 colors for each 2x2 block, need 4 more bytes */
+
+            CHECK_STREAM_PTR(4);
+
+
+
+            flags = bytestream_get_le32(&s->stream_ptr);
+
+
+
+            for (y = 0; y < 8; y += 2) {
+
+                for (x = 0; x < 8; x += 2, flags >>= 2) {
+
+                    s->pixel_ptr[x                ] =
+
+                    s->pixel_ptr[x + 1            ] =
+
+                    s->pixel_ptr[x +     s->stride] =
+
+                    s->pixel_ptr[x + 1 + s->stride] = P[flags & 0x03];
+
+                }
+
+                s->pixel_ptr += s->stride * 2;
+
+            }
+
+
+
+        }
+
+    } else {
+
+        uint64_t flags;
+
+
+
+        /* 1 of 4 colors for each 2x1 or 1x2 block, need 8 more bytes */
+
+        CHECK_STREAM_PTR(8);
+
+
+
+        flags = bytestream_get_le64(&s->stream_ptr);
+
+        if (P[2] <= P[3]) {
+
+            for (y = 0; y < 8; y++) {
+
+                for (x = 0; x < 8; x += 2, flags >>= 2) {
+
+                    s->pixel_ptr[x    ] =
+
+                    s->pixel_ptr[x + 1] = P[flags & 0x03];
+
+                }
+
+                s->pixel_ptr += s->stride;
+
+            }
+
+        } else {
+
+            for (y = 0; y < 8; y += 2) {
+
+                for (x = 0; x < 8; x++, flags >>= 2) {
+
+                    s->pixel_ptr[x            ] =
+
+                    s->pixel_ptr[x + s->stride] = P[flags & 0x03];
+
+                }
+
+                s->pixel_ptr += s->stride * 2;
+
+            }
+
+        }
+
+    }
+
+
+
+    /* report success */
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+28 -> 35 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 42 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+45 -> 49 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+70 -> 75 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+70 -> 79 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+94 -> 95 [IS_AST_PARENT]
+96 -> 97 [IS_AST_PARENT]
+96 -> 98 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int ipvideo_decode_block_opcode_0x7(IpvideoContext *s, AVFrame *frame)
+{
+    int x, y;
+    unsigned char P[2];
+    unsigned int flags;
+    /* 2-color encoding */
+    P[0] = bytestream2_get_byte(&s->stream_ptr);
+    P[1] = bytestream2_get_byte(&s->stream_ptr);
+    if (P[0] <= P[1]) {
+        /* need 8 more bytes from the stream */
+        for (y = 0; y < 8; y++) {
+            flags = bytestream2_get_byte(&s->stream_ptr) | 0x100;
+            for (; flags != 1; flags >>= 1)
+                *s->pixel_ptr++ = P[flags & 1];
+            s->pixel_ptr += s->line_inc;
+    } else {
+        /* need 2 more bytes from the stream */
+        flags = bytestream2_get_le16(&s->stream_ptr);
+        for (y = 0; y < 8; y += 2) {
+            for (x = 0; x < 8; x += 2, flags >>= 1) {
+                s->pixel_ptr[x                ] =
+                s->pixel_ptr[x + 1            ] =
+                s->pixel_ptr[x +     s->stride] =
+                s->pixel_ptr[x + 1 + s->stride] = P[flags & 1];
+            s->pixel_ptr += s->stride * 2;
+    /* report success */
+    return 0;
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,246 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int compand_drain(AVFilterLink *outlink)
+
+{
+
+    AVFilterContext *ctx = outlink->src;
+
+    CompandContext *s    = ctx->priv;
+
+    const int channels   = outlink->channels;
+
+    AVFrame *frame       = NULL;
+
+    int chan, i, dindex;
+
+
+
+    /* 2048 is to limit output frame size during drain */
+
+    frame = ff_get_audio_buffer(outlink, FFMIN(2048, s->delay_count));
+
+    if (!frame)
+
+        return AVERROR(ENOMEM);
+
+    frame->pts = s->pts;
+
+    s->pts += av_rescale_q(frame->nb_samples,
+
+            (AVRational){ 1, outlink->sample_rate }, outlink->time_base);
+
+
+
+
+    for (chan = 0; chan < channels; chan++) {
+
+        AVFrame *delay_frame = s->delay_frame;
+
+        double *dbuf = (double *)delay_frame->extended_data[chan];
+
+        double *dst = (double *)frame->extended_data[chan];
+
+        ChanParam *cp = &s->channels[chan];
+
+
+
+        dindex = s->delay_index;
+
+        for (i = 0; i < frame->nb_samples; i++) {
+
+            dst[i] = av_clipd(dbuf[dindex] * get_volume(s, cp->volume),
+
+                    -1, 1);
+
+            dindex = MOD(dindex + 1, s->delay_samples);
+
+        }
+
+    }
+
+    s->delay_count -= frame->nb_samples;
+
+    s->delay_index = dindex;
+
+
+
+    return ff_filter_frame(outlink, frame);
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+39 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+69 -> 74 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int compand_delay(AVFilterContext *ctx, AVFrame *frame)
+
+{
+
+    CompandContext *s    = ctx->priv;
+
+    AVFilterLink *inlink = ctx->inputs[0];
+
+    const int channels = inlink->channels;
+
+    const int nb_samples = frame->nb_samples;
+
+    int chan, i, av_uninit(dindex), oindex, av_uninit(count);
+
+    AVFrame *out_frame   = NULL;
+
+
+
+    if (s->pts == AV_NOPTS_VALUE) {
+
+        s->pts = (frame->pts == AV_NOPTS_VALUE) ? 0 : frame->pts;
+
+    }
+
+
+
+    av_assert1(channels > 0); /* would corrupt delay_count and delay_index */
+
+
+
+    for (chan = 0; chan < channels; chan++) {
+
+        AVFrame *delay_frame = s->delay_frame;
+
+        const double *src = (double *)frame->extended_data[chan];
+
+        double *dbuf      = (double *)delay_frame->extended_data[chan];
+
+        ChanParam *cp        = &s->channels[chan];
+
+        double *dst;
+
+
+
+        count  = s->delay_count;
+
+        dindex = s->delay_index;
+
+        for (i = 0, oindex = 0; i < nb_samples; i++) {
+
+            const double in = src[i];
+
+            update_volume(cp, fabs(in));
+
+
+
+            if (count >= s->delay_samples) {
+
+                if (!out_frame) {
+
+                    out_frame = ff_get_audio_buffer(inlink, nb_samples - i);
+
+                    if (!out_frame) {
+
+                        av_frame_free(&frame);
+
+                        return AVERROR(ENOMEM);
+
+                    }
+
+                    av_frame_copy_props(out_frame, frame);
+
+                    out_frame->pts = s->pts;
+
+                    s->p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

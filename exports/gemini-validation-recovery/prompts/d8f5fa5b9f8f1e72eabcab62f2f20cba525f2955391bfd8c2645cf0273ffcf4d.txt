@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ReadHead ( ArchiveHandle * AH ) {
+ char tmpMag [ 7 ] ;
+ int fmt ;
+ struct tm crtm ;
+ if ( ! AH -> readHeader ) {
+ ( * AH -> ReadBufPtr ) ( AH , tmpMag , 5 ) ;
+ if ( strncmp ( tmpMag , "PGDMP" , 5 ) != 0 ) exit_horribly ( modulename , "did not find magic string in file header\n" ) ;
+ AH -> vmaj = ( * AH -> ReadBytePtr ) ( AH ) ;
+ AH -> vmin = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> vmaj > 1 || ( ( AH -> vmaj == 1 ) && ( AH -> vmin > 0 ) ) ) AH -> vrev = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> vrev = 0 ;
+ AH -> version = ( ( AH -> vmaj * 256 + AH -> vmin ) * 256 + AH -> vrev ) * 256 + 0 ;
+ if ( AH -> version < K_VERS_1_0 || AH -> version > K_VERS_MAX ) exit_horribly ( modulename , "unsupported version (%d.%d) in file header\n" , AH -> vmaj , AH -> vmin ) ;
+ AH -> intSize = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> intSize > 32 ) exit_horribly ( modulename , "sanity check on integer size (%lu) failed\n" , ( unsigned long ) AH -> intSize ) ;
+ if ( AH -> intSize > sizeof ( int ) ) write_msg ( modulename , "WARNING: archive was made on a machine with larger integers, some operations might fail\n" ) ;
+ if ( AH -> version >= K_VERS_1_7 ) AH -> offSize = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> offSize = AH -> intSize ;
+ fmt = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> format != fmt ) exit_horribly ( modulename , "expected format (%d) differs from format found in file (%d)\n" , AH -> format , fmt ) ;
+ }
+ if ( AH -> version >= K_VERS_1_2 ) {
+ if ( AH -> version < K_VERS_1_4 ) AH -> compression = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> compression = ReadInt ( AH ) ;
+ }
+ else AH -> compression = Z_DEFAULT_COMPRESSION ;
+ # ifndef HAVE_LIBZ if ( AH -> compression != 0 ) write_msg ( modulename , "WARNING: archive is compressed, but this installation does not support compression -- no data will be available\n" ) ;
+ # endif if ( AH -> version >= K_VERS_1_4 ) {
+ crtm . tm_sec = ReadInt ( AH ) ;
+ crtm . tm_min = ReadInt ( AH ) ;
+ crtm . tm_hour = ReadInt ( AH ) ;
+ crtm . tm_mday = ReadInt ( AH ) ;
+ crtm . tm_mon = ReadInt ( AH ) ;
+ crtm . tm_year = ReadInt ( AH ) ;
+ crtm . tm_isdst = ReadInt ( AH ) ;
+ AH -> archdbname = ReadStr ( AH ) ;
+ AH -> createDate = mktime ( & crtm ) ;
+ if ( AH -> createDate == ( time_t ) - 1 ) write_msg ( modulename , "WARNING: invalid creation date in header\n" ) ;
+ }
+ if ( AH -> version >= K_VERS_1_10 ) {
+ AH -> archiveRemoteVersion = ReadStr ( AH ) ;
+ AH -> archiveDumpVersion = ReadStr ( AH ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char tmpMag [ 7 ] ;
+ int fmt ;
+ struct tm crtm ;
+ if ( ! AH -> readHeader ) {
+ ( * AH -> ReadBufPtr ) ( AH , tmpMag , 5 ) ;
+ if ( strncmp ( tmpMag , "PGDMP" , 5 ) != 0 ) exit_horribly ( modulename , "did not find magic string in file header\n" ) ;
+ AH -> vmaj = ( * AH -> ReadBytePtr ) ( AH ) ;
+ AH -> vmin = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> vmaj > 1 || ( ( AH -> vmaj == 1 ) && ( AH -> vmin > 0 ) ) ) AH -> vrev = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> vrev = 0 ;
+ AH -> version = ( ( AH -> vmaj * 256 + AH -> vmin ) * 256 + AH -> vrev ) * 256 + 0 ;
+ if ( AH -> version < K_VERS_1_0 || AH -> version > K_VERS_MAX ) exit_horribly ( modulename , "unsupported version (%d.%d) in file header\n" , AH -> vmaj , AH -> vmin ) ;
+ AH -> intSize = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> intSize > 32 ) exit_horribly ( modulename , "sanity check on integer size (%lu) failed\n" , ( unsigned long ) AH -> intSize ) ;
+ if ( AH -> intSize > sizeof ( int ) ) write_msg ( modulename , ...
+      
+25769803777 | BLOCK | 
+        {
+ ( * AH -> ReadBufPtr ) ( AH , tmpMag , 5 ) ;
+ if ( strncmp ( tmpMag , "PGDMP" , 5 ) != 0 ) exit_horribly ( modulename , "did not find magic string in file header\n" ) ;
+ AH -> vmaj = ( * AH -> ReadBytePtr ) ( AH ) ;
+ AH -> vmin = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> vmaj > 1 || ( ( AH -> vmaj == 1 ) && ( AH -> vmin > 0 ) ) ) AH -> vrev = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> vrev = 0 ;
+ AH -> version = ( ( AH -> vmaj * 256 + AH -> vmin ) * 256 + AH -> vrev ) * 256 + 0 ;
+ if ( AH -> version < K_VERS_1_0 || AH -> version > K_VERS_MAX ) exit_horribly ( modulename , "unsupported version (%d.%d) in file header\n" , AH -> vmaj , AH -> vmin ) ;
+ AH -> intSize = ( * AH -> ReadBytePtr ) ( AH ) ;
+ if ( AH -> intSize > 32 ) exit_horribly ( modulename , "sanity check on integer size (%lu) failed\n" , ( unsigned long ) AH -> intSize ) ;
+ if ( AH -> intSize > sizeof ( int ) ) write_msg ( modulename , "WARNING: archive was made on a machine with larger integers, some operations m...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( AH -> version < K_VERS_1_4 ) AH -> compression = ( * AH -> ReadBytePtr ) ( AH ) ;
+ else AH -> compression = ReadInt ( AH ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+30064771072 | CALL | tmpMag [ 7 ]
+30064771073 | CALL | tmpMag [ 7 ]
+30064771074 | CALL | ! AH -> readHeader
+30064771075 | CALL | AH -> readHeader
+30064771076 | CALL | ( * AH -> ReadBufPtr ) ( AH , tmpMag , 5 )
+30064771077 | CALL | * AH -> ReadBufPtr
+30064771078 | CALL | AH -> ReadBufPtr
+30064771079 | CALL | strncmp ( tmpMag , "PGDMP" , 5 ) != 0
+30064771080 | CALL | strncmp ( tmpMag , "PGDMP" , 5 )
+30064771081 | CALL | 
+        exit_horribly ( modulename , "did not find magic string in file header\n" )
+      
+30064771082 | CALL | AH -> vmaj = ( * AH -> ReadBytePtr ) ( AH )
+30064771083 | CALL | AH -> vmaj
+30064771084 | CALL | ( * AH -> ReadBytePtr ) ( AH )
+30064771085 | CALL | * AH -> ReadBytePtr
+30064771086 | CALL | AH -> ReadBytePtr
+30064771087 | CALL | AH -> vmin = ( * AH -> ReadBytePtr ) ( AH )
+30064771088 | CALL | AH -> vmin
+30064771089 | CALL | ( * AH -> ReadBytePtr ) ( AH )
+30064771090 | CALL | * AH -> ReadBytePtr
+30064771091 | CALL | AH -> ReadBytePtr
+30064771092 | CALL | 
+        AH -> vmaj > 1 || ( ( AH -> vmaj == 1 ) && ( AH -> vmin > 0 ) )
+      
+30064771093 | CALL | AH -> vmaj > 1
+30064771094 | CALL | AH -> vmaj
+30064771095 | CALL | ( AH -> vmaj == 1 ) && ( AH -> vmin > 0 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771094 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

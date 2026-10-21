@@ -1,0 +1,57 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint32 dissect_netb_name_resp ( tvbuff_t * tvb , packet_info * pinfo _U_ , int offset , proto_tree * tree ) {
+ guint8 local_session_number = tvb_get_guint8 ( tvb , offset + NB_DATA2 ) ;
+ switch ( local_session_number ) {
+ case 0x00 : proto_tree_add_uint_format_value ( tree , hf_netb_state_of_name , tvb , offset + NB_DATA2 , 1 , local_session_number , "No LISTEN pending, or FIND.NAME response" ) ;
+ break ;
+ case 0xFF : proto_tree_add_uint_format_value ( tree , hf_netb_state_of_name , tvb , offset + NB_DATA2 , 1 , local_session_number , "LISTEN pending, but insufficient resources to establish session" ) ;
+ break ;
+ default : proto_tree_add_item ( tree , hf_netb_local_session_no , tvb , offset + NB_DATA2 , 1 , ENC_LITTLE_ENDIAN ) ;
+ break ;
+ }
+ nb_call_name_type ( tvb , offset , tree ) ;
+ nb_xmit_corrl ( tvb , offset , tree ) ;
+ if ( local_session_number != 0x00 && local_session_number != 0xFF ) nb_resp_corrl ( tvb , offset , tree ) ;
+ netbios_add_name ( "Receiver's Name" , tvb , offset + NB_RECVER_NAME , tree ) ;
+ if ( local_session_number != 0x00 && local_session_number != 0xFF ) {
+ netbios_add_name ( "Sender's Name" , tvb , offset + NB_SENDER_NAME , tree ) ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static guint32 dissect_netb_status_resp ( tvbuff_t * tvb , packet_info * pinfo _U_ , int offset , proto_tree * tree ) {
+ guint8 status_response = tvb_get_guint8 ( tvb , offset + NB_DATA1 ) ;
+ proto_item * td2 ;
+ proto_tree * data2_tree ;
+ nb_call_name_type ( tvb , offset , tree ) ;
+ if ( status_response == 0 ) {
+ proto_tree_add_uint_format_value ( tree , hf_netb_status_response , tvb , offset + NB_DATA1 , 1 , status_response , "NetBIOS 1.x or 2.0" ) ;
+ }
+ else {
+ proto_tree_add_uint_format_value ( tree , hf_netb_status_response , tvb , offset + NB_DATA1 , 1 , status_response , "NetBIOS 2.1, %u names sent so far" , status_response ) ;
+ }
+ td2 = proto_tree_add_item ( tree , hf_netb_data2 , tvb , offset + NB_DATA2 , 2 , ENC_LITTLE_ENDIAN ) ;
+ data2_tree = proto_item_add_subtree ( td2 , ett_netb_status ) ;
+ proto_tree_add_item ( data2_tree , hf_netb_data2_frame , tvb , offset + NB_DATA2 , 2 , ENC_LITTLE_ENDIAN ) ;
+ proto_tree_add_item ( data2_tree , hf_netb_data2_user , tvb , offset + NB_DATA2 , 2 , ENC_LITTLE_ENDIAN ) ;
+ proto_tree_add_item ( data2_tree , hf_netb_data2_status , tvb , offset + NB_DATA2 , 2 , ENC_LITTLE_ENDIAN ) ;
+ nb_xmit_corrl ( tvb , offset , tree ) ;
+ netbios_add_name ( "Receiver's Name" , tvb , offset + NB_RECVER_NAME , tree ) ;
+ netbios_add_name ( "Sender's Name" , tvb , offset + NB_SENDER_NAME , tree ) ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

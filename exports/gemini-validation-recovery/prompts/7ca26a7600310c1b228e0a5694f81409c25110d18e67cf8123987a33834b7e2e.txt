@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( AutocompleteResultTest , Swap ) {
+ AutocompleteResult r1 ;
+ AutocompleteResult r2 ;
+ r1 . Swap ( & r2 ) ;
+ EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) ) ;
+ EXPECT_EQ ( r2 . end ( ) , r2 . default_match ( ) ) ;
+ ACMatches matches ;
+ AutocompleteMatch match ;
+ match . relevance = 1 ;
+ match . allowed_to_be_default_match = true ;
+ AutocompleteInput input ( base : : ASCIIToUTF16 ( "a" ) , base : : string16 : : npos , std : : string ( ) , GURL ( ) , OmniboxEventProto : : INVALID_SPEC , false , false , false , true , false , TestSchemeClassifier ( ) ) ;
+ matches . push_back ( match ) ;
+ r1 . AppendMatches ( input , matches ) ;
+ r1 . SortAndCull ( input , template_url_service_ . get ( ) ) ;
+ EXPECT_EQ ( r1 . begin ( ) , r1 . default_match ( ) ) ;
+ EXPECT_EQ ( "http://a/" , r1 . alternate_nav_url ( ) . spec ( ) ) ;
+ r1 . Swap ( & r2 ) ;
+ EXPECT_TRUE ( r1 . empty ( ) ) ;
+ EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) ) ;
+ EXPECT_TRUE ( r1 . alternate_nav_url ( ) . is_empty ( ) ) ;
+ ASSERT_FALSE ( r2 . empty ( ) ) ;
+ EXPECT_EQ ( r2 . begin ( ) , r2 . default_match ( ) ) ;
+ EXPECT_EQ ( "http://a/" , r2 . alternate_nav_url ( ) . spec ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AutocompleteResult r1 ;
+ AutocompleteResult r2 ;
+ r1 . Swap ( & r2 ) ;
+ EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) ) ;
+ EXPECT_EQ ( r2 . end ( ) , r2 . default_match ( ) ) ;
+ ACMatches matches ;
+ AutocompleteMatch match ;
+ match . relevance = 1 ;
+ match . allowed_to_be_default_match = true ;
+ AutocompleteInput input ( base : : ASCIIToUTF16 ( "a" ) , base : : string16 : : npos , std : : string ( ) , GURL ( ) , OmniboxEventProto : : INVALID_SPEC , false , false , false , true , false , TestSchemeClassifier ( ) ) ;
+ matches . push_back ( match ) ;
+ r1 . AppendMatches ( input , matches ) ;
+ r1 . SortAndCull ( input , template_url_service_ . get ( ) ) ;
+ EXPECT_EQ ( r1 . begin ( ) , r1 . default_match ( ) ) ;
+ EXPECT_EQ ( "http://a/" , r1 . alternate_nav_url ( ) . spec ( ) ) ;
+ r1 . Swap ( & r2 ) ;
+ EXPECT_TRUE ( r1 . empty ( ) ) ;
+ EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) ) ;
+ EXPECT_TRUE ( r1 . alternate_nav_url ( ) . is_empty ( ) ) ;
+ ASSERT_FALSE ( r2 . empty ( ) )...
+      
+30064771072 | CALL | r1 . Swap ( & r2 )
+30064771073 | CALL | r1 . Swap
+30064771074 | CALL | & r2
+30064771075 | CALL | EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) )
+30064771076 | CALL | r1 . end ( )
+30064771077 | CALL | r1 . end
+30064771078 | CALL | r1 . default_match ( )
+30064771079 | CALL | r1 . default_match
+30064771080 | CALL | EXPECT_EQ ( r2 . end ( ) , r2 . default_match ( ) )
+30064771081 | CALL | r2 . end ( )
+30064771082 | CALL | r2 . end
+30064771083 | CALL | r2 . default_match ( )
+30064771084 | CALL | r2 . default_match
+30064771085 | CALL | match . relevance = 1
+30064771086 | CALL | match . relevance
+30064771087 | CALL | match . allowed_to_be_default_match = true
+30064771088 | CALL | match . allowed_to_be_default_match
+30064771089 | CALL | matches . push_back ( match )
+30064771090 | CALL | matches . push_back
+30064771091 | CALL | r1 . AppendMatches ( input , matches )
+30064771092 | CALL | r1 . AppendMatches
+30064771093 | CALL | r1 . SortAndCull ( input , template_url_service_ . get ( ) )
+30064771094 | CALL | r1 . SortAndCull
+30064771095 | CALL | template_url_service_ . get ( )
+30064771096 | CALL | template_url_service_ . get
+30064771097 | CALL | EXPECT_EQ ( r1 . begin ( ) , r1 . default_match ( ) )
+30064771098 | CALL | r1 . begin ( )
+30064771099 | CALL | r1 . begin
+30064771100 | CALL | r1 . default_match ( )
+30064771101 | CALL | r1 . default_match
+30064771102 | CALL | EXPECT_EQ ( "http://a/" , r1 . alternate_nav_url ( ) . spec ( ) )
+30064771103 | CALL | r1 . alternate_nav_url ( ) . spec ( )
+30064771104 | CALL | r1 . alternate_nav_url ( ) . spec
+30064771105 | CALL | r1 . alternate_nav_url ( )
+30064771106 | CALL | r1 . alternate_nav_url
+30064771107 | CALL | r1 . Swap ( & r2 )
+30064771108 | CALL | r1 . Swap
+30064771109 | CALL | & r2
+30064771110 | CALL | EXPECT_TRUE ( r1 . empty ( ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771107 [AST]
+25769803776 -> 30064771110 [AST]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771109 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771075 [CFG]
+30064771078 -> 30064771075 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [RECEIVER]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [RECEIVER]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [RECEIVER]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [RECEIVER]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [RECEIVER]
+30064771093 -> 30064771095 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771095 [AST]
+30064771093 -> 30064771095 [POST_DOMINATE]
+30064771093 -> 30064771094 [RECEIVER]
+30064771095 -> 30064771096 [AST]
+30064771095 -> 30064771093 [CFG]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+TEST_F ( AutocompleteResultTest , Swap ) {
+ AutocompleteResult r1 ;
+ AutocompleteResult r2 ;
+ r1 . Swap ( & r2 ) ;
+ EXPECT_EQ ( r1 . end ( ) , r1 . default_match ( ) ) ;
+ EXPECT_EQ ( r2 . end ( ) , r2 . default_match ( ) ) ;
+ ACMatches matches ;
+ AutocompleteMatch match ;
+ match . relevance = 1 ;
+ match . allowed_to_be_default_match = true ;
+ AutocompleteInput input ( base : : ASCIIToUTF16 ( "a" ) , b
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

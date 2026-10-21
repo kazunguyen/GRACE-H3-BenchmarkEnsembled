@@ -1,0 +1,175 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Image * ReadARTImage ( const ImageInfo * image_info , ExceptionInfo * exception ) {
+ const unsigned char * pixels ;
+ Image * image ;
+ QuantumInfo * quantum_info ;
+ QuantumType quantum_type ;
+ MagickBooleanType status ;
+ size_t length ;
+ ssize_t count , y ;
+ assert ( image_info != ( const ImageInfo * ) NULL ) ;
+ assert ( image_info -> signature == MagickSignature ) ;
+ if ( image_info -> debug != MagickFalse ) ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename ) ;
+ assert ( exception != ( ExceptionInfo * ) NULL ) ;
+ assert ( exception -> signature == MagickSignature ) ;
+ image = AcquireImage ( image_info ) ;
+ status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception ) ;
+ if ( status == MagickFalse ) {
+ image = DestroyImageList ( image ) ;
+ return ( ( Image * ) NULL ) ;
+ }
+ image -> depth = 1 ;
+ image -> endian = MSBEndian ;
+ ( void ) ReadBlobLSBShort ( image ) ;
+ image -> columns = ( size_t ) ReadBlobLSBShort ( image ) ;
+ ( void ) ReadBlobLSBShort ( image ) ;
+ image -> rows = ( size_t ) ReadBlobLSBShort ( image ) ;
+ if ( ( image -> columns == 0 ) || ( image -> rows == 0 ) ) ThrowReaderException ( CorruptImageError , "ImproperImageHeader" ) ;
+ if ( AcquireImageColormap ( image , 2 ) == MagickFalse ) ThrowReaderException ( ResourceLimitError , "MemoryAllocationFailed" ) ;
+ if ( image_info -> ping != MagickFalse ) {
+ ( void ) CloseBlob ( image ) ;
+ return ( GetFirstImageInList ( image ) ) ;
+ }
+ status = SetImageExtent ( image , image -> columns , image -> rows ) ;
+ if ( status == MagickFalse ) {
+ InheritException ( exception , & image -> exception ) ;
+ return ( DestroyImageList ( image ) ) ;
+ }
+ SetImageColorspace ( image , GRAYColorspace ) ;
+ quantum_type = IndexQuantum ;
+ quantum_info = AcquireQuantumInfo ( image_info , image ) ;
+ if ( quantum_info == ( QuantumInfo * ) NULL ) ThrowReaderException ( ResourceLimitError , "MemoryAllocationFailed" ) ;
+ length = GetQuantumExtent ( image , quantum_info , quantum_type ) ;
+ for ( y = 0 ;
+ y < ( ssize_t ) image -> rows ;
+ y ++ ) {
+ register PixelPacket * magick_restrict q ;
+ q = QueueAuthenticPixels ( image , 0 , y , image -> columns , 1 , exception ) ;
+ if ( q == ( PixelPacket * ) NULL ) break ;
+ pixels = ( const unsigned char * ) ReadBlobStream ( image , length , GetQuantumPixels ( quantum_info ) , & count ) ;
+ if ( count != ( ssize_t ) length ) {
+ quantum_info = DestroyQuantumInfo ( quantum_info ) ;
+ ThrowReaderException ( CorruptImageError , "UnableToReadImageData" ) ;
+ }
+ ( void ) ImportQuantumPixels ( image , ( CacheView * ) NULL , quantum_info , quantum_type , pixels , exception ) ;
+ ( void ) ReadBlobStream ( image , ( size_t ) ( - ( ssize_t ) length ) & 0x01 , GetQuantumPixels ( quantum_info ) , & count ) ;
+ if ( SyncAuthenticPixels ( image , exception ) == MagickFalse ) break ;
+ status = SetImageProgress ( image , LoadImageTag , ( MagickOffsetType ) y , image -> rows ) ;
+ if ( status == MagickFalse ) break ;
+ }
+ SetQuantumImageType ( image
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const unsigned char * pixels ;
+ Image * image ;
+ QuantumInfo * quantum_info ;
+ QuantumType quantum_type ;
+ MagickBooleanType status ;
+ size_t length ;
+ ssize_t count , y ;
+ assert ( image_info != ( const ImageInfo * ) NULL ) ;
+ assert ( image_info -> signature == MagickSignature ) ;
+ if ( image_info -> debug != MagickFalse ) ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename ) ;
+ assert ( exception != ( ExceptionInfo * ) NULL ) ;
+ assert ( exception -> signature == MagickSignature ) ;
+ image = AcquireImage ( image_info ) ;
+ status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception ) ;
+ if ( status == MagickFalse ) {
+ image = DestroyImageList ( image ) ;
+ return ( ( Image * ) NULL ) ;
+ }
+ image -> depth = 1 ;
+ image -> endian = MSBEndian ;
+ ( void ) ReadBlobLSBShort ( image ) ;
+ image -> columns = ( size_t ) ReadBlobLSBShort ( image ) ;
+ ( void ) ReadBlobLSBShort ( image ) ;
+ image -> rows = ( size_t ) ReadBlobLSBShort ( image ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { image = DestroyImageList ( image ) ; return ( ( Image * ) NULL ) ; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { ( void ) CloseBlob ( image ) ; return ( GetFirstImageInList ( image ) ) ; }
+25769803782 | BLOCK | 
+        {
+ InheritException ( exception , & image -> exception ) ;
+ return ( DestroyImageList ( image ) ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ register PixelPacket * magick_restrict q ;
+ q = QueueAuthenticPixels ( image , 0 , y , image -> columns , 1 , exception ) ;
+ if ( q == ( PixelPacket * ) NULL ) break ;
+ pixels = ( const unsigned char * ) ReadBlobStream ( image , length , GetQuantumPixels ( quantum_info ) , & count ) ;
+ if ( count != ( ssize_t ) length ) {
+ quantum_info = DestroyQuantumInfo ( quantum_info ) ;
+ ThrowReaderException ( CorruptImageError , "UnableToReadImageData" ) ;
+ }
+ ( void ) ImportQuantumPixels ( image , ( CacheView * ) NULL , quantum_info , quantum_type , pixels , exception ) ;
+ ( void ) ReadBlobStream ( image , ( size_t ) ( - ( ssize_t ) length ) & 0x01 , GetQuantumPixels ( quantum_info ) , & count ) ;
+ if ( SyncAuthenticPixels ( image , exception ) == MagickFalse ) break ;
+ status = SetImageProgress ( image , LoadImageTag , ( MagickOffsetType ) y , image -> rows ) ;
+ if ( status == MagickFalse ) break ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ quantum_info = DestroyQuantumInfo ( quantum_info ) ;
+ ThrowReaderException ( CorruptImageError , "UnableToReadImageData" ) ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+30064771072 | CALL | assert ( image_info != ( const ImageInfo * ) NULL )
+30064771073 | CALL | image_info != ( const ImageInfo * ) NULL
+30064771074 | CALL | ( const ImageInfo * ) NULL
+30064771075 | CALL | assert ( image_info -> signature == MagickSignature )
+30064771076 | CALL | image_info -> signature == MagickSignature
+30064771077 | CALL | image_info -> signature
+30064771078 | CALL | image_info -> debug != MagickFalse
+30064771079 | CALL | image_info -> debug
+30064771080 | CALL | 
+        ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename )
+      
+30064771081 | CALL | 
+        LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename )
+      
+30064771082 | CALL | GetMagickModule ( )
+30064771083 | CALL | image_info -> filename
+30064771084 | CALL | assert ( exception != ( ExceptionInfo * ) NULL )
+30064771085 | CALL | exception != ( ExceptionInfo * ) NULL
+30064771086 | CALL | ( ExceptionInfo * ) NULL
+30064771087 | CALL | assert ( exception -> signature == MagickSignature )
+30064771088 | CALL | exception -> signature == MagickSignature
+30064771089 | CALL | exception -> signature
+30064771090 | CALL | image = AcquireImage ( image_info )
+30064771091 | CALL | AcquireImage ( image_info )
+30064771092 | CALL | status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception )
+30064771093 | CALL | OpenBlob ( image_info , image , ReadBinaryBlobMode , exception )
+30064771094 | CALL | status == MagickFalse
+30064771095 | CALL | image = DestroyImageList ( image )
+30064771096 | CALL | DestroyImageList ( image )
+30064771097 | CALL | ( Image * ) NULL
+EDGES:
+25769803776 -> 3006477
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

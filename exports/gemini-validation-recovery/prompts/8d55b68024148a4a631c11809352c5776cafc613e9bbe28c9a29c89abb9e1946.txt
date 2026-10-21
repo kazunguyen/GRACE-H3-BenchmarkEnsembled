@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_quantize_dc_32x32 ( const int16_t * coeff_ptr , int skip_block , const int16_t * round_ptr , const int16_t quant , int16_t * qcoeff_ptr , int16_t * dqcoeff_ptr , const int16_t dequant_ptr , uint16_t * eob_ptr ) {
+ const int rc = 0 ;
+ const int coeff = coeff_ptr [ rc ] ;
+ const int coeff_sign = ( coeff >> 31 ) ;
+ const int abs_coeff = ( coeff ^ coeff_sign ) - coeff_sign ;
+ int tmp , eob = - 1 ;
+ if ( ! skip_block ) {
+ tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX ) ;
+ tmp = ( tmp * quant ) >> 15 ;
+ qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign ;
+ dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2 ;
+ if ( tmp ) eob = 0 ;
+ }
+ * eob_ptr = eob + 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int rc = 0 ;
+ const int coeff = coeff_ptr [ rc ] ;
+ const int coeff_sign = ( coeff >> 31 ) ;
+ const int abs_coeff = ( coeff ^ coeff_sign ) - coeff_sign ;
+ int tmp , eob = - 1 ;
+ if ( ! skip_block ) {
+ tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX ) ;
+ tmp = ( tmp * quant ) >> 15 ;
+ qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign ;
+ dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2 ;
+ if ( tmp ) eob = 0 ;
+ }
+ * eob_ptr = eob + 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX ) ;
+ tmp = ( tmp * quant ) >> 15 ;
+ qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign ;
+ dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2 ;
+ if ( tmp ) eob = 0 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | rc = 0
+30064771073 | CALL | coeff = coeff_ptr [ rc ]
+30064771074 | CALL | coeff_ptr [ rc ]
+30064771075 | CALL | coeff_sign = ( coeff >> 31 )
+30064771076 | CALL | coeff >> 31
+30064771077 | CALL | abs_coeff = ( coeff ^ coeff_sign ) - coeff_sign
+30064771078 | CALL | ( coeff ^ coeff_sign ) - coeff_sign
+30064771079 | CALL | coeff ^ coeff_sign
+30064771080 | CALL | eob = - 1
+30064771081 | CALL | - 1
+30064771082 | CALL | ! skip_block
+30064771083 | CALL | tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX )
+30064771084 | CALL | clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX )
+30064771085 | CALL | abs_coeff + round_ptr [ rc != 0 ]
+30064771086 | CALL | round_ptr [ rc != 0 ]
+30064771087 | CALL | rc != 0
+30064771088 | CALL | tmp = ( tmp * quant ) >> 15
+30064771089 | CALL | ( tmp * quant ) >> 15
+30064771090 | CALL | tmp * quant
+30064771091 | CALL | qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign
+30064771092 | CALL | qcoeff_ptr [ rc ]
+30064771093 | CALL | ( tmp ^ coeff_sign ) - coeff_sign
+30064771094 | CALL | tmp ^ coeff_sign
+30064771095 | CALL | dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2
+30064771096 | CALL | dqcoeff_ptr [ rc ]
+30064771097 | CALL | qcoeff_ptr [ rc ] * dequant_ptr / 2
+30064771098 | CALL | qcoeff_ptr [ rc ] * dequant_ptr
+30064771099 | CALL | qcoeff_ptr [ rc ]
+30064771100 | CALL | tmp != 0
+30064771101 | CALL | eob = 0
+30064771102 | CALL | * eob_ptr = eob + 1
+30064771103 | CALL | * eob_ptr
+30064771104 | CALL | eob + 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! skip_block ) {
+ tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX ) ;
+ tmp = ( tmp * quant ) >> 15 ;
+ qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign ;
+ dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2 ;
+ if ( tmp ) eob = 0 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | if ( tmp ) eob = 0 ;
+68719476736 | IDENTIFIER | rc
+68719476737 | IDENTIFIER | coeff
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771095 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771101 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771100 [CDG]
+30064771082 -> 30064771099 [CDG]
+30064771082 -> 30064771096 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771098 [CDG]
+30064771082 -> 30064771097 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void vp9_quantize_dc_32x32 ( const tran_low_t * coeff_ptr , int skip_block , const int16_t * round_ptr , const int16_t quant , tran_low_t * qcoeff_ptr , tran_low_t * dqcoeff_ptr , const int16_t dequant_ptr , uint16_t * eob_ptr ) {
+ const int rc = 0 ;
+ const int coeff = coeff_ptr [ rc ] ;
+ const int coeff_sign = ( coeff >> 31 ) ;
+ const int abs_coeff = ( coeff ^ coeff_sign ) - coeff_sign ;
+ int tmp , eob = - 1 ;
+ if ( ! skip_block ) {
+ tmp = clamp ( abs_coeff + round_ptr [ rc != 0 ] , INT16_MIN , INT16_MAX ) ;
+ tmp = ( tmp * quant ) >> 15 ;
+ qcoeff_ptr [ rc ] = ( tmp ^ coeff_sign ) - coeff_sign ;
+ dqcoeff_ptr [ rc ] = qcoeff_ptr [ rc ] * dequant_ptr / 2 ;
+ if ( tmp ) eob = 0 ;
+ }
+ * eob_ptr = eob + 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

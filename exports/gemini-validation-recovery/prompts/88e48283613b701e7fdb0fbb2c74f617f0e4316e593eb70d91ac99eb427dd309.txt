@@ -1,0 +1,223 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void fill_scaling_lists(const AVCodecContext *avctx, AVDXVAContext *ctx, const H264Context *h, DXVA_Qmatrix_H264 *qm)
+
+{
+
+    unsigned i, j;
+
+    memset(qm, 0, sizeof(*qm));
+
+    if (DXVA_CONTEXT_WORKAROUND(avctx, ctx) & FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG) {
+
+        for (i = 0; i < 6; i++)
+
+            for (j = 0; j < 16; j++)
+
+                qm->bScalingLists4x4[i][j] = h->pps.scaling_matrix4[i][j];
+
+
+
+        for (i = 0; i < 64; i++) {
+
+            qm->bScalingLists8x8[0][i] = h->pps.scaling_matrix8[0][i];
+
+            qm->bScalingLists8x8[1][i] = h->pps.scaling_matrix8[3][i];
+
+        }
+
+    } else {
+
+        for (i = 0; i < 6; i++)
+
+            for (j = 0; j < 16; j++)
+
+                qm->bScalingLists4x4[i][j] = h->pps.scaling_matrix4[i][ff_zigzag_scan[j]];
+
+
+
+        for (i = 0; i < 64; i++) {
+
+            qm->bScalingLists8x8[0][i] = h->pps.scaling_matrix8[0][ff_zigzag_direct[i]];
+
+            qm->bScalingLists8x8[1][i] = h->pps.scaling_matrix8[3][ff_zigzag_direct[i]];
+
+        }
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+16 -> 21 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 38 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+40 -> 45 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+40 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+52 -> 57 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+52 -> 61 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 71 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 72 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 80 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 81 [IS_AST_PARENT]
+65 -> 73 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+52 -> 64 [IS_AST_PARENT]
+40 -> 52 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void encode_plane(FFV1Context *s, uint8_t *src, int w, int h,
+
+                         int stride, int plane_index)
+
+{
+
+    int x, y, i;
+
+    const int ring_size = s->avctx->context_model ? 3 : 2;
+
+    int16_t *sample[3];
+
+    s->run_index = 0;
+
+
+
+    memset(s->sample_buffer, 0, ring_size * (w + 6) * sizeof(*s->sample_buffer));
+
+
+
+    for (y = 0; y < h; y++) {
+
+        for (i = 0; i < ring_size; i++)
+
+            sample[i] = s->sample_buffer + (w + 6) * ((h + i - y) % ring_size) + 3;
+
+
+
+        sample[0][-1]= sample[1][0  ];
+
+        sample[1][ w]= sample[1][w-1];
+
+// { START_TIMER
+
+        if (s->bits_per_raw_sample <= 8) {
+
+            for (x = 0; x < w; x++)
+
+                sample[0][x] = src[x + stride * y];
+
+            encode_line(s, w, sample, plane_index, 8);
+
+        } else {
+
+            if (s->packed_at_lsb) {
+
+                for (x = 0; x < w; x++) {
+
+                    sample[0][x] = ((uint16_t*)(src + stride*y))[x];
+
+                }
+
+            } else {
+
+                for (x = 0; x < w; x++) {
+
+                    sample[0][x] = ((uint16_t*)(src + stride*y))[x] >> (16 - s->bits_per_raw_sample);
+
+                }
+
+            }
+
+            encode_line(s, w, sample, plane_index, s->bits_per_raw_sample);
+
+        }
+
+// STOP_TIMER("encode line") }
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

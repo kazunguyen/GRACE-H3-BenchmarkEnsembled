@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void gsm_a_stat_init ( new_stat_tap_ui * new_stat , new_stat_tap_gui_init_cb gui_callback , void * gui_data , const char * table_title , const value_string * msg_strings ) {
+ int num_fields = sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ;
+ new_stat_tap_table * table ;
+ guint i ;
+ stat_tap_table_item_type items [ sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ] ;
+ items [ IEI_COLUMN ] . type = TABLE_ITEM_UINT ;
+ items [ MSG_NAME_COLUMN ] . type = TABLE_ITEM_STRING ;
+ items [ COUNT_COLUMN ] . type = TABLE_ITEM_UINT ;
+ items [ COUNT_COLUMN ] . value . uint_value = 0 ;
+ table = new_stat_tap_init_table ( table_title , num_fields , 0 , NULL , gui_callback , gui_data ) ;
+ new_stat_tap_add_table ( new_stat , table ) ;
+ for ( i = 0 ;
+ i < 256 ;
+ i ++ ) {
+ const char * msg_str = try_val_to_str ( i , msg_strings ) ;
+ char * col_str ;
+ if ( msg_str ) {
+ col_str = g_strdup ( msg_str ) ;
+ }
+ else {
+ col_str = g_strdup_printf ( "Unknown message %d" , i ) ;
+ }
+ items [ IEI_COLUMN ] . value . uint_value = i ;
+ items [ MSG_NAME_COLUMN ] . value . string_value = col_str ;
+ new_stat_tap_init_table_row ( table , i , num_fields , items ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int num_fields = sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ;
+ new_stat_tap_table * table ;
+ guint i ;
+ stat_tap_table_item_type items [ sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ] ;
+ items [ IEI_COLUMN ] . type = TABLE_ITEM_UINT ;
+ items [ MSG_NAME_COLUMN ] . type = TABLE_ITEM_STRING ;
+ items [ COUNT_COLUMN ] . type = TABLE_ITEM_UINT ;
+ items [ COUNT_COLUMN ] . value . uint_value = 0 ;
+ table = new_stat_tap_init_table ( table_title , num_fields , 0 , NULL , gui_callback , gui_data ) ;
+ new_stat_tap_add_table ( new_stat , table ) ;
+ for ( i = 0 ;
+ i < 256 ;
+ i ++ ) {
+ const char * msg_str = try_val_to_str ( i , msg_strings ) ;
+ char * col_str ;
+ if ( msg_str ) {
+ col_str = g_strdup ( msg_str ) ;
+ }
+ else {
+ col_str = g_strdup_printf ( "Unknown message %d" , i ) ;
+ }
+ items [ IEI_COLUMN ] . value . uint_value = i ;
+ items [ MSG_NAME_COLUMN ] . value . string_value = col_str ;
+ new_stat_tap_init_table_row ( table , i , num_fields , items ) ;
+ ...
+      
+25769803777 | BLOCK | 
+        {
+ const char * msg_str = try_val_to_str ( i , msg_strings ) ;
+ char * col_str ;
+ if ( msg_str ) {
+ col_str = g_strdup ( msg_str ) ;
+ }
+ else {
+ col_str = g_strdup_printf ( "Unknown message %d" , i ) ;
+ }
+ items [ IEI_COLUMN ] . value . uint_value = i ;
+ items [ MSG_NAME_COLUMN ] . value . string_value = col_str ;
+ new_stat_tap_init_table_row ( table , i , num_fields , items ) ;
+ }
+      
+25769803778 | BLOCK | { col_str = g_strdup ( msg_str ) ; }
+25769803779 | BLOCK | { col_str = g_strdup_printf ( "Unknown message %d" , i ) ; }
+30064771072 | CALL | num_fields = sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item )
+30064771073 | CALL | sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item )
+30064771074 | CALL | sizeof ( gsm_a_stat_fields )
+30064771075 | CALL | sizeof ( stat_tap_table_item )
+30064771076 | CALL | items [ sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ]
+30064771077 | CALL | items [ sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item ) ]
+30064771078 | CALL | sizeof ( gsm_a_stat_fields ) / sizeof ( stat_tap_table_item )
+30064771079 | CALL | sizeof ( gsm_a_stat_fields )
+30064771080 | CALL | sizeof ( stat_tap_table_item )
+30064771081 | CALL | items [ IEI_COLUMN ] . type = TABLE_ITEM_UINT
+30064771082 | CALL | items [ IEI_COLUMN ] . type
+30064771083 | CALL | items [ IEI_COLUMN ]
+30064771084 | CALL | items [ MSG_NAME_COLUMN ] . type = TABLE_ITEM_STRING
+30064771085 | CALL | items [ MSG_NAME_COLUMN ] . type
+30064771086 | CALL | items [ MSG_NAME_COLUMN ]
+30064771087 | CALL | items [ COUNT_COLUMN ] . type = TABLE_ITEM_UINT
+30064771088 | CALL | items [ COUNT_COLUMN ] . type
+30064771089 | CALL | items [ COUNT_COLUMN ]
+30064771090 | CALL | items [ COUNT_COLUMN ] . value . uint_value = 0
+30064771091 | CALL | items [ COUNT_COLUMN ] . value . uint_value
+30064771092 | CALL | items [ COUNT_COLUMN ] . value
+30064771093 | CALL | items [ COUNT_COLUMN ]
+30064771094 | CALL | 
+        table = new_stat_tap_init_table ( table_title , num_fields , 0 , NULL , gui_callback , gui_data )
+      
+30064771095 | CALL | 
+        new_stat_tap_init_table ( table_title , num_fields , 0 , NULL , gui_callback , gui_data )
+      
+30064771096 | CALL | new_stat_tap_add_table ( new_stat , table )
+30064771097 | CALL | i = 0
+30064771098 | CALL | i < 256
+30064771099 | CALL | i ++
+30064771100 | CALL | msg_str = try_val_to_str ( i , msg_strings )
+30064771101 | CALL | try_val_to_str ( i , msg_strings )
+30064771102 | CALL | msg_str != NULL
+30064771103 | CALL | col_str = g_strdup ( msg_str )
+30064771104 | CALL | g_strdup ( msg_str )
+30064771105 | CALL | col_str = g_strdup_printf ( "Unknown message %d" , i )
+30064771106 | CALL | g_strdup_printf ( "Unknown message %d" , i )
+30064771107 | CALL | items [ IEI_COLUMN ] . value . uint_value = i
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803777 -> 30064771100 [AST]
+25769803777 -> 30064771107 [AST]
+25769803778 -> 30064771103 [AST]
+25769803779 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771093 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

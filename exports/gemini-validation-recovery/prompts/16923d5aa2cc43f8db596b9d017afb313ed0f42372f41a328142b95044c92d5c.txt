@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint16 dissect_mpa_fpdu ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , mpa_state_t * state , struct tcpinfo * tcpinfo , guint8 endpoint ) {
+ proto_item * mpa_item = NULL ;
+ proto_item * mpa_header_item = NULL ;
+ proto_tree * mpa_tree = NULL ;
+ proto_tree * mpa_header_tree = NULL ;
+ guint8 pad_length ;
+ guint16 ulpdu_length , exp_ulpdu_length ;
+ guint32 offset , total_length ;
+ guint32 num_of_m = 0 ;
+ if ( state -> minfo [ endpoint ] . valid && get_first_marker_offset ( state , tcpinfo , endpoint ) == 0 ) {
+ offset = MPA_MARKER_LEN ;
+ }
+ else {
+ offset = 0 ;
+ }
+ ulpdu_length = ( guint16 ) tvb_get_ntohs ( tvb , offset ) ;
+ if ( state -> minfo [ endpoint ] . valid ) {
+ num_of_m = number_of_markers ( state , tcpinfo , endpoint ) ;
+ }
+ pad_length = fpdu_pad_length ( ulpdu_length ) ;
+ exp_ulpdu_length = expected_ulpdu_length ( state , tcpinfo , endpoint ) ;
+ if ( ! exp_ulpdu_length || exp_ulpdu_length != ( ulpdu_length + pad_length ) ) {
+ return 0 ;
+ }
+ mpa_packetlist ( pinfo , MPA_FPDU ) ;
+ mpa_item = proto_tree_add_item ( tree , proto_iwarp_mpa , tvb , 0 , - 1 , ENC_NA ) ;
+ mpa_tree = proto_item_add_subtree ( mpa_item , ett_mpa ) ;
+ mpa_header_item = proto_tree_add_item ( mpa_tree , hf_mpa_fpdu , tvb , offset , - 1 , ENC_NA ) ;
+ mpa_header_tree = proto_item_add_subtree ( mpa_header_item , ett_mpa ) ;
+ proto_tree_add_uint ( mpa_header_tree , hf_mpa_ulpdu_length , tvb , offset , MPA_ULPDU_LENGTH_LEN , ulpdu_length ) ;
+ if ( state -> minfo [ endpoint ] . valid && num_of_m > 0 ) {
+ total_length = fpdu_total_length ( tcpinfo ) ;
+ if ( pad_length > 0 ) {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , pad_offset ( tcpinfo , total_length , pad_length ) , pad_length , ENC_NA ) ;
+ }
+ dissect_fpdu_crc ( tvb , mpa_header_tree , state , total_length - MPA_CRC_LEN , num_of_m * MPA_MARKER_LEN + ulpdu_length + pad_length + MPA_ULPDU_LENGTH_LEN ) ;
+ dissect_fpdu_markers ( tvb , mpa_tree , state , tcpinfo , endpoint ) ;
+ }
+ else {
+ offset += MPA_ULPDU_LENGTH_LEN + ulpdu_length ;
+ if ( pad_length > 0 ) {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , offset , pad_length , ENC_NA ) ;
+ offset += pad_length ;
+ }
+ dissect_fpdu_crc ( tvb , mpa_header_tree , state , offset , ulpdu_length + pad_length + MPA_ULPDU_LENGTH_LEN ) ;
+ }
+ return ulpdu_length ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * mpa_item = NULL ;
+ proto_item * mpa_header_item = NULL ;
+ proto_tree * mpa_tree = NULL ;
+ proto_tree * mpa_header_tree = NULL ;
+ guint8 pad_length ;
+ guint16 ulpdu_length , exp_ulpdu_length ;
+ guint32 offset , total_length ;
+ guint32 num_of_m = 0 ;
+ if ( state -> minfo [ endpoint ] . valid && get_first_marker_offset ( state , tcpinfo , endpoint ) == 0 ) {
+ offset = MPA_MARKER_LEN ;
+ }
+ else {
+ offset = 0 ;
+ }
+ ulpdu_length = ( guint16 ) tvb_get_ntohs ( tvb , offset ) ;
+ if ( state -> minfo [ endpoint ] . valid ) {
+ num_of_m = number_of_markers ( state , tcpinfo , endpoint ) ;
+ }
+ pad_length = fpdu_pad_length ( ulpdu_length ) ;
+ exp_ulpdu_length = expected_ulpdu_length ( state , tcpinfo , endpoint ) ;
+ if ( ! exp_ulpdu_length || exp_ulpdu_length != ( ulpdu_length + pad_length ) ) {
+ return 0 ;
+ }
+ mpa_packetlist ( pinfo , MPA_FPDU ) ;
+ mpa_item = proto_tree_add_item ( tree , proto_iwarp_mpa , tvb , 0 , - 1 , ENC_NA ) ;
+ mpa_tree = proto_item_add_subtree ( mpa_item , e...
+      
+25769803777 | BLOCK | { offset = MPA_MARKER_LEN ; }
+25769803778 | BLOCK | { offset = 0 ; }
+25769803779 | BLOCK | { num_of_m = number_of_markers ( state , tcpinfo , endpoint ) ; }
+25769803780 | BLOCK | { return 0 ; }
+25769803781 | BLOCK | 
+        {
+ total_length = fpdu_total_length ( tcpinfo ) ;
+ if ( pad_length > 0 ) {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , pad_offset ( tcpinfo , total_length , pad_length ) , pad_length , ENC_NA ) ;
+ }
+ dissect_fpdu_crc ( tvb , mpa_header_tree , state , total_length - MPA_CRC_LEN , num_of_m * MPA_MARKER_LEN + ulpdu_length + pad_length + MPA_ULPDU_LENGTH_LEN ) ;
+ dissect_fpdu_markers ( tvb , mpa_tree , state , tcpinfo , endpoint ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , pad_offset ( tcpinfo , total_length , pad_length ) , pad_length , ENC_NA ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ offset += MPA_ULPDU_LENGTH_LEN + ulpdu_length ;
+ if ( pad_length > 0 ) {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , offset , pad_length , ENC_NA ) ;
+ offset += pad_length ;
+ }
+ dissect_fpdu_crc ( tvb , mpa_header_tree , state , offset , ulpdu_length + pad_length + MPA_ULPDU_LENGTH_LEN ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ proto_tree_add_item ( mpa_header_tree , hf_mpa_pad , tvb , offset , pad_length , ENC_NA ) ;
+ offset += pad_length ;
+ }
+      
+30064771072 | CALL | mpa_item = NULL
+30064771073 | CALL | mpa_header_item = NULL
+30064771074 | CALL | mpa_tree = NULL
+30064771075 | CALL | mpa_header_tree = NULL
+30064771076 | CALL | num_of_m = 0
+30064771077 | CALL | 
+        state -> minfo [ endpoint ] . valid && get_first_marker_offset ( state , tcpinfo , endpoint ) == 0
+      
+30064771078 | CALL | state -> minfo [ endpoint ] . valid
+30064771079 | CALL | state -> minfo [ endpoint ]
+30064771080 | CALL | state -> minfo
+30064771081 | CALL | get_first_marker_offset ( state , tcpinfo , endpoint ) == 0
+30064771082 | CALL | get_first_marker_offset ( state , tcpinfo , endpoint )
+30064771083 | CALL | offset = MPA_MARKER_LEN
+30064771084 | CALL | offset = 0
+30064771085 | CALL | ulpdu_length = ( guint16 ) tvb_get_ntohs ( tvb , offset )
+30064771086 | CALL | ( guint16 ) tvb_get_ntohs ( tvb , offset )
+30064771087 | CALL | tvb_get_ntohs ( tvb , offset )
+30064771088 | CALL | state -> minfo [ endpoint ] . valid
+30064771089 | CALL | state -> minfo [ endpoint ]
+30064771090 | CALL | state -> minfo
+30064771091 | CALL | num_of_m = number_of_markers ( state , tcpinfo , endpoint )
+30064771092 | CALL | number_of_markers ( state , tcpinfo , endpoint )
+30064771093 | CALL | pad_length = fpdu_pad_length ( ulpdu_length )
+30064771094 | CALL | fpdu_pad_length ( ulpdu_length )
+30064771095 | CALL | exp_ulpdu_length = expected_ulpdu_length ( state , tcpinfo , endpoint )
+30064771096 | CALL | expected_ulpdu_length ( state , tcpinfo , endpoint )
+30064771097 | CALL | ! exp_ulpdu_length || exp_ulpdu_length != ( ulpdu_length + pad_length )
+30064771098 | CALL | ! exp_ulpdu_length
+30064771099 | CALL | exp_ulpdu_length != ( ulpdu_length + pad_length )
+30064771100 | CALL | ulpdu_length + pad_length
+30064771101 | CALL | mpa_packetlist ( pinfo , MPA_FPDU )
+30064771102 | CALL | mpa_item = proto_tree_add_item ( tree , proto_iwarp_mpa , tvb , 0 , - 1 , ENC_NA )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771091 [AST]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771081 [POST_DOMINATE]
+3006477107
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

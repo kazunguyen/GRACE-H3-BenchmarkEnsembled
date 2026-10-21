@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vga_draw_line15_be ( VGACommonState * vga , uint8_t * d , uint32_t addr , int width ) {
+ int w ;
+ uint32_t v , r , g , b ;
+ w = width ;
+ do {
+ v = vga_read_word_be ( vga , addr ) ;
+ r = ( v >> 7 ) & 0xf8 ;
+ g = ( v >> 2 ) & 0xf8 ;
+ b = ( v << 3 ) & 0xf8 ;
+ ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b ) ;
+ addr += 2 ;
+ d += 4 ;
+ }
+ while ( -- w != 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int w ;
+ uint32_t v , r , g , b ;
+ w = width ;
+ do {
+ v = vga_read_word_be ( vga , addr ) ;
+ r = ( v >> 7 ) & 0xf8 ;
+ g = ( v >> 2 ) & 0xf8 ;
+ b = ( v << 3 ) & 0xf8 ;
+ ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b ) ;
+ addr += 2 ;
+ d += 4 ;
+ }
+ while ( -- w != 0 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ v = vga_read_word_be ( vga , addr ) ;
+ r = ( v >> 7 ) & 0xf8 ;
+ g = ( v >> 2 ) & 0xf8 ;
+ b = ( v << 3 ) & 0xf8 ;
+ ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b ) ;
+ addr += 2 ;
+ d += 4 ;
+ }
+      
+30064771072 | CALL | w = width
+30064771073 | CALL | v = vga_read_word_be ( vga , addr )
+30064771074 | CALL | vga_read_word_be ( vga , addr )
+30064771075 | CALL | r = ( v >> 7 ) & 0xf8
+30064771076 | CALL | ( v >> 7 ) & 0xf8
+30064771077 | CALL | v >> 7
+30064771078 | CALL | g = ( v >> 2 ) & 0xf8
+30064771079 | CALL | ( v >> 2 ) & 0xf8
+30064771080 | CALL | v >> 2
+30064771081 | CALL | b = ( v << 3 ) & 0xf8
+30064771082 | CALL | ( v << 3 ) & 0xf8
+30064771083 | CALL | v << 3
+30064771084 | CALL | ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b )
+30064771085 | CALL | ( ( uint32_t * ) d ) [ 0 ]
+30064771086 | CALL | ( uint32_t * ) d
+30064771087 | CALL | rgb_to_pixel32 ( r , g , b )
+30064771088 | CALL | addr += 2
+30064771089 | CALL | d += 4
+30064771090 | CALL | -- w != 0
+30064771091 | CALL | -- w
+47244640256 | CONTROL_STRUCTURE | 
+        do {
+ v = vga_read_word_be ( vga , addr ) ;
+ r = ( v >> 7 ) & 0xf8 ;
+ g = ( v >> 2 ) & 0xf8 ;
+ b = ( v << 3 ) & 0xf8 ;
+ ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b ) ;
+ addr += 2 ;
+ d += 4 ;
+ }
+ while ( -- w != 0 ) ;
+      
+68719476736 | IDENTIFIER | w
+68719476737 | IDENTIFIER | width
+68719476738 | IDENTIFIER | v
+68719476739 | IDENTIFIER | vga
+68719476740 | IDENTIFIER | addr
+68719476741 | IDENTIFIER | r
+68719476742 | IDENTIFIER | v
+68719476743 | IDENTIFIER | g
+68719476744 | IDENTIFIER | v
+68719476745 | IDENTIFIER | b
+68719476746 | IDENTIFIER | v
+68719476747 | IDENTIFIER | d
+68719476748 | IDENTIFIER | r
+68719476749 | IDENTIFIER | g
+68719476750 | IDENTIFIER | b
+68719476751 | IDENTIFIER | addr
+68719476752 | IDENTIFIER | d
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476743 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476745 [CFG]
+30064771078 -> 68719476745 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 68719476743 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 68719476744 [ARGUMENT]
+30064771080 -> 68719476744 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 68719476745 [ARGUMENT]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 68719476745 [AST]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 68719476745 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 68719476746 [ARGUMENT]
+30064771083 -> 68719476746 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771087 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void vga_draw_line15_le ( VGACommonState * vga , uint8_t * d , uint32_t addr , int width ) {
+ int w ;
+ uint32_t v , r , g , b ;
+ w = width ;
+ do {
+ v = vga_read_word_le ( vga , addr ) ;
+ r = ( v >> 7 ) & 0xf8 ;
+ g = ( v >> 2 ) & 0xf8 ;
+ b = ( v << 3 ) & 0xf8 ;
+ ( ( uint32_t * ) d ) [ 0 ] = rgb_to_pixel32 ( r , g , b ) ;
+ addr += 2 ;
+ d += 4 ;
+ }
+ while ( -- w != 0 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

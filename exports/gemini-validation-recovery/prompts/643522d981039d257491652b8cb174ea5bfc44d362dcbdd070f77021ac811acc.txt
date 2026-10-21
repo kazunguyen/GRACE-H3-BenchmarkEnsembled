@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int check_ctrlrecip ( struct usb_dev_state * ps , unsigned int requesttype , unsigned int request , unsigned int index ) {
+ int ret = 0 ;
+ struct usb_host_interface * alt_setting ;
+ if ( ps -> dev -> state != USB_STATE_UNAUTHENTICATED && ps -> dev -> state != USB_STATE_ADDRESS && ps -> dev -> state != USB_STATE_CONFIGURED ) return - EHOSTUNREACH ;
+ if ( USB_TYPE_VENDOR == ( USB_TYPE_MASK & requesttype ) ) return 0 ;
+ if ( requesttype == 0xa1 && request == 0 ) {
+ alt_setting = usb_find_alt_setting ( ps -> dev -> actconfig , index >> 8 , index & 0xff ) ;
+ if ( alt_setting && alt_setting -> desc . bInterfaceClass == USB_CLASS_PRINTER ) return 0 ;
+ }
+ index &= 0xff ;
+ switch ( requesttype & USB_RECIP_MASK ) {
+ case USB_RECIP_ENDPOINT : if ( ( index & ~ USB_DIR_IN ) == 0 ) return 0 ;
+ ret = findintfep ( ps -> dev , index ) ;
+ if ( ret < 0 ) {
+ ret = findintfep ( ps -> dev , index ^ 0x80 ) ;
+ if ( ret >= 0 ) dev_info ( & ps -> dev -> dev , "%s: process %i (%s) requesting ep %02x but needs %02x\n" , __func__ , task_pid_nr ( current ) , current -> comm , index , index ^ 0x80 ) ;
+ }
+ if ( ret >= 0 ) ret = checkintf ( ps , ret ) ;
+ break ;
+ case USB_RECIP_INTERFACE : ret = checkintf ( ps , index ) ;
+ break ;
+ }
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret = 0 ;
+ struct usb_host_interface * alt_setting ;
+ if ( ps -> dev -> state != USB_STATE_UNAUTHENTICATED && ps -> dev -> state != USB_STATE_ADDRESS && ps -> dev -> state != USB_STATE_CONFIGURED ) return - EHOSTUNREACH ;
+ if ( USB_TYPE_VENDOR == ( USB_TYPE_MASK & requesttype ) ) return 0 ;
+ if ( requesttype == 0xa1 && request == 0 ) {
+ alt_setting = usb_find_alt_setting ( ps -> dev -> actconfig , index >> 8 , index & 0xff ) ;
+ if ( alt_setting && alt_setting -> desc . bInterfaceClass == USB_CLASS_PRINTER ) return 0 ;
+ }
+ index &= 0xff ;
+ switch ( requesttype & USB_RECIP_MASK ) {
+ case USB_RECIP_ENDPOINT : if ( ( index & ~ USB_DIR_IN ) == 0 ) return 0 ;
+ ret = findintfep ( ps -> dev , index ) ;
+ if ( ret < 0 ) {
+ ret = findintfep ( ps -> dev , index ^ 0x80 ) ;
+ if ( ret >= 0 ) dev_info ( & ps -> dev -> dev , "%s: process %i (%s) requesting ep %02x but needs %02x\n" , __func__ , task_pid_nr ( current ) , current -> comm , index , index ^ 0x80 ) ;
+ }
+ if ( ret >= 0 ) ret = chec...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ alt_setting = usb_find_alt_setting ( ps -> dev -> actconfig , index >> 8 , index & 0xff ) ;
+ if ( alt_setting && alt_setting -> desc . bInterfaceClass == USB_CLASS_PRINTER ) return 0 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ case USB_RECIP_ENDPOINT : if ( ( index & ~ USB_DIR_IN ) == 0 ) return 0 ;
+ ret = findintfep ( ps -> dev , index ) ;
+ if ( ret < 0 ) {
+ ret = findintfep ( ps -> dev , index ^ 0x80 ) ;
+ if ( ret >= 0 ) dev_info ( & ps -> dev -> dev , "%s: process %i (%s) requesting ep %02x but needs %02x\n" , __func__ , task_pid_nr ( current ) , current -> comm , index , index ^ 0x80 ) ;
+ }
+ if ( ret >= 0 ) ret = checkintf ( ps , ret ) ;
+ break ;
+ case USB_RECIP_INTERFACE : ret = checkintf ( ps , index ) ;
+ break ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ ret = findintfep ( ps -> dev , index ^ 0x80 ) ;
+ if ( ret >= 0 ) dev_info ( & ps -> dev -> dev , "%s: process %i (%s) requesting ep %02x but needs %02x\n" , __func__ , task_pid_nr ( current ) , current -> comm , index , index ^ 0x80 ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | ret = 0
+30064771073 | CALL | 
+        ps -> dev -> state != USB_STATE_UNAUTHENTICATED && ps -> dev -> state != USB_STATE_ADDRESS && ps -> dev -> state != USB_STATE_CONFIGURED
+      
+30064771074 | CALL | 
+        ps -> dev -> state != USB_STATE_UNAUTHENTICATED && ps -> dev -> state != USB_STATE_ADDRESS
+      
+30064771075 | CALL | ps -> dev -> state != USB_STATE_UNAUTHENTICATED
+30064771076 | CALL | ps -> dev -> state
+30064771077 | CALL | ps -> dev
+30064771078 | CALL | ps -> dev -> state != USB_STATE_ADDRESS
+30064771079 | CALL | ps -> dev -> state
+30064771080 | CALL | ps -> dev
+30064771081 | CALL | ps -> dev -> state != USB_STATE_CONFIGURED
+30064771082 | CALL | ps -> dev -> state
+30064771083 | CALL | ps -> dev
+30064771084 | CALL | - EHOSTUNREACH
+30064771085 | CALL | USB_TYPE_VENDOR == ( USB_TYPE_MASK & requesttype )
+30064771086 | CALL | USB_TYPE_MASK & requesttype
+30064771087 | CALL | requesttype == 0xa1 && request == 0
+30064771088 | CALL | requesttype == 0xa1
+30064771089 | CALL | request == 0
+30064771090 | CALL | 
+        alt_setting = usb_find_alt_setting ( ps -> dev -> actconfig , index >> 8 , index & 0xff )
+      
+30064771091 | CALL | 
+        usb_find_alt_setting ( ps -> dev -> actconfig , index >> 8 , index & 0xff )
+      
+30064771092 | CALL | ps -> dev -> actconfig
+30064771093 | CALL | ps -> dev
+30064771094 | CALL | index >> 8
+30064771095 | CALL | index & 0xff
+30064771096 | CALL | 
+        alt_setting && alt_setting -> desc . bInterfaceClass == USB_CLASS_PRINTER
+      
+30064771097 | CALL | alt_setting -> desc . bInterfaceClass == USB_CLASS_PRINTER
+30064771098 | CALL | alt_setting -> desc . bInterfaceClass
+30064771099 | CALL | alt_setting -> desc
+30064771100 | CALL | index &= 0xff
+30064771101 | CALL | requesttype & USB_RECIP_MASK
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771100 [AST]
+25769803779 -> 30064771090 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771081 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771081 [AST]
+30064771073 -> 30064771086 [CDG]
+30064771073 -> 30064771084 [CDG]
+30064771073 -> 30064771085 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771081 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771078 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771078 [AST]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771078 [POST_DOMINATE]
+30064771074 -> 30064771081 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [REACHING_DEF]
+30064771076 -> 30064771083 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771093 [REACHING_DEF]
+30064771076 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771074 [CFG]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771093 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

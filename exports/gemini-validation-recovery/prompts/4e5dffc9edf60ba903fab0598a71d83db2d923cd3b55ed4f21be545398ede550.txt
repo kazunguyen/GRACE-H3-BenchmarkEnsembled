@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dumpUserConfig ( PGconn * conn , const char * username ) {
+ PQExpBuffer buf = createPQExpBuffer ( ) ;
+ int count = 1 ;
+ for ( ;
+ ;
+ ) {
+ PGresult * res ;
+ if ( server_version >= 90000 ) printfPQExpBuffer ( buf , "SELECT setconfig[%d] FROM pg_db_role_setting WHERE " "setdatabase = 0 AND setrole = " "(SELECT oid FROM pg_authid WHERE rolname = " , count ) ;
+ else if ( server_version >= 80100 ) printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count ) ;
+ else printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count ) ;
+ appendStringLiteralConn ( buf , username , conn ) ;
+ if ( server_version >= 90000 ) appendPQExpBufferChar ( buf , ')' ) ;
+ res = executeQuery ( conn , buf -> data ) ;
+ if ( PQntuples ( res ) == 1 && ! PQgetisnull ( res , 0 , 0 ) ) {
+ makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL ) ;
+ PQclear ( res ) ;
+ count ++ ;
+ }
+ else {
+ PQclear ( res ) ;
+ break ;
+ }
+ }
+ destroyPQExpBuffer ( buf ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PQExpBuffer buf = createPQExpBuffer ( ) ;
+ int count = 1 ;
+ for ( ;
+ ;
+ ) {
+ PGresult * res ;
+ if ( server_version >= 90000 ) printfPQExpBuffer ( buf , "SELECT setconfig[%d] FROM pg_db_role_setting WHERE " "setdatabase = 0 AND setrole = " "(SELECT oid FROM pg_authid WHERE rolname = " , count ) ;
+ else if ( server_version >= 80100 ) printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count ) ;
+ else printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count ) ;
+ appendStringLiteralConn ( buf , username , conn ) ;
+ if ( server_version >= 90000 ) appendPQExpBufferChar ( buf , ')' ) ;
+ res = executeQuery ( conn , buf -> data ) ;
+ if ( PQntuples ( res ) == 1 && ! PQgetisnull ( res , 0 , 0 ) ) {
+ makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL ) ;
+ PQclear ( res ) ;
+ count ++ ;
+ }
+ else {
+ PQclear ( res ) ;
+ break ;
+ }
+ }
+ destroyPQExpBuffer ( buf ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ PGresult * res ;
+ if ( server_version >= 90000 ) printfPQExpBuffer ( buf , "SELECT setconfig[%d] FROM pg_db_role_setting WHERE " "setdatabase = 0 AND setrole = " "(SELECT oid FROM pg_authid WHERE rolname = " , count ) ;
+ else if ( server_version >= 80100 ) printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count ) ;
+ else printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count ) ;
+ appendStringLiteralConn ( buf , username , conn ) ;
+ if ( server_version >= 90000 ) appendPQExpBufferChar ( buf , ')' ) ;
+ res = executeQuery ( conn , buf -> data ) ;
+ if ( PQntuples ( res ) == 1 && ! PQgetisnull ( res , 0 , 0 ) ) {
+ makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL ) ;
+ PQclear ( res ) ;
+ count ++ ;
+ }
+ else {
+ PQclear ( res ) ;
+ break ;
+ }
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL ) ;
+ PQclear ( res ) ;
+ count ++ ;
+ }
+      
+25769803785 | BLOCK | { PQclear ( res ) ; break ; }
+30064771072 | CALL | buf = createPQExpBuffer ( )
+30064771073 | CALL | createPQExpBuffer ( )
+30064771074 | CALL | count = 1
+30064771075 | CALL | server_version >= 90000
+30064771076 | CALL | 
+        printfPQExpBuffer ( buf , "SELECT setconfig[%d] FROM pg_db_role_setting WHERE " "setdatabase = 0 AND setrole = " "(SELECT oid FROM pg_authid WHERE rolname = " , count )
+      
+30064771077 | CALL | server_version >= 80100
+30064771078 | CALL | 
+        printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count )
+      
+30064771079 | CALL | 
+        printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count )
+      
+30064771080 | CALL | appendStringLiteralConn ( buf , username , conn )
+30064771081 | CALL | server_version >= 90000
+30064771082 | CALL | appendPQExpBufferChar ( buf , ')' )
+30064771083 | CALL | res = executeQuery ( conn , buf -> data )
+30064771084 | CALL | executeQuery ( conn , buf -> data )
+30064771085 | CALL | buf -> data
+30064771086 | CALL | PQntuples ( res ) == 1 && ! PQgetisnull ( res , 0 , 0 )
+30064771087 | CALL | PQntuples ( res ) == 1
+30064771088 | CALL | PQntuples ( res )
+30064771089 | CALL | ! PQgetisnull ( res , 0 , 0 )
+30064771090 | CALL | PQgetisnull ( res , 0 , 0 )
+30064771091 | CALL | 
+        makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL )
+      
+30064771092 | CALL | PQgetvalue ( res , 0 , 0 )
+30064771093 | CALL | PQclear ( res )
+30064771094 | CALL | count ++
+30064771095 | CALL | PQclear ( res )
+30064771096 | CALL | destroyPQExpBuffer ( buf )
+47244640256 | CONTROL_STRUCTURE | for (;;)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( server_version >= 90000 ) printfPQExpBuffer ( buf , "SELECT setconfig[%d] FROM pg_db_role_setting WHERE " "setdatabase = 0 AND setrole = " "(SELECT oid FROM pg_authid WHERE rolname = " , count ) ;
+ else if ( server_version >= 80100 ) printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count ) ;
+ else printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count ) ;
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( server_version >= 80100 ) printfPQExpBuffer ( buf , "SELECT rolconfig[%d] FROM pg_authid WHERE rolname = " , count ) ;
+ else printfPQExpBuffer ( buf , "SELECT useconfig[%d] FROM pg_shadow WHERE usename = " , count ) ;
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( server_version >= 90000 ) appendPQExpBufferChar ( buf , ')' ) ;
+      
+47244640260 | CONTROL_STRUCTURE | 
+        if ( PQntuples ( res ) == 1 && ! PQgetisnull ( res , 0 , 0 ) ) {
+ makeAlterConfigCommand ( conn , PQgetvalue ( res , 0 , 0 ) , "ROLE" , username , NULL , NULL ) ;
+ PQclear ( res ) ;
+ count ++ ;
+ }
+ else {
+ PQclear ( res ) ;
+ break ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771096 [AST]
+25769803778 -> 47244640257 [AST]
+25769803778 -> 30064771080 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 47244640260 [AST]
+25769803779 -> 30064771076 [AST]
+25769803780 -> 47244640258 [AST]
+25769803781 -> 30064771078 [AST]
+25769803782 -> 30064771079 [AST]
+25769803783 -> 30064771082 [AST]
+25769803784 -> 30064771091 [AST]
+25769803784 -> 30064771093 [AST]
+25769803784 -> 30064771094 [AST]
+25769803785 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

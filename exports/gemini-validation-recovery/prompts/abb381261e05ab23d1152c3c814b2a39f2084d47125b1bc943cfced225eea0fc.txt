@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void * data_create_indic ( const hb_ot_shape_plan_t * plan ) {
+ indic_shape_plan_t * indic_plan = ( indic_shape_plan_t * ) calloc ( 1 , sizeof ( indic_shape_plan_t ) ) ;
+ if ( unlikely ( ! indic_plan ) ) return NULL ;
+ indic_plan -> config = & indic_configs [ 0 ] ;
+ for ( unsigned int i = 1 ;
+ i < ARRAY_LENGTH ( indic_configs ) ;
+ i ++ ) if ( plan -> props . script == indic_configs [ i ] . script ) {
+ indic_plan -> config = & indic_configs [ i ] ;
+ break ;
+ }
+ indic_plan -> is_old_spec = indic_plan -> config -> has_old_spec && ( ( plan -> map . chosen_script [ 0 ] & 0x000000FFu ) != '2' ) ;
+ indic_plan -> virama_glyph = ( hb_codepoint_t ) - 1 ;
+ bool zero_context = ! indic_plan -> is_old_spec ;
+ indic_plan -> rphf . init ( & plan -> map , HB_TAG ( 'r' , 'p' , 'h' , 'f' ) , zero_context ) ;
+ indic_plan -> pref . init ( & plan -> map , HB_TAG ( 'p' , 'r' , 'e' , 'f' ) , zero_context ) ;
+ indic_plan -> blwf . init ( & plan -> map , HB_TAG ( 'b' , 'l' , 'w' , 'f' ) , zero_context ) ;
+ indic_plan -> pstf . init ( & plan -> map , HB_TAG ( 'p' , 's' , 't' , 'f' ) , zero_context ) ;
+ for ( unsigned int i = 0 ;
+ i < ARRAY_LENGTH ( indic_plan -> mask_array ) ;
+ i ++ ) indic_plan -> mask_array [ i ] = ( indic_features [ i ] . flags & F_GLOBAL ) ? : plan -> map . get_1_mask ( indic_features [ i ] . tag ) ;
+ return indic_plan ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ indic_shape_plan_t * indic_plan = ( indic_shape_plan_t * ) calloc ( 1 , sizeof ( indic_shape_plan_t ) ) ;
+ if ( unlikely ( ! indic_plan ) ) return NULL ;
+ indic_plan -> config = & indic_configs [ 0 ] ;
+ for ( unsigned int i = 1 ;
+ i < ARRAY_LENGTH ( indic_configs ) ;
+ i ++ ) if ( plan -> props . script == indic_configs [ i ] . script ) {
+ indic_plan -> config = & indic_configs [ i ] ;
+ break ;
+ }
+ indic_plan -> is_old_spec = indic_plan -> config -> has_old_spec && ( ( plan -> map . chosen_script [ 0 ] & 0x000000FFu ) != '2' ) ;
+ indic_plan -> virama_glyph = ( hb_codepoint_t ) - 1 ;
+ bool zero_context = ! indic_plan -> is_old_spec ;
+ indic_plan -> rphf . init ( & plan -> map , HB_TAG ( 'r' , 'p' , 'h' , 'f' ) , zero_context ) ;
+ indic_plan -> pref . init ( & plan -> map , HB_TAG ( 'p' , 'r' , 'e' , 'f' ) , zero_context ) ;
+ indic_plan -> blwf . init ( & plan -> map , HB_TAG ( 'b' , 'l' , 'w' , 'f' ) , zero_context ) ;
+ indic_plan -> pstf . init ( & plan -> map , HB_TAG ( 'p' , 's'...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { indic_plan -> config = & indic_configs [ i ] ; break ; }
+30064771072 | CALL | indic_plan = ( indic_shape_plan_t * ) calloc ( 1 , sizeof ( indic_shape_plan_t ) )
+30064771073 | CALL | ( indic_shape_plan_t * ) calloc ( 1 , sizeof ( indic_shape_plan_t ) )
+30064771074 | CALL | calloc ( 1 , sizeof ( indic_shape_plan_t ) )
+30064771075 | CALL | sizeof ( indic_shape_plan_t )
+30064771076 | CALL | unlikely ( ! indic_plan )
+30064771077 | CALL | ! indic_plan
+30064771078 | CALL | indic_plan -> config = & indic_configs [ 0 ]
+30064771079 | CALL | indic_plan -> config
+30064771080 | CALL | & indic_configs [ 0 ]
+30064771081 | CALL | indic_configs [ 0 ]
+30064771082 | CALL | i = 1
+30064771083 | CALL | i < ARRAY_LENGTH ( indic_configs )
+30064771084 | CALL | ARRAY_LENGTH ( indic_configs )
+30064771085 | CALL | i ++
+30064771086 | CALL | plan -> props . script == indic_configs [ i ] . script
+30064771087 | CALL | plan -> props . script
+30064771088 | CALL | plan -> props
+30064771089 | CALL | indic_configs [ i ] . script
+30064771090 | CALL | indic_configs [ i ]
+30064771091 | CALL | indic_plan -> config = & indic_configs [ i ]
+30064771092 | CALL | indic_plan -> config
+30064771093 | CALL | & indic_configs [ i ]
+30064771094 | CALL | indic_configs [ i ]
+30064771095 | CALL | 
+        indic_plan -> is_old_spec = indic_plan -> config -> has_old_spec && ( ( plan -> map . chosen_script [ 0 ] & 0x000000FFu ) != '2' )
+      
+30064771096 | CALL | indic_plan -> is_old_spec
+30064771097 | CALL | 
+        indic_plan -> config -> has_old_spec && ( ( plan -> map . chosen_script [ 0 ] & 0x000000FFu ) != '2' )
+      
+30064771098 | CALL | indic_plan -> config -> has_old_spec
+30064771099 | CALL | indic_plan -> config
+30064771100 | CALL | ( plan -> map . chosen_script [ 0 ] & 0x000000FFu ) != '2'
+30064771101 | CALL | plan -> map . chosen_script [ 0 ] & 0x000000FFu
+30064771102 | CALL | plan -> map . chosen_script [ 0 ]
+30064771103 | CALL | plan -> map . chosen_script
+30064771104 | CALL | plan -> map
+30064771105 | CALL | indic_plan -> virama_glyph = ( hb_codepoint_t ) - 1
+30064771106 | CALL | indic_plan -> virama_glyph
+30064771107 | CALL | ( hb_codepoint_t ) - 1
+30064771108 | CALL | zero_context = ! indic_plan -> is_old_spec
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771108 [AST]
+25769803778 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771105 [CDG]
+30064771076 -> 30064771106 [CDG]
+30064771076 -> 30064771107 [CDG]
+30064771076 -> 30064771108 [CDG]
+30064771076 -> 30064771097 [CDG]
+30064771076 -> 30064771098 [CDG]
+30064771076 -> 30064771095 [CDG]
+30064771076 -> 30064771096 [CDG]
+30064771076 -> 30064771099 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771099 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771093 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 ->
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

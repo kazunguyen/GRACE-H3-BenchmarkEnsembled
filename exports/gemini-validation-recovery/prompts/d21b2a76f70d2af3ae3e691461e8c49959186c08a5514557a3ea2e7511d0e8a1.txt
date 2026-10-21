@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+Asn1Generic * DecodeDer ( const unsigned char * buffer , uint32_t size , uint32_t * errcode ) {
+ const unsigned char * d_ptr = buffer ;
+ uint32_t d_length , numbytes ;
+ Asn1Generic * cert ;
+ uint8_t c ;
+ if ( d_ptr [ 0 ] != 0x30 && d_ptr [ 1 ] != 0x82 ) return NULL ;
+ c = d_ptr [ 1 ] ;
+ if ( ( c & ( 1 << 7 ) ) >> 7 != 1 ) return NULL ;
+ numbytes = c & 0x7f ;
+ d_ptr += 2 ;
+ if ( DecodeAsn1BuildValue ( & d_ptr , & d_length , numbytes , errcode ) == - 1 ) {
+ return NULL ;
+ }
+ if ( d_length + ( d_ptr - buffer ) != size ) return NULL ;
+ if ( errcode ) * errcode = 0 ;
+ cert = DecodeAsn1DerGeneric ( buffer , size , 0 , 0 , errcode ) ;
+ return cert ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const unsigned char * d_ptr = buffer ;
+ uint32_t d_length , numbytes ;
+ Asn1Generic * cert ;
+ uint8_t c ;
+ if ( d_ptr [ 0 ] != 0x30 && d_ptr [ 1 ] != 0x82 ) return NULL ;
+ c = d_ptr [ 1 ] ;
+ if ( ( c & ( 1 << 7 ) ) >> 7 != 1 ) return NULL ;
+ numbytes = c & 0x7f ;
+ d_ptr += 2 ;
+ if ( DecodeAsn1BuildValue ( & d_ptr , & d_length , numbytes , errcode ) == - 1 ) {
+ return NULL ;
+ }
+ if ( d_length + ( d_ptr - buffer ) != size ) return NULL ;
+ if ( errcode ) * errcode = 0 ;
+ cert = DecodeAsn1DerGeneric ( buffer , size , 0 , 0 , errcode ) ;
+ return cert ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { return NULL ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | d_ptr = buffer
+30064771073 | CALL | d_ptr [ 0 ] != 0x30 && d_ptr [ 1 ] != 0x82
+30064771074 | CALL | d_ptr [ 0 ] != 0x30
+30064771075 | CALL | d_ptr [ 0 ]
+30064771076 | CALL | d_ptr [ 1 ] != 0x82
+30064771077 | CALL | d_ptr [ 1 ]
+30064771078 | CALL | c = d_ptr [ 1 ]
+30064771079 | CALL | d_ptr [ 1 ]
+30064771080 | CALL | ( c & ( 1 << 7 ) ) >> 7 != 1
+30064771081 | CALL | ( c & ( 1 << 7 ) ) >> 7
+30064771082 | CALL | c & ( 1 << 7 )
+30064771083 | CALL | 1 << 7
+30064771084 | CALL | numbytes = c & 0x7f
+30064771085 | CALL | c & 0x7f
+30064771086 | CALL | d_ptr += 2
+30064771087 | CALL | DecodeAsn1BuildValue ( & d_ptr , & d_length , numbytes , errcode ) == - 1
+30064771088 | CALL | DecodeAsn1BuildValue ( & d_ptr , & d_length , numbytes , errcode )
+30064771089 | CALL | & d_ptr
+30064771090 | CALL | & d_length
+30064771091 | CALL | - 1
+30064771092 | CALL | d_length + ( d_ptr - buffer ) != size
+30064771093 | CALL | d_length + ( d_ptr - buffer )
+30064771094 | CALL | d_ptr - buffer
+30064771095 | CALL | errcode != NULL
+30064771096 | CALL | * errcode = 0
+30064771097 | CALL | * errcode
+30064771098 | CALL | cert = DecodeAsn1DerGeneric ( buffer , size , 0 , 0 , errcode )
+30064771099 | CALL | DecodeAsn1DerGeneric ( buffer , size , 0 , 0 , errcode )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( d_ptr [ 0 ] != 0x30 && d_ptr [ 1 ] != 0x82 ) return NULL ;
+      
+47244640257 | CONTROL_STRUCTURE | if ( ( c & ( 1 << 7 ) ) >> 7 != 1 ) return NULL ;
+47244640258 | CONTROL_STRUCTURE | 
+        if ( DecodeAsn1BuildValue ( & d_ptr , & d_length , numbytes , errcode ) == - 1 ) {
+ return NULL ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | if ( d_length + ( d_ptr - buffer ) != size ) return NULL ;
+47244640260 | CONTROL_STRUCTURE | if ( errcode ) * errcode = 0 ;
+68719476736 | IDENTIFIER | d_ptr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 47244640260 [AST]
+25769803776 -> 30064771098 [AST]
+25769803781 -> 30064771096 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771073 [CFG]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771091 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771091 [AST]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771094 [CDG]
+30064771087 -> 30064771092 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static Asn1Generic * DecodeAsn1DerNull ( const unsigned char * buffer , uint32_t size , uint8_t depth , uint32_t * errcode ) {
+ const unsigned char * d_ptr = buffer ;
+ uint8_t numbytes ;
+ uint32_t value ;
+ Asn1Generic * a ;
+ numbytes = d_ptr [ 1 ] ;
+ d_ptr += 2 ;
+ if ( DecodeAsn1BuildValue ( & d_ptr , & value , numbytes , errcode ) == - 1 ) {
+ return NULL ;
+ }
+ a = Asn1GenericNew ( ) ;
+ if ( a == NULL ) return NULL ;
+ a -> type = ASN1_NULL ;
+ a -> length = ( d_ptr - buffer ) ;
+ a -> value = 0 ;
+ return a ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

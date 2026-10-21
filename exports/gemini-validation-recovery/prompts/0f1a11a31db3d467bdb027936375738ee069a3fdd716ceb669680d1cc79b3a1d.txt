@@ -1,0 +1,130 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( SiteDetailsBrowserTest , IsolateExtensionsHostedApps ) {
+ GURL app_with_web_iframe_url = embedded_test_server ( ) -> GetURL ( "app.org" , "/cross_site_iframe_factory.html?app.org(b.com)" ) ;
+ GURL app_in_web_iframe_url = embedded_test_server ( ) -> GetURL ( "b.com" , "/cross_site_iframe_factory.html?b.com(app.org)" ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , app_with_web_iframe_url ) ;
+ scoped_refptr < TestMemoryDetails > details = new TestMemoryDetails ( ) ;
+ details -> StartFetchAndWait ( ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.CurrentRendererProcessCount" ) , HasOneSample ( GetRenderProcessCount ( ) ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateNothingProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountLowerBound" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountNoLimit" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( GetRenderProcessCount ( ) , DependingOnPolicy ( 1 , 1 , 2 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateAllSitesProcessCountEstimate" ) , HasOneSample ( 2 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateAllSitesProcessCountLowerBound" ) , HasOneSample ( 2 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateAllSitesProcessCountNoLimit" ) , HasOneSample ( 2 ) ) ;
+ EXPECT_THAT ( GetRenderProcessCount ( ) , DependingOnPolicy ( 1 , 1 , 2 ) ) ;
+ EXPECT_THAT ( details -> GetOutOfProcessIframeCount ( ) , DependingOnPolicy ( 0 , 0 , 1 ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , app_in_web_iframe_url ) ;
+ details = new TestMemoryDetails ( ) ;
+ details -> StartFetchAndWait ( ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.CurrentRendererProcessCount" ) , HasOneSample ( GetRenderProcessCount ( ) ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateNothingProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountLowerBound" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountNoLimit" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( GetRenderProcessCount ( ) , DependingOnPolicy ( 1 , 1 , 2 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateAllSitesProcessCountEstimate" ) , HasOneSample ( 2 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateAllSitesProcessC
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GURL app_with_web_iframe_url = embedded_test_server ( ) -> GetURL ( "app.org" , "/cross_site_iframe_factory.html?app.org(b.com)" ) ;
+ GURL app_in_web_iframe_url = embedded_test_server ( ) -> GetURL ( "b.com" , "/cross_site_iframe_factory.html?b.com(app.org)" ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , app_with_web_iframe_url ) ;
+ scoped_refptr < TestMemoryDetails > details = new TestMemoryDetails ( ) ;
+ details -> StartFetchAndWait ( ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.CurrentRendererProcessCount" ) , HasOneSample ( GetRenderProcessCount ( ) ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateNothingProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountEstimate" ) , HasOneSample ( 1 ) ) ;
+ EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountLowerBound" ) , HasOneSample ( 1 ...
+      
+30064771072 | CALL | 
+        app_with_web_iframe_url = embedded_test_server ( ) -> GetURL ( "app.org" , "/cross_site_iframe_factory.html?app.org(b.com)" )
+      
+30064771073 | CALL | 
+        embedded_test_server ( ) -> GetURL ( "app.org" , "/cross_site_iframe_factory.html?app.org(b.com)" )
+      
+30064771074 | CALL | embedded_test_server ( ) -> GetURL
+30064771075 | CALL | embedded_test_server ( )
+30064771076 | CALL | 
+        app_in_web_iframe_url = embedded_test_server ( ) -> GetURL ( "b.com" , "/cross_site_iframe_factory.html?b.com(app.org)" )
+      
+30064771077 | CALL | 
+        embedded_test_server ( ) -> GetURL ( "b.com" , "/cross_site_iframe_factory.html?b.com(app.org)" )
+      
+30064771078 | CALL | embedded_test_server ( ) -> GetURL
+30064771079 | CALL | embedded_test_server ( )
+30064771080 | CALL | scoped_refptr < TestMemoryDetails > details = new
+30064771081 | CALL | scoped_refptr < TestMemoryDetails > details
+30064771082 | CALL | scoped_refptr < TestMemoryDetails
+30064771083 | CALL | TestMemoryDetails ( )
+30064771084 | CALL | details -> StartFetchAndWait ( )
+30064771085 | CALL | details -> StartFetchAndWait
+30064771086 | CALL | 
+        EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.CurrentRendererProcessCount" ) , HasOneSample ( GetRenderProcessCount ( ) ) )
+      
+30064771087 | CALL | 
+        details -> uma ( ) -> GetAllSamples ( "SiteIsolation.CurrentRendererProcessCount" )
+      
+30064771088 | CALL | details -> uma ( ) -> GetAllSamples
+30064771089 | CALL | details -> uma ( )
+30064771090 | CALL | details -> uma
+30064771091 | CALL | HasOneSample ( GetRenderProcessCount ( ) )
+30064771092 | CALL | GetRenderProcessCount ( )
+30064771093 | CALL | 
+        EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateNothingProcessCountEstimate" ) , HasOneSample ( 1 ) )
+      
+30064771094 | CALL | 
+        details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateNothingProcessCountEstimate" )
+      
+30064771095 | CALL | details -> uma ( ) -> GetAllSamples
+30064771096 | CALL | details -> uma ( )
+30064771097 | CALL | details -> uma
+30064771098 | CALL | HasOneSample ( 1 )
+30064771099 | CALL | 
+        EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountEstimate" ) , HasOneSample ( 1 ) )
+      
+30064771100 | CALL | 
+        details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountEstimate" )
+      
+30064771101 | CALL | details -> uma ( ) -> GetAllSamples
+30064771102 | CALL | details -> uma ( )
+30064771103 | CALL | details -> uma
+30064771104 | CALL | HasOneSample ( 1 )
+30064771105 | CALL | 
+        EXPECT_THAT ( details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountLowerBound" ) , HasOneSample ( 1 ) )
+      
+30064771106 | CALL | 
+        details -> uma ( ) -> GetAllSamples ( "SiteIsolation.IsolateExtensionsProcessCountLowerBound" )
+      
+30064771107 | CALL | details -> uma ( ) -> GetAllSamples
+30064771108 | CALL | details -> uma ( )
+30064771109 | CALL | details -> uma
+30064771110 | CALL | HasOneSample ( 1 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771093 [AST]
+25769803
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

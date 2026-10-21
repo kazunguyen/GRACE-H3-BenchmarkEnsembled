@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextGetBalloonInfo ( qemuMonitorPtr mon , unsigned long * currmem ) {
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * offset ;
+ if ( qemuMonitorHMPCommand ( mon , "info balloon" , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "could not query memory balloon allocation" ) ) ;
+ return - 1 ;
+ }
+ if ( ( offset = strstr ( reply , BALLOON_PREFIX ) ) != NULL ) {
+ offset += strlen ( BALLOON_PREFIX ) ;
+ struct _virDomainMemoryStat stats [ 1 ] ;
+ if ( qemuMonitorParseBalloonInfo ( offset , stats , 1 ) == 0 ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ if ( stats [ 0 ] . tag != VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ * currmem = stats [ 0 ] . val ;
+ ret = 1 ;
+ }
+ else {
+ ret = 0 ;
+ }
+ cleanup : VIR_FREE ( reply ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * offset ;
+ if ( qemuMonitorHMPCommand ( mon , "info balloon" , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "could not query memory balloon allocation" ) ) ;
+ return - 1 ;
+ }
+ if ( ( offset = strstr ( reply , BALLOON_PREFIX ) ) != NULL ) {
+ offset += strlen ( BALLOON_PREFIX ) ;
+ struct _virDomainMemoryStat stats [ 1 ] ;
+ if ( qemuMonitorParseBalloonInfo ( offset , stats , 1 ) == 0 ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ if ( stats [ 0 ] . tag != VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ * currmem = stats [ 0 ] . val ;
+ ret = 1 ;
+ }
+ else {
+ ret = 0 ;
+ }
+ cleanup : VIR_FREE ( reply ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "could not query memory balloon allocation" ) ) ;
+ return - 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ offset += strlen ( BALLOON_PREFIX ) ;
+ struct _virDomainMemoryStat stats [ 1 ] ;
+ if ( qemuMonitorParseBalloonInfo ( offset , stats , 1 ) == 0 ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ if ( stats [ 0 ] . tag != VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ * currmem = stats [ 0 ] . val ;
+ ret = 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+      
+25769803781 | BLOCK | { ret = 0 ; }
+30064771072 | CALL | reply = NULL
+30064771073 | CALL | ret = - 1
+30064771074 | CALL | - 1
+30064771075 | CALL | qemuMonitorHMPCommand ( mon , "info balloon" , & reply ) < 0
+30064771076 | CALL | qemuMonitorHMPCommand ( mon , "info balloon" , & reply )
+30064771077 | CALL | & reply
+30064771078 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "could not query memory balloon allocation" ) )
+      
+30064771079 | CALL | _ ( "could not query memory balloon allocation" )
+30064771080 | CALL | - 1
+30064771081 | CALL | ( offset = strstr ( reply , BALLOON_PREFIX ) ) != NULL
+30064771082 | CALL | offset = strstr ( reply , BALLOON_PREFIX )
+30064771083 | CALL | strstr ( reply , BALLOON_PREFIX )
+30064771084 | CALL | offset += strlen ( BALLOON_PREFIX )
+30064771085 | CALL | strlen ( BALLOON_PREFIX )
+30064771086 | CALL | stats [ 1 ]
+30064771087 | CALL | stats [ 1 ]
+30064771088 | CALL | qemuMonitorParseBalloonInfo ( offset , stats , 1 ) == 0
+30064771089 | CALL | qemuMonitorParseBalloonInfo ( offset , stats , 1 )
+30064771090 | CALL | 
+        qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply )
+      
+30064771091 | CALL | _ ( "unexpected balloon information '%s'" )
+30064771092 | CALL | stats [ 0 ] . tag != VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON
+30064771093 | CALL | stats [ 0 ] . tag
+30064771094 | CALL | stats [ 0 ]
+30064771095 | CALL | 
+        qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply )
+      
+30064771096 | CALL | _ ( "unexpected balloon information '%s'" )
+30064771097 | CALL | * currmem = stats [ 0 ] . val
+30064771098 | CALL | * currmem
+30064771099 | CALL | stats [ 0 ] . val
+30064771100 | CALL | stats [ 0 ]
+30064771101 | CALL | ret = 1
+30064771102 | CALL | ret = 0
+30064771103 | CALL | VIR_FREE ( reply )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( qemuMonitorHMPCommand ( mon , "info balloon" , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "could not query memory balloon allocation" ) ) ;
+ return - 1 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ( offset = strstr ( reply , BALLOON_PREFIX ) ) != NULL ) {
+ offset += strlen ( BALLOON_PREFIX ) ;
+ struct _virDomainMemoryStat stats [ 1 ] ;
+ if ( qemuMonitorParseBalloonInfo ( offset , stats , 1 ) == 0 ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ if ( stats [ 0 ] . tag != VIR_DOMAIN_MEMORY_STAT_ACTUAL_BALLOON ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "unexpected balloon information '%s'" ) , reply ) ;
+ goto cleanup ;
+ }
+ * currmem = stats [ 0 ] . val ;
+ ret = 1 ;
+ }
+ else {
+ ret = 0 ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771101 [AST]
+25769803779 -> 30064771090 [AST]
+25769803780 -> 30064771095 [AST]
+25769803781 -> 30064771102 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771103 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

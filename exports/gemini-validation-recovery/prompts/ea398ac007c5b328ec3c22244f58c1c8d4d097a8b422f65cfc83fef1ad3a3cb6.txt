@@ -1,0 +1,161 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_network_init(void)
+
+{
+
+#if HAVE_WINSOCK2_H
+
+    WSADATA wsaData;
+
+#endif
+
+
+
+    if (!ff_network_inited_globally)
+
+        av_log(NULL, AV_LOG_WARNING, "Using network protocols without global "
+
+                                     "network initialization. Please use "
+
+                                     "avformat_network_init(), this will "
+
+                                     "become mandatory later.\n");
+
+#if HAVE_WINSOCK2_H
+
+    if (WSAStartup(MAKEWORD(1,1), &wsaData))
+
+        return 0;
+
+#endif
+
+    return 1;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 14 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+31 -> 41 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+26 -> 45 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 49 [IS_AST_PARENT]
+3 -> 50 [IS_AST_PARENT]
+3 -> 51 [IS_AST_PARENT]
+52 -> 5 [FLOWS_TO]
+5 -> 10 [FLOWS_TO]
+10 -> 14 [FLOWS_TO]
+10 -> 15 [FLOWS_TO]
+14 -> 15 [FLOWS_TO]
+15 -> 16 [FLOWS_TO]
+16 -> 17 [FLOWS_TO]
+17 -> 18 [FLOWS_TO]
+18 -> 19 [FLOWS_TO]
+19 -> 20 [FLOWS_TO]
+20 -> 21 [FLOWS_TO]
+21 -> 22 [FLOWS_TO]
+22 -> 23 [FLOWS_TO]
+23 -> 24 [FLOWS_TO]
+24 -> 25 [FLOWS_TO]
+25 -> 27 [FLOWS_TO]
+27 -> 45 [FLOWS_TO]
+27 -> 47 [FLOWS_TO]
+45 -> 53 [FLOWS_TO]
+47 -> 53 [FLOWS_TO]
+5 -> 54 [DEF]
+6 -> 54 [DEF]
+27 -> 55 [USE]
+32 -> 55 [USE]
+10 -> 56 [USE]
+27 -> 57 [USE]
+41 -> 57 [USE]
+27 -> 58 [USE]
+52 -> 5 [CONTROLS]
+52 -> 10 [CONTROLS]
+52 -> 15 [CONTROLS]
+52 -> 16 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int avformat_network_init(void)
+
+{
+
+#if CONFIG_NETWORK
+
+    int ret;
+
+    ff_network_inited_globally = 1;
+
+    if ((ret = ff_network_init()) < 0)
+
+        return ret;
+
+    if ((ret = ff_tls_init()) < 0)
+
+        return ret;
+
+#endif
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

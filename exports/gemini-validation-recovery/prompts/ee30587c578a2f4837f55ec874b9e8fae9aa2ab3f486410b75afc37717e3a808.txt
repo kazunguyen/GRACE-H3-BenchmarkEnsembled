@@ -1,0 +1,144 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Image * ReadVIFFImage ( const ImageInfo * image_info , ExceptionInfo * exception ) {
+ # define VFF_CM_genericRGB 15 # define VFF_CM_ntscRGB 1 # define VFF_CM_NONE 0 # define VFF_DEP_DECORDER 0x4 # define VFF_DEP_NSORDER 0x8 # define VFF_DES_RAW 0 # define VFF_LOC_IMPLICIT 1 # define VFF_MAPTYP_NONE 0 # define VFF_MAPTYP_1_BYTE 1 # define VFF_MAPTYP_2_BYTE 2 # define VFF_MAPTYP_4_BYTE 4 # define VFF_MAPTYP_FLOAT 5 # define VFF_MAPTYP_DOUBLE 7 # define VFF_MS_NONE 0 # define VFF_MS_ONEPERBAND 1 # define VFF_MS_SHARED 3 # define VFF_TYP_BIT 0 # define VFF_TYP_1_BYTE 1 # define VFF_TYP_2_BYTE 2 # define VFF_TYP_4_BYTE 4 # define VFF_TYP_FLOAT 5 # define VFF_TYP_DOUBLE 9 typedef struct _ViffInfo {
+ unsigned char identifier , file_type , release , version , machine_dependency , reserve [ 3 ] ;
+ char comment [ 512 ] ;
+ unsigned int rows , columns , subrows ;
+ int x_offset , y_offset ;
+ float x_bits_per_pixel , y_bits_per_pixel ;
+ unsigned int location_type , location_dimension , number_of_images , number_data_bands , data_storage_type , data_encode_scheme , map_scheme , map_storage_type , map_rows , map_columns , map_subrows , map_enable , maps_per_cycle , color_space_model ;
+ }
+ ViffInfo ;
+ double min_value , scale_factor , value ;
+ Image * image ;
+ int bit ;
+ MagickBooleanType status ;
+ MagickSizeType number_pixels ;
+ register IndexPacket * indexes ;
+ register ssize_t x ;
+ register PixelPacket * q ;
+ register ssize_t i ;
+ register unsigned char * p ;
+ size_t bytes_per_pixel , max_packets , quantum ;
+ ssize_t count , y ;
+ unsigned char * pixels ;
+ unsigned long lsb_first ;
+ ViffInfo viff_info ;
+ assert ( image_info != ( const ImageInfo * ) NULL ) ;
+ assert ( image_info -> signature == MagickSignature ) ;
+ if ( image_info -> debug != MagickFalse ) ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename ) ;
+ assert ( exception != ( ExceptionInfo * ) NULL ) ;
+ assert ( exception -> signature == MagickSignature ) ;
+ image = AcquireImage ( image_info ) ;
+ status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception ) ;
+ if ( status == MagickFalse ) {
+ image = DestroyImageList ( image ) ;
+ return ( ( Image * ) NULL ) ;
+ }
+ count = ReadBlob ( image , 1 , & viff_info . identifier ) ;
+ do {
+ if ( ( count != 1 ) || ( ( unsigned char ) viff_info . identifier != 0xab ) ) ThrowReaderException ( CorruptImageError , "NotAVIFFImage" ) ;
+ ( void ) ReadBlob ( image , sizeof ( viff_info . file_type ) , & viff_info . file_type ) ;
+ ( void ) ReadBlob ( image , sizeof ( viff_info . release ) , & viff_info . release ) ;
+ ( void ) ReadBlob ( image , sizeof ( viff_info . version ) , & viff_info . version ) ;
+ ( void ) ReadBlob ( image , sizeof ( viff_info . machine_dependency ) , & viff_info . machine_dependency ) ;
+ ( void ) ReadBlob ( image , sizeof ( viff_info . reserve ) , viff_info . reserve ) ;
+ ( void ) ReadBlob ( image , 512 , ( unsigned char * ) viff_info . comment ) ;
+ viff_info . comment [ 511 ] = '\0' ;
+ if ( str
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # define VFF_CM_genericRGB 15 # define VFF_CM_ntscRGB 1 # define VFF_CM_NONE 0 # define VFF_DEP_DECORDER 0x4 # define VFF_DEP_NSORDER 0x8 # define VFF_DES_RAW 0 # define VFF_LOC_IMPLICIT 1 # define VFF_MAPTYP_NONE 0 # define VFF_MAPTYP_1_BYTE 1 # define VFF_MAPTYP_2_BYTE 2 # define VFF_MAPTYP_4_BYTE 4 # define VFF_MAPTYP_FLOAT 5 # define VFF_MAPTYP_DOUBLE 7 # define VFF_MS_NONE 0 # define VFF_MS_ONEPERBAND 1 # define VFF_MS_SHARED 3 # define VFF_TYP_BIT 0 # define VFF_TYP_1_BYTE 1 # define VFF_TYP_2_BYTE 2 # define VFF_TYP_4_BYTE 4 # define VFF_TYP_FLOAT 5 # define VFF_TYP_DOUBLE 9 typedef struct _ViffInfo {
+ unsigned char identifier , file_type , release , version , machine_dependency , reserve [ 3 ] ;
+ char comment [ 512 ] ;
+ unsigned int rows , columns , subrows ;
+ int x_offset , y_offset ;
+ float x_bits_per_pixel , y_bits_per_pixel ;
+ unsigned int location_type , location_dimension , number_of_images , number_data_bands , data_storage_type , data_encode_scheme , map_scheme , ...
+      
+30064771072 | CALL | reserve [ 3 ]
+30064771073 | CALL | reserve [ 3 ]
+30064771074 | CALL | comment [ 512 ]
+30064771075 | CALL | comment [ 512 ]
+68719476736 | IDENTIFIER | reserve
+68719476737 | IDENTIFIER | unsigned char[3]
+68719476738 | IDENTIFIER | comment
+68719476739 | IDENTIFIER | char[512]
+90194313216 | LITERAL | 3
+90194313217 | LITERAL | 512
+94489280512 | LOCAL | unsigned char identifier
+94489280513 | LOCAL | unsigned char file_type
+94489280514 | LOCAL | unsigned char release
+94489280515 | LOCAL | unsigned char version
+94489280516 | LOCAL | unsigned char machine_dependency
+94489280517 | LOCAL | unsigned char reserve [ 3 ]
+94489280518 | LOCAL | char comment [ 512 ]
+94489280519 | LOCAL | unsigned int rows
+94489280520 | LOCAL | unsigned int columns
+94489280521 | LOCAL | unsigned int subrows
+94489280522 | LOCAL | int x_offset
+94489280523 | LOCAL | int y_offset
+94489280524 | LOCAL | float x_bits_per_pixel
+94489280525 | LOCAL | float y_bits_per_pixel
+94489280526 | LOCAL | unsigned int location_type
+94489280527 | LOCAL | unsigned int location_dimension
+94489280528 | LOCAL | unsigned int number_of_images
+94489280529 | LOCAL | unsigned int number_data_bands
+94489280530 | LOCAL | unsigned int data_storage_type
+94489280531 | LOCAL | unsigned int data_encode_scheme
+94489280532 | LOCAL | unsigned int map_scheme
+94489280533 | LOCAL | unsigned int map_storage_type
+94489280534 | LOCAL | unsigned int map_rows
+94489280535 | LOCAL | unsigned int map_columns
+94489280536 | LOCAL | unsigned int map_subrows
+94489280537 | LOCAL | unsigned int map_enable
+94489280538 | LOCAL | unsigned int maps_per_cycle
+94489280539 | LOCAL | unsigned int color_space_model
+107374182400 | METHOD | 
+        static Image * ReadVIFFImage ( const ImageInfo * image_info , ExceptionInfo * exception ) {
+ # define VFF_CM_genericRGB 15 # define VFF_CM_ntscRGB 1 # define VFF_CM_NONE 0 # define VFF_DEP_DECORDER 0x4 # define VFF_DEP_NSORDER 0x8 # define VFF_DES_RAW 0 # define VFF_LOC_IMPLICIT 1 # define VFF_MAPTYP_NONE 0 # define VFF_MAPTYP_1_BYTE 1 # define VFF_MAPTYP_2_BYTE 2 # define VFF_MAPTYP_4_BYTE 4 # define VFF_MAPTYP_FLOAT 5 # define VFF_MAPTYP_DOUBLE 7 # define VFF_MS_NONE 0 # define VFF_MS_ONEPERBAND 1 # define VFF_MS_SHARED 3 # define VFF_TYP_BIT 0 # define VFF_TYP_1_BYTE 1 # define VFF_TYP_2_BYTE 2 # define VFF_TYP_4_BYTE 4 # define VFF_TYP_FLOAT 5 # define VFF_TYP_DOUBLE 9 typedef struct _ViffInfo {
+ unsigned char identifier , file_type , release , version , machine_dependency , reserve [ 3 ] ;
+ char comment [ 512 ] ;
+ unsigned int rows , columns , subrows ;
+ int x_offset , y_offset ;
+ float x_bits_per_pixel , y_bits_per_pixel ;
+ unsigned int location_type , location_dimension , num...
+      
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280518 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 94489280519 [AST]
+25769803776 -> 94489280520 [AST]
+25769803776 -> 94489280521 [AST]
+25769803776 -> 94489280522 [AST]
+25769803776 -> 94489280523 [AST]
+25769803776 -> 94489280524 [AST]
+25769803776 -> 94489280525 [AST]
+25769803776 -> 94489280526 [AST]
+25769803776 -> 94489280527 [AST]
+25769803776 -> 94489280528 [AST]
+2576
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

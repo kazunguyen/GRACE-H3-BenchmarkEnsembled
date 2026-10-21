@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int x8_get_dc_rlf ( IntraX8Context * const w , int const mode , int * const level , int * const final ) {
+ MpegEncContext * const s = w -> s ;
+ int i , e , c ;
+ assert ( mode < 3 ) ;
+ if ( ! w -> j_dc_vlc [ mode ] ) {
+ int table_index ;
+ table_index = get_bits ( & s -> gb , 3 ) ;
+ w -> j_dc_vlc [ mode ] = & j_dc_vlc [ w -> quant < 13 ] [ table_index ] ;
+ }
+ assert ( w -> j_dc_vlc ) ;
+ assert ( w -> j_dc_vlc [ mode ] -> table ) ;
+ i = get_vlc2 ( & s -> gb , w -> j_dc_vlc [ mode ] -> table , DC_VLC_BITS , DC_VLC_MTD ) ;
+ c = i > 16 ;
+ ( * final ) = c ;
+ i -= 17 * c ;
+ if ( i <= 0 ) {
+ ( * level ) = 0 ;
+ return - i ;
+ }
+ c = ( i + 1 ) >> 1 ;
+ c -= c > 1 ;
+ e = get_bits ( & s -> gb , c ) ;
+ i = dc_index_offset [ i ] + ( e >> 1 ) ;
+ e = - ( e & 1 ) ;
+ ( * level ) = ( i ^ e ) - e ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MpegEncContext * const s = w -> s ;
+ int i , e , c ;
+ assert ( mode < 3 ) ;
+ if ( ! w -> j_dc_vlc [ mode ] ) {
+ int table_index ;
+ table_index = get_bits ( & s -> gb , 3 ) ;
+ w -> j_dc_vlc [ mode ] = & j_dc_vlc [ w -> quant < 13 ] [ table_index ] ;
+ }
+ assert ( w -> j_dc_vlc ) ;
+ assert ( w -> j_dc_vlc [ mode ] -> table ) ;
+ i = get_vlc2 ( & s -> gb , w -> j_dc_vlc [ mode ] -> table , DC_VLC_BITS , DC_VLC_MTD ) ;
+ c = i > 16 ;
+ ( * final ) = c ;
+ i -= 17 * c ;
+ if ( i <= 0 ) {
+ ( * level ) = 0 ;
+ return - i ;
+ }
+ c = ( i + 1 ) >> 1 ;
+ c -= c > 1 ;
+ e = get_bits ( & s -> gb , c ) ;
+ i = dc_index_offset [ i ] + ( e >> 1 ) ;
+ e = - ( e & 1 ) ;
+ ( * level ) = ( i ^ e ) - e ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int table_index ;
+ table_index = get_bits ( & s -> gb , 3 ) ;
+ w -> j_dc_vlc [ mode ] = & j_dc_vlc [ w -> quant < 13 ] [ table_index ] ;
+ }
+      
+25769803778 | BLOCK | { ( * level ) = 0 ; return - i ; }
+30064771072 | CALL | const s = w -> s
+30064771073 | CALL | w -> s
+30064771074 | CALL | assert ( mode < 3 )
+30064771075 | CALL | mode < 3
+30064771076 | CALL | ! w -> j_dc_vlc [ mode ]
+30064771077 | CALL | w -> j_dc_vlc [ mode ]
+30064771078 | CALL | w -> j_dc_vlc
+30064771079 | CALL | table_index = get_bits ( & s -> gb , 3 )
+30064771080 | CALL | get_bits ( & s -> gb , 3 )
+30064771081 | CALL | & s -> gb
+30064771082 | CALL | s -> gb
+30064771083 | CALL | 
+        w -> j_dc_vlc [ mode ] = & j_dc_vlc [ w -> quant < 13 ] [ table_index ]
+      
+30064771084 | CALL | w -> j_dc_vlc [ mode ]
+30064771085 | CALL | w -> j_dc_vlc
+30064771086 | CALL | & j_dc_vlc [ w -> quant < 13 ] [ table_index ]
+30064771087 | CALL | j_dc_vlc [ w -> quant < 13 ] [ table_index ]
+30064771088 | CALL | j_dc_vlc [ w -> quant < 13 ]
+30064771089 | CALL | w -> quant < 13
+30064771090 | CALL | w -> quant
+30064771091 | CALL | assert ( w -> j_dc_vlc )
+30064771092 | CALL | w -> j_dc_vlc
+30064771093 | CALL | assert ( w -> j_dc_vlc [ mode ] -> table )
+30064771094 | CALL | w -> j_dc_vlc [ mode ] -> table
+30064771095 | CALL | w -> j_dc_vlc [ mode ]
+30064771096 | CALL | w -> j_dc_vlc
+30064771097 | CALL | 
+        i = get_vlc2 ( & s -> gb , w -> j_dc_vlc [ mode ] -> table , DC_VLC_BITS , DC_VLC_MTD )
+      
+30064771098 | CALL | 
+        get_vlc2 ( & s -> gb , w -> j_dc_vlc [ mode ] -> table , DC_VLC_BITS , DC_VLC_MTD )
+      
+30064771099 | CALL | & s -> gb
+30064771100 | CALL | s -> gb
+30064771101 | CALL | w -> j_dc_vlc [ mode ] -> table
+30064771102 | CALL | w -> j_dc_vlc [ mode ]
+30064771103 | CALL | w -> j_dc_vlc
+30064771104 | CALL | c = i > 16
+30064771105 | CALL | i > 16
+30064771106 | CALL | ( * final ) = c
+30064771107 | CALL | * final
+30064771108 | CALL | i -= 17 * c
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771108 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771083 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771092 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771103 [REACHING_DEF]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771077 -> 30064771085 [REACHING_DEF]
+30064771077 -> 30064771102 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771099 [REACHING_DEF]
+30064771081 -> 30064771100 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771099 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771100 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771086 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771092 [REACHING_DEF]
+30064771084 -> 30064771103 [REACHING_DEF]
+30064771084 -> 30064771096 [REACHING_DEF]
+30064771084 -> 30064771095 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline void x8_select_ac_table ( IntraX8Context * const w , int mode ) {
+ MpegEncContext * const s = w -> s ;
+ int table_index ;
+ assert ( mode < 4 ) ;
+ if ( w -> j_ac_vlc [ mode ] ) return ;
+ table_index = get_bits ( & s -> gb , 3 ) ;
+ w -> j_ac_vlc [ mode ] = & j_ac_vlc [ w -> quant < 13 ] [ mode >> 1 ] [ table_index ] ;
+ assert ( w -> j_ac_vlc [ mode ] ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

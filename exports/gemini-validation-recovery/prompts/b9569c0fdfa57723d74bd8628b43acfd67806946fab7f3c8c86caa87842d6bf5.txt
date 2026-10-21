@@ -1,0 +1,232 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int record_hardlink ( struct archive_read * a , struct cpio * cpio , struct archive_entry * entry ) {
+ struct links_entry * le ;
+ dev_t dev ;
+ int64_t ino ;
+ if ( archive_entry_nlink ( entry ) <= 1 ) return ( ARCHIVE_OK ) ;
+ dev = archive_entry_dev ( entry ) ;
+ ino = archive_entry_ino64 ( entry ) ;
+ for ( le = cpio -> links_head ;
+ le ;
+ le = le -> next ) {
+ if ( le -> dev == dev && le -> ino == ino ) {
+ archive_entry_copy_hardlink ( entry , le -> name ) ;
+ if ( -- le -> links <= 0 ) {
+ if ( le -> previous != NULL ) le -> previous -> next = le -> next ;
+ if ( le -> next != NULL ) le -> next -> previous = le -> previous ;
+ if ( cpio -> links_head == le ) cpio -> links_head = le -> next ;
+ free ( le -> name ) ;
+ free ( le ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+ }
+ le = ( struct links_entry * ) malloc ( sizeof ( struct links_entry ) ) ;
+ if ( le == NULL ) {
+ archive_set_error ( & a -> archive , ENOMEM , "Out of memory adding file to list" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ if ( cpio -> links_head != NULL ) cpio -> links_head -> previous = le ;
+ le -> next = cpio -> links_head ;
+ le -> previous = NULL ;
+ cpio -> links_head = le ;
+ le -> dev = dev ;
+ le -> ino = ino ;
+ le -> links = archive_entry_nlink ( entry ) - 1 ;
+ le -> name = strdup ( archive_entry_pathname ( entry ) ) ;
+ if ( le -> name == NULL ) {
+ archive_set_error ( & a -> archive , ENOMEM , "Out of memory adding file to list" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct links_entry * le ;
+ dev_t dev ;
+ int64_t ino ;
+ if ( archive_entry_nlink ( entry ) <= 1 ) return ( ARCHIVE_OK ) ;
+ dev = archive_entry_dev ( entry ) ;
+ ino = archive_entry_ino64 ( entry ) ;
+ for ( le = cpio -> links_head ;
+ le ;
+ le = le -> next ) {
+ if ( le -> dev == dev && le -> ino == ino ) {
+ archive_entry_copy_hardlink ( entry , le -> name ) ;
+ if ( -- le -> links <= 0 ) {
+ if ( le -> previous != NULL ) le -> previous -> next = le -> next ;
+ if ( le -> next != NULL ) le -> next -> previous = le -> previous ;
+ if ( cpio -> links_head == le ) cpio -> links_head = le -> next ;
+ free ( le -> name ) ;
+ free ( le ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+ }
+ le = ( struct links_entry * ) malloc ( sizeof ( struct links_entry ) ) ;
+ if ( le == NULL ) {
+ archive_set_error ( & a -> archive , ENOMEM , "Out of memory adding file to list" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ if ( cpio -> links_head != NULL ) cpio -> links_head -> previous = le ;
+ le -> next = cpio -> links_head ;
+ le -> p...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( le -> dev == dev && le -> ino == ino ) {
+ archive_entry_copy_hardlink ( entry , le -> name ) ;
+ if ( -- le -> links <= 0 ) {
+ if ( le -> previous != NULL ) le -> previous -> next = le -> next ;
+ if ( le -> next != NULL ) le -> next -> previous = le -> previous ;
+ if ( cpio -> links_head == le ) cpio -> links_head = le -> next ;
+ free ( le -> name ) ;
+ free ( le ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ archive_entry_copy_hardlink ( entry , le -> name ) ;
+ if ( -- le -> links <= 0 ) {
+ if ( le -> previous != NULL ) le -> previous -> next = le -> next ;
+ if ( le -> next != NULL ) le -> next -> previous = le -> previous ;
+ if ( cpio -> links_head == le ) cpio -> links_head = le -> next ;
+ free ( le -> name ) ;
+ free ( le ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ if ( le -> previous != NULL ) le -> previous -> next = le -> next ;
+ if ( le -> next != NULL ) le -> next -> previous = le -> previous ;
+ if ( cpio -> links_head == le ) cpio -> links_head = le -> next ;
+ free ( le -> name ) ;
+ free ( le ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ archive_set_error ( & a -> archive , ENOMEM , "Out of memory adding file to list" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ archive_set_error ( & a -> archive , ENOMEM , "Out of memory adding file to list" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+      
+30064771072 | CALL | archive_entry_nlink ( entry ) <= 1
+30064771073 | CALL | archive_entry_nlink ( entry )
+30064771074 | CALL | dev = archive_entry_dev ( entry )
+30064771075 | CALL | archive_entry_dev ( entry )
+30064771076 | CALL | ino = archive_entry_ino64 ( entry )
+30064771077 | CALL | archive_entry_ino64 ( entry )
+30064771078 | CALL | le = cpio -> links_head
+30064771079 | CALL | cpio -> links_head
+30064771080 | CALL | le != NULL
+30064771081 | CALL | le = le -> next
+30064771082 | CALL | le -> next
+30064771083 | CALL | le -> dev == dev && le -> ino == ino
+30064771084 | CALL | le -> dev == dev
+30064771085 | CALL | le -> dev
+30064771086 | CALL | le -> ino == ino
+30064771087 | CALL | le -> ino
+30064771088 | CALL | archive_entry_copy_hardlink ( entry , le -> name )
+30064771089 | CALL | le -> name
+30064771090 | CALL | -- le -> links <= 0
+30064771091 | CALL | -- le -> links
+30064771092 | CALL | le -> links
+30064771093 | CALL | le -> previous != NULL
+30064771094 | CALL | le -> previous
+30064771095 | CALL | le -> previous -> next = le -> next
+30064771096 | CALL | le -> previous -> next
+30064771097 | CALL | le -> previous
+30064771098 | CALL | le -> next
+30064771099 | CALL | le -> next != NULL
+30064771100 | CALL | le -> next
+EDGES:
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803779 -> 30064771088 [AST]
+25769803781 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771100 [REACHING_DEF]
+30064771082 -> 30064771098 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771080 [CDG]
+30064771083 -> 30064771081 [CDG]
+30064771083 -> 30064771082 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

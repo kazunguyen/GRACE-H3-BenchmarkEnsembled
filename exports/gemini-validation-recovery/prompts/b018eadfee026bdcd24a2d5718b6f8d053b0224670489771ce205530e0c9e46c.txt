@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void tb_link_page ( TranslationBlock * tb , tb_page_addr_t phys_pc , tb_page_addr_t phys_page2 ) {
+ unsigned int h ;
+ TranslationBlock * * ptb ;
+ mmap_lock ( ) ;
+ h = tb_phys_hash_func ( phys_pc ) ;
+ ptb = & tcg_ctx . tb_ctx . tb_phys_hash [ h ] ;
+ tb -> phys_hash_next = * ptb ;
+ * ptb = tb ;
+ tb_alloc_page ( tb , 0 , phys_pc & TARGET_PAGE_MASK ) ;
+ if ( phys_page2 != - 1 ) {
+ tb_alloc_page ( tb , 1 , phys_page2 ) ;
+ }
+ else {
+ tb -> page_addr [ 1 ] = - 1 ;
+ }
+ tb -> jmp_first = ( TranslationBlock * ) ( ( uintptr_t ) tb | 2 ) ;
+ tb -> jmp_next [ 0 ] = NULL ;
+ tb -> jmp_next [ 1 ] = NULL ;
+ if ( tb -> tb_next_offset [ 0 ] != 0xffff ) {
+ tb_reset_jump ( tb , 0 ) ;
+ }
+ if ( tb -> tb_next_offset [ 1 ] != 0xffff ) {
+ tb_reset_jump ( tb , 1 ) ;
+ }
+ # ifdef DEBUG_TB_CHECK tb_page_check ( ) ;
+ # endif mmap_unlock ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int h ;
+ TranslationBlock * * ptb ;
+ mmap_lock ( ) ;
+ h = tb_phys_hash_func ( phys_pc ) ;
+ ptb = & tcg_ctx . tb_ctx . tb_phys_hash [ h ] ;
+ tb -> phys_hash_next = * ptb ;
+ * ptb = tb ;
+ tb_alloc_page ( tb , 0 , phys_pc & TARGET_PAGE_MASK ) ;
+ if ( phys_page2 != - 1 ) {
+ tb_alloc_page ( tb , 1 , phys_page2 ) ;
+ }
+ else {
+ tb -> page_addr [ 1 ] = - 1 ;
+ }
+ tb -> jmp_first = ( TranslationBlock * ) ( ( uintptr_t ) tb | 2 ) ;
+ tb -> jmp_next [ 0 ] = NULL ;
+ tb -> jmp_next [ 1 ] = NULL ;
+ if ( tb -> tb_next_offset [ 0 ] != 0xffff ) {
+ tb_reset_jump ( tb , 0 ) ;
+ }
+ if ( tb -> tb_next_offset [ 1 ] != 0xffff ) {
+ tb_reset_jump ( tb , 1 ) ;
+ }
+ # ifdef DEBUG_TB_CHECK tb_page_check ( ) ;
+ # endif mmap_unlock ( ) ;
+ }
+      
+25769803777 | BLOCK | { tb_alloc_page ( tb , 1 , phys_page2 ) ; }
+25769803778 | BLOCK | { tb -> page_addr [ 1 ] = - 1 ; }
+25769803779 | BLOCK | { tb_reset_jump ( tb , 0 ) ; }
+25769803780 | BLOCK | { tb_reset_jump ( tb , 1 ) ; }
+30064771072 | CALL | mmap_lock ( )
+30064771073 | CALL | h = tb_phys_hash_func ( phys_pc )
+30064771074 | CALL | tb_phys_hash_func ( phys_pc )
+30064771075 | CALL | ptb = & tcg_ctx . tb_ctx . tb_phys_hash [ h ]
+30064771076 | CALL | & tcg_ctx . tb_ctx . tb_phys_hash [ h ]
+30064771077 | CALL | tcg_ctx . tb_ctx . tb_phys_hash [ h ]
+30064771078 | CALL | tcg_ctx . tb_ctx . tb_phys_hash
+30064771079 | CALL | tcg_ctx . tb_ctx
+30064771080 | CALL | tb -> phys_hash_next = * ptb
+30064771081 | CALL | tb -> phys_hash_next
+30064771082 | CALL | * ptb
+30064771083 | CALL | * ptb = tb
+30064771084 | CALL | * ptb
+30064771085 | CALL | tb_alloc_page ( tb , 0 , phys_pc & TARGET_PAGE_MASK )
+30064771086 | CALL | phys_pc & TARGET_PAGE_MASK
+30064771087 | CALL | phys_page2 != - 1
+30064771088 | CALL | - 1
+30064771089 | CALL | tb_alloc_page ( tb , 1 , phys_page2 )
+30064771090 | CALL | tb -> page_addr [ 1 ] = - 1
+30064771091 | CALL | tb -> page_addr [ 1 ]
+30064771092 | CALL | tb -> page_addr
+30064771093 | CALL | - 1
+30064771094 | CALL | tb -> jmp_first = ( TranslationBlock * ) ( ( uintptr_t ) tb | 2 )
+30064771095 | CALL | tb -> jmp_first
+30064771096 | CALL | ( TranslationBlock * ) ( ( uintptr_t ) tb | 2 )
+30064771097 | CALL | ( uintptr_t ) tb | 2
+30064771098 | CALL | ( uintptr_t ) tb
+30064771099 | CALL | tb -> jmp_next [ 0 ] = NULL
+30064771100 | CALL | tb -> jmp_next [ 0 ]
+30064771101 | CALL | tb -> jmp_next
+30064771102 | CALL | tb -> jmp_next [ 1 ] = NULL
+30064771103 | CALL | tb -> jmp_next [ 1 ]
+30064771104 | CALL | tb -> jmp_next
+30064771105 | CALL | tb -> tb_next_offset [ 0 ] != 0xffff
+30064771106 | CALL | tb -> tb_next_offset [ 0 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771089 [AST]
+25769803778 -> 30064771090 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771093 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771093 [AST]
+30064771090 -> 30064771093 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771093 -> 30064771090 [CFG]
+30064771093 -> 30064771090 [DOMINATE]
+30064771093 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771090 [REACHING_DEF]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771096 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771096 [AST]
+30064771094 -> 30064771096 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void tb_phys_invalidate ( TranslationBlock * tb , tb_page_addr_t page_addr ) {
+ CPUArchState * env ;
+ PageDesc * p ;
+ unsigned int h , n1 ;
+ tb_page_addr_t phys_pc ;
+ TranslationBlock * tb1 , * tb2 ;
+ phys_pc = tb -> page_addr [ 0 ] + ( tb -> pc & ~ TARGET_PAGE_MASK ) ;
+ h = tb_phys_hash_func ( phys_pc ) ;
+ tb_hash_remove ( & tcg_ctx . tb_ctx . tb_phys_hash [ h ] , tb ) ;
+ if ( tb -> page_addr [ 0 ] != page_addr ) {
+ p = page_find ( tb -> page_addr [ 0 ] >> TARGET_PAGE_BITS ) ;
+ tb_page_remove ( & p -> first_tb , tb ) ;
+ invalidate_page_bitmap ( p ) ;
+ }
+ if ( tb -> page_addr [ 1 ] != - 1 && tb -> page_addr [ 1 ] != page_addr ) {
+ p = page_find ( tb -> page_addr [ 1 ] >> TARGET_PAGE_BITS ) ;
+ tb_page_remove ( & p -> first_tb , tb ) ;
+ invalidate_page_bitmap ( p ) ;
+ }
+ tcg_ctx . tb_ctx . tb_invalidated_flag = 1 ;
+ h = tb_jmp_cache_hash_func ( tb -> pc ) ;
+ for ( env = first_cpu ;
+ env != NULL ;
+ env = env -> next_cpu ) {
+ if ( env -> tb_jmp_cache [ h ] == tb ) {
+ env
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int iso9660_free ( struct archive_write * a ) {
+ struct iso9660 * iso9660 ;
+ int i , ret ;
+ iso9660 = a -> format_data ;
+ if ( iso9660 -> temp_fd >= 0 ) close ( iso9660 -> temp_fd ) ;
+ ret = zisofs_free ( a ) ;
+ isoent_free_all ( iso9660 -> primary . rootent ) ;
+ for ( i = 0 ;
+ i < iso9660 -> primary . max_depth ;
+ i ++ ) free ( iso9660 -> primary . pathtbl [ i ] . sorted ) ;
+ free ( iso9660 -> primary . pathtbl ) ;
+ if ( iso9660 -> opt . joliet ) {
+ isoent_free_all ( iso9660 -> joliet . rootent ) ;
+ for ( i = 0 ;
+ i < iso9660 -> joliet . max_depth ;
+ i ++ ) free ( iso9660 -> joliet . pathtbl [ i ] . sorted ) ;
+ free ( iso9660 -> joliet . pathtbl ) ;
+ }
+ isofile_free_all_entries ( iso9660 ) ;
+ isofile_free_hardlinks ( iso9660 ) ;
+ archive_string_free ( & ( iso9660 -> cur_dirstr ) ) ;
+ archive_string_free ( & ( iso9660 -> volume_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> publisher_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> data_preparer_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> application_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> copyright_file_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> abstract_file_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> bibliographic_file_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> el_torito . catalog_filename ) ) ;
+ archive_string_free ( & ( iso9660 -> el_torito . boot_filename ) ) ;
+ archive_string_free ( & ( iso9660 -> el_torito . id ) ) ;
+ archive_string_free ( & ( iso9660 -> utf16be ) ) ;
+ archive_string_free ( & ( iso9660 -> mbs ) ) ;
+ free ( iso9660 ) ;
+ a -> format_data = NULL ;
+ return ( ret ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct iso9660 * iso9660 ;
+ int i , ret ;
+ iso9660 = a -> format_data ;
+ if ( iso9660 -> temp_fd >= 0 ) close ( iso9660 -> temp_fd ) ;
+ ret = zisofs_free ( a ) ;
+ isoent_free_all ( iso9660 -> primary . rootent ) ;
+ for ( i = 0 ;
+ i < iso9660 -> primary . max_depth ;
+ i ++ ) free ( iso9660 -> primary . pathtbl [ i ] . sorted ) ;
+ free ( iso9660 -> primary . pathtbl ) ;
+ if ( iso9660 -> opt . joliet ) {
+ isoent_free_all ( iso9660 -> joliet . rootent ) ;
+ for ( i = 0 ;
+ i < iso9660 -> joliet . max_depth ;
+ i ++ ) free ( iso9660 -> joliet . pathtbl [ i ] . sorted ) ;
+ free ( iso9660 -> joliet . pathtbl ) ;
+ }
+ isofile_free_all_entries ( iso9660 ) ;
+ isofile_free_hardlinks ( iso9660 ) ;
+ archive_string_free ( & ( iso9660 -> cur_dirstr ) ) ;
+ archive_string_free ( & ( iso9660 -> volume_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> publisher_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> data_preparer_identifier ) ) ;
+ archive_string_free ( & ( iso9660 -> application_id...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ isoent_free_all ( iso9660 -> joliet . rootent ) ;
+ for ( i = 0 ;
+ i < iso9660 -> joliet . max_depth ;
+ i ++ ) free ( iso9660 -> joliet . pathtbl [ i ] . sorted ) ;
+ free ( iso9660 -> joliet . pathtbl ) ;
+ }
+      
+30064771072 | CALL | iso9660 = a -> format_data
+30064771073 | CALL | a -> format_data
+30064771074 | CALL | iso9660 -> temp_fd >= 0
+30064771075 | CALL | iso9660 -> temp_fd
+30064771076 | CALL | close ( iso9660 -> temp_fd )
+30064771077 | CALL | iso9660 -> temp_fd
+30064771078 | CALL | ret = zisofs_free ( a )
+30064771079 | CALL | zisofs_free ( a )
+30064771080 | CALL | isoent_free_all ( iso9660 -> primary . rootent )
+30064771081 | CALL | iso9660 -> primary . rootent
+30064771082 | CALL | iso9660 -> primary
+30064771083 | CALL | i = 0
+30064771084 | CALL | i < iso9660 -> primary . max_depth
+30064771085 | CALL | iso9660 -> primary . max_depth
+30064771086 | CALL | iso9660 -> primary
+30064771087 | CALL | i ++
+30064771088 | CALL | free ( iso9660 -> primary . pathtbl [ i ] . sorted )
+30064771089 | CALL | iso9660 -> primary . pathtbl [ i ] . sorted
+30064771090 | CALL | iso9660 -> primary . pathtbl [ i ]
+30064771091 | CALL | iso9660 -> primary . pathtbl
+30064771092 | CALL | iso9660 -> primary
+30064771093 | CALL | free ( iso9660 -> primary . pathtbl )
+30064771094 | CALL | iso9660 -> primary . pathtbl
+30064771095 | CALL | iso9660 -> primary
+30064771096 | CALL | iso9660 -> opt . joliet
+30064771097 | CALL | iso9660 -> opt
+30064771098 | CALL | isoent_free_all ( iso9660 -> joliet . rootent )
+30064771099 | CALL | iso9660 -> joliet . rootent
+30064771100 | CALL | iso9660 -> joliet
+30064771101 | CALL | i = 0
+30064771102 | CALL | i < iso9660 -> joliet . max_depth
+30064771103 | CALL | iso9660 -> joliet . max_depth
+30064771104 | CALL | iso9660 -> joliet
+30064771105 | CALL | i ++
+30064771106 | CALL | free ( iso9660 -> joliet . pathtbl [ i ] . sorted )
+30064771107 | CALL | iso9660 -> joliet . pathtbl [ i ] . sorted
+30064771108 | CALL | iso9660 -> joliet . pathtbl [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 30064771076 [AST]
+25769803778 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771086 [REACHING_DEF]
+30064771081 -> 30064771095 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771092 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771084 [CDG]
+30064771084 -> 30064771091 [CDG]
+30064771084 -> 30064771090 [CDG]
+30064771084 -> 30064771092 [CDG]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771095 [REACHING_DEF]
+30064771085 -> 30064771092 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,48 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gint dissect_as_if_general_body ( tvbuff_t * tvb , gint offset , packet_info * pinfo _U_ , proto_tree * tree , usb_conv_info_t * usb_conv_info ) {
+ audio_conv_info_t * audio_conv_info ;
+ gint offset_start ;
+ audio_conv_info = ( audio_conv_info_t * ) usb_conv_info -> class_data ;
+ if ( ! audio_conv_info ) return 0 ;
+ offset_start = offset ;
+ if ( audio_conv_info -> ver_major == 1 ) {
+ proto_tree_add_item ( tree , hf_as_if_gen_term_id , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset ++ ;
+ proto_tree_add_item ( tree , hf_as_if_gen_delay , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset ++ ;
+ proto_tree_add_item ( tree , hf_as_if_gen_format , tvb , offset , 2 , ENC_LITTLE_ENDIAN ) ;
+ offset += 2 ;
+ }
+ return offset - offset_start ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static gint dissect_ac_if_output_terminal ( tvbuff_t * tvb , gint offset , packet_info * pinfo _U_ , proto_tree * tree , usb_conv_info_t * usb_conv_info _U_ ) {
+ gint offset_start ;
+ offset_start = offset ;
+ proto_tree_add_item ( tree , hf_ac_if_output_terminalid , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ proto_tree_add_item ( tree , hf_ac_if_output_terminaltype , tvb , offset , 2 , ENC_LITTLE_ENDIAN ) ;
+ offset += 2 ;
+ proto_tree_add_item ( tree , hf_ac_if_output_assocterminal , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ proto_tree_add_item ( tree , hf_ac_if_output_sourceid , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ proto_tree_add_item ( tree , hf_ac_if_output_terminal , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ return offset - offset_start ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

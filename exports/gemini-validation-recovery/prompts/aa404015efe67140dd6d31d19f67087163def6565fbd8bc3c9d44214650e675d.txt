@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int gdev_x_put_params ( gx_device * dev , gs_param_list * plist ) {
+ gx_device_X * xdev = ( gx_device_X * ) dev ;
+ gx_device_X values ;
+ int orig_MaxBitmap = xdev -> space_params . MaxBitmap ;
+ long pwin = ( long ) xdev -> pwin ;
+ bool save_is_page = xdev -> IsPageDevice ;
+ int ecode = 0 , code ;
+ bool clear_window = false ;
+ values = * xdev ;
+ ecode = param_put_long ( plist , "WindowID" , & pwin , ecode ) ;
+ ecode = param_put_bool ( plist , ".IsPageDevice" , & values . IsPageDevice , ecode ) ;
+ ecode = param_put_int ( plist , "MaxTempPixmap" , & values . MaxTempPixmap , ecode ) ;
+ ecode = param_put_int ( plist , "MaxTempImage" , & values . MaxTempImage , ecode ) ;
+ if ( ecode < 0 ) return ecode ;
+ if ( pwin == ( long ) xdev -> pwin ) dev -> is_open = false ;
+ xdev -> IsPageDevice = values . IsPageDevice ;
+ code = gx_default_put_params ( dev , plist ) ;
+ dev -> is_open = values . is_open ;
+ if ( code < 0 ) {
+ xdev -> IsPageDevice = save_is_page ;
+ return code ;
+ }
+ if ( pwin != ( long ) xdev -> pwin ) {
+ if ( xdev -> is_open ) gs_closedevice ( dev ) ;
+ xdev -> pwin = ( Window ) pwin ;
+ }
+ if ( xdev -> is_open && xdev -> ghostview ) {
+ dev -> width = values . width ;
+ dev -> height = values . height ;
+ dev -> x_pixels_per_inch = values . x_pixels_per_inch ;
+ dev -> y_pixels_per_inch = values . y_pixels_per_inch ;
+ dev -> HWResolution [ 0 ] = values . HWResolution [ 0 ] ;
+ dev -> HWResolution [ 1 ] = values . HWResolution [ 1 ] ;
+ dev -> MediaSize [ 0 ] = values . MediaSize [ 0 ] ;
+ dev -> MediaSize [ 1 ] = values . MediaSize [ 1 ] ;
+ }
+ if ( xdev -> is_open && ! xdev -> ghostview && ( dev -> width != values . width || dev -> height != values . height || dev -> HWResolution [ 0 ] != values . HWResolution [ 0 ] || dev -> HWResolution [ 1 ] != values . HWResolution [ 1 ] ) ) {
+ int area_width = WidthOfScreen ( xdev -> scr ) , area_height = HeightOfScreen ( xdev -> scr ) ;
+ int dw , dh ;
+ x_get_work_area ( xdev , & area_width , & area_height ) ;
+ dev -> x_pixels_per_inch = values . x_pixels_per_inch ;
+ dev -> y_pixels_per_inch = values . y_pixels_per_inch ;
+ dev -> HWResolution [ 0 ] = values . HWResolution [ 0 ] ;
+ dev -> HWResolution [ 1 ] = values . HWResolution [ 1 ] ;
+ dev -> width = min ( dev -> width , area_width ) ;
+ dev -> height = min ( dev -> height , area_height ) ;
+ if ( dev -> width <= 0 || dev -> height <= 0 ) {
+ emprintf3 ( dev -> memory , "Requested pagesize %d x %d not supported by %s device\n" , dev -> width , dev -> height , dev -> dname ) ;
+ return_error ( gs_error_rangecheck ) ;
+ }
+ dev -> MediaSize [ 0 ] = ( float ) dev -> width / xdev -> x_pixels_per_inch * 72 ;
+ dev -> MediaSize [ 1 ] = ( float ) dev -> height / xdev -> y_pixels_per_inch * 72 ;
+ dw = dev -> width - values . width ;
+ dh = dev -> height - values . height ;
+ if ( dw || dh ) {
+ XResizeWindow ( xdev -> dpy , xdev -> win , dev -> width , dev -> height ) ;
+ if ( xdev -> bpixmap != ( Pixmap ) 0 ) {
+ XFreePixmap ( xdev -> dpy , xdev -> bpixmap ) ;
+ xdev -> bpixmap = ( 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gx_device_X * xdev = ( gx_device_X * ) dev ;
+ gx_device_X values ;
+ int orig_MaxBitmap = xdev -> space_params . MaxBitmap ;
+ long pwin = ( long ) xdev -> pwin ;
+ bool save_is_page = xdev -> IsPageDevice ;
+ int ecode = 0 , code ;
+ bool clear_window = false ;
+ values = * xdev ;
+ ecode = param_put_long ( plist , "WindowID" , & pwin , ecode ) ;
+ ecode = param_put_bool ( plist , ".IsPageDevice" , & values . IsPageDevice , ecode ) ;
+ ecode = param_put_int ( plist , "MaxTempPixmap" , & values . MaxTempPixmap , ecode ) ;
+ ecode = param_put_int ( plist , "MaxTempImage" , & values . MaxTempImage , ecode ) ;
+ if ( ecode < 0 ) return ecode ;
+ if ( pwin == ( long ) xdev -> pwin ) dev -> is_open = false ;
+ xdev -> IsPageDevice = values . IsPageDevice ;
+ code = gx_default_put_params ( dev , plist ) ;
+ dev -> is_open = values . is_open ;
+ if ( code < 0 ) {
+ xdev -> IsPageDevice = save_is_page ;
+ return code ;
+ }
+ if ( pwin != ( long ) xdev -> pwin ) {
+ if ( xdev -> is_open ) gs_closedevice ( dev...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { xdev -> IsPageDevice = save_is_page ; return code ; }
+25769803780 | BLOCK | 
+        {
+ if ( xdev -> is_open ) gs_closedevice ( dev ) ;
+ xdev -> pwin = ( Window ) pwin ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ dev -> width = values . width ;
+ dev -> height = values . height ;
+ dev -> x_pixels_per_inch = values . x_pixels_per_inch ;
+ dev -> y_pixels_per_inch = values . y_pixels_per_inch ;
+ dev -> HWResolution [ 0 ] = values . HWResolution [ 0 ] ;
+ dev -> HWResolution [ 1 ] = values . HWResolution [ 1 ] ;
+ dev -> MediaSize [ 0 ] = values . MediaSize [ 0 ] ;
+ dev -> MediaSize [ 1 ] = values . MediaSize [ 1 ] ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ int area_width = WidthOfScreen ( xdev -> scr ) , area_height = HeightOfScreen ( xdev -> scr ) ;
+ int dw , dh ;
+ x_get_work_area ( xdev , & area_width , & area_height ) ;
+ dev -> x_pixels_per_inch = values . x_pixels_per_inch ;
+ dev -> y_pixels_per_inch = values . y_pixels_per_inch ;
+ dev -> HWResolution [ 0 ] = values . HWResolution [ 0 ] ;
+ dev -> HWResolution [ 1 ] = values . HWResolution [ 1 ] ;
+ dev -> width = min ( dev -> width , area_width ) ;
+ dev -> height = min ( dev -> height , area_height ) ;
+ if ( dev -> width <= 0 || dev -> height <= 0 ) {
+ emprintf3 ( dev -> memory , "Requested pagesize %d x %d not supported by %s device\n" , dev -> width , dev -> height , dev -> dname ) ;
+ return_error ( gs_error_rangecheck ) ;
+ }
+ dev -> MediaSize [ 0 ] = ( float ) dev -> width / xdev -> x_pixels_per_inch * 72 ;
+ dev -> MediaSize [ 1 ] = ( float ) dev -> height / xdev -> y_pixels_per_inch * 72 ;
+ dw = dev -> width - values . width ;
+ dh = dev -> height - values . height ;
+ if ( dw...
+      
+25769803784 | BLOCK | 
+        {
+ emprintf3 ( dev -> memory , "Requested pagesize %d x %d not supported by %s device\n" , dev -> width , dev -> height , dev -> dname ) ;
+ return_error ( gs_error_rangecheck ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ XResizeWindow ( xdev -> dpy , xdev -> win , dev -> width , dev -> height ) ;
+ if ( xdev -> bpixmap != ( Pixmap ) 0 ) {
+ XFreePixmap ( xdev -> dpy , xdev -> bpixmap ) ;
+ xdev -> bpixmap = ( Pixmap ) 0 ;
+ }
+ xdev -> dest = 0 ;
+ clear_window = true ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ XFreePixmap ( xdev -> dpy , xdev -> bpixmap ) ;
+ xdev -> bpixmap = ( Pixmap ) 0 ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ if ( xdev -> initial_matrix . xx < 0 ) {
+ xdev -> initial_matrix . tx += dw ;
+ }
+ else {
+ xdev -> initial_matrix . ty += dh ;
+ }
+ }
+      
+25769803788 | BLOCK | { xdev -> initial_matrix . tx += dw ; }
+25769803789 | BLOCK | { xdev -> initial_matrix . ty += dh ; }
+25769803790 | BLOCK | 
+        {
+ if ( xdev -> initial_matrix . xy < 0 ) {
+ xdev -> initial_matrix . tx += dh ;
+ xdev -> initial_matrix . ty += dw ;
+ }
+ else {
+ }
+ }
+      
+25769803791 | BLOCK | { xdev -> initial_matrix . tx += dh ; xdev -> initial_matrix . ty += dw ; }
+25769803792 | BLOCK | { }
+25769803793 | BLOCK | { if ( xdev -> is_open ) gdev_x_clear_window ( xdev ) ; }
+25769803794 | BLOCK | <empty>
+30064771072 | CALL | xdev = ( gx_device_X * ) dev
+30064771073 | CALL | ( gx_device_X * ) dev
+30064771074 | CALL | orig_MaxBitmap = xdev -> space_params . MaxBitmap
+30064771075 | CALL | xdev -> space_params . MaxBitmap
+3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

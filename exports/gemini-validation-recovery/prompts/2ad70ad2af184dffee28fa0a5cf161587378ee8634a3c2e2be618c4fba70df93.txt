@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gboolean k12_dump_finish ( wtap_dumper * wdh , int * err ) {
+ k12_dump_t * k12 = ( k12_dump_t * ) wdh -> priv ;
+ union {
+ guint8 b [ sizeof ( guint32 ) ] ;
+ guint32 u ;
+ }
+ d ;
+ if ( ! wtap_dump_file_write ( wdh , k12_eof , 2 , err ) ) return FALSE ;
+ k12 -> file_len += 2 ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_FILE_SIZE , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> file_len ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_PAGE_SIZE , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( 8192 ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_1 , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> num_of_records ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_2 , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> num_of_records ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ return TRUE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ k12_dump_t * k12 = ( k12_dump_t * ) wdh -> priv ;
+ union {
+ guint8 b [ sizeof ( guint32 ) ] ;
+ guint32 u ;
+ }
+ d ;
+ if ( ! wtap_dump_file_write ( wdh , k12_eof , 2 , err ) ) return FALSE ;
+ k12 -> file_len += 2 ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_FILE_SIZE , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> file_len ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_PAGE_SIZE , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( 8192 ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_1 , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> num_of_records ) ;
+ if ( ! wtap_dump_file_write ( wdh , d . b , 4 , err ) ) return FALSE ;
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_2 , SEEK_SET , err ) == - 1 ) return FALSE ;
+ d . u = g_htonl ( k12 -> num_of_records ) ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | k12 = ( k12_dump_t * ) wdh -> priv
+30064771073 | CALL | ( k12_dump_t * ) wdh -> priv
+30064771074 | CALL | wdh -> priv
+30064771075 | CALL | ! wtap_dump_file_write ( wdh , k12_eof , 2 , err )
+30064771076 | CALL | wtap_dump_file_write ( wdh , k12_eof , 2 , err )
+30064771077 | CALL | k12 -> file_len += 2
+30064771078 | CALL | k12 -> file_len
+30064771079 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_FILE_SIZE , SEEK_SET , err ) == - 1
+30064771080 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_FILE_SIZE , SEEK_SET , err )
+30064771081 | CALL | - 1
+30064771082 | CALL | d . u = g_htonl ( k12 -> file_len )
+30064771083 | CALL | d . u
+30064771084 | CALL | g_htonl ( k12 -> file_len )
+30064771085 | CALL | k12 -> file_len
+30064771086 | CALL | ! wtap_dump_file_write ( wdh , d . b , 4 , err )
+30064771087 | CALL | wtap_dump_file_write ( wdh , d . b , 4 , err )
+30064771088 | CALL | d . b
+30064771089 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_PAGE_SIZE , SEEK_SET , err ) == - 1
+30064771090 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_PAGE_SIZE , SEEK_SET , err )
+30064771091 | CALL | - 1
+30064771092 | CALL | d . u = g_htonl ( 8192 )
+30064771093 | CALL | d . u
+30064771094 | CALL | g_htonl ( 8192 )
+30064771095 | CALL | ! wtap_dump_file_write ( wdh , d . b , 4 , err )
+30064771096 | CALL | wtap_dump_file_write ( wdh , d . b , 4 , err )
+30064771097 | CALL | d . b
+30064771098 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_1 , SEEK_SET , err ) == - 1
+30064771099 | CALL | wtap_dump_file_seek ( wdh , K12_FILE_HDR_RECORD_COUNT_1 , SEEK_SET , err )
+30064771100 | CALL | - 1
+30064771101 | CALL | d . u = g_htonl ( k12 -> num_of_records )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771085 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771091 [CDG]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771090 [CDG]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771097 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+gboolean k12_dump_open ( wtap_dumper * wdh , int * err ) {
+ k12_dump_t * k12 ;
+ if ( ! wtap_dump_file_write ( wdh , k12_file_magic , 8 , err ) ) {
+ return FALSE ;
+ }
+ if ( wtap_dump_file_seek ( wdh , K12_FILE_HDR_LEN , SEEK_SET , err ) == - 1 ) return FALSE ;
+ wdh -> subtype_wr
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

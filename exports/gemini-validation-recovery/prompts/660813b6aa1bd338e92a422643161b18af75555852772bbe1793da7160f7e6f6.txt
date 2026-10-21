@@ -1,0 +1,59 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool cephx_build_service_ticket_blob ( CephContext * cct , CephXSessionAuthInfo & info , CephXTicketBlob & blob ) {
+ CephXServiceTicketInfo ticket_info ;
+ ticket_info . session_key = info . session_key ;
+ ticket_info . ticket = info . ticket ;
+ ticket_info . ticket . caps = info . ticket . caps ;
+ ldout ( cct , 10 ) << "build_service_ticket service " << ceph_entity_type_name ( info . service_id ) << " secret_id " << info . secret_id << " ticket_info.ticket.name=" << ticket_info . ticket . name . to_str ( ) << dendl ;
+ blob . secret_id = info . secret_id ;
+ std : : string error ;
+ if ( ! info . service_secret . get_secret ( ) . length ( ) ) error = "invalid key" ;
+ else encode_encrypt_enc_bl ( cct , ticket_info , info . service_secret , blob . blob , error ) ;
+ if ( ! error . empty ( ) ) {
+ ldout ( cct , - 1 ) << "cephx_build_service_ticket_blob failed with error " << error << dendl ;
+ return false ;
+ }
+ return true ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool cephx_decode_ticket ( CephContext * cct , KeyStore * keys , uint32_t service_id , CephXTicketBlob & ticket_blob , CephXServiceTicketInfo & ticket_info ) {
+ uint64_t secret_id = ticket_blob . secret_id ;
+ CryptoKey service_secret ;
+ if ( ! ticket_blob . blob . length ( ) ) {
+ return false ;
+ }
+ if ( secret_id == ( uint64_t ) - 1 ) {
+ if ( ! keys -> get_secret ( cct -> _conf -> name , service_secret ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not get general service secret for service_id=" << ceph_entity_type_name ( service_id ) << " secret_id=" << secret_id << dendl ;
+ return false ;
+ }
+ }
+ else {
+ if ( ! keys -> get_service_secret ( service_id , secret_id , service_secret ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not get service secret for service_id=" << ceph_entity_type_name ( service_id ) << " secret_id=" << secret_id << dendl ;
+ return false ;
+ }
+ }
+ std : : string error ;
+ decode_decrypt_enc_bl ( cct , ticket_info , service_secret , ticket_blob . blob , error ) ;
+ if ( ! error . empty ( ) ) {
+ ldout ( cct , 0 ) << "ceph_decode_ticket could not decrypt ticket info. error:" << error << dendl ;
+ return false ;
+ }
+ return true ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ExtensionServiceSyncTest , GetSyncAppDataUserSettingsOnExtensionMoved ) {
+ InitializeEmptyExtensionService ( ) ;
+ const size_t kAppCount = 3 ;
+ const Extension * apps [ kAppCount ] ;
+ apps [ 0 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app1" ) , INSTALL_NEW ) ;
+ apps [ 1 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app2" ) , INSTALL_NEW ) ;
+ apps [ 2 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app4" ) , INSTALL_NEW ) ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ ASSERT_TRUE ( apps [ i ] ) ;
+ ASSERT_TRUE ( apps [ i ] -> is_app ( ) ) ;
+ }
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : APPS , syncer : : SyncDataList ( ) , base : : WrapUnique ( new syncer : : FakeSyncChangeProcessor ( ) ) , base : : WrapUnique ( new syncer : : SyncErrorFactoryMock ( ) ) ) ;
+ ExtensionSystem : : Get ( service ( ) -> GetBrowserContext ( ) ) -> app_sorting ( ) -> OnExtensionMoved ( apps [ 0 ] -> id ( ) , apps [ 1 ] -> id ( ) , apps [ 2 ] -> id ( ) ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : APPS ) ;
+ ASSERT_EQ ( list . size ( ) , 3U ) ;
+ std : : unique_ptr < ExtensionSyncData > data [ kAppCount ] ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ data [ i ] = ExtensionSyncData : : CreateFromSyncData ( list [ i ] ) ;
+ ASSERT_TRUE ( data [ i ] . get ( ) ) ;
+ }
+ syncer : : StringOrdinal app_launch_ordinals [ kAppCount ] ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ for ( size_t j = 0 ;
+ j < kAppCount ;
+ ++ j ) {
+ if ( apps [ i ] -> id ( ) == data [ j ] -> id ( ) ) app_launch_ordinals [ i ] = data [ j ] -> app_launch_ordinal ( ) ;
+ }
+ }
+ EXPECT_TRUE ( app_launch_ordinals [ 1 ] . LessThan ( app_launch_ordinals [ 0 ] ) ) ;
+ EXPECT_TRUE ( app_launch_ordinals [ 0 ] . LessThan ( app_launch_ordinals [ 2 ] ) ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ InitializeEmptyExtensionService ( ) ;
+ const size_t kAppCount = 3 ;
+ const Extension * apps [ kAppCount ] ;
+ apps [ 0 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app1" ) , INSTALL_NEW ) ;
+ apps [ 1 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app2" ) , INSTALL_NEW ) ;
+ apps [ 2 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app4" ) , INSTALL_NEW ) ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ ASSERT_TRUE ( apps [ i ] ) ;
+ ASSERT_TRUE ( apps [ i ] -> is_app ( ) ) ;
+ }
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : APPS , syncer : : SyncDataList ( ) , base : : WrapUnique ( new syncer : : FakeSyncChangeProcessor ( ) ) , base : : WrapUnique ( new syncer : : SyncErrorFactoryMock ( ) ) ) ;
+ ExtensionSystem : : Get ( service ( ) -> GetBrowserContext ( ) ) -> app_sorting ( ) -> OnExtensionMoved ( apps [ 0 ] -> id ( ) , apps [ 1 ] -> id ( ) , apps [ 2 ] -> id ( ) ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetA...
+      
+25769803777 | BLOCK | { ASSERT_TRUE ( apps [ i ] ) ; ASSERT_TRUE ( apps [ i ] -> is_app ( ) ) ; }
+25769803778 | BLOCK | 
+        {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : APPS ) ;
+ ASSERT_EQ ( list . size ( ) , 3U ) ;
+ std : : unique_ptr < ExtensionSyncData > data [ kAppCount ] ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ data [ i ] = ExtensionSyncData : : CreateFromSyncData ( list [ i ] ) ;
+ ASSERT_TRUE ( data [ i ] . get ( ) ) ;
+ }
+ syncer : : StringOrdinal app_launch_ordinals [ kAppCount ] ;
+ for ( size_t i = 0 ;
+ i < kAppCount ;
+ ++ i ) {
+ for ( size_t j = 0 ;
+ j < kAppCount ;
+ ++ j ) {
+ if ( apps [ i ] -> id ( ) == data [ j ] -> id ( ) ) app_launch_ordinals [ i ] = data [ j ] -> app_launch_ordinal ( ) ;
+ }
+ }
+ EXPECT_TRUE ( app_launch_ordinals [ 1 ] . LessThan ( app_launch_ordinals [ 0 ] ) ) ;
+ EXPECT_TRUE ( app_launch_ordinals [ 0 ] . LessThan ( app_launch_ordinals [ 2 ] ) ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ data [ i ] = ExtensionSyncData : : CreateFromSyncData ( list [ i ] ) ;
+ ASSERT_TRUE ( data [ i ] . get ( ) ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ for ( size_t j = 0 ;
+ j < kAppCount ;
+ ++ j ) {
+ if ( apps [ i ] -> id ( ) == data [ j ] -> id ( ) ) app_launch_ordinals [ i ] = data [ j ] -> app_launch_ordinal ( ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( apps [ i ] -> id ( ) == data [ j ] -> id ( ) ) app_launch_ordinals [ i ] = data [ j ] -> app_launch_ordinal ( ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | InitializeEmptyExtensionService ( )
+30064771073 | CALL | kAppCount = 3
+30064771074 | CALL | * apps [ kAppCount ]
+30064771075 | CALL | * apps [ kAppCount ]
+30064771076 | CALL | 
+        apps [ 0 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app1" ) , INSTALL_NEW )
+      
+30064771077 | CALL | apps [ 0 ]
+30064771078 | CALL | PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app1" ) , INSTALL_NEW )
+30064771079 | CALL | data_dir ( ) . AppendASCII ( "app1" )
+30064771080 | CALL | data_dir ( ) . AppendASCII
+30064771081 | CALL | data_dir ( )
+30064771082 | CALL | 
+        apps [ 1 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app2" ) , INSTALL_NEW )
+      
+30064771083 | CALL | apps [ 1 ]
+30064771084 | CALL | PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app2" ) , INSTALL_NEW )
+30064771085 | CALL | data_dir ( ) . AppendASCII ( "app2" )
+30064771086 | CALL | data_dir ( ) . AppendASCII
+30064771087 | CALL | data_dir ( )
+30064771088 | CALL | 
+        apps [ 2 ] = PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app4" ) , INSTALL_NEW )
+      
+30064771089 | CALL | apps [ 2 ]
+30064771090 | CALL | PackAndInstallCRX ( data_dir ( ) . AppendASCII ( "app4" ) , INSTALL_NEW )
+30064771091 | CALL | data_dir ( ) . AppendASCII ( "app4" )
+30064771092 | CALL | data_dir ( ) . AppendASCII
+30064771093 | CALL | data_dir ( )
+30064771094 | CALL | i = 0
+30064771095 | CALL | i < kAppCount
+30064771096 | CALL | ++ i
+30064771097 | CALL | ASSERT_TRUE ( apps [ i ] )
+30064771098 | CALL | apps [ i ]
+30064771099 | CALL | ASSERT_TRUE ( apps [ i ] -> is_app ( ) )
+30064771100 | CALL | apps [ i ] -> is_app ( )
+30064771101 | CALL | apps [ i ] -> is_app
+30064771102 | CALL | apps [ i ]
+30064771103 | CALL | ASSERT_EQ ( list . size ( ) , 3U )
+30064771104 | CALL | list . size ( )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 25769803778 [AST]
+25769803777 -> 30064771097 [AST]
+25769803777 -> 30064771099 [AST]
+25769803778 -> 30064771103 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771081 [CFG]
+30064771077 -> 30064771081 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771076 [CFG]
+30064771078 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

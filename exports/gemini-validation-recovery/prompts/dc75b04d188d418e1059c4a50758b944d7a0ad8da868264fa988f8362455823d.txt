@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TSAction TSHttpSchedule ( TSCont contp , TSHttpTxn txnp , ink_hrtime timeout ) {
+ sdk_assert ( sdk_sanity_check_iocore_structure ( contp ) == TS_SUCCESS ) ;
+ FORCE_PLUGIN_SCOPED_MUTEX ( contp ) ;
+ INKContInternal * i = ( INKContInternal * ) contp ;
+ if ( ink_atomic_increment ( ( int * ) & i -> m_event_count , 1 ) < 0 ) {
+ ink_assert ( ! "not reached" ) ;
+ }
+ TSAction action ;
+ Continuation * cont = ( Continuation * ) contp ;
+ HttpSM * sm = ( HttpSM * ) txnp ;
+ sm -> set_http_schedule ( cont ) ;
+ if ( timeout == 0 ) {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_imm ( sm , ET_NET ) ) ;
+ }
+ else {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET ) ) ;
+ }
+ action = ( TSAction ) ( ( uintptr_t ) action | 0x1 ) ;
+ return action ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ sdk_assert ( sdk_sanity_check_iocore_structure ( contp ) == TS_SUCCESS ) ;
+ FORCE_PLUGIN_SCOPED_MUTEX ( contp ) ;
+ INKContInternal * i = ( INKContInternal * ) contp ;
+ if ( ink_atomic_increment ( ( int * ) & i -> m_event_count , 1 ) < 0 ) {
+ ink_assert ( ! "not reached" ) ;
+ }
+ TSAction action ;
+ Continuation * cont = ( Continuation * ) contp ;
+ HttpSM * sm = ( HttpSM * ) txnp ;
+ sm -> set_http_schedule ( cont ) ;
+ if ( timeout == 0 ) {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_imm ( sm , ET_NET ) ) ;
+ }
+ else {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET ) ) ;
+ }
+ action = ( TSAction ) ( ( uintptr_t ) action | 0x1 ) ;
+ return action ;
+ }
+      
+25769803777 | BLOCK | { ink_assert ( ! "not reached" ) ; }
+25769803778 | BLOCK | 
+        {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_imm ( sm , ET_NET ) ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ action = reinterpret_cast < TSAction > ( eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET ) ) ;
+ }
+      
+30064771072 | CALL | sdk_assert ( sdk_sanity_check_iocore_structure ( contp ) == TS_SUCCESS )
+30064771073 | CALL | sdk_sanity_check_iocore_structure ( contp ) == TS_SUCCESS
+30064771074 | CALL | sdk_sanity_check_iocore_structure ( contp )
+30064771075 | CALL | FORCE_PLUGIN_SCOPED_MUTEX ( contp )
+30064771076 | CALL | i = ( INKContInternal * ) contp
+30064771077 | CALL | ( INKContInternal * ) contp
+30064771078 | CALL | ink_atomic_increment ( ( int * ) & i -> m_event_count , 1 ) < 0
+30064771079 | CALL | ink_atomic_increment ( ( int * ) & i -> m_event_count , 1 )
+30064771080 | CALL | ( int * ) & i -> m_event_count
+30064771081 | CALL | & i -> m_event_count
+30064771082 | CALL | i -> m_event_count
+30064771083 | CALL | ink_assert ( ! "not reached" )
+30064771084 | CALL | ! "not reached"
+30064771085 | CALL | cont = ( Continuation * ) contp
+30064771086 | CALL | ( Continuation * ) contp
+30064771087 | CALL | sm = ( HttpSM * ) txnp
+30064771088 | CALL | ( HttpSM * ) txnp
+30064771089 | CALL | sm -> set_http_schedule ( cont )
+30064771090 | CALL | sm -> set_http_schedule
+30064771091 | CALL | timeout == 0
+30064771092 | CALL | 
+        action = reinterpret_cast < TSAction > ( eventProcessor . schedule_imm ( sm , ET_NET ) )
+      
+30064771093 | CALL | 
+        reinterpret_cast < TSAction > ( eventProcessor . schedule_imm ( sm , ET_NET ) )
+      
+30064771094 | CALL | reinterpret_cast < TSAction
+30064771095 | CALL | eventProcessor . schedule_imm ( sm , ET_NET )
+30064771096 | CALL | eventProcessor . schedule_imm
+30064771097 | CALL | 
+        action = reinterpret_cast < TSAction > ( eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET ) )
+      
+30064771098 | CALL | 
+        reinterpret_cast < TSAction > ( eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET ) )
+      
+30064771099 | CALL | reinterpret_cast < TSAction
+30064771100 | CALL | eventProcessor . schedule_in ( sm , HRTIME_MSECONDS ( timeout ) , ET_NET )
+30064771101 | CALL | eventProcessor . schedule_in
+30064771102 | CALL | HRTIME_MSECONDS ( timeout )
+30064771103 | CALL | action = ( TSAction ) ( ( uintptr_t ) action | 0x1 )
+30064771104 | CALL | ( TSAction ) ( ( uintptr_t ) action | 0x1 )
+30064771105 | CALL | ( uintptr_t ) action | 0x1
+30064771106 | CALL | ( uintptr_t ) action
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ink_atomic_increment ( ( int * ) & i -> m_event_count , 1 ) < 0 ) {
+ ink_assert ( ! "not reached" ) ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771092 [AST]
+25769803779 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [RECEIVER]
+30064771091 -> 30064771097 [CDG]
+30064771091 -> 30064771096 [CDG]
+30064771091 -> 30064771099 [CDG]
+30064771091 -> 30064771098 [CDG]
+30064771091 -> 30064771101 [CDG]
+30064771091 -> 30064771100 [CDG]
+30064771091 -> 30064771102 [CDG]
+30064771091 -> 30064771093 [CDG]
+30064771091 -> 30064771092 [CDG]
+30064771091 -> 30064771095 [CDG]
+30064771091 -> 30064771094 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TSAction TSContSchedule ( TSCont contp , ink_hrtime timeout
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * pkt ) {
+ BinkContext * const c = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ GetBitContext gb ;
+ int plane , plane_idx , ret ;
+ int bits_count = pkt -> size << 3 ;
+ if ( c -> version > 'b' ) {
+ if ( ( ret = ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ }
+ else {
+ if ( ( ret = ff_reget_buffer ( avctx , c -> last ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" ) ;
+ return ret ;
+ }
+ if ( ( ret = av_frame_ref ( frame , c -> last ) ) < 0 ) return ret ;
+ }
+ init_get_bits ( & gb , pkt -> data , bits_count ) ;
+ if ( c -> has_alpha ) {
+ if ( c -> version >= 'i' ) skip_bits_long ( & gb , 32 ) ;
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , 3 , 0 ) ) < 0 ) return ret ;
+ }
+ if ( c -> version >= 'i' ) skip_bits_long ( & gb , 32 ) ;
+ for ( plane = 0 ;
+ plane < 3 ;
+ plane ++ ) {
+ plane_idx = ( ! plane || ! c -> swap_planes ) ? plane : ( plane ^ 3 ) ;
+ if ( c -> version > 'b' ) {
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , plane_idx , ! ! plane ) ) < 0 ) return ret ;
+ }
+ else {
+ if ( ( ret = binkb_decode_plane ( c , frame , & gb , plane_idx , ! avctx -> frame_number , ! ! plane ) ) < 0 ) return ret ;
+ }
+ if ( get_bits_count ( & gb ) >= bits_count ) break ;
+ }
+ emms_c ( ) ;
+ if ( c -> version > 'b' ) {
+ av_frame_unref ( c -> last ) ;
+ if ( ( ret = av_frame_ref ( c -> last , frame ) ) < 0 ) return ret ;
+ }
+ * got_frame = 1 ;
+ return pkt -> size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ BinkContext * const c = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ GetBitContext gb ;
+ int plane , plane_idx , ret ;
+ int bits_count = pkt -> size << 3 ;
+ if ( c -> version > 'b' ) {
+ if ( ( ret = ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ }
+ else {
+ if ( ( ret = ff_reget_buffer ( avctx , c -> last ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" ) ;
+ return ret ;
+ }
+ if ( ( ret = av_frame_ref ( frame , c -> last ) ) < 0 ) return ret ;
+ }
+ init_get_bits ( & gb , pkt -> data , bits_count ) ;
+ if ( c -> has_alpha ) {
+ if ( c -> version >= 'i' ) skip_bits_long ( & gb , 32 ) ;
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , 3 , 0 ) ) < 0 ) return ret ;
+ }
+ if ( c -> version >= 'i' ) skip_bits_long ( & gb , 32 ) ;
+ for ( plane = 0 ;
+ plane < 3 ;
+ plane ++ ) {
+ plane_idx = ( ! plane || ! c -> swap_planes ) ? plane : ( plane ^ 3 ) ;
+ if ( c -> version > ...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ( ret = ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( ( ret = ff_reget_buffer ( avctx , c -> last ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" ) ;
+ return ret ;
+ }
+ if ( ( ret = av_frame_ref ( frame , c -> last ) ) < 0 ) return ret ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ if ( c -> version >= 'i' ) skip_bits_long ( & gb , 32 ) ;
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , 3 , 0 ) ) < 0 ) return ret ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ plane_idx = ( ! plane || ! c -> swap_planes ) ? plane : ( plane ^ 3 ) ;
+ if ( c -> version > 'b' ) {
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , plane_idx , ! ! plane ) ) < 0 ) return ret ;
+ }
+ else {
+ if ( ( ret = binkb_decode_plane ( c , frame , & gb , plane_idx , ! avctx -> frame_number , ! ! plane ) ) < 0 ) return ret ;
+ }
+ if ( get_bits_count ( & gb ) >= bits_count ) break ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ if ( ( ret = bink_decode_plane ( c , frame , & gb , plane_idx , ! ! plane ) ) < 0 ) return ret ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ if ( ( ret = binkb_decode_plane ( c , frame , & gb , plane_idx , ! avctx -> frame_number , ! ! plane ) ) < 0 ) return ret ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ av_frame_unref ( c -> last ) ;
+ if ( ( ret = av_frame_ref ( c -> last , frame ) ) < 0 ) return ret ;
+ }
+      
+25769803793 | BLOCK | <empty>
+30064771072 | CALL | const c = avctx -> priv_data
+30064771073 | CALL | avctx -> priv_data
+30064771074 | CALL | frame = data
+30064771075 | CALL | bits_count = pkt -> size << 3
+30064771076 | CALL | pkt -> size << 3
+30064771077 | CALL | pkt -> size
+30064771078 | CALL | c -> version > 'b'
+30064771079 | CALL | c -> version
+30064771080 | CALL | ( ret = ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF ) ) < 0
+30064771081 | CALL | ret = ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF )
+30064771082 | CALL | ff_get_buffer ( avctx , frame , AV_GET_BUFFER_FLAG_REF )
+30064771083 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771084 | CALL | ( ret = ff_reget_buffer ( avctx , c -> last ) ) < 0
+30064771085 | CALL | ret = ff_reget_buffer ( avctx , c -> last )
+30064771086 | CALL | ff_reget_buffer ( avctx , c -> last )
+30064771087 | CALL | c -> last
+30064771088 | CALL | av_log ( avctx , AV_LOG_ERROR , "reget_buffer() failed\n" )
+30064771089 | CALL | ( ret = av_frame_ref ( frame , c -> last ) ) < 0
+30064771090 | CALL | ret = av_frame_ref ( frame , c -> last )
+30064771091 | CALL | av_frame_ref ( frame , c -> last )
+30064771092 | CALL | c -> last
+30064771093 | CALL | init_get_bits ( & gb , pkt -> data , bits_count )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771093 [AST]
+25769803778 -> 30064771083 [AST]
+25769803780 -> 30064771088 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 3
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

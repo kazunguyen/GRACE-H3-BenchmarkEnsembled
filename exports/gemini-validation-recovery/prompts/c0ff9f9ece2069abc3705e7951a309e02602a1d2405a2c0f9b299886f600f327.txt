@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int tipc_nl_compat_bearer_enable ( struct tipc_nl_compat_cmd_doit * cmd , struct sk_buff * skb , struct tipc_nl_compat_msg * msg ) {
+ struct nlattr * prop ;
+ struct nlattr * bearer ;
+ struct tipc_bearer_config * b ;
+ b = ( struct tipc_bearer_config * ) TLV_DATA ( msg -> req ) ;
+ bearer = nla_nest_start ( skb , TIPC_NLA_BEARER ) ;
+ if ( ! bearer ) return - EMSGSIZE ;
+ if ( nla_put_string ( skb , TIPC_NLA_BEARER_NAME , b -> name ) ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_BEARER_DOMAIN , ntohl ( b -> disc_domain ) ) ) return - EMSGSIZE ;
+ if ( ntohl ( b -> priority ) <= TIPC_MAX_LINK_PRI ) {
+ prop = nla_nest_start ( skb , TIPC_NLA_BEARER_PROP ) ;
+ if ( ! prop ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_PROP_PRIO , ntohl ( b -> priority ) ) ) return - EMSGSIZE ;
+ nla_nest_end ( skb , prop ) ;
+ }
+ nla_nest_end ( skb , bearer ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct nlattr * prop ;
+ struct nlattr * bearer ;
+ struct tipc_bearer_config * b ;
+ b = ( struct tipc_bearer_config * ) TLV_DATA ( msg -> req ) ;
+ bearer = nla_nest_start ( skb , TIPC_NLA_BEARER ) ;
+ if ( ! bearer ) return - EMSGSIZE ;
+ if ( nla_put_string ( skb , TIPC_NLA_BEARER_NAME , b -> name ) ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_BEARER_DOMAIN , ntohl ( b -> disc_domain ) ) ) return - EMSGSIZE ;
+ if ( ntohl ( b -> priority ) <= TIPC_MAX_LINK_PRI ) {
+ prop = nla_nest_start ( skb , TIPC_NLA_BEARER_PROP ) ;
+ if ( ! prop ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_PROP_PRIO , ntohl ( b -> priority ) ) ) return - EMSGSIZE ;
+ nla_nest_end ( skb , prop ) ;
+ }
+ nla_nest_end ( skb , bearer ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ prop = nla_nest_start ( skb , TIPC_NLA_BEARER_PROP ) ;
+ if ( ! prop ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_PROP_PRIO , ntohl ( b -> priority ) ) ) return - EMSGSIZE ;
+ nla_nest_end ( skb , prop ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | b = ( struct tipc_bearer_config * ) TLV_DATA ( msg -> req )
+30064771073 | CALL | ( struct tipc_bearer_config * ) TLV_DATA ( msg -> req )
+30064771074 | CALL | TLV_DATA ( msg -> req )
+30064771075 | CALL | msg -> req
+30064771076 | CALL | bearer = nla_nest_start ( skb , TIPC_NLA_BEARER )
+30064771077 | CALL | nla_nest_start ( skb , TIPC_NLA_BEARER )
+30064771078 | CALL | ! bearer
+30064771079 | CALL | - EMSGSIZE
+30064771080 | CALL | nla_put_string ( skb , TIPC_NLA_BEARER_NAME , b -> name )
+30064771081 | CALL | b -> name
+30064771082 | CALL | - EMSGSIZE
+30064771083 | CALL | nla_put_u32 ( skb , TIPC_NLA_BEARER_DOMAIN , ntohl ( b -> disc_domain ) )
+30064771084 | CALL | ntohl ( b -> disc_domain )
+30064771085 | CALL | b -> disc_domain
+30064771086 | CALL | - EMSGSIZE
+30064771087 | CALL | ntohl ( b -> priority ) <= TIPC_MAX_LINK_PRI
+30064771088 | CALL | ntohl ( b -> priority )
+30064771089 | CALL | b -> priority
+30064771090 | CALL | prop = nla_nest_start ( skb , TIPC_NLA_BEARER_PROP )
+30064771091 | CALL | nla_nest_start ( skb , TIPC_NLA_BEARER_PROP )
+30064771092 | CALL | ! prop
+30064771093 | CALL | - EMSGSIZE
+30064771094 | CALL | nla_put_u32 ( skb , TIPC_NLA_PROP_PRIO , ntohl ( b -> priority ) )
+30064771095 | CALL | ntohl ( b -> priority )
+30064771096 | CALL | b -> priority
+30064771097 | CALL | - EMSGSIZE
+30064771098 | CALL | nla_nest_end ( skb , prop )
+30064771099 | CALL | nla_nest_end ( skb , bearer )
+47244640256 | CONTROL_STRUCTURE | if ( ! bearer ) return - EMSGSIZE ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( nla_put_string ( skb , TIPC_NLA_BEARER_NAME , b -> name ) ) return - EMSGSIZE ;
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( nla_put_u32 ( skb , TIPC_NLA_BEARER_DOMAIN , ntohl ( b -> disc_domain ) ) ) return - EMSGSIZE ;
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( ntohl ( b -> priority ) <= TIPC_MAX_LINK_PRI ) {
+ prop = nla_nest_start ( skb , TIPC_NLA_BEARER_PROP ) ;
+ if ( ! prop ) return - EMSGSIZE ;
+ if ( nla_put_u32 ( skb , TIPC_NLA_PROP_PRIO , ntohl ( b -> priority ) ) ) return - EMSGSIZE ;
+ nla_nest_end ( skb , prop ) ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | if ( ! prop ) return - EMSGSIZE ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771099 [AST]
+25769803780 -> 30064771090 [AST]
+25769803780 -> 47244640260 [AST]
+25769803780 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771099 [CDG]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771096 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int tipc_nl_compat_bearer_set ( struct sk_buff * skb , struct tipc_nl_compat_msg * msg ) {
+ struct nlattr * prop ;
+ struct nlattr * bearer ;
+ struct tipc_link_config * lc ;
+ lc = ( struct tipc_lin
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

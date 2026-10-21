@@ -1,0 +1,148 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+AVFrame *avcodec_alloc_frame(void)
+
+{
+
+    AVFrame *frame = av_malloc(sizeof(AVFrame));
+
+
+
+    if (frame == NULL)
+
+        return NULL;
+
+
+
+    avcodec_get_frame_defaults(frame);
+
+
+
+    return frame;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+19 -> 24 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 35 [IS_AST_PARENT]
+3 -> 36 [IS_AST_PARENT]
+3 -> 37 [IS_AST_PARENT]
+38 -> 5 [FLOWS_TO]
+5 -> 20 [FLOWS_TO]
+20 -> 24 [FLOWS_TO]
+20 -> 26 [FLOWS_TO]
+24 -> 39 [FLOWS_TO]
+26 -> 33 [FLOWS_TO]
+33 -> 39 [FLOWS_TO]
+5 -> 40 [USE]
+9 -> 40 [USE]
+20 -> 41 [USE]
+24 -> 41 [USE]
+5 -> 42 [DEF]
+9 -> 42 [DEF]
+6 -> 42 [DEF]
+20 -> 42 [USE]
+26 -> 42 [USE]
+31 -> 42 [USE]
+33 -> 42 [USE]
+5 -> 20 [REACHES]
+5 -> 26 [REACHES]
+5 -> 33 [REACHES]
+38 -> 5 [CONTROLS]
+38 -> 20 [CONTROLS]
+20 -> 24 [CONTROLS]
+20 -> 26 [CONTROLS]
+20 -> 33 [CONTROLS]
+26 -> 33 [DOM]
+38 -> 38 [DOM]
+5 -> 20 [DOM]
+20 -> 26 [DOM]
+20 -> 24 [DOM]
+20 -> 39 [DOM]
+38 -> 5 [DOM]
+39 -> 33 [POST_DOM]
+39 -> 20 [POST_DOM]
+5 -> 38 [POST_DOM]
+33 -> 26 [POST_DOM]
+39 -> 24 [POST_DOM]
+39 -> 39 [POST_DOM]
+20 -> 5 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 38 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+AVCodecContext *avcodec_alloc_context3(const AVCodec *codec)
+
+{
+
+    AVCodecContext *avctx= av_malloc(sizeof(AVCodecContext));
+
+
+
+    if(avctx==NULL) return NULL;
+
+
+
+    if(avcodec_get_context_defaults3(avctx, codec) < 0){
+
+        av_free(avctx);
+
+        return NULL;
+
+    }
+
+
+
+    return avctx;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

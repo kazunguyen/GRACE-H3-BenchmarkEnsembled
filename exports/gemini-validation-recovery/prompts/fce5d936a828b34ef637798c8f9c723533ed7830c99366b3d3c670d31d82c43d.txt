@@ -1,0 +1,105 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_coap ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * parent_tree , void * data _U_ ) {
+ gint offset = 0 ;
+ proto_item * coap_root ;
+ proto_item * pi ;
+ proto_tree * coap_tree ;
+ guint8 ttype ;
+ guint8 token_len ;
+ guint8 code ;
+ guint8 code_class ;
+ guint16 mid ;
+ gint coap_length ;
+ gchar * coap_token_str ;
+ coap_info * coinfo ;
+ conversation_t * conversation ;
+ coap_conv_info * ccinfo ;
+ coap_transaction * coap_trans = NULL ;
+ coinfo = ( coap_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_coap , 0 ) ;
+ if ( coinfo == NULL ) {
+ coinfo = wmem_new0 ( wmem_file_scope ( ) , coap_info ) ;
+ p_add_proto_data ( wmem_file_scope ( ) , pinfo , proto_coap , 0 , coinfo ) ;
+ }
+ coap_length = tvb_reported_length ( tvb ) ;
+ coinfo -> ctype_str = "" ;
+ coinfo -> ctype_value = DEFAULT_COAP_CTYPE_VALUE ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "CoAP" ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ coap_root = proto_tree_add_item ( parent_tree , proto_coap , tvb , offset , - 1 , ENC_NA ) ;
+ coap_tree = proto_item_add_subtree ( coap_root , ett_coap ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_version , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_ttype , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ ttype = ( tvb_get_guint8 ( tvb , offset ) & COAP_TYPE_MASK ) >> 4 ;
+ proto_tree_add_item ( coap_tree , hf_coap_token_len , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ token_len = tvb_get_guint8 ( tvb , offset ) & COAP_TOKEN_LEN_MASK ;
+ offset += 1 ;
+ code = dissect_coap_code ( tvb , coap_tree , & offset , & dissect_coap_hf , & code_class ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_mid , tvb , offset , 2 , ENC_BIG_ENDIAN ) ;
+ mid = tvb_get_ntohs ( tvb , offset ) ;
+ col_add_fstr ( pinfo -> cinfo , COL_INFO , "%s, MID:%u, %s" , val_to_str ( ttype , vals_ttype_short , "Unknown %u" ) , mid , val_to_str_ext ( code , & coap_vals_code_ext , "Unknown %u" ) ) ;
+ proto_item_append_text ( coap_root , ", %s, %s, MID:%u" , val_to_str ( ttype , vals_ttype , "Unknown %u" ) , val_to_str_ext ( code , & coap_vals_code_ext , "Unknown %u" ) , mid ) ;
+ offset += 2 ;
+ coinfo -> block_number = DEFAULT_COAP_BLOCK_NUMBER ;
+ coinfo -> block_mflag = 0 ;
+ coinfo -> uri_str_strbuf = wmem_strbuf_sized_new ( wmem_packet_scope ( ) , 0 , 1024 ) ;
+ coinfo -> uri_query_strbuf = wmem_strbuf_sized_new ( wmem_packet_scope ( ) , 0 , 1024 ) ;
+ coinfo -> oscore_info = wmem_new0 ( wmem_packet_scope ( ) , oscore_info_t ) ;
+ coinfo -> object_security = FALSE ;
+ coap_token_str = NULL ;
+ if ( token_len > 0 ) {
+ coap_token_str = tvb_bytes_to_str_punct ( wmem_file_scope ( ) , tvb , offset , token_len , ' ' ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_token , tvb , offset , token_len , ENC_NA ) ;
+ offset += token_len ;
+ }
+ offset = dissect_coap_options ( tvb , pinfo , coap_tree , offset , coap_length , coinfo , & dissect_coap_hf ) ;
+ if ( offset == - 1 ) return tvb_captured_length ( tvb ) ;
+ conversation = find_or_create_conversation_noaddrb
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_coap ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * parent_tree , void * data _U_ ) {
+ gint offset = 0 ;
+ proto_item * coap_root ;
+ proto_item * pi ;
+ proto_tree * coap_tree ;
+ guint8 ttype ;
+ guint8 token_len ;
+ guint8 code ;
+ guint8 code_class ;
+ guint16 mid ;
+ gint coap_length ;
+ gchar * coap_token_str ;
+ coap_info * coinfo ;
+ conversation_t * conversation ;
+ coap_conv_info * ccinfo ;
+ coap_transaction * coap_trans = NULL ;
+ coinfo = ( coap_info * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_coap , 0 ) ;
+ if ( coinfo == NULL ) {
+ coinfo = wmem_new0 ( wmem_file_scope ( ) , coap_info ) ;
+ p_add_proto_data ( wmem_file_scope ( ) , pinfo , proto_coap , 0 , coinfo ) ;
+ }
+ coap_length = tvb_reported_length ( tvb ) ;
+ coinfo -> ctype_str = "" ;
+ coinfo -> ctype_value = DEFAULT_COAP_CTYPE_VALUE ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "CoAP" ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ coap_root = proto_tree_add_item ( parent_tree , proto_coap , tvb , offset , - 1 , ENC_NA ) ;
+ coap_tree = proto_item_add_subtree ( coap_root , ett_coap ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_version , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( coap_tree , hf_coap_ttype , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ ttype = ( tvb_get_guint8 ( tvb , offset ) & COAP_TYPE_MASK ) >> 4 ;
+ proto_tree_add_item ( coap_tree , hf_coap_token_len , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ token_len = tvb_get_guint8 ( tvb , offset ) & COAP_TOKEN_LE
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

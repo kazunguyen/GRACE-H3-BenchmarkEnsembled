@@ -1,0 +1,371 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int qemu_gluster_open(BlockDriverState *bs,  QDict *options,
+
+                             int bdrv_flags, Error **errp)
+
+{
+
+    BDRVGlusterState *s = bs->opaque;
+
+    int open_flags = 0;
+
+    int ret = 0;
+
+    BlockdevOptionsGluster *gconf = NULL;
+
+    QemuOpts *opts;
+
+    Error *local_err = NULL;
+
+    const char *filename;
+
+
+
+    opts = qemu_opts_create(&runtime_opts, NULL, 0, &error_abort);
+
+    qemu_opts_absorb_qdict(opts, options, &local_err);
+
+    if (local_err) {
+
+        error_propagate(errp, local_err);
+
+        ret = -EINVAL;
+
+        goto out;
+
+    }
+
+
+
+    filename = qemu_opt_get(opts, GLUSTER_OPT_FILENAME);
+
+
+
+    s->debug_level = qemu_opt_get_number(opts, GLUSTER_OPT_DEBUG,
+
+                                         GLUSTER_DEBUG_DEFAULT);
+
+    if (s->debug_level < 0) {
+
+        s->debug_level = 0;
+
+    } else if (s->debug_level > GLUSTER_DEBUG_MAX) {
+
+        s->debug_level = GLUSTER_DEBUG_MAX;
+
+    }
+
+
+
+    gconf = g_new0(BlockdevOptionsGluster, 1);
+
+    gconf->debug_level = s->debug_level;
+
+    gconf->has_debug_level = true;
+
+    s->glfs = qemu_gluster_init(gconf, filename, options, errp);
+
+    if (!s->glfs) {
+
+        ret = -errno;
+
+        goto out;
+
+    }
+
+
+
+#ifdef CONFIG_GLUSTERFS_XLATOR_OPT
+
+    /* Without this, if fsync fails for a recoverable reason (for instance,
+
+     * ENOSPC), gluster will dump its cache, preventing retries.  This means
+
+     * almost certain data loss.  Not all gluster versions support the
+
+     * 'resync-failed-syncs-after-fsync' key value, but there is no way to
+
+     * discover during runtime if it is supported (this api returns success for
+
+     * unknown key/value pairs) */
+
+    ret = glfs_set_xlator_option(s->glfs, "*-write-behind",
+
+                                          "resync-failed-syncs-after-fsync",
+
+                                          "on");
+
+    if (ret < 0) {
+
+        error_setg_errno(errp, errno, "Unable to set xlator key/value pair");
+
+        ret = -errno;
+
+        goto out;
+
+    }
+
+#endif
+
+
+
+    qemu_gluster_parse_flags(bdrv_flags, &open_flags);
+
+
+
+    s->fd = glfs_open(s->glfs, gconf->path, open_flags);
+
+    if (!s->fd) {
+
+        ret = -errno;
+
+    }
+
+
+
+    s->supports_seek_data = qemu_gluster_test_seek(s->fd);
+
+
+
+out:
+
+    qemu_opts_del(opts);
+
+    qapi_free_BlockdevOptionsGluster(gconf);
+
+    if (!ret) {
+
+        return ret;
+
+    }
+
+    if (s->fd) {
+
+        glfs_close(s->fd);
+
+    }
+
+    if (s->glfs) {
+
+        glfs_fini(s->glfs);
+
+    }
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+56 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+56 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+56 -> 65 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+73 -> 78 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int qemu_gluster_open(BlockDriverState *bs,  QDict *options,
+
+                             int bdrv_flags, Error **errp)
+
+{
+
+    BDRVGlusterState *s = bs->opaque;
+
+    int open_flags = O_BINARY;
+
+    int ret = 0;
+
+    GlusterConf *gconf = g_malloc0(sizeof(GlusterConf));
+
+    QemuOpts *opts;
+
+    Error *local_err = NULL;
+
+    const char *filename;
+
+
+
+    opts = qemu_opts_create(&runtime_opts, NULL, 0, &error_abort);
+
+    qemu_opts_absorb_qdict(opts, options, &local_err);
+
+    if (local_err) {
+
+        error_propagate(errp, local_err);
+
+        ret = -EINVAL;
+
+        goto out;
+
+    }
+
+
+
+    filename = qemu_opt_get(opts, "filename");
+
+
+
+    s->glfs = qemu_gluster_init(gconf, filename, errp);
+
+    if (!s->glfs) {
+
+        ret = -errno;
+
+        goto out;
+
+    }
+
+
+
+    if (bdrv_flags & BDRV_O_RDWR) {
+
+        open_flags |= O_RDWR;
+
+    } else {
+
+        open_flags |= O_RDONLY;
+
+    }
+
+
+
+    if ((bdrv_flags & BDRV_O_NOCACHE)) {
+
+        open_flags |= O_DIRECT;
+
+    }
+
+
+
+    s->fd = glfs_open(s->glfs, gconf->image, open_flags);
+
+    if (!s->fd) {
+
+        ret = -errno;
+
+    }
+
+
+
+out:
+
+    qemu_opts_del(opts);
+
+    qemu_gluster_gconf_free(gconf);
+
+    if (!ret) {
+
+        return ret;
+
+    }
+
+    if (s->fd) {
+
+        glfs_close(s->fd);
+
+    }
+
+    if (s->glfs) {
+
+        glfs_fini(s->glfs);
+
+    }
+
+    return ret;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

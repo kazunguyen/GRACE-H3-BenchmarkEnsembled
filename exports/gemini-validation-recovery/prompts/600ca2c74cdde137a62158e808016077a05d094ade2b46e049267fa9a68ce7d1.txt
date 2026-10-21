@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static get_contents_ret get_contents ( char * linebuf , size_t len , FILE * stream ) {
+ size_t remaining_len = len ;
+ char * curbuf = linebuf ;
+ do {
+ int curlen = ( ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len ) ;
+ ( ( unsigned char * ) curbuf ) [ curlen - 1 ] = 0xff ;
+ char * p = fgets_unlocked ( curbuf , curlen , stream ) ;
+ if ( p == NULL ) return gcr_error ;
+ if ( ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff ) return gcr_ok ;
+ remaining_len -= curlen - 1 ;
+ curbuf += curlen - 1 ;
+ }
+ while ( remaining_len > 1 ) ;
+ return gcr_overflow ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ size_t remaining_len = len ;
+ char * curbuf = linebuf ;
+ do {
+ int curlen = ( ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len ) ;
+ ( ( unsigned char * ) curbuf ) [ curlen - 1 ] = 0xff ;
+ char * p = fgets_unlocked ( curbuf , curlen , stream ) ;
+ if ( p == NULL ) return gcr_error ;
+ if ( ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff ) return gcr_ok ;
+ remaining_len -= curlen - 1 ;
+ curbuf += curlen - 1 ;
+ }
+ while ( remaining_len > 1 ) ;
+ return gcr_overflow ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int curlen = ( ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len ) ;
+ ( ( unsigned char * ) curbuf ) [ curlen - 1 ] = 0xff ;
+ char * p = fgets_unlocked ( curbuf , curlen , stream ) ;
+ if ( p == NULL ) return gcr_error ;
+ if ( ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff ) return gcr_ok ;
+ remaining_len -= curlen - 1 ;
+ curbuf += curlen - 1 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | remaining_len = len
+30064771073 | CALL | curbuf = linebuf
+30064771074 | CALL | curlen = ( ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len )
+30064771075 | CALL | ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len
+30064771076 | CALL | remaining_len > ( size_t ) INT_MAX
+30064771077 | CALL | ( size_t ) INT_MAX
+30064771078 | CALL | ( ( unsigned char * ) curbuf ) [ curlen - 1 ] = 0xff
+30064771079 | CALL | ( ( unsigned char * ) curbuf ) [ curlen - 1 ]
+30064771080 | CALL | ( unsigned char * ) curbuf
+30064771081 | CALL | curlen - 1
+30064771082 | CALL | p = fgets_unlocked ( curbuf , curlen , stream )
+30064771083 | CALL | fgets_unlocked ( curbuf , curlen , stream )
+30064771084 | CALL | p == NULL
+30064771085 | CALL | ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff
+30064771086 | CALL | ( ( unsigned char * ) curbuf ) [ curlen - 1 ]
+30064771087 | CALL | ( unsigned char * ) curbuf
+30064771088 | CALL | curlen - 1
+30064771089 | CALL | remaining_len -= curlen - 1
+30064771090 | CALL | curlen - 1
+30064771091 | CALL | curbuf += curlen - 1
+30064771092 | CALL | curlen - 1
+30064771093 | CALL | remaining_len > 1
+47244640256 | CONTROL_STRUCTURE | 
+        do {
+ int curlen = ( ( remaining_len > ( size_t ) INT_MAX ) ? INT_MAX : remaining_len ) ;
+ ( ( unsigned char * ) curbuf ) [ curlen - 1 ] = 0xff ;
+ char * p = fgets_unlocked ( curbuf , curlen , stream ) ;
+ if ( p == NULL ) return gcr_error ;
+ if ( ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff ) return gcr_ok ;
+ remaining_len -= curlen - 1 ;
+ curbuf += curlen - 1 ;
+ }
+ while ( remaining_len > 1 ) ;
+      
+47244640257 | CONTROL_STRUCTURE | if ( p == NULL ) return gcr_error ;
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ( ( unsigned char * ) curbuf ) [ curlen - 1 ] == 0xff ) return gcr_ok ;
+      
+68719476736 | IDENTIFIER | remaining_len
+68719476737 | IDENTIFIER | len
+68719476738 | IDENTIFIER | curbuf
+68719476739 | IDENTIFIER | linebuf
+68719476740 | IDENTIFIER | curlen
+68719476741 | IDENTIFIER | remaining_len
+68719476742 | IDENTIFIER | <unknown> INT_MAX
+68719476743 | IDENTIFIER | <unknown> INT_MAX
+68719476744 | IDENTIFIER | remaining_len
+68719476745 | IDENTIFIER | curbuf
+68719476746 | IDENTIFIER | curlen
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771091 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476743 [ARGUMENT]
+30064771075 -> 68719476744 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476743 [AST]
+30064771075 -> 68719476744 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 68719476743 [POST_DOMINATE]
+30064771075 -> 68719476744 [POST_DOMINATE]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771087 [REACHING_DEF]
+30064771079 -> 30064771086 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 68719476745 [ARGUMENT]
+30064771080 -> 68719476745 [AST]
+30064771080 -> 68719476746 [CFG]
+30064771080 -> 68719476746 [DOMINATE]
+30064771080 -> 68719476745 [POST_DOMINATE]
+30064771081 -> 68719476746 [ARGUMENT]
+30064771081 -> 68719476746 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int ossl_cipher_update_long ( EVP_CIPHER_CTX * ctx , unsigned char * out , long * out_len_ptr , const unsigned char * in , long in_len ) {
+ int out_part_len ;
+ int limit = INT_MAX / 2 + 1 ;
+ long out_len = 0 ;
+ do {
+ int in_part_len = in_len > limit ? limit : ( int ) in_len ;
+ if ( ! EVP_CipherUpdate ( ctx , out ? ( out + out_len ) : 0 , & out_part_len , in , in_part_len ) ) return 0 ;
+ out_len += out_part_len ;
+ in += in_part_len ;
+ }
+ while ( ( in_len -= limit ) > 0 ) ;
+ if ( out_len_ptr ) * out_len_ptr = out_len ;
+ return 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

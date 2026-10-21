@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dsa_sig_print ( BIO * bp , const X509_ALGOR * sigalg , const ASN1_STRING * sig , int indent , ASN1_PCTX * pctx ) {
+ DSA_SIG * dsa_sig ;
+ const unsigned char * p ;
+ if ( ! sig ) {
+ if ( BIO_puts ( bp , "\n" ) <= 0 ) return 0 ;
+ else return 1 ;
+ }
+ p = sig -> data ;
+ dsa_sig = d2i_DSA_SIG ( NULL , & p , sig -> length ) ;
+ if ( dsa_sig ) {
+ int rv = 0 ;
+ size_t buf_len = 0 ;
+ unsigned char * m = NULL ;
+ update_buflen ( dsa_sig -> r , & buf_len ) ;
+ update_buflen ( dsa_sig -> s , & buf_len ) ;
+ m = OPENSSL_malloc ( buf_len + 10 ) ;
+ if ( m == NULL ) {
+ DSAerr ( DSA_F_DSA_SIG_PRINT , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( BIO_write ( bp , "\n" , 1 ) != 1 ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "r: " , dsa_sig -> r , m , indent ) ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "s: " , dsa_sig -> s , m , indent ) ) goto err ;
+ rv = 1 ;
+ err : OPENSSL_free ( m ) ;
+ DSA_SIG_free ( dsa_sig ) ;
+ return rv ;
+ }
+ return X509_signature_dump ( bp , sig , indent ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DSA_SIG * dsa_sig ;
+ const unsigned char * p ;
+ if ( ! sig ) {
+ if ( BIO_puts ( bp , "\n" ) <= 0 ) return 0 ;
+ else return 1 ;
+ }
+ p = sig -> data ;
+ dsa_sig = d2i_DSA_SIG ( NULL , & p , sig -> length ) ;
+ if ( dsa_sig ) {
+ int rv = 0 ;
+ size_t buf_len = 0 ;
+ unsigned char * m = NULL ;
+ update_buflen ( dsa_sig -> r , & buf_len ) ;
+ update_buflen ( dsa_sig -> s , & buf_len ) ;
+ m = OPENSSL_malloc ( buf_len + 10 ) ;
+ if ( m == NULL ) {
+ DSAerr ( DSA_F_DSA_SIG_PRINT , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( BIO_write ( bp , "\n" , 1 ) != 1 ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "r: " , dsa_sig -> r , m , indent ) ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "s: " , dsa_sig -> s , m , indent ) ) goto err ;
+ rv = 1 ;
+ err : OPENSSL_free ( m ) ;
+ DSA_SIG_free ( dsa_sig ) ;
+ return rv ;
+ }
+ return X509_signature_dump ( bp , sig , indent ) ;
+ }
+      
+25769803777 | BLOCK | { if ( BIO_puts ( bp , "\n" ) <= 0 ) return 0 ; else return 1 ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ int rv = 0 ;
+ size_t buf_len = 0 ;
+ unsigned char * m = NULL ;
+ update_buflen ( dsa_sig -> r , & buf_len ) ;
+ update_buflen ( dsa_sig -> s , & buf_len ) ;
+ m = OPENSSL_malloc ( buf_len + 10 ) ;
+ if ( m == NULL ) {
+ DSAerr ( DSA_F_DSA_SIG_PRINT , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( BIO_write ( bp , "\n" , 1 ) != 1 ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "r: " , dsa_sig -> r , m , indent ) ) goto err ;
+ if ( ! ASN1_bn_print ( bp , "s: " , dsa_sig -> s , m , indent ) ) goto err ;
+ rv = 1 ;
+ err : OPENSSL_free ( m ) ;
+ DSA_SIG_free ( dsa_sig ) ;
+ return rv ;
+ }
+      
+25769803781 | BLOCK | { DSAerr ( DSA_F_DSA_SIG_PRINT , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | ! sig
+30064771073 | CALL | BIO_puts ( bp , "\n" ) <= 0
+30064771074 | CALL | BIO_puts ( bp , "\n" )
+30064771075 | CALL | p = sig -> data
+30064771076 | CALL | sig -> data
+30064771077 | CALL | dsa_sig = d2i_DSA_SIG ( NULL , & p , sig -> length )
+30064771078 | CALL | d2i_DSA_SIG ( NULL , & p , sig -> length )
+30064771079 | CALL | & p
+30064771080 | CALL | sig -> length
+30064771081 | CALL | dsa_sig != NULL
+30064771082 | CALL | rv = 0
+30064771083 | CALL | buf_len = 0
+30064771084 | CALL | m = NULL
+30064771085 | CALL | update_buflen ( dsa_sig -> r , & buf_len )
+30064771086 | CALL | dsa_sig -> r
+30064771087 | CALL | & buf_len
+30064771088 | CALL | update_buflen ( dsa_sig -> s , & buf_len )
+30064771089 | CALL | dsa_sig -> s
+30064771090 | CALL | & buf_len
+30064771091 | CALL | m = OPENSSL_malloc ( buf_len + 10 )
+30064771092 | CALL | OPENSSL_malloc ( buf_len + 10 )
+30064771093 | CALL | buf_len + 10
+30064771094 | CALL | m == NULL
+30064771095 | CALL | DSAerr ( DSA_F_DSA_SIG_PRINT , ERR_R_MALLOC_FAILURE )
+30064771096 | CALL | BIO_write ( bp , "\n" , 1 ) != 1
+30064771097 | CALL | BIO_write ( bp , "\n" , 1 )
+30064771098 | CALL | ! ASN1_bn_print ( bp , "r: " , dsa_sig -> r , m , indent )
+30064771099 | CALL | ASN1_bn_print ( bp , "r: " , dsa_sig -> r , m , indent )
+30064771100 | CALL | dsa_sig -> r
+30064771101 | CALL | ! ASN1_bn_print ( bp , "s: " , dsa_sig -> s , m , indent )
+30064771102 | CALL | ASN1_bn_print ( bp , "s: " , dsa_sig -> s , m , indent )
+EDGES:
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803780 -> 30064771082 [AST]
+25769803780 -> 30064771083 [AST]
+25769803780 -> 30064771084 [AST]
+25769803780 -> 30064771085 [AST]
+25769803780 -> 30064771088 [AST]
+25769803780 -> 30064771091 [AST]
+25769803781 -> 30064771095 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771100 [REACHING_DEF]
+30064771086 -> 30064771087 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771090 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771088 [CFG]
+30064771090 -> 30064771088 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int DSA_verify ( int type , const unsigned char * dgst , int dgst_len , const unsigned char * sigbuf , int siglen , DSA * dsa ) {
+ DSA_SIG * s ;
+ const unsigned char * p 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

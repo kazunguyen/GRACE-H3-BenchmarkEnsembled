@@ -1,0 +1,239 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _LMBCSOpen ## n ( UConverter * _this , UConverterLoadArgs * pArgs , UErrorCode * err ) \ {
+ _LMBCSOpenWorker ( _this , pArgs , err , n ) ;
+ }
+ static void _LMBCSOpenWorker ( UConverter * _this , UConverterLoadArgs * pArgs , UErrorCode * err , ulmbcs_byte_t OptGroup ) {
+ UConverterDataLMBCS * extraInfo = _this -> extraInfo = ( UConverterDataLMBCS * ) uprv_malloc ( sizeof ( UConverterDataLMBCS ) ) ;
+ if ( extraInfo != NULL ) {
+ UConverterNamePieces stackPieces ;
+ UConverterLoadArgs stackArgs = {
+ ( int32_t ) sizeof ( UConverterLoadArgs ) }
+ ;
+ ulmbcs_byte_t i ;
+ uprv_memset ( extraInfo , 0 , sizeof ( UConverterDataLMBCS ) ) ;
+ stackArgs . onlyTestIsLoadable = pArgs -> onlyTestIsLoadable ;
+ for ( i = 0 ;
+ i <= ULMBCS_GRP_LAST && U_SUCCESS ( * err ) ;
+ i ++ ) {
+ if ( OptGroupByteToCPName [ i ] != NULL ) {
+ extraInfo -> OptGrpConverter [ i ] = ucnv_loadSharedData ( OptGroupByteToCPName [ i ] , & stackPieces , & stackArgs , err ) ;
+ }
+ }
+ if ( U_FAILURE ( * err ) || pArgs -> onlyTestIsLoadable ) {
+ _LMBCSClose ( _this ) ;
+ return ;
+ }
+ extraInfo -> OptGroup = OptGroup ;
+ extraInfo -> localeConverterIndex = FindLMBCSLocale ( pArgs -> locale ) ;
+ }
+ else {
+ * err = U_MEMORY_ALLOCATION_ERROR ;
+ }
+ }
+ static void _LMBCSClose ( UConverter * _this ) {
+ if ( _this -> extraInfo != NULL ) {
+ ulmbcs_byte_t Ix ;
+ UConverterDataLMBCS * extraInfo = ( UConverterDataLMBCS * ) _this -> extraInfo ;
+ for ( Ix = 0 ;
+ Ix <= ULMBCS_GRP_LAST ;
+ Ix ++ ) {
+ if ( extraInfo -> OptGrpConverter [ Ix ] != NULL ) ucnv_unloadSharedDataIfReady ( extraInfo -> OptGrpConverter [ Ix ] ) ;
+ }
+ if ( ! _this -> isExtraLocal ) {
+ uprv_free ( _this -> extraInfo ) ;
+ _this -> extraInfo = NULL ;
+ }
+ }
+ }
+ typedef struct LMBCSClone {
+ UConverter cnv ;
+ UConverterDataLMBCS lmbcs ;
+ }
+ LMBCSClone ;
+ static UConverter * _LMBCSSafeClone ( const UConverter * cnv , void * stackBuffer , int32_t * pBufferSize , UErrorCode * status ) {
+ LMBCSClone * newLMBCS ;
+ UConverterDataLMBCS * extraInfo ;
+ int32_t i ;
+ if ( * pBufferSize <= 0 ) {
+ * pBufferSize = ( int32_t ) sizeof ( LMBCSClone ) ;
+ return NULL ;
+ }
+ extraInfo = ( UConverterDataLMBCS * ) cnv -> extraInfo ;
+ newLMBCS = ( LMBCSClone * ) stackBuffer ;
+ uprv_memcpy ( & newLMBCS -> lmbcs , extraInfo , sizeof ( UConverterDataLMBCS ) ) ;
+ for ( i = 0 ;
+ i <= ULMBCS_GRP_LAST ;
+ ++ i ) {
+ if ( extraInfo -> OptGrpConverter [ i ] != NULL ) {
+ ucnv_incrementRefCount ( extraInfo -> OptGrpConverter [ i ] ) ;
+ }
+ }
+ newLMBCS -> cnv . extraInfo = & newLMBCS -> lmbcs ;
+ newLMBCS -> cnv . isExtraLocal = TRUE ;
+ return & newLMBCS -> cnv ;
+ }
+ static size_t LMBCSConversionWorker ( UConverterDataLMBCS * extraInfo , ulmbcs_byte_t group , ulmbcs_byte_t * pStartLMBCS , UChar * pUniChar , ulmbcs_byte_t * lastConverterIndex , UBool * groups_tried ) {
+ ulmbcs_byte_t * pLMBCS = pStartLMBCS ;
+ UConverterSharedData * xcnv = extraInfo -> OptGrpConverter [ group ] ;
+ int bytesConverted ;
+ uint32_t value ;
+ ulmbcs_byte_t firstByte ;
+ U_ASSERT ( xcnv ) ;
+ U_ASSERT ( gro
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ UConverterDataLMBCS * extraInfo = _this -> extraInfo = ( UConverterDataLMBCS * ) uprv_malloc ( sizeof ( UConverterDataLMBCS ) ) ;
+ if ( extraInfo != NULL ) {
+ UConverterNamePieces stackPieces ;
+ UConverterLoadArgs stackArgs = {
+ ( int32_t ) sizeof ( UConverterLoadArgs ) }
+ ;
+ ulmbcs_byte_t i ;
+ uprv_memset ( extraInfo , 0 , sizeof ( UConverterDataLMBCS ) ) ;
+ stackArgs . onlyTestIsLoadable = pArgs -> onlyTestIsLoadable ;
+ for ( i = 0 ;
+ i <= ULMBCS_GRP_LAST && U_SUCCESS ( * err ) ;
+ i ++ ) {
+ if ( OptGroupByteToCPName [ i ] != NULL ) {
+ extraInfo -> OptGrpConverter [ i ] = ucnv_loadSharedData ( OptGroupByteToCPName [ i ] , & stackPieces , & stackArgs , err ) ;
+ }
+ }
+ if ( U_FAILURE ( * err ) || pArgs -> onlyTestIsLoadable ) {
+ _LMBCSClose ( _this ) ;
+ return ;
+ }
+ extraInfo -> OptGroup = OptGroup ;
+ extraInfo -> localeConverterIndex = FindLMBCSLocale ( pArgs -> locale ) ;
+ }
+ else {
+ * err = U_MEMORY_ALLOCATION_ERROR ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ UConverterNamePieces stackPieces ;
+ UConverterLoadArgs stackArgs = {
+ ( int32_t ) sizeof ( UConverterLoadArgs ) }
+ ;
+ ulmbcs_byte_t i ;
+ uprv_memset ( extraInfo , 0 , sizeof ( UConverterDataLMBCS ) ) ;
+ stackArgs . onlyTestIsLoadable = pArgs -> onlyTestIsLoadable ;
+ for ( i = 0 ;
+ i <= ULMBCS_GRP_LAST && U_SUCCESS ( * err ) ;
+ i ++ ) {
+ if ( OptGroupByteToCPName [ i ] != NULL ) {
+ extraInfo -> OptGrpConverter [ i ] = ucnv_loadSharedData ( OptGroupByteToCPName [ i ] , & stackPieces , & stackArgs , err ) ;
+ }
+ }
+ if ( U_FAILURE ( * err ) || pArgs -> onlyTestIsLoadable ) {
+ _LMBCSClose ( _this ) ;
+ return ;
+ }
+ extraInfo -> OptGroup = OptGroup ;
+ extraInfo -> localeConverterIndex = FindLMBCSLocale ( pArgs -> locale ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( OptGroupByteToCPName [ i ] != NULL ) {
+ extraInfo -> OptGrpConverter [ i ] = ucnv_loadSharedData ( OptGroupByteToCPName [ i ] , & stackPieces , & stackArgs , err ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ extraInfo -> OptGrpConverter [ i ] = ucnv_loadSharedData ( OptGroupByteToCPName [ i ] , & stackPieces , & stackArgs , err ) ;
+ }
+      
+25769803780 | BLOCK | { _LMBCSClose ( _this ) ; return ; }
+25769803781 | BLOCK | { * err = U_MEMORY_ALLOCATION_ERROR ; }
+25769803782 | BLOCK | 
+        {
+ if ( _this -> extraInfo != NULL ) {
+ ulmbcs_byte_t Ix ;
+ UConverterDataLMBCS * extraInfo = ( UConverterDataLMBCS * ) _this -> extraInfo ;
+ for ( Ix = 0 ;
+ Ix <= ULMBCS_GRP_LAST ;
+ Ix ++ ) {
+ if ( extraInfo -> OptGrpConverter [ Ix ] != NULL ) ucnv_unloadSharedDataIfReady ( extraInfo -> OptGrpConverter [ Ix ] ) ;
+ }
+ if ( ! _this -> isExtraLocal ) {
+ uprv_free ( _this -> extraInfo ) ;
+ _this -> extraInfo = NULL ;
+ }
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ ulmbcs_byte_t Ix ;
+ UConverterDataLMBCS * extraInfo = ( UConverterDataLMBCS * ) _this -> extraInfo ;
+ for ( Ix = 0 ;
+ Ix <= ULMBCS_GRP_LAST ;
+ Ix ++ ) {
+ if ( extraInfo -> OptGrpConverter [ Ix ] != NULL ) ucnv_unloadSharedDataIfReady ( extraInfo -> OptGrpConverter [ Ix ] ) ;
+ }
+ if ( ! _this -> isExtraLocal ) {
+ uprv_free ( _this -> extraInfo ) ;
+ _this -> extraInfo = NULL ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ if ( extraInfo -> OptGrpConverter [ Ix ] != NULL ) ucnv_unloadSharedDataIfReady ( extraInfo -> OptGrpConverter [ Ix ] ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { uprv_free ( _this -> extraInfo ) ; _this -> extraInfo = NULL ; }
+25769803787 | BLOCK | 
+        {
+ LMBCSClone * newLMBCS ;
+ UConverterDataLMBCS * extraInfo ;
+ int32_t i ;
+ if ( * pBufferSize <= 0 ) {
+ * pBufferSize = ( int32_t ) sizeof ( LMBCSClone ) ;
+ return NULL ;
+ }
+ extraInfo = ( UConverterDataLMBCS * ) cnv -> extraInfo ;
+ newLMBCS = ( LMBCSClone * ) stackBuffer ;
+ uprv_memcpy ( & newLMBCS -> lmbcs , extraInfo , sizeof ( UConverterDataLMBCS ) ) ;
+ for ( i = 0 ;
+ i <= ULMBCS_GRP_LAST ;
+ ++ i ) {
+ if ( extraInfo -> OptGrpConverter [ i ] != NULL ) {
+ ucnv_incrementRefCount ( extraInfo -> OptGrpConverter [ i ] ) ;
+ }
+ }
+ newLMBCS -> cnv . extraInfo = & newLMBCS -> lmbcs ;
+ newLMBCS -> cnv . isExtraLocal = TRUE ;
+ return & newLMBCS -> cnv ;
+ }
+      
+25769803788 | BLOCK | { * pBufferSize = ( int32_t ) sizeof ( LMBCSClone ) ; return NULL ; }
+25769803789 | BLOCK | 
+        {
+ if ( extraInfo -> OptGrpConverter [ i ] != NULL ) {
+ ucnv_incrementRefCount ( extraInfo -> OptGrpConverter [ i ] ) ;
+ }
+ }
+      
+
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

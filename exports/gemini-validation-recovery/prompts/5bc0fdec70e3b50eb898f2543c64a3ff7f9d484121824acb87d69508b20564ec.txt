@@ -1,0 +1,114 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int resize_key_frame ( VP8_COMP * cpi ) {
+ # if CONFIG_SPATIAL_RESAMPLING VP8_COMMON * cm = & cpi -> common ;
+ if ( cpi -> oxcf . allow_spatial_resampling && ( cpi -> oxcf . end_usage == USAGE_STREAM_FROM_SERVER ) ) {
+ int UNINITIALIZED_IS_SAFE ( hr ) , UNINITIALIZED_IS_SAFE ( hs ) ;
+ int UNINITIALIZED_IS_SAFE ( vr ) , UNINITIALIZED_IS_SAFE ( vs ) ;
+ int new_width , new_height ;
+ if ( cpi -> buffer_level < ( cpi -> oxcf . resample_down_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale < ONETWO ) ? cm -> horiz_scale + 1 : ONETWO ;
+ cm -> vert_scale = ( cm -> vert_scale < ONETWO ) ? cm -> vert_scale + 1 : ONETWO ;
+ }
+ else if ( cpi -> buffer_level > ( cpi -> oxcf . resample_up_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale > NORMAL ) ? cm -> horiz_scale - 1 : NORMAL ;
+ cm -> vert_scale = ( cm -> vert_scale > NORMAL ) ? cm -> vert_scale - 1 : NORMAL ;
+ }
+ Scale2Ratio ( cm -> horiz_scale , & hr , & hs ) ;
+ Scale2Ratio ( cm -> vert_scale , & vr , & vs ) ;
+ new_width = ( ( hs - 1 ) + ( cpi -> oxcf . Width * hr ) ) / hs ;
+ new_height = ( ( vs - 1 ) + ( cpi -> oxcf . Height * vr ) ) / vs ;
+ if ( ( cm -> Width != new_width ) || ( cm -> Height != new_height ) ) {
+ cm -> Width = new_width ;
+ cm -> Height = new_height ;
+ vp8_alloc_compressor_data ( cpi ) ;
+ scale_and_extend_source ( cpi -> un_scaled_source , cpi ) ;
+ return 1 ;
+ }
+ }
+ # endif return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # if CONFIG_SPATIAL_RESAMPLING VP8_COMMON * cm = & cpi -> common ;
+ if ( cpi -> oxcf . allow_spatial_resampling && ( cpi -> oxcf . end_usage == USAGE_STREAM_FROM_SERVER ) ) {
+ int UNINITIALIZED_IS_SAFE ( hr ) , UNINITIALIZED_IS_SAFE ( hs ) ;
+ int UNINITIALIZED_IS_SAFE ( vr ) , UNINITIALIZED_IS_SAFE ( vs ) ;
+ int new_width , new_height ;
+ if ( cpi -> buffer_level < ( cpi -> oxcf . resample_down_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale < ONETWO ) ? cm -> horiz_scale + 1 : ONETWO ;
+ cm -> vert_scale = ( cm -> vert_scale < ONETWO ) ? cm -> vert_scale + 1 : ONETWO ;
+ }
+ else if ( cpi -> buffer_level > ( cpi -> oxcf . resample_up_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale > NORMAL ) ? cm -> horiz_scale - 1 : NORMAL ;
+ cm -> vert_scale = ( cm -> vert_scale > NORMAL ) ? cm -> vert_scale - 1 : NORMAL ;
+ }
+ Scale2Ratio ( cm -> horiz_scale , & hr , & hs ) ;
+ Scale2Ratio ( cm...
+      
+107374182400 | METHOD | 
+        static int resize_key_frame ( VP8_COMP * cpi ) {
+ # if CONFIG_SPATIAL_RESAMPLING VP8_COMMON * cm = & cpi -> common ;
+ if ( cpi -> oxcf . allow_spatial_resampling && ( cpi -> oxcf . end_usage == USAGE_STREAM_FROM_SERVER ) ) {
+ int UNINITIALIZED_IS_SAFE ( hr ) , UNINITIALIZED_IS_SAFE ( hs ) ;
+ int UNINITIALIZED_IS_SAFE ( vr ) , UNINITIALIZED_IS_SAFE ( vs ) ;
+ int new_width , new_height ;
+ if ( cpi -> buffer_level < ( cpi -> oxcf . resample_down_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale < ONETWO ) ? cm -> horiz_scale + 1 : ONETWO ;
+ cm -> vert_scale = ( cm -> vert_scale < ONETWO ) ? cm -> vert_scale + 1 : ONETWO ;
+ }
+ else if ( cpi -> buffer_level > ( cpi -> oxcf . resample_up_water_mark * cpi -> oxcf . optimal_buffer_level / 100 ) ) {
+ cm -> horiz_scale = ( cm -> horiz_scale > NORMAL ) ? cm -> horiz_scale - 1 : NORMAL ;
+ cm -> vert_scale = ( cm -> vert_scale > NORMAL ) ? cm -> vert_scale - 1 : NORMAL ;
+ }
+ Scale2Ratio ( cm -> ...
+      
+111669149696 | METHOD_PARAMETER_IN | VP8_COMP * cpi
+115964116992 | METHOD_PARAMETER_OUT | VP8_COMP * cpi
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+107374182400 -> 111669149696 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void scale_and_extend_source ( YV12_BUFFER_CONFIG * sd , VP8_COMP * cpi ) {
+ VP8_COMMON * cm = & cpi -> common ;
+ if ( cm -> horiz_scale != 0 || cm -> vert_scale != 0 ) {
+ # if CONFIG_SPATIAL_RESAMPLING int UNINITIALIZED_IS_SAFE ( hr ) , UNINITIALIZED_IS_SAFE ( hs ) ;
+ int UNINITIALIZED_IS_SAFE ( vr ) , UNINITIALIZED_IS_SAFE ( vs ) ;
+ int tmp_height ;
+ if ( cm -> vert_scale == 3 ) tmp_height = 9 ;
+ else tmp_height = 11 ;
+ Scale2Ratio ( cm -> horiz_scale , & hr , & hs ) ;
+ Scale2Ratio ( cm -> vert_scale , & vr , & vs ) ;
+ vpx_scale_frame ( sd , & cpi -> scaled_source , cm -> temp_scale_frame . y_buffer , tmp_height , hs , hr , vs , vr , 0 ) ;
+ vp8_yv12_extend_frame_borders ( & cpi -> scaled_source ) ;
+ cpi -> Source = & cpi -> scaled_source ;
+ # endif }
+ else cpi -> Source = sd ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,123 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint16 de_cause ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len , gchar * add_string , int string_len ) {
+ guint8 oct ;
+ guint8 cause ;
+ guint32 curr_offset ;
+ guint32 diag_length ;
+ proto_tree * subtree ;
+ const gchar * str ;
+ curr_offset = offset ;
+ proto_tree_add_item ( tree , hf_gsm_a_extension , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_de_cause_coding_standard , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , ( curr_offset << 3 ) + 3 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_location , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ if ( ! ( oct & 0x80 ) ) {
+ proto_tree_add_item ( tree , hf_gsm_a_extension , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_recommendation , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ }
+ proto_tree_add_item ( tree , hf_gsm_a_extension , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ cause = oct & 0x7f ;
+ switch ( cause ) {
+ case 1 : str = "Unassigned (unallocated) number" ;
+ break ;
+ case 3 : str = "No route to destination" ;
+ break ;
+ case 6 : str = "Channel unacceptable" ;
+ break ;
+ case 8 : str = "Operator determined barring" ;
+ break ;
+ case 16 : str = "Normal call clearing" ;
+ break ;
+ case 17 : str = "User busy" ;
+ break ;
+ case 18 : str = "No user responding" ;
+ break ;
+ case 19 : str = "User alerting, no answer" ;
+ break ;
+ case 21 : str = "Call rejected" ;
+ break ;
+ case 22 : str = "Call rejected due to feature at the destination" ;
+ break ;
+ case 24 : str = "Number changed" ;
+ break ;
+ case 25 : str = "Pre-emption" ;
+ break ;
+ case 26 : str = "Non selected user clearing" ;
+ break ;
+ case 27 : str = "Destination out of order" ;
+ break ;
+ case 28 : str = "Invalid number format (incomplete number)" ;
+ break ;
+ case 29 : str = "Facility rejected" ;
+ break ;
+ case 30 : str = "Response to STATUS ENQUIRY" ;
+ break ;
+ case 31 : str = "Normal, unspecified" ;
+ break ;
+ case 34 : str = "No circuit/channel available" ;
+ break ;
+ case 38 : str = "Network out of order" ;
+ break ;
+ case 41 : str = "Temporary failure" ;
+ break ;
+ case 42 : str = "Switching equipment congestion" ;
+ break ;
+ case 43 : str = "Access information discarded" ;
+ break ;
+ case 44 : str = "requested circuit/channel not available" ;
+ break ;
+ case 47 : str = "Resources unavailable, unspecified" ;
+ break ;
+ case 49 : str = "Quality of service unavailable" ;
+ break ;
+ case 50 : str = "Requested facility not subscribed" ;
+ break ;
+ case 55 : str = "Incoming calls barred within the CUG" ;
+ break ;
+ case 57 : str = "Bearer capability not authorized" ;
+ break ;
+ case 58 : str = "Bearer capability not presently available" ;
+ break ;
+ case 63 : str = "Service or option not available, unspecified" ;
+ break ;
+ case 6
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static guint16 de_prog_ind ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len _U_ , gchar * add_string _U_ , int string_len _U_ ) {
+ guint8 oct , coding_standard , progress_description ;
+ guint32 curr_offset ;
+ curr_offset = offset ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ coding_standard = ( oct & 0x60 ) >> 5 ;
+ proto_tree_add_item ( tree , hf_gsm_a_extension , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_prog_coding_standard , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , ( curr_offset << 3 ) + 3 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_location , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ progress_description = oct & 0x7f ;
+ proto_tree_add_item ( tree , hf_gsm_a_extension , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ switch ( coding_standard ) {
+ case 0 : proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_progress_description , tvb , curr_offset , 1 , progress_description , "%s (%u)" , val_to_str_ext_const ( progress_description , & q931_progress_description_vals_ext , "Reserved" ) , progress_description ) ;
+ break ;
+ case 1 : case 2 : proto_tree_add_item ( tree , hf_gsm_a_dtap_progress_description , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ break ;
+ default : proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_progress_des
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

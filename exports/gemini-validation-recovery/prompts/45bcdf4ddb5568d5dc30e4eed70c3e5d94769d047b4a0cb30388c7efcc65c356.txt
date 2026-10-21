@@ -1,0 +1,232 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void page_init ( void ) {
+ # ifdef _WIN32 {
+ SYSTEM_INFO system_info ;
+ GetSystemInfo ( & system_info ) ;
+ qemu_real_host_page_size = system_info . dwPageSize ;
+ }
+ # else qemu_real_host_page_size = getpagesize ( ) ;
+ # endif if ( qemu_host_page_size == 0 ) {
+ qemu_host_page_size = qemu_real_host_page_size ;
+ }
+ if ( qemu_host_page_size < TARGET_PAGE_SIZE ) {
+ qemu_host_page_size = TARGET_PAGE_SIZE ;
+ }
+ qemu_host_page_mask = ~ ( qemu_host_page_size - 1 ) ;
+ # if defined ( CONFIG_BSD ) && defined ( CONFIG_USER_ONLY ) {
+ # ifdef HAVE_KINFO_GETVMMAP struct kinfo_vmentry * freep ;
+ int i , cnt ;
+ freep = kinfo_getvmmap ( getpid ( ) , & cnt ) ;
+ if ( freep ) {
+ mmap_lock ( ) ;
+ for ( i = 0 ;
+ i < cnt ;
+ i ++ ) {
+ unsigned long startaddr , endaddr ;
+ startaddr = freep [ i ] . kve_start ;
+ endaddr = freep [ i ] . kve_end ;
+ if ( h2g_valid ( startaddr ) ) {
+ startaddr = h2g ( startaddr ) & TARGET_PAGE_MASK ;
+ if ( h2g_valid ( endaddr ) ) {
+ endaddr = h2g ( endaddr ) ;
+ page_set_flags ( startaddr , endaddr , PAGE_RESERVED ) ;
+ }
+ else {
+ # if TARGET_ABI_BITS <= L1_MAP_ADDR_SPACE_BITS endaddr = ~ 0ul ;
+ page_set_flags ( startaddr , endaddr , PAGE_RESERVED ) ;
+ # endif }
+ }
+ }
+ free ( freep ) ;
+ mmap_unlock ( ) ;
+ }
+ # else FILE * f ;
+ last_brk = ( unsigned long ) sbrk ( 0 ) ;
+ f = fopen ( "/compat/linux/proc/self/maps" , "r" ) ;
+ if ( f ) {
+ mmap_lock ( ) ;
+ do {
+ unsigned long startaddr , endaddr ;
+ int n ;
+ n = fscanf ( f , "%lx-%lx %*[^\n]\n" , & startaddr , & endaddr ) ;
+ if ( n == 2 && h2g_valid ( startaddr ) ) {
+ startaddr = h2g ( startaddr ) & TARGET_PAGE_MASK ;
+ if ( h2g_valid ( endaddr ) ) {
+ endaddr = h2g ( endaddr ) ;
+ }
+ else {
+ endaddr = ~ 0ul ;
+ }
+ page_set_flags ( startaddr , endaddr , PAGE_RESERVED ) ;
+ }
+ }
+ while ( ! feof ( f ) ) ;
+ fclose ( f ) ;
+ mmap_unlock ( ) ;
+ }
+ # endif }
+ # endif }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # ifdef _WIN32 {
+ SYSTEM_INFO system_info ;
+ GetSystemInfo ( & system_info ) ;
+ qemu_real_host_page_size = system_info . dwPageSize ;
+ }
+ # else qemu_real_host_page_size = getpagesize ( ) ;
+ # endif if ( qemu_host_page_size == 0 ) {
+ qemu_host_page_size = qemu_real_host_page_size ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | qemu_host_page_size = qemu_real_host_page_size
+68719476736 | IDENTIFIER | <unknown> qemu_host_page_size
+68719476737 | IDENTIFIER | <unknown> qemu_real_host_page_size
+94489280519 | LOCAL | <unknown> qemu_real_host_page_size
+94489280520 | LOCAL | <unknown> qemu_host_page_size
+107374182400 | METHOD | 
+        static void page_init ( void ) {
+ # ifdef _WIN32 {
+ SYSTEM_INFO system_info ;
+ GetSystemInfo ( & system_info ) ;
+ qemu_real_host_page_size = system_info . dwPageSize ;
+ }
+ # else qemu_real_host_page_size = getpagesize ( ) ;
+ # endif if ( qemu_host_page_size == 0 ) {
+ qemu_host_page_size = qemu_real_host_page_size ;
+ }
+      
+107374182403 | METHOD | page_set_flags ( startaddr , endaddr , PAGE_RESERVED ) ;
+107374182404 | METHOD | free ( freep ) ;
+107374182405 | METHOD | mmap_unlock ( ) ;
+111669149696 | METHOD_PARAMETER_IN | void
+111669149697 | METHOD_PARAMETER_IN | startaddr
+111669149698 | METHOD_PARAMETER_IN | endaddr
+111669149699 | METHOD_PARAMETER_IN | PAGE_RESERVED
+111669149700 | METHOD_PARAMETER_IN | freep
+115964116992 | METHOD_PARAMETER_OUT | void
+115964116993 | METHOD_PARAMETER_OUT | startaddr
+115964116994 | METHOD_PARAMETER_OUT | endaddr
+115964116995 | METHOD_PARAMETER_OUT | PAGE_RESERVED
+115964116996 | METHOD_PARAMETER_OUT | freep
+124554051584 | METHOD_RETURN | RET
+124554051587 | METHOD_RETURN | RET
+124554051588 | METHOD_RETURN | RET
+124554051589 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280519 [AST]
+25769803776 -> 94489280520 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 124554051584 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+68719476736 -> 68719476737 [CFG]
+68719476736 -> 68719476737 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+68719476736 -> 124554051584 [REACHING_DEF]
+68719476736 -> 94489280520 [REF]
+68719476737 -> 30064771072 [CFG]
+68719476737 -> 30064771072 [DOMINATE]
+68719476737 -> 68719476736 [POST_DOMINATE]
+68719476737 -> 68719476736 [REACHING_DEF]
+68719476737 -> 30064771072 [REACHING_DEF]
+68719476737 -> 124554051584 [REACHING_DEF]
+68719476737 -> 94489280519 [REF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 68719476736 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 30064771072 [CONTAINS]
+107374182400 -> 68719476736 [CONTAINS]
+107374182400 -> 68719476737 [CONTAINS]
+107374182400 -> 68719476736 [DOMINATE]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 68719476737 [REACHING_DEF]
+107374182403 -> 111669149697 [AST]
+107374182403 -> 111669149698 [AST]
+107374182403 -> 111669149699 [AST]
+107374182403 -> 25769803779 [AST]
+107374182403 -> 124554051587 [AST]
+107374182403 -> 115964116993 [AST]
+107374182403 -> 115964116994 [AST]
+107374182403 -> 115964116995 [AST]
+107374182403 -> 124554051587 [CFG]
+107374182403 -> 25769803779 [CONTAINS]
+107374182403 -> 124554051587 [DOMINATE]
+107374182403 -> 111669149697 [REACHING_DEF]
+107374182403 -> 111669149698 [REACHING_DEF]
+107374182403 -> 111669149699 [REACHING_DEF]
+107374182404 -> 111669149700 [AST]
+107374182404 -> 25769803780 [AST]
+107374182404 -> 124554051588 [AST]
+107374182404 -> 115964116996 [AST]
+107374182404 -> 124554051588 [CFG]
+107374182404 -> 25769803780 [CONTAINS]
+107374182404 -> 124554051588 [DOMINATE]
+107374182404 -> 111669149700 [REACHING_DEF]
+107374182405 -> 25769803781 [AST]
+107374182405 -> 124554051589 [AST]
+107374182405 -> 124554051589 [CFG]
+107374182405 -> 25769803781 [CONTAINS]
+107374182405 -> 124554051589 [DOMINATE]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051587 [REACHING_DEF]
+111669149698 -> 115964116994 [PARAMETER_LINK]
+111669149698 -> 115964116994 [REACHING_DEF]
+111669149698 -> 124554051587 [REACHING_DEF]
+111669149699 -> 115964116995 [PARAMETER_LINK]
+111669149699 -> 115964116995 [REACHING_DEF]
+111669149699 -> 124554051587 [REACHING_DEF]
+111669149700 -> 115964116996 [PARAMETER_LINK]
+111669149700 -> 115964116996 [REACHING_DEF]
+111669149700 -> 124554051588 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static PageDesc * page_find_alloc ( tb_page_addr_t index , int alloc ) {
+ PageDesc * pd ;
+ void * * lp ;
+ int i ;
+ # if defined ( CONFIG_USER_ONLY ) # define ALLOC ( P , SIZE ) do {
+ P = mmap ( NULL , SIZE , PROT_READ | PROT_WRITE , MAP_PRIVATE | MAP_ANONYMOUS , - 1 , 0 ) ;
+ }
+ while ( 0 ) # else # define ALLOC ( P , SIZE ) do {
+ P = g_malloc0 ( SIZE ) ;
+ }
+ while ( 0 ) # endif lp = l1_map + ( ( index >> V_L1_SHIFT ) & ( V_L1_SIZE - 1 ) ) ;
+ for ( i = V_L1_SHIFT / L2_BITS - 1 ;
+ i > 0 ;
+ i -- ) {
+ void * * p = * lp ;
+ if ( p == NULL ) {
+ if ( ! 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

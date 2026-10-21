@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void do_diff_files ( struct st_command * command ) {
+ int error = 0 ;
+ static DYNAMIC_STRING ds_filename ;
+ static DYNAMIC_STRING ds_filename2 ;
+ const struct command_arg diff_file_args [ ] = {
+ {
+ "file1" , ARG_STRING , TRUE , & ds_filename , "First file to diff" }
+ , {
+ "file2" , ARG_STRING , TRUE , & ds_filename2 , "Second file to diff" }
+ }
+ ;
+ DBUG_ENTER ( "do_diff_files" ) ;
+ check_command_args ( command , command -> first_argument , diff_file_args , sizeof ( diff_file_args ) / sizeof ( struct command_arg ) , ' ' ) ;
+ if ( access ( ds_filename . str , F_OK ) != 0 ) die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename . str ) ;
+ if ( access ( ds_filename2 . str , F_OK ) != 0 ) die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename2 . str ) ;
+ if ( ( error = compare_files ( ds_filename . str , ds_filename2 . str ) ) && match_expected_error ( command , error , NULL ) < 0 ) {
+ show_diff ( & ds_res , ds_filename . str , ds_filename2 . str ) ;
+ log_file . write ( & ds_res ) ;
+ log_file . flush ( ) ;
+ dynstr_set ( & ds_res , 0 ) ;
+ }
+ dynstr_free ( & ds_filename ) ;
+ dynstr_free ( & ds_filename2 ) ;
+ handle_command_error ( command , error , - 1 ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int error = 0 ;
+ static DYNAMIC_STRING ds_filename ;
+ static DYNAMIC_STRING ds_filename2 ;
+ const struct command_arg diff_file_args [ ] = {
+ {
+ "file1" , ARG_STRING , TRUE , & ds_filename , "First file to diff" }
+ , {
+ "file2" , ARG_STRING , TRUE , & ds_filename2 , "Second file to diff" }
+ }
+ ;
+ DBUG_ENTER ( "do_diff_files" ) ;
+ check_command_args ( command , command -> first_argument , diff_file_args , sizeof ( diff_file_args ) / sizeof ( struct command_arg ) , ' ' ) ;
+ if ( access ( ds_filename . str , F_OK ) != 0 ) die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename . str ) ;
+ if ( access ( ds_filename2 . str , F_OK ) != 0 ) die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename2 . str ) ;
+ if ( ( error = compare_files ( ds_filename . str , ds_filename2 . str ) ) && match_expected_error ( command , error , NULL ) < 0 ) {
+ show_diff ( & ds_res , ds_filename . str , ds_filename2 . str ) ;
+ log_file . write ( & ds_res ) ;
+ log_file...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ show_diff ( & ds_res , ds_filename . str , ds_filename2 . str ) ;
+ log_file . write ( & ds_res ) ;
+ log_file . flush ( ) ;
+ dynstr_set ( & ds_res , 0 ) ;
+ }
+      
+30064771072 | CALL | error = 0
+30064771073 | CALL | 
+        diff_file_args [ ] = {
+ {
+ "file1" , ARG_STRING , TRUE , & ds_filename , "First file to diff" }
+ , {
+ "file2" , ARG_STRING , TRUE , & ds_filename2 , "Second file to diff" }
+ }
+      
+30064771074 | CALL | 
+        {
+ {
+ "file1" , ARG_STRING , TRUE , & ds_filename , "First file to diff" }
+ , {
+ "file2" , ARG_STRING , TRUE , & ds_filename2 , "Second file to diff" }
+ }
+      
+30064771075 | CALL | 
+        {
+ "file1" , ARG_STRING , TRUE , & ds_filename , "First file to diff" }
+      
+30064771076 | CALL | & ds_filename
+30064771077 | CALL | 
+        {
+ "file2" , ARG_STRING , TRUE , & ds_filename2 , "Second file to diff" }
+      
+30064771078 | CALL | & ds_filename2
+30064771079 | CALL | DBUG_ENTER ( "do_diff_files" )
+30064771080 | CALL | 
+        check_command_args ( command , command -> first_argument , diff_file_args , sizeof ( diff_file_args ) / sizeof ( struct command_arg ) , ' ' )
+      
+30064771081 | CALL | command -> first_argument
+30064771082 | CALL | sizeof ( diff_file_args ) / sizeof ( struct command_arg )
+30064771083 | CALL | sizeof ( diff_file_args )
+30064771084 | CALL | sizeof ( struct command_arg )
+30064771085 | CALL | access ( ds_filename . str , F_OK ) != 0
+30064771086 | CALL | access ( ds_filename . str , F_OK )
+30064771087 | CALL | ds_filename . str
+30064771088 | CALL | 
+        die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename . str )
+      
+30064771089 | CALL | ds_filename . str
+30064771090 | CALL | access ( ds_filename2 . str , F_OK ) != 0
+30064771091 | CALL | access ( ds_filename2 . str , F_OK )
+30064771092 | CALL | ds_filename2 . str
+30064771093 | CALL | 
+        die ( "command \"diff_files\" failed, file '%s' does not exist" , ds_filename2 . str )
+      
+30064771094 | CALL | ds_filename2 . str
+30064771095 | CALL | 
+        ( error = compare_files ( ds_filename . str , ds_filename2 . str ) ) && match_expected_error ( command , error , NULL ) < 0
+      
+30064771096 | CALL | error = compare_files ( ds_filename . str , ds_filename2 . str )
+30064771097 | CALL | compare_files ( ds_filename . str , ds_filename2 . str )
+30064771098 | CALL | ds_filename . str
+30064771099 | CALL | ds_filename2 . str
+30064771100 | CALL | match_expected_error ( command , error , NULL ) < 0
+30064771101 | CALL | match_expected_error ( command , error , NULL )
+30064771102 | CALL | show_diff ( & ds_res , ds_filename . str , ds_filename2 . str )
+30064771103 | CALL | & ds_res
+30064771104 | CALL | ds_filename . str
+30064771105 | CALL | ds_filename2 . str
+30064771106 | CALL | log_file . write ( & ds_res )
+30064771107 | CALL | log_file . write
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771093 [AST]
+25769803779 -> 30064771102 [AST]
+25769803779 -> 30064771106 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771098 [REACHING_DEF]
+30064771087 -> 30064771089 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

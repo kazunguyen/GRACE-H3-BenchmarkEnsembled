@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void pdo_stmt_init ( TSRMLS_D ) {
+ zend_class_entry ce ;
+ INIT_CLASS_ENTRY ( ce , "PDOStatement" , pdo_dbstmt_functions ) ;
+ pdo_dbstmt_ce = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ pdo_dbstmt_ce -> get_iterator = pdo_stmt_iter_get ;
+ pdo_dbstmt_ce -> create_object = pdo_dbstmt_new ;
+ zend_class_implements ( pdo_dbstmt_ce TSRMLS_CC , 1 , zend_ce_traversable ) ;
+ zend_declare_property_null ( pdo_dbstmt_ce , "queryString" , sizeof ( "queryString" ) - 1 , ZEND_ACC_PUBLIC TSRMLS_CC ) ;
+ memcpy ( & pdo_dbstmt_object_handlers , & std_object_handlers , sizeof ( zend_object_handlers ) ) ;
+ pdo_dbstmt_object_handlers . write_property = dbstmt_prop_write ;
+ pdo_dbstmt_object_handlers . unset_property = dbstmt_prop_delete ;
+ pdo_dbstmt_object_handlers . get_method = dbstmt_method_get ;
+ pdo_dbstmt_object_handlers . compare_objects = dbstmt_compare ;
+ pdo_dbstmt_object_handlers . clone_obj = dbstmt_clone_obj ;
+ INIT_CLASS_ENTRY ( ce , "PDORow" , pdo_row_functions ) ;
+ pdo_row_ce = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ pdo_row_ce -> ce_flags |= ZEND_ACC_FINAL_CLASS ;
+ pdo_row_ce -> create_object = pdo_row_new ;
+ pdo_row_ce -> serialize = pdo_row_serialize ;
+ pdo_row_ce -> unserialize = zend_class_unserialize_deny ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ zend_class_entry ce ;
+ INIT_CLASS_ENTRY ( ce , "PDOStatement" , pdo_dbstmt_functions ) ;
+ pdo_dbstmt_ce = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ pdo_dbstmt_ce -> get_iterator = pdo_stmt_iter_get ;
+ pdo_dbstmt_ce -> create_object = pdo_dbstmt_new ;
+ zend_class_implements ( pdo_dbstmt_ce TSRMLS_CC , 1 , zend_ce_traversable ) ;
+ zend_declare_property_null ( pdo_dbstmt_ce , "queryString" , sizeof ( "queryString" ) - 1 , ZEND_ACC_PUBLIC TSRMLS_CC ) ;
+ memcpy ( & pdo_dbstmt_object_handlers , & std_object_handlers , sizeof ( zend_object_handlers ) ) ;
+ pdo_dbstmt_object_handlers . write_property = dbstmt_prop_write ;
+ pdo_dbstmt_object_handlers . unset_property = dbstmt_prop_delete ;
+ pdo_dbstmt_object_handlers . get_method = dbstmt_method_get ;
+ pdo_dbstmt_object_handlers . compare_objects = dbstmt_compare ;
+ pdo_dbstmt_object_handlers . clone_obj = dbstmt_clone_obj ;
+ INIT_CLASS_ENTRY ( ce , "PDORow" , pdo_row_functions ) ;
+ pdo_row_ce = zend_register_internal_class ( & ce...
+      
+30064771072 | CALL | INIT_CLASS_ENTRY ( ce , "PDOStatement" , pdo_dbstmt_functions )
+30064771073 | CALL | pdo_dbstmt_ce -> get_iterator = pdo_stmt_iter_get
+30064771074 | CALL | pdo_dbstmt_ce -> get_iterator
+30064771075 | CALL | pdo_dbstmt_ce -> create_object = pdo_dbstmt_new
+30064771076 | CALL | pdo_dbstmt_ce -> create_object
+30064771077 | CALL | 
+        memcpy ( & pdo_dbstmt_object_handlers , & std_object_handlers , sizeof ( zend_object_handlers ) )
+      
+30064771078 | CALL | & pdo_dbstmt_object_handlers
+30064771079 | CALL | & std_object_handlers
+30064771080 | CALL | sizeof ( zend_object_handlers )
+30064771081 | CALL | pdo_dbstmt_object_handlers . write_property = dbstmt_prop_write
+30064771082 | CALL | pdo_dbstmt_object_handlers . write_property
+30064771083 | CALL | pdo_dbstmt_object_handlers . unset_property = dbstmt_prop_delete
+30064771084 | CALL | pdo_dbstmt_object_handlers . unset_property
+30064771085 | CALL | pdo_dbstmt_object_handlers . get_method = dbstmt_method_get
+30064771086 | CALL | pdo_dbstmt_object_handlers . get_method
+30064771087 | CALL | pdo_dbstmt_object_handlers . compare_objects = dbstmt_compare
+30064771088 | CALL | pdo_dbstmt_object_handlers . compare_objects
+30064771089 | CALL | pdo_dbstmt_object_handlers . clone_obj = dbstmt_clone_obj
+30064771090 | CALL | pdo_dbstmt_object_handlers . clone_obj
+30064771091 | CALL | INIT_CLASS_ENTRY ( ce , "PDORow" , pdo_row_functions )
+30064771092 | CALL | pdo_row_ce -> ce_flags |= ZEND_ACC_FINAL_CLASS
+30064771093 | CALL | pdo_row_ce -> ce_flags
+30064771094 | CALL | pdo_row_ce -> create_object = pdo_row_new
+30064771095 | CALL | pdo_row_ce -> create_object
+30064771096 | CALL | pdo_row_ce -> serialize = pdo_row_serialize
+30064771097 | CALL | pdo_row_ce -> serialize
+30064771098 | CALL | pdo_row_ce -> unserialize = zend_class_unserialize_deny
+30064771099 | CALL | pdo_row_ce -> unserialize
+55834574848 | FIELD_IDENTIFIER | get_iterator
+55834574849 | FIELD_IDENTIFIER | create_object
+55834574850 | FIELD_IDENTIFIER | write_property
+55834574851 | FIELD_IDENTIFIER | unset_property
+55834574852 | FIELD_IDENTIFIER | get_method
+55834574853 | FIELD_IDENTIFIER | compare_objects
+55834574854 | FIELD_IDENTIFIER | clone_obj
+55834574855 | FIELD_IDENTIFIER | ce_flags
+55834574856 | FIELD_IDENTIFIER | create_object
+55834574857 | FIELD_IDENTIFIER | serialize
+55834574858 | FIELD_IDENTIFIER | unserialize
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771077 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 55834574850 [ARGUMENT]
+30064771082 -> 55834574850 [AST]
+30064771082 -> 55834574850 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 55834574851 [ARGUMENT]
+30064771084 -> 55834574851 [AST]
+30064771084 -> 55834574851 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 55834574852 [ARGUMENT]
+30064771086 -> 55834574852 [AST]
+30064771086 -> 55834574852 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 55834574853 [ARGUMENT]
+30064771088 -> 55834574853 [AST]
+30064771088 -> 55834574853 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 55834574854 [ARGUMENT]
+30064771090 -> 55834574854 [AST]
+30064771090 -> 55834574854 [POST_DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771093 -> 5
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

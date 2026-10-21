@@ -1,0 +1,154 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int get_options ( int * argc , char * * * argv ) {
+ int ho_error ;
+ MYSQL_PARAMETERS * mysql_params = mysql_get_parameters ( ) ;
+ opt_max_allowed_packet = * mysql_params -> p_max_allowed_packet ;
+ opt_net_buffer_length = * mysql_params -> p_net_buffer_length ;
+ md_result_file = stdout ;
+ if ( load_defaults ( "my" , load_default_groups , argc , argv ) ) return 1 ;
+ defaults_argv = * argv ;
+ if ( my_hash_init ( & ignore_table , charset_info , 16 , 0 , 0 , ( my_hash_get_key ) get_table_key , my_free , 0 ) ) return ( EX_EOM ) ;
+ if ( my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.apply_status" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.schema" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.general_log" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.slow_log" , MYF ( MY_WME ) ) ) ) return ( EX_EOM ) ;
+ if ( ( ho_error = handle_options ( argc , argv , my_long_options , get_one_option ) ) ) return ( ho_error ) ;
+ * mysql_params -> p_max_allowed_packet = opt_max_allowed_packet ;
+ * mysql_params -> p_net_buffer_length = opt_net_buffer_length ;
+ if ( debug_info_flag ) my_end_arg = MY_CHECK_ERROR | MY_GIVE_INFO ;
+ if ( debug_check_flag ) my_end_arg = MY_CHECK_ERROR ;
+ if ( opt_delayed ) opt_lock = 0 ;
+ if ( ! path && ( enclosed || opt_enclosed || escaped || lines_terminated || fields_terminated ) ) {
+ fprintf ( stderr , "%s: You must use option --tab with --fields-...\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+ if ( opt_slave_data ) {
+ opt_lock_all_tables = ! opt_single_transaction ;
+ opt_master_data = 0 ;
+ opt_delete_master_logs = 0 ;
+ }
+ if ( opt_delete_master_logs && ! opt_master_data ) opt_master_data = MYSQL_OPT_MASTER_DATA_COMMENTED_SQL ;
+ if ( opt_single_transaction && opt_lock_all_tables ) {
+ fprintf ( stderr , "%s: You can't use --single-transaction and " "--lock-all-tables at the same time.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+ if ( opt_master_data ) {
+ opt_lock_all_tables = ! opt_single_transaction ;
+ opt_slave_data = 0 ;
+ }
+ if ( opt_single_transaction || opt_lock_all_tables ) lock_tables = 0 ;
+ if ( enclosed && opt_enclosed ) {
+ fprintf ( stderr , "%s: You can't use ..enclosed.. and ..optionally-enclosed.. at the same time.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+ if ( ( opt_databases || opt_alldbs ) && path ) {
+ fprintf ( stderr , "%s: --databases or --all-databases can't be used with --tab.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+ if ( strcmp ( default_charset , charset_info -> csname ) && ! ( charset_info = get_charset_by_csname ( default_charset , MY_CS_PRIMARY , MYF ( MY_WME ) ) ) ) exit ( 1 ) ;
+ if ( ( * argc < 1 && ! opt_alldbs ) || ( * argc > 0 && opt_alldbs ) ) {
+ short_usage ( stderr ) ;
+ return EX_USAGE ;
+ }
+ if ( tty_password ) opt_password = get_tty_password ( NullS ) ;
+ return ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ho_error ;
+ MYSQL_PARAMETERS * mysql_params = mysql_get_parameters ( ) ;
+ opt_max_allowed_packet = * mysql_params -> p_max_allowed_packet ;
+ opt_net_buffer_length = * mysql_params -> p_net_buffer_length ;
+ md_result_file = stdout ;
+ if ( load_defaults ( "my" , load_default_groups , argc , argv ) ) return 1 ;
+ defaults_argv = * argv ;
+ if ( my_hash_init ( & ignore_table , charset_info , 16 , 0 , 0 , ( my_hash_get_key ) get_table_key , my_free , 0 ) ) return ( EX_EOM ) ;
+ if ( my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.apply_status" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.schema" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.general_log" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.slow_log" , MYF ( MY_WME ) ) ) ) return ( EX_EOM ) ;
+ if ( ( ho_error = handle_options ( argc , argv , my_long_options , get_one_option ) ) ) r...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ fprintf ( stderr , "%s: You must use option --tab with --fields-...\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ opt_lock_all_tables = ! opt_single_transaction ;
+ opt_master_data = 0 ;
+ opt_delete_master_logs = 0 ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ fprintf ( stderr , "%s: You can't use --single-transaction and " "--lock-all-tables at the same time.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+      
+25769803788 | BLOCK | { opt_lock_all_tables = ! opt_single_transaction ; opt_slave_data = 0 ; }
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ fprintf ( stderr , "%s: You can't use ..enclosed.. and ..optionally-enclosed.. at the same time.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ fprintf ( stderr , "%s: --databases or --all-databases can't be used with --tab.\n" , my_progname_short ) ;
+ return ( EX_USAGE ) ;
+ }
+      
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | { short_usage ( stderr ) ; return EX_USAGE ; }
+25769803794 | BLOCK | <empty>
+30064771072 | CALL | mysql_params = mysql_get_parameters ( )
+30064771073 | CALL | mysql_get_parameters ( )
+30064771074 | CALL | opt_max_allowed_packet = * mysql_params -> p_max_allowed_packet
+30064771075 | CALL | * mysql_params -> p_max_allowed_packet
+30064771076 | CALL | mysql_params -> p_max_allowed_packet
+30064771077 | CALL | opt_net_buffer_length = * mysql_params -> p_net_buffer_length
+30064771078 | CALL | * mysql_params -> p_net_buffer_length
+30064771079 | CALL | mysql_params -> p_net_buffer_length
+30064771080 | CALL | md_result_file = stdout
+30064771081 | CALL | load_defaults ( "my" , load_default_groups , argc , argv )
+30064771082 | CALL | defaults_argv = * argv
+30064771083 | CALL | * argv
+30064771084 | CALL | 
+        my_hash_init ( & ignore_table , charset_info , 16 , 0 , 0 , ( my_hash_get_key ) get_table_key , my_free , 0 )
+      
+30064771085 | CALL | & ignore_table
+30064771086 | CALL | ( my_hash_get_key ) get_table_key
+30064771087 | CALL | 
+        my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.apply_status" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.schema" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.general_log" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.slow_log" , MYF ( MY_WME ) ) )
+      
+30064771088 | CALL | 
+        my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.apply_status" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.schema" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.general_log" , MYF ( MY_WME ) ) )
+      
+30064771089 | CALL | 
+        my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.apply_status" , MYF ( MY_WME ) ) ) || my_hash_insert ( & ignore_table , ( uchar * ) my_strdup ( "mysql.schema" , MYF ( MY_WME ) ) )
+      
+30064771090 | CALL | 
+        my_hash_insert ( & ignore_table , ( ucha
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

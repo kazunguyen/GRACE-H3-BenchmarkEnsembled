@@ -1,0 +1,124 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( BrowsingDataRemoverImplTest , RemoveQuotaManagedProtectedOrigins ) {
+ # if BUILDFLAG ( ENABLE_EXTENSIONS ) MockExtensionSpecialStoragePolicy * policy = CreateMockPolicy ( ) ;
+ policy -> AddProtected ( kOrigin1 . GetOrigin ( ) ) ;
+ # endif BlockUntilBrowsingDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , true ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : PROTECTED_WEB | BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ StoragePartitionRemovalData removal_data = GetStoragePartitionRemovalData ( ) ;
+ EXPECT_EQ ( removal_data . remove_mask , StoragePartition : : REMOVE_DATA_MASK_FILE_SYSTEMS | StoragePartition : : REMOVE_DATA_MASK_WEBSQL | StoragePartition : : REMOVE_DATA_MASK_APPCACHE | StoragePartition : : REMOVE_DATA_MASK_SERVICE_WORKERS | StoragePartition : : REMOVE_DATA_MASK_CACHE_STORAGE | StoragePartition : : REMOVE_DATA_MASK_INDEXEDDB ) ;
+ EXPECT_EQ ( removal_data . quota_storage_remove_mask , StoragePartition : : QUOTA_MANAGED_STORAGE_MASK_ALL ) ;
+ EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) ) ) ;
+ EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) ) ) ;
+ EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # if BUILDFLAG ( ENABLE_EXTENSIONS ) MockExtensionSpecialStoragePolicy * policy = CreateMockPolicy ( ) ;
+ policy -> AddProtected ( kOrigin1 . GetOrigin ( ) ) ;
+ # endif BlockUntilBrowsingDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , true ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : PROTECTED_WEB | BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ StoragePartitionRemovalData removal_data = Get...
+      
+30064771072 | CALL | removal_data = GetStoragePartitionRemovalData ( )
+30064771073 | CALL | GetStoragePartitionRemovalData ( )
+30064771074 | CALL | EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) ) )
+30064771075 | CALL | removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) )
+30064771076 | CALL | removal_data . origin_matcher . Run
+30064771077 | CALL | removal_data . origin_matcher
+30064771078 | CALL | mock_policy ( )
+30064771079 | CALL | EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) ) )
+30064771080 | CALL | removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) )
+30064771081 | CALL | removal_data . origin_matcher . Run
+30064771082 | CALL | removal_data . origin_matcher
+30064771083 | CALL | mock_policy ( )
+30064771084 | CALL | EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) ) )
+30064771085 | CALL | removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) )
+30064771086 | CALL | removal_data . origin_matcher . Run
+30064771087 | CALL | removal_data . origin_matcher
+30064771088 | CALL | mock_policy ( )
+55834574848 | FIELD_IDENTIFIER | origin_matcher
+55834574849 | FIELD_IDENTIFIER | Run
+55834574850 | FIELD_IDENTIFIER | origin_matcher
+55834574851 | FIELD_IDENTIFIER | Run
+55834574852 | FIELD_IDENTIFIER | origin_matcher
+55834574853 | FIELD_IDENTIFIER | Run
+68719476736 | IDENTIFIER | removal_data
+68719476737 | IDENTIFIER | removal_data
+68719476738 | IDENTIFIER | <unknown> kOrigin1
+68719476739 | IDENTIFIER | removal_data
+68719476740 | IDENTIFIER | <unknown> kOrigin2
+68719476741 | IDENTIFIER | removal_data
+68719476742 | IDENTIFIER | <unknown> kOrigin3
+94489280512 | LOCAL | StoragePartitionRemovalData removal_data
+94489280513 | LOCAL | <unknown> kOrigin3
+94489280514 | LOCAL | <unknown> kOrigin2
+94489280515 | LOCAL | <unknown> kOrigin1
+107374182400 | METHOD | 
+        TEST_F ( BrowsingDataRemoverImplTest , RemoveQuotaManagedProtectedOrigins ) {
+ # if BUILDFLAG ( ENABLE_EXTENSIONS ) MockExtensionSpecialStoragePolicy * policy = CreateMockPolicy ( ) ;
+ policy -> AddProtected ( kOrigin1 . GetOrigin ( ) ) ;
+ # endif BlockUntilBrowsingDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , true ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : PROTECTED_WEB | BrowsingDataHelper : : UNPROTECTED_WEB...
+      
+111669149696 | METHOD_PARAMETER_IN | BrowsingDataRemoverImplTest
+111669149697 | METHOD_PARAMETER_IN | RemoveQuotaManagedProtectedOrigins
+115964116992 | METHOD_PARAMETER_OUT | BrowsingDataRemoverImplTest
+115964116993 | METHOD_PARAMETER_OUT | RemoveQuotaManagedProtectedOrigins
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 30064771077 [ARGUMENT]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

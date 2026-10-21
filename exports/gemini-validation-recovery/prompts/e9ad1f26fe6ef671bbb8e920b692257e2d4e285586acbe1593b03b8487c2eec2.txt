@@ -1,0 +1,175 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int io_open_default(AVFormatContext *s, AVIOContext **pb,
+                           const char *url, int flags, AVDictionary **options)
+{
+#if FF_API_OLD_OPEN_CALLBACKS
+FF_DISABLE_DEPRECATION_WARNINGS
+    if (s->open_cb)
+        return s->open_cb(s, pb, url, flags, &s->interrupt_callback, options);
+FF_ENABLE_DEPRECATION_WARNINGS
+#endif
+    return ffio_open_whitelist(pb, url, flags, &s->interrupt_callback, options, s->protocol_whitelist, s->protocol_blacklist);
+}
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+#if FF_API_OLD_OPEN_CALLBACKS
+FF_DISABLE_DEPRECATION_WARNINGS
+    if (s->open_cb)
+        return s->open_cb(s, pb, url, flags, &s->interrupt_callback, options);
+FF_ENABLE_DEPRECATION_WARNINGS
+#endif
+    return ffio_open_whitelist(pb, url, flags, &s->interrupt_callback, options, s->protocol_whitelist, s->protocol_blacklist);
+}
+      
+30064771072 | CALL | 
+        ffio_open_whitelist(pb, url, flags, &s->interrupt_callback, options, s->protocol_whitelist, s->protocol_blacklist)
+      
+30064771073 | CALL | &s->interrupt_callback
+30064771074 | CALL | s->interrupt_callback
+30064771075 | CALL | s->protocol_whitelist
+30064771076 | CALL | s->protocol_blacklist
+55834574848 | FIELD_IDENTIFIER | interrupt_callback
+55834574849 | FIELD_IDENTIFIER | protocol_whitelist
+55834574850 | FIELD_IDENTIFIER | protocol_blacklist
+68719476736 | IDENTIFIER | pb
+68719476737 | IDENTIFIER | url
+68719476738 | IDENTIFIER | flags
+68719476739 | IDENTIFIER | s
+68719476740 | IDENTIFIER | options
+68719476741 | IDENTIFIER | s
+68719476742 | IDENTIFIER | s
+107374182400 | METHOD | 
+        static int io_open_default(AVFormatContext *s, AVIOContext **pb,
+                           const char *url, int flags, AVDictionary **options)
+{
+#if FF_API_OLD_OPEN_CALLBACKS
+FF_DISABLE_DEPRECATION_WARNINGS
+    if (s->open_cb)
+        return s->open_cb(s, pb, url, flags, &s->interrupt_callback, options);
+FF_ENABLE_DEPRECATION_WARNINGS
+#endif
+    return ffio_open_whitelist(pb, url, flags, &s->interrupt_callback, options, s->protocol_whitelist, s->protocol_blacklist);
+}
+      
+111669149696 | METHOD_PARAMETER_IN | AVFormatContext *s
+111669149697 | METHOD_PARAMETER_IN | AVIOContext **pb
+111669149698 | METHOD_PARAMETER_IN | const char *url
+111669149699 | METHOD_PARAMETER_IN | int flags
+111669149700 | METHOD_PARAMETER_IN | AVDictionary **options
+115964116992 | METHOD_PARAMETER_OUT | AVFormatContext *s
+115964116993 | METHOD_PARAMETER_OUT | AVIOContext **pb
+115964116994 | METHOD_PARAMETER_OUT | const char *url
+115964116995 | METHOD_PARAMETER_OUT | int flags
+115964116996 | METHOD_PARAMETER_OUT | AVDictionary **options
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | 
+        return ffio_open_whitelist(pb, url, flags, &s->interrupt_callback, options, s->protocol_whitelist, s->protocol_blacklist);
+      
+EDGES:
+25769803776 -> 141733920768 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476738 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476740 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771076 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476740 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 30064771076 [AST]
+30064771072 -> 141733920768 [CFG]
+30064771072 -> 141733920768 [DOMINATE]
+30064771072 -> 30064771076 [POST_DOMINATE]
+30064771072 -> 141733920768 [REACHING_DEF]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 68719476737 [REACHING_DEF]
+30064771073 -> 68719476738 [REACHING_DEF]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771076 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 115964116992 [REACHING_DEF]
+30064771074 -> 68719476742 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476741 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771075 -> 115964116992 [REACHING_DEF]
+30064771075 -> 68719476736 [REACHING_DEF]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 55834574850 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 55834574850 [AST]
+30064771076 -> 30064771072 [CFG]
+30064771076 -> 30064771072 [DOMINATE]
+30064771076 -> 55834574850 [POST_DOMINATE]
+30064771076 -> 115964116992 [REACHING_DEF]
+30064771076 -> 68719476736 [REACHING_DEF]
+30064771076 -> 68719476737 [REACHING_DEF]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771072 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+55834574848 -> 30064771074 [CFG]
+55834574848 -> 30064771074 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int io_open_default(AVFormatContext *s, AVIOContext **pb,
+
+                           const char *url, int flags, AVDictionary **options)
+
+{
+
+    return avio_open2(pb, url, flags, &s->interrupt_callback, options);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

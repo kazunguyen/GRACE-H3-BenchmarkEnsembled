@@ -1,0 +1,225 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void revert_acfilter(WmallDecodeCtx *s, int tile_size)
+
+{
+
+    int ich, pred, i, j;
+
+    int16_t *filter_coeffs = s->acfilter_coeffs;
+
+    int scaling            = s->acfilter_scaling;
+
+    int order              = s->acfilter_order;
+
+
+
+    for (ich = 0; ich < s->num_channels; ich++) {
+
+        int *prevvalues = s->acfilter_prevvalues[ich];
+
+        for (i = 0; i < order; i++) {
+
+            pred = 0;
+
+            for (j = 0; j < order; j++) {
+
+                if (i <= j)
+
+                    pred += filter_coeffs[j] * prevvalues[j - i];
+
+                else
+
+                    pred += s->channel_residues[ich][i - j - 1] * filter_coeffs[j];
+
+            }
+
+            pred >>= scaling;
+
+            s->channel_residues[ich][i] += pred;
+
+        }
+
+        for (i = order; i < tile_size; i++) {
+
+            pred = 0;
+
+            for (j = 0; j < order; j++)
+
+                pred += s->channel_residues[ich][i - j - 1] * filter_coeffs[j];
+
+            pred >>= scaling;
+
+            s->channel_residues[ich][i] += pred;
+
+        }
+
+        for (j = 0; j < order; j++)
+
+            prevvalues[j] = s->channel_residues[ich][tile_size - j - 1];
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+45 -> 50 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+45 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+71 -> 76 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+71 -> 80 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void revert_cdlms(WmallDecodeCtx *s, int tile_size)
+
+{
+
+    int icoef, ich;
+
+    int32_t pred, channel_coeff;
+
+    int ilms, num_lms;
+
+
+
+    for (ich = 0; ich < s->num_channels; ich++) {
+
+        if (!s->is_channel_coded[ich])
+
+            continue;
+
+        for (icoef = 0; icoef < tile_size; icoef++) {
+
+            num_lms = s->cdlms_ttl[ich];
+
+            channel_coeff = s->channel_residues[ich][icoef];
+
+            if (icoef == s->transient_pos[ich]) {
+
+                s->transient[ich] = 1;
+
+                use_high_update_speed(s, ich);
+
+            }
+
+            for (ilms = num_lms; ilms >= 0; ilms--) {
+
+                pred = lms_predict(s, ich, ilms);
+
+                channel_coeff += pred;
+
+                lms_update(s, ich, ilms, channel_coeff, pred);
+
+            }
+
+            if (s->transient[ich]) {
+
+                --s->channel[ich].transient_counter;
+
+                if(!s->channel[ich].transient_counter)
+
+                    use_normal_update_speed(s, ich);
+
+            }
+
+            s->channel_coeffs[ich][icoef] = channel_coeff;
+
+        }
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

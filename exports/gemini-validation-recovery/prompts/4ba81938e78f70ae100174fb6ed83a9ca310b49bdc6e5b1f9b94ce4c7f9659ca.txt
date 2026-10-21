@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( ProfileBrowserTest , DISABLED_CreateNewProfileAsynchronous ) {
+ base : : ScopedTempDir temp_dir ;
+ ASSERT_TRUE ( temp_dir . CreateUniqueTempDir ( ) ) ;
+ MockProfileDelegate delegate ;
+ EXPECT_CALL ( delegate , OnProfileCreated ( testing : : NotNull ( ) , true , true ) ) ;
+ {
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_PROFILE_CREATED , content : : NotificationService : : AllSources ( ) ) ;
+ std : : unique_ptr < Profile > profile ( CreateProfile ( temp_dir . path ( ) , & delegate , Profile : : CREATE_MODE_ASYNCHRONOUS ) ) ;
+ observer . Wait ( ) ;
+ CheckChromeVersion ( profile . get ( ) , true ) ;
+ }
+ FlushIoTaskRunnerAndSpinThreads ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ base : : ScopedTempDir temp_dir ;
+ ASSERT_TRUE ( temp_dir . CreateUniqueTempDir ( ) ) ;
+ MockProfileDelegate delegate ;
+ EXPECT_CALL ( delegate , OnProfileCreated ( testing : : NotNull ( ) , true , true ) ) ;
+ {
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_PROFILE_CREATED , content : : NotificationService : : AllSources ( ) ) ;
+ std : : unique_ptr < Profile > profile ( CreateProfile ( temp_dir . path ( ) , & delegate , Profile : : CREATE_MODE_ASYNCHRONOUS ) ) ;
+ observer . Wait ( ) ;
+ CheckChromeVersion ( profile . get ( ) , true ) ;
+ }
+ FlushIoTaskRunnerAndSpinThreads ( ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_PROFILE_CREATED , content : : NotificationService : : AllSources ( ) ) ;
+ std : : unique_ptr < Profile > profile ( CreateProfile ( temp_dir . path ( ) , & delegate , Profile : : CREATE_MODE_ASYNCHRONOUS ) ) ;
+ observer . Wait ( ) ;
+ CheckChromeVersion ( profile . get ( ) , true ) ;
+ }
+      
+30064771072 | CALL | ASSERT_TRUE ( temp_dir . CreateUniqueTempDir ( ) )
+30064771073 | CALL | temp_dir . CreateUniqueTempDir ( )
+30064771074 | CALL | temp_dir . CreateUniqueTempDir
+30064771075 | CALL | observer . Wait ( )
+30064771076 | CALL | observer . Wait
+30064771077 | CALL | CheckChromeVersion ( profile . get ( ) , true )
+30064771078 | CALL | profile . get ( )
+30064771079 | CALL | profile . get
+30064771080 | CALL | FlushIoTaskRunnerAndSpinThreads ( )
+55834574848 | FIELD_IDENTIFIER | CreateUniqueTempDir
+55834574849 | FIELD_IDENTIFIER | Wait
+55834574850 | FIELD_IDENTIFIER | get
+68719476736 | IDENTIFIER | <unknown> temp_dir
+68719476737 | IDENTIFIER | <unknown> observer
+68719476738 | IDENTIFIER | <unknown> profile
+68719476739 | IDENTIFIER | <unknown> true
+94489280512 | LOCAL | MockProfileDelegate delegate
+94489280513 | LOCAL | <unknown> true
+94489280514 | LOCAL | <unknown> profile
+94489280515 | LOCAL | <unknown> observer
+94489280516 | LOCAL | <unknown> temp_dir
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( ProfileBrowserTest , DISABLED_CreateNewProfileAsynchronous ) {
+ base : : ScopedTempDir temp_dir ;
+ ASSERT_TRUE ( temp_dir . CreateUniqueTempDir ( ) ) ;
+ MockProfileDelegate delegate ;
+ EXPECT_CALL ( delegate , OnProfileCreated ( testing : : NotNull ( ) , true , true ) ) ;
+ {
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_PROFILE_CREATED , content : : NotificationService : : AllSources ( ) ) ;
+ std : : unique_ptr < Profile > profile ( CreateProfile ( temp_dir . path ( ) , & delegate , Profile : : CREATE_MODE_ASYNCHRONOUS ) ) ;
+ observer . Wait ( ) ;
+ CheckChromeVersion ( profile . get ( ) , true ) ;
+ }
+ FlushIoTaskRunnerAndSpinThreads ( ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | ProfileBrowserTest
+111669149697 | METHOD_PARAMETER_IN | DISABLED_CreateNewProfileAsynchronous
+115964116992 | METHOD_PARAMETER_OUT | ProfileBrowserTest
+115964116993 | METHOD_PARAMETER_OUT | DISABLED_CreateNewProfileAsynchronous
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771080 [CFG]
+25769803777 -> 30064771080 [DOMINATE]
+25769803777 -> 30064771077 [POST_DOMINATE]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 25769803777 [CFG]
+30064771077 -> 25769803777 [DOMINATE]
+30064771077 -> 68719476739 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476739 [CFG]
+30064771078 -> 68719476739 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [RECEIVER]
+30064771079 -> 68719476738 [ARGUMENT]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 68719476738 [AST]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771080 -> 124554051584 [CFG]
+30064771080 -> 124554051584 [DOMINATE]
+30064771080 -> 25769803777 [POST_DOMINATE]
+30064771080 -> 124554051584 [REACHING_DEF]
+55834574848 -> 30064771074 [CFG]
+55834574848 -> 30064771074 [DOMINATE]
+55834574848 -> 68719476736 [POST_DOMINATE]
+55834574849 -> 30064771076 [CFG]
+55834574849 -> 30064771076 [DOMINATE]
+55834574849 -> 68719476737 [POST_DOMINATE]
+55834574850 -> 30064771079 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+IN_PROC_BROWSER_TEST_F ( ProfileBrowserTest , DISABLED_ProfileReadmeCreated ) {
+ base : : ScopedTempDir temp_dir ;
+ ASSERT_TRUE ( temp_dir . CreateUniqueTempDir ( ) ) ;
+ MockProfileDelegate delegate ;
+ EXPECT_CALL ( delegate , OnProfileCreated ( testing : : NotNull ( ) , true , true ) ) ;
+ {
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_PROFILE_CREATED , content : : NotificationService : : AllSources ( ) ) ;
+ std : : unique_ptr < Profile > profile ( CreateProfile ( temp_dir . path ( ) , & delegate , Profile : : CREATE_MODE_ASYNCHRONOUS ) ) ;
+ observer . Wait ( ) ;
+ EXPECT_TRUE ( base
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

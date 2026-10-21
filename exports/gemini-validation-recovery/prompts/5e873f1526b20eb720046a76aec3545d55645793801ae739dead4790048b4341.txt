@@ -1,0 +1,228 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+EC_KEY * d2i_ECPrivateKey ( EC_KEY * * a , const unsigned char * * in , long len ) {
+ int ok = 0 ;
+ EC_KEY * ret = NULL ;
+ EC_PRIVATEKEY * priv_key = NULL ;
+ if ( ( priv_key = EC_PRIVATEKEY_new ( ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ;
+ return NULL ;
+ }
+ if ( ( priv_key = d2i_EC_PRIVATEKEY ( & priv_key , in , len ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ EC_PRIVATEKEY_free ( priv_key ) ;
+ return NULL ;
+ }
+ if ( a == NULL || * a == NULL ) {
+ if ( ( ret = EC_KEY_new ( ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( a ) * a = ret ;
+ }
+ else ret = * a ;
+ if ( priv_key -> parameters ) {
+ if ( ret -> group ) EC_GROUP_clear_free ( ret -> group ) ;
+ ret -> group = ec_asn1_pkparameters2group ( priv_key -> parameters ) ;
+ }
+ if ( ret -> group == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ ret -> version = priv_key -> version ;
+ if ( priv_key -> privateKey ) {
+ ret -> priv_key = BN_bin2bn ( M_ASN1_STRING_data ( priv_key -> privateKey ) , M_ASN1_STRING_length ( priv_key -> privateKey ) , ret -> priv_key ) ;
+ if ( ret -> priv_key == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_BN_LIB ) ;
+ goto err ;
+ }
+ }
+ else {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , EC_R_MISSING_PRIVATE_KEY ) ;
+ goto err ;
+ }
+ if ( priv_key -> publicKey ) {
+ const unsigned char * pub_oct ;
+ size_t pub_oct_len ;
+ if ( ret -> pub_key ) EC_POINT_clear_free ( ret -> pub_key ) ;
+ ret -> pub_key = EC_POINT_new ( ret -> group ) ;
+ if ( ret -> pub_key == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ pub_oct = M_ASN1_STRING_data ( priv_key -> publicKey ) ;
+ pub_oct_len = M_ASN1_STRING_length ( priv_key -> publicKey ) ;
+ ret -> conv_form = ( point_conversion_form_t ) ( pub_oct [ 0 ] & ~ 0x01 ) ;
+ if ( ! EC_POINT_oct2point ( ret -> group , ret -> pub_key , pub_oct , pub_oct_len , NULL ) ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ }
+ ok = 1 ;
+ err : if ( ! ok ) {
+ if ( ret ) EC_KEY_free ( ret ) ;
+ ret = NULL ;
+ }
+ if ( priv_key ) EC_PRIVATEKEY_free ( priv_key ) ;
+ return ( ret ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ok = 0 ;
+ EC_KEY * ret = NULL ;
+ EC_PRIVATEKEY * priv_key = NULL ;
+ if ( ( priv_key = EC_PRIVATEKEY_new ( ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ;
+ return NULL ;
+ }
+ if ( ( priv_key = d2i_EC_PRIVATEKEY ( & priv_key , in , len ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ EC_PRIVATEKEY_free ( priv_key ) ;
+ return NULL ;
+ }
+ if ( a == NULL || * a == NULL ) {
+ if ( ( ret = EC_KEY_new ( ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( a ) * a = ret ;
+ }
+ else ret = * a ;
+ if ( priv_key -> parameters ) {
+ if ( ret -> group ) EC_GROUP_clear_free ( ret -> group ) ;
+ ret -> group = ec_asn1_pkparameters2group ( priv_key -> parameters ) ;
+ }
+ if ( ret -> group == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ ret -> version = priv_key -> version ;
+ if ( priv_key -> privateKey ) {
+ ret -> priv_key = BN_bin2bn ( M_ASN1_STRING_data ( priv_key -> privateKey ) , M_...
+      
+25769803777 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ; return NULL ; }
+25769803778 | BLOCK | 
+        {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ EC_PRIVATEKEY_free ( priv_key ) ;
+ return NULL ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( ( ret = EC_KEY_new ( ) ) == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( a ) * a = ret ;
+ }
+      
+25769803780 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( ret -> group ) EC_GROUP_clear_free ( ret -> group ) ;
+ ret -> group = ec_asn1_pkparameters2group ( priv_key -> parameters ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ; goto err ; }
+25769803786 | BLOCK | 
+        {
+ ret -> priv_key = BN_bin2bn ( M_ASN1_STRING_data ( priv_key -> privateKey ) , M_ASN1_STRING_length ( priv_key -> privateKey ) , ret -> priv_key ) ;
+ if ( ret -> priv_key == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_BN_LIB ) ;
+ goto err ;
+ }
+ }
+      
+25769803787 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_BN_LIB ) ; goto err ; }
+25769803788 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , EC_R_MISSING_PRIVATE_KEY ) ; goto err ; }
+25769803789 | BLOCK | 
+        {
+ const unsigned char * pub_oct ;
+ size_t pub_oct_len ;
+ if ( ret -> pub_key ) EC_POINT_clear_free ( ret -> pub_key ) ;
+ ret -> pub_key = EC_POINT_new ( ret -> group ) ;
+ if ( ret -> pub_key == NULL ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ pub_oct = M_ASN1_STRING_data ( priv_key -> publicKey ) ;
+ pub_oct_len = M_ASN1_STRING_length ( priv_key -> publicKey ) ;
+ ret -> conv_form = ( point_conversion_form_t ) ( pub_oct [ 0 ] & ~ 0x01 ) ;
+ if ( ! EC_POINT_oct2point ( ret -> group , ret -> pub_key , pub_oct , pub_oct_len , NULL ) ) {
+ ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ; goto err ; }
+25769803792 | BLOCK | { ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB ) ; goto err ; }
+25769803793 | BLOCK | { if ( ret ) EC_KEY_free ( ret ) ; ret = NULL ; }
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+30064771072 | CALL | ok = 0
+30064771073 | CALL | ret = NULL
+30064771074 | CALL | priv_key = NULL
+30064771075 | CALL | ( priv_key = EC_PRIVATEKEY_new ( ) ) == NULL
+30064771076 | CALL | priv_key = EC_PRIVATEKEY_new ( )
+30064771077 | CALL | EC_PRIVATEKEY_new ( )
+30064771078 | CALL | ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_MALLOC_FAILURE )
+30064771079 | CALL | ( priv_key = d2i_EC_PRIVATEKEY ( & priv_key , in , len ) ) == NULL
+30064771080 | CALL | priv_key = d2i_EC_PRIVATEKEY ( & priv_key , in , len )
+30064771081 | CALL | d2i_EC_PRIVATEKEY ( & priv_key , in , len )
+30064771082 | CALL | & priv_key
+30064771083 | CALL | ECerr ( EC_F_D2I_ECPRIVATEKEY , ERR_R_EC_LIB )
+30064771084 | CALL | EC_PRIVATEKEY_free ( priv_key )
+30064771085 | CALL | a == NULL || * a == NULL
+30064771086 | CALL | a == NULL
+30064771087 | CALL | * a == NULL
+30064771088 | CALL | * a
+30064771089 | CALL | ( ret = EC_KEY_new ( ) ) == NULL
+30064771090 | CALL | ret = EC_KEY_new ( )
+30064771091 | CALL | EC_KEY_new ( )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771084 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

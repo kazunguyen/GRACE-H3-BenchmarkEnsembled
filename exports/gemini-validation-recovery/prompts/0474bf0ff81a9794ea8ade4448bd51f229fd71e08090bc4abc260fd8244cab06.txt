@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ztoken_get_scanner_option ( const ref * psref , int options , const char * * pname ) {
+ const named_scanner_option_t * pnso ;
+ for ( pnso = named_options + countof ( named_options ) ;
+ pnso -- != named_options ;
+ ) {
+ if ( ! bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) ) ) {
+ * pname = pnso -> pname ;
+ return ( options & pnso -> option ? 1 : 0 ) ;
+ }
+ }
+ return - 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const named_scanner_option_t * pnso ;
+ for ( pnso = named_options + countof ( named_options ) ;
+ pnso -- != named_options ;
+ ) {
+ if ( ! bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) ) ) {
+ * pname = pnso -> pname ;
+ return ( options & pnso -> option ? 1 : 0 ) ;
+ }
+ }
+ return - 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) ) ) {
+ * pname = pnso -> pname ;
+ return ( options & pnso -> option ? 1 : 0 ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ * pname = pnso -> pname ;
+ return ( options & pnso -> option ? 1 : 0 ) ;
+ }
+      
+30064771072 | CALL | pnso = named_options + countof ( named_options )
+30064771073 | CALL | named_options + countof ( named_options )
+30064771074 | CALL | countof ( named_options )
+30064771075 | CALL | pnso -- != named_options
+30064771076 | CALL | pnso --
+30064771077 | CALL | 
+        ! bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) )
+      
+30064771078 | CALL | 
+        bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) )
+      
+30064771079 | CALL | ( const byte * ) pnso -> pname
+30064771080 | CALL | pnso -> pname
+30064771081 | CALL | strlen ( pnso -> pname )
+30064771082 | CALL | pnso -> pname
+30064771083 | CALL | psref -> value . const_bytes
+30064771084 | CALL | psref -> value
+30064771085 | CALL | r_size ( psref )
+30064771086 | CALL | * pname = pnso -> pname
+30064771087 | CALL | * pname
+30064771088 | CALL | pnso -> pname
+30064771089 | CALL | options & pnso -> option ? 1 : 0
+30064771090 | CALL | options & pnso -> option
+30064771091 | CALL | pnso -> option
+30064771092 | CALL | - 1
+47244640256 | CONTROL_STRUCTURE | 
+        for (pnso = named_options + countof ( named_options ) ;pnso -- != named_options;)
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! bytes_compare ( ( const byte * ) pnso -> pname , strlen ( pnso -> pname ) , psref -> value . const_bytes , r_size ( psref ) ) ) {
+ * pname = pnso -> pname ;
+ return ( options & pnso -> option ? 1 : 0 ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | pname
+55834574849 | FIELD_IDENTIFIER | pname
+55834574850 | FIELD_IDENTIFIER | value
+55834574851 | FIELD_IDENTIFIER | const_bytes
+55834574852 | FIELD_IDENTIFIER | pname
+55834574853 | FIELD_IDENTIFIER | option
+68719476736 | IDENTIFIER | pnso
+68719476737 | IDENTIFIER | <unknown> named_options
+68719476738 | IDENTIFIER | <unknown> named_options
+68719476739 | IDENTIFIER | pnso
+68719476740 | IDENTIFIER | <unknown> named_options
+68719476741 | IDENTIFIER | pnso
+68719476742 | IDENTIFIER | pnso
+68719476743 | IDENTIFIER | psref
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 55834574849 [CDG]
+30064771075 -> 55834574850 [CDG]
+30064771075 -> 55834574851 [CDG]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 30064771092 [CDG]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574853 [CDG]
+30064771077 -> 55834574852 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771075 [CDG]
+30064771077 -> 30064771076 [CDG]
+30064771077 -> 68719476740 [CDG]
+30064771077 -> 68719476739 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 68719476739 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771083 [ARGUMENT]
+30064771078 -> 30064771085 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771083 [AST]
+30064771078 -> 30064771085 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dnslabel_table_get_pos ( const struct dnslabel_table * table , const char * label ) {
+ int i ;
+ for ( i = 0 ;
+ i < table -> n_labels ;
+ ++ i ) {
+ if ( ! strcmp ( label , table -> labels [ i ] . v ) ) return table -> labels [ i ] . pos ;
+ }
+ return - 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

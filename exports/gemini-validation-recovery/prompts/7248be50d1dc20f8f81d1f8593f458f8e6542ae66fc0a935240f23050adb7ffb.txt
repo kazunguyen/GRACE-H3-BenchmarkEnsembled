@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void prplcb_buddy_typing ( PurpleAccount * account , const char * who , gpointer null ) {
+ PurpleConversation * conv ;
+ PurpleConvIm * im ;
+ int state ;
+ if ( ( conv = purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account ) ) == NULL ) {
+ return ;
+ }
+ im = PURPLE_CONV_IM ( conv ) ;
+ switch ( purple_conv_im_get_typing_state ( im ) ) {
+ case PURPLE_TYPING : state = OPT_TYPING ;
+ break ;
+ case PURPLE_TYPED : state = OPT_THINKING ;
+ break ;
+ default : state = 0 ;
+ }
+ imcb_buddy_typing ( purple_ic_by_pa ( account ) , who , state ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PurpleConversation * conv ;
+ PurpleConvIm * im ;
+ int state ;
+ if ( ( conv = purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account ) ) == NULL ) {
+ return ;
+ }
+ im = PURPLE_CONV_IM ( conv ) ;
+ switch ( purple_conv_im_get_typing_state ( im ) ) {
+ case PURPLE_TYPING : state = OPT_TYPING ;
+ break ;
+ case PURPLE_TYPED : state = OPT_THINKING ;
+ break ;
+ default : state = 0 ;
+ }
+ imcb_buddy_typing ( purple_ic_by_pa ( account ) , who , state ) ;
+ }
+      
+25769803777 | BLOCK | { return ; }
+25769803778 | BLOCK | 
+        {
+ case PURPLE_TYPING : state = OPT_TYPING ;
+ break ;
+ case PURPLE_TYPED : state = OPT_THINKING ;
+ break ;
+ default : state = 0 ;
+ }
+      
+30064771072 | CALL | 
+        ( conv = purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account ) ) == NULL
+      
+30064771073 | CALL | 
+        conv = purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account )
+      
+30064771074 | CALL | purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account )
+30064771075 | CALL | im = PURPLE_CONV_IM ( conv )
+30064771076 | CALL | PURPLE_CONV_IM ( conv )
+30064771077 | CALL | purple_conv_im_get_typing_state ( im )
+30064771078 | CALL | state = OPT_TYPING
+30064771079 | CALL | state = OPT_THINKING
+30064771080 | CALL | state = 0
+30064771081 | CALL | imcb_buddy_typing ( purple_ic_by_pa ( account ) , who , state )
+30064771082 | CALL | purple_ic_by_pa ( account )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( conv = purple_find_conversation_with_account ( PURPLE_CONV_TYPE_IM , who , account ) ) == NULL ) {
+ return ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        switch ( purple_conv_im_get_typing_state ( im ) ) {
+ case PURPLE_TYPING : state = OPT_TYPING ;
+ break ;
+ case PURPLE_TYPED : state = OPT_THINKING ;
+ break ;
+ default : state = 0 ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+68719476736 | IDENTIFIER | conv
+68719476737 | IDENTIFIER | <unknown> PURPLE_CONV_TYPE_IM
+68719476738 | IDENTIFIER | who
+68719476739 | IDENTIFIER | account
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | im
+68719476742 | IDENTIFIER | conv
+68719476743 | IDENTIFIER | im
+68719476744 | IDENTIFIER | <unknown> PURPLE_TYPING
+68719476745 | IDENTIFIER | state
+68719476746 | IDENTIFIER | <unknown> OPT_TYPING
+68719476747 | IDENTIFIER | <unknown> PURPLE_TYPED
+68719476748 | IDENTIFIER | state
+68719476749 | IDENTIFIER | <unknown> OPT_THINKING
+68719476750 | IDENTIFIER | state
+68719476751 | IDENTIFIER | account
+68719476752 | IDENTIFIER | who
+68719476753 | IDENTIFIER | state
+81604378624 | JUMP_TARGET | case PURPLE_TYPING :
+81604378625 | JUMP_TARGET | case PURPLE_TYPED :
+81604378626 | JUMP_TARGET | default :
+90194313216 | LITERAL | 0
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771081 [AST]
+25769803778 -> 81604378624 [AST]
+25769803778 -> 68719476744 [AST]
+25769803778 -> 30064771078 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 81604378625 [AST]
+25769803778 -> 68719476747 [AST]
+25769803778 -> 30064771079 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 81604378626 [AST]
+25769803778 -> 30064771080 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476740 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476740 [AST]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476753 [CDG]
+30064771072 -> 68719476752 [CDG]
+30064771072 -> 68719476751 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 68719476741 [CFG]
+30064771072 -> 68719476741 [DOMINATE]
+30064771072 -> 68719476740 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476736 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476743 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 47244640259 [CDG]
+30064771077 -> 47244640258 [CDG]
+30064771077 -> 81604378626 [CDG]
+30064771077 -> 81604378625 [CDG]
+30064771077 -> 81604378624 [CDG]
+30064771077 -> 90194313216 [CDG]
+30064771077 -> 68719476750 [CDG]
+30064771077 -> 68719476749 [CDG]
+30064771077 -> 68719476748 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476745 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void prplcb_conv_msg ( PurpleConversation * conv , const char * who , const char * message , PurpleMessageFlags flags , time_t mtime ) {
+ if ( ! ( flags & PURPLE_MESSAGE_SEND ) ) {
+ handle_conv_msg ( conv , who , message , 0 , mtime ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

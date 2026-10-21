@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gint dissect_rtmpt_body_command ( tvbuff_t * tvb , gint offset , proto_tree * rtmpt_tree , gboolean amf3 ) {
+ gboolean amf3_encoding = FALSE ;
+ if ( amf3 ) {
+ offset ++ ;
+ }
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ if ( amf3_encoding ) offset = dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL ) ;
+ else offset = dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL ) ;
+ }
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gboolean amf3_encoding = FALSE ;
+ if ( amf3 ) {
+ offset ++ ;
+ }
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ if ( amf3_encoding ) offset = dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL ) ;
+ else offset = dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL ) ;
+ }
+ return offset ;
+ }
+      
+25769803777 | BLOCK | { offset ++ ; }
+25769803778 | BLOCK | 
+        {
+ if ( amf3_encoding ) offset = dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL ) ;
+ else offset = dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | amf3_encoding = FALSE
+30064771073 | CALL | amf3 != 0
+30064771074 | CALL | offset ++
+30064771075 | CALL | tvb_reported_length_remaining ( tvb , offset ) > 0
+30064771076 | CALL | tvb_reported_length_remaining ( tvb , offset )
+30064771077 | CALL | amf3_encoding != 0
+30064771078 | CALL | offset = dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL )
+30064771079 | CALL | dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL )
+30064771080 | CALL | 
+        offset = dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL )
+      
+30064771081 | CALL | dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL )
+30064771082 | CALL | & amf3_encoding
+47244640256 | CONTROL_STRUCTURE | if ( amf3 ) { offset ++ ; }
+47244640257 | CONTROL_STRUCTURE | while (tvb_reported_length_remaining ( tvb , offset ) > 0)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( amf3_encoding ) offset = dissect_amf3_value_type ( tvb , offset , rtmpt_tree , NULL ) ;
+ else offset = dissect_amf0_value_type ( tvb , offset , rtmpt_tree , & amf3_encoding , NULL ) ;
+      
+68719476736 | IDENTIFIER | amf3_encoding
+68719476737 | IDENTIFIER | <unknown> FALSE
+68719476738 | IDENTIFIER | amf3
+68719476739 | IDENTIFIER | offset
+68719476740 | IDENTIFIER | tvb
+68719476741 | IDENTIFIER | offset
+68719476742 | IDENTIFIER | amf3_encoding
+68719476743 | IDENTIFIER | offset
+68719476744 | IDENTIFIER | tvb
+68719476745 | IDENTIFIER | offset
+68719476746 | IDENTIFIER | rtmpt_tree
+68719476747 | IDENTIFIER | <unknown> NULL
+68719476748 | IDENTIFIER | offset
+68719476749 | IDENTIFIER | tvb
+68719476750 | IDENTIFIER | offset
+68719476751 | IDENTIFIER | rtmpt_tree
+68719476752 | IDENTIFIER | amf3_encoding
+68719476753 | IDENTIFIER | <unknown> NULL
+68719476754 | IDENTIFIER | offset
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803777 -> 30064771074 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771078 [AST]
+25769803780 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 68719476739 [CDG]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 90194313217 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476754 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 68719476754 [DOMINATE]
+30064771075 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 90194313217 [CFG]
+30064771076 -> 90194313217 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476753 [CDG]
+30064771077 -> 68719476752 [CDG]
+30064771077 -> 68719476751 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 68719476750 [CDG]
+30064771077 -> 68719476749 [CDG]
+30064771077 -> 68719476748 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476748 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476748 [DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476740 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static gboolean is_last_sysex_packet_in_tvb ( tvbuff_t * tvb , gint offset ) {
+ gboolean last = TRUE ;
+ gint length = tvb_reported_length ( tvb ) ;
+ offset += 4 ;
+ while ( offset < length ) {
+ guint8 code = tvb_get_guint8 ( tvb , offset ) ;
+ code &= 0x0F ;
+ if ( is_sysex_code ( code ) ) {
+ last = FALSE ;
+ break ;
+ }
+ offset += 4 ;
+ }
+ return last ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

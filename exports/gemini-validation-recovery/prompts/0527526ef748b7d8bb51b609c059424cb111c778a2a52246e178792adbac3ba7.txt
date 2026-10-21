@@ -1,0 +1,267 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void set_partition_range ( VP9_COMMON * cm , MACROBLOCKD * xd , int mi_row , int mi_col , BLOCK_SIZE bsize , BLOCK_SIZE * min_bs , BLOCK_SIZE * max_bs ) {
+ int mi_width = num_8x8_blocks_wide_lookup [ bsize ] ;
+ int mi_height = num_8x8_blocks_high_lookup [ bsize ] ;
+ int idx , idy ;
+ MODE_INFO * mi ;
+ MODE_INFO * * prev_mi = & cm -> prev_mi_grid_visible [ mi_row * cm -> mi_stride + mi_col ] ;
+ BLOCK_SIZE bs , min_size , max_size ;
+ min_size = BLOCK_64X64 ;
+ max_size = BLOCK_4X4 ;
+ if ( prev_mi ) {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = prev_mi [ idy * cm -> mi_stride + idx ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ }
+ if ( xd -> left_available ) {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ mi = xd -> mi [ idy * cm -> mi_stride - 1 ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ if ( xd -> up_available ) {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = xd -> mi [ idx - cm -> mi_stride ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ if ( min_size == max_size ) {
+ min_size = min_partition_size [ min_size ] ;
+ max_size = max_partition_size [ max_size ] ;
+ }
+ * min_bs = min_size ;
+ * max_bs = max_size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int mi_width = num_8x8_blocks_wide_lookup [ bsize ] ;
+ int mi_height = num_8x8_blocks_high_lookup [ bsize ] ;
+ int idx , idy ;
+ MODE_INFO * mi ;
+ MODE_INFO * * prev_mi = & cm -> prev_mi_grid_visible [ mi_row * cm -> mi_stride + mi_col ] ;
+ BLOCK_SIZE bs , min_size , max_size ;
+ min_size = BLOCK_64X64 ;
+ max_size = BLOCK_4X4 ;
+ if ( prev_mi ) {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = prev_mi [ idy * cm -> mi_stride + idx ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ }
+ if ( xd -> left_available ) {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ mi = xd -> mi [ idy * cm -> mi_stride - 1 ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ if ( xd -> up_available ) {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = xd -> mi [ idx - cm -> mi_stride ] ;
+ bs = mi ? mi -> ...
+      
+25769803777 | BLOCK | 
+        {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = prev_mi [ idy * cm -> mi_stride + idx ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = prev_mi [ idy * cm -> mi_stride + idx ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ mi = prev_mi [ idy * cm -> mi_stride + idx ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ for ( idy = 0 ;
+ idy < mi_height ;
+ ++ idy ) {
+ mi = xd -> mi [ idy * cm -> mi_stride - 1 ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ mi = xd -> mi [ idy * cm -> mi_stride - 1 ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ for ( idx = 0 ;
+ idx < mi_width ;
+ ++ idx ) {
+ mi = xd -> mi [ idx - cm -> mi_stride ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ mi = xd -> mi [ idx - cm -> mi_stride ] ;
+ bs = mi ? mi -> mbmi . sb_type : bsize ;
+ min_size = MIN ( min_size , bs ) ;
+ max_size = MAX ( max_size , bs ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ min_size = min_partition_size [ min_size ] ;
+ max_size = max_partition_size [ max_size ] ;
+ }
+      
+30064771072 | CALL | mi_width = num_8x8_blocks_wide_lookup [ bsize ]
+30064771073 | CALL | num_8x8_blocks_wide_lookup [ bsize ]
+30064771074 | CALL | mi_height = num_8x8_blocks_high_lookup [ bsize ]
+30064771075 | CALL | num_8x8_blocks_high_lookup [ bsize ]
+30064771076 | CALL | 
+        * prev_mi = & cm -> prev_mi_grid_visible [ mi_row * cm -> mi_stride + mi_col ]
+      
+30064771077 | CALL | & cm -> prev_mi_grid_visible [ mi_row * cm -> mi_stride + mi_col ]
+30064771078 | CALL | cm -> prev_mi_grid_visible [ mi_row * cm -> mi_stride + mi_col ]
+30064771079 | CALL | cm -> prev_mi_grid_visible
+30064771080 | CALL | mi_row * cm -> mi_stride + mi_col
+30064771081 | CALL | mi_row * cm -> mi_stride
+30064771082 | CALL | cm -> mi_stride
+30064771083 | CALL | min_size = BLOCK_64X64
+30064771084 | CALL | max_size = BLOCK_4X4
+30064771085 | CALL | prev_mi != NULL
+30064771086 | CALL | idy = 0
+30064771087 | CALL | idy < mi_height
+30064771088 | CALL | ++ idy
+30064771089 | CALL | idx = 0
+30064771090 | CALL | idx < mi_width
+30064771091 | CALL | ++ idx
+30064771092 | CALL | mi = prev_mi [ idy * cm -> mi_stride + idx ]
+30064771093 | CALL | prev_mi [ idy * cm -> mi_stride + idx ]
+30064771094 | CALL | idy * cm -> mi_stride + idx
+30064771095 | CALL | idy * cm -> mi_stride
+30064771096 | CALL | cm -> mi_stride
+30064771097 | CALL | bs = mi ? mi -> mbmi . sb_type : bsize
+30064771098 | CALL | mi ? mi -> mbmi . sb_type : bsize
+30064771099 | CALL | mi -> mbmi . sb_type
+30064771100 | CALL | mi -> mbmi
+30064771101 | CALL | min_size = MIN ( min_size , bs )
+30064771102 | CALL | MIN ( min_size , bs )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803779 -> 30064771092 [AST]
+25769803779 -> 30064771097 [AST]
+25769803779 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

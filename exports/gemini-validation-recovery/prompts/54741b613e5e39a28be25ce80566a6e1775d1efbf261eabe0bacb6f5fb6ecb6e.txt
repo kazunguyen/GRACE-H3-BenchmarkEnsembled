@@ -1,0 +1,138 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( ClientHintsBrowserTest , ClientHintsHttpsSubresourceDifferentOrigin ) {
+ base : : HistogramTester histogram_tester ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , accept_ch_with_lifetime_url ( ) ) ;
+ histogram_tester . ExpectUniqueSample ( "ClientHints.UpdateEventCount" , 1 , 1 ) ;
+ ContentSettingsForOneType client_hints_settings ;
+ HostContentSettingsMap * host_content_settings_map = HostContentSettingsMapFactory : : GetForProfile ( browser ( ) -> profile ( ) ) ;
+ host_content_settings_map -> GetSettingsForOneType ( CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , & client_hints_settings ) ;
+ ASSERT_EQ ( 1U , client_hints_settings . size ( ) ) ;
+ host_content_settings_map -> SetWebsiteSettingDefaultScope ( GURL ( "https://foo.com/" ) , GURL ( ) , CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , std : : make_unique < base : : Value > ( client_hints_settings . at ( 0 ) . setting_value -> Clone ( ) ) ) ;
+ host_content_settings_map = HostContentSettingsMapFactory : : GetForProfile ( browser ( ) -> profile ( ) ) ;
+ host_content_settings_map -> GetSettingsForOneType ( CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , & client_hints_settings ) ;
+ ASSERT_EQ ( 2U , client_hints_settings . size ( ) ) ;
+ SetClientHintExpectationsOnMainFrame ( true ) ;
+ SetClientHintExpectationsOnSubresources ( true ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , without_accept_ch_without_lifetime_img_localhost ( ) ) ;
+ base : : RunLoop ( ) . RunUntilIdle ( ) ;
+ content : : FetchHistogramsFromChildProcesses ( ) ;
+ SubprocessMetricsProvider : : MergeHistogramDeltasForTesting ( ) ;
+ # if defined ( OS_ANDROID ) EXPECT_EQ ( 4u , count_client_hints_headers_seen ( ) ) ;
+ # else EXPECT_EQ ( 6u , count_client_hints_headers_seen ( ) ) ;
+ # endif ui_test_utils : : NavigateToURL ( browser ( ) , without_accept_ch_without_lifetime_img_foo_com ( ) ) ;
+ base : : RunLoop ( ) . RunUntilIdle ( ) ;
+ content : : FetchHistogramsFromChildProcesses ( ) ;
+ SubprocessMetricsProvider : : MergeHistogramDeltasForTesting ( ) ;
+ # if defined ( OS_ANDROID ) EXPECT_EQ ( 6u , count_client_hints_headers_seen ( ) ) ;
+ # else EXPECT_EQ ( 9u , count_client_hints_headers_seen ( ) ) ;
+ # endif EXPECT_EQ ( 1u , third_party_request_count_seen ( ) ) ;
+ EXPECT_EQ ( 0u , third_party_client_hints_count_seen ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ base : : HistogramTester histogram_tester ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , accept_ch_with_lifetime_url ( ) ) ;
+ histogram_tester . ExpectUniqueSample ( "ClientHints.UpdateEventCount" , 1 , 1 ) ;
+ ContentSettingsForOneType client_hints_settings ;
+ HostContentSettingsMap * host_content_settings_map = HostContentSettingsMapFactory : : GetForProfile ( browser ( ) -> profile ( ) ) ;
+ host_content_settings_map -> GetSettingsForOneType ( CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , & client_hints_settings ) ;
+ ASSERT_EQ ( 1U , client_hints_settings . size ( ) ) ;
+ host_content_settings_map -> SetWebsiteSettingDefaultScope ( GURL ( "https://foo.com/" ) , GURL ( ) , CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , std : : make_unique < base : : Value > ( client_hints_settings . at ( 0 ) . setting_value -> Clone ( ) ) ) ;
+ host_content_settings_map = HostContentSettingsMapFactory : : GetForProfile ( browser ( ) -> profile ( ) ) ;
+ host_content_settin...
+      
+30064771072 | CALL | 
+        histogram_tester . ExpectUniqueSample ( "ClientHints.UpdateEventCount" , 1 , 1 )
+      
+30064771073 | CALL | histogram_tester . ExpectUniqueSample
+30064771074 | CALL | host_content_settings_map = HostContentSettingsMapFactory
+30064771075 | CALL | ASSERT_EQ ( 1U , client_hints_settings . size ( ) )
+30064771076 | CALL | client_hints_settings . size ( )
+30064771077 | CALL | client_hints_settings . size
+30064771078 | CALL | host_content_settings_map = HostContentSettingsMapFactory
+30064771079 | CALL | ASSERT_EQ ( 2U , client_hints_settings . size ( ) )
+30064771080 | CALL | client_hints_settings . size ( )
+30064771081 | CALL | client_hints_settings . size
+30064771082 | CALL | SetClientHintExpectationsOnMainFrame ( true )
+30064771083 | CALL | SetClientHintExpectationsOnSubresources ( true )
+30064771084 | CALL | EXPECT_EQ ( 0u , third_party_client_hints_count_seen ( ) )
+30064771085 | CALL | third_party_client_hints_count_seen ( )
+55834574848 | FIELD_IDENTIFIER | ExpectUniqueSample
+55834574849 | FIELD_IDENTIFIER | size
+55834574850 | FIELD_IDENTIFIER | size
+68719476736 | IDENTIFIER | <unknown> histogram_tester
+68719476737 | IDENTIFIER | host_content_settings_map
+68719476738 | IDENTIFIER | <unknown> HostContentSettingsMapFactory
+68719476739 | IDENTIFIER | client_hints_settings
+68719476740 | IDENTIFIER | host_content_settings_map
+68719476741 | IDENTIFIER | <unknown> HostContentSettingsMapFactory
+68719476742 | IDENTIFIER | client_hints_settings
+68719476743 | IDENTIFIER | <unknown> true
+68719476744 | IDENTIFIER | <unknown> true
+90194313216 | LITERAL | "ClientHints.UpdateEventCount"
+90194313217 | LITERAL | 1
+90194313218 | LITERAL | 1
+90194313219 | LITERAL | 1U
+90194313220 | LITERAL | 2U
+90194313221 | LITERAL | 0u
+94489280512 | LOCAL | ContentSettingsForOneType client_hints_settings
+94489280513 | LOCAL | HostContentSettingsMap * host_content_settings_map
+94489280514 | LOCAL | <unknown> true
+94489280515 | LOCAL | <unknown> HostContentSettingsMapFactory
+94489280516 | LOCAL | <unknown> histogram_tester
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( ClientHintsBrowserTest , ClientHintsHttpsSubresourceDifferentOrigin ) {
+ base : : HistogramTester histogram_tester ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , accept_ch_with_lifetime_url ( ) ) ;
+ histogram_tester . ExpectUniqueSample ( "ClientHints.UpdateEventCount" , 1 , 1 ) ;
+ ContentSettingsForOneType client_hints_settings ;
+ HostContentSettingsMap * host_content_settings_map = HostContentSettingsMapFactory : : GetForProfile ( browser ( ) -> profile ( ) ) ;
+ host_content_settings_map -> GetSettingsForOneType ( CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , & client_hints_settings ) ;
+ ASSERT_EQ ( 1U , client_hints_settings . size ( ) ) ;
+ host_content_settings_map -> SetWebsiteSettingDefaultScope ( GURL ( "https://foo.com/" ) , GURL ( ) , CONTENT_SETTINGS_TYPE_CLIENT_HINTS , std : : string ( ) , std : : make_unique < base : : Value > ( client_hints_settings . at ( 0 ) . setting_value -> Clone ( ) ) ) ;
+ host_content_settings_map = HostCo...
+      
+111669149696 | METHOD_PARAMETER_IN | ClientHintsBrowserTest
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 90194313217 [ARGUMENT]
+30064771072 -> 90194313218 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 90194313217 [AST]
+30064771072 -> 90194313218 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313218 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771073 -
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

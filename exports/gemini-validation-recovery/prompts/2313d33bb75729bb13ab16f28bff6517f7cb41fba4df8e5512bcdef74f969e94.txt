@@ -1,0 +1,352 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int dc1394_read_common(AVFormatContext *c, AVFormatParameters *ap,
+
+                                     struct dc1394_frame_format **select_fmt, struct dc1394_frame_rate **select_fps)
+
+{
+
+    dc1394_data* dc1394 = c->priv_data;
+
+    AVStream* vst;
+
+    struct dc1394_frame_format *fmt;
+
+    struct dc1394_frame_rate *fps;
+
+    enum PixelFormat pix_fmt;
+
+    int width, height;
+
+    AVRational framerate;
+
+    int ret = 0;
+
+
+
+    if ((pix_fmt = av_get_pix_fmt(dc1394->pixel_format)) == PIX_FMT_NONE) {
+
+        av_log(c, AV_LOG_ERROR, "No such pixel format: %s.\n", dc1394->pixel_format);
+
+        ret = AVERROR(EINVAL);
+
+        goto out;
+
+    }
+
+
+
+    if ((ret = av_parse_video_size(&width, &height, dc1394->video_size)) < 0) {
+
+        av_log(c, AV_LOG_ERROR, "Couldn't parse video size.\n");
+
+        goto out;
+
+    }
+
+    if ((ret = av_parse_video_rate(&framerate, dc1394->framerate)) < 0) {
+
+        av_log(c, AV_LOG_ERROR, "Couldn't parse framerate.\n");
+
+        goto out;
+
+    }
+
+#if FF_API_FORMAT_PARAMETERS
+
+    if (ap->width > 0)
+
+        width = ap->width;
+
+    if (ap->height > 0)
+
+        height = ap->height;
+
+    if (ap->pix_fmt)
+
+        pix_fmt = ap->pix_fmt;
+
+    if (ap->time_base.num)
+
+        framerate = (AVRational){ap->time_base.den, ap->time_base.num};
+
+#endif
+
+    dc1394->frame_rate = av_rescale(1000, framerate.num, framerate.den);
+
+
+
+    for (fmt = dc1394_frame_formats; fmt->width; fmt++)
+
+         if (fmt->pix_fmt == pix_fmt && fmt->width == width && fmt->height == height)
+
+             break;
+
+
+
+    for (fps = dc1394_frame_rates; fps->frame_rate; fps++)
+
+         if (fps->frame_rate == dc1394->frame_rate)
+
+             break;
+
+
+
+    if (!fps->frame_rate || !fmt->width) {
+
+        av_log(c, AV_LOG_ERROR, "Can't find matching camera format for %s, %dx%d@%d:1000fps\n", av_get_pix_fmt_name(pix_fmt),
+
+                                                                                                width, height, dc1394->frame_rate);
+
+        ret = AVERROR(EINVAL);
+
+        goto out;
+
+    }
+
+
+
+    /* create a video stream */
+
+    vst = av_new_stream(c, 0);
+
+    if (!vst) {
+
+        ret = AVERROR(ENOMEM);
+
+        goto out;
+
+    }
+
+    av_set_pts_info(vst, 64, 1, 1000);
+
+    vst->codec->codec_type = AVMEDIA_TYPE_VIDEO;
+
+    vst->codec->codec_id = CODEC_ID_RAWVIDEO;
+
+    vst->codec->time_base.den = framerate.num;
+
+    vst->codec->time_base.num = framerate.den;
+
+    vst->codec->width = fmt->width;
+
+    vst->codec->height = fmt->height;
+
+    vst->codec->pix_fmt = fmt->pix_fmt;
+
+
+
+    /* packet init */
+
+    av_init_packet(&dc1394->packet);
+
+    dc1394->packet.size = avpicture_get_size(fmt->pix_fmt, fmt->width, fmt->height);
+
+    dc1394->packet.stream_index = vst->index;
+
+    dc1394->packet.flags |= AV_PKT_FLAG_KEY;
+
+
+
+    dc1394->current_frame = 0;
+
+
+
+    vst->codec->bit_rate = av_rescale(dc1394->packet.size * 8, fps->frame_rate, 1000);
+
+    *select_fps = fps;
+
+    *select_fmt = fmt;
+
+out:
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 61 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+67 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+67 -> 74 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+62 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int dc1394_read_header(AVFormatContext *c, AVFormatParameters * ap)
+
+{
+
+    dc1394_data* dc1394 = c->priv_data;
+
+    AVStream* vst;
+
+    nodeid_t* camera_nodes;
+
+    int res;
+
+    struct dc1394_frame_format *fmt;
+
+    struct dc1394_frame_rate *fps;
+
+
+
+    for (fmt = dc1394_frame_formats; fmt->width; fmt++)
+
+         if (fmt->pix_fmt == ap->pix_fmt && fmt->width == ap->width && fmt->height == ap->height)
+
+             break;
+
+
+
+    for (fps = dc1394_frame_rates; fps->frame_rate; fps++)
+
+         if (fps->frame_rate == av_rescale(1000, ap->time_base.den, ap->time_base.num))
+
+             break;
+
+
+
+    /* create a video stream */
+
+    vst = av_new_stream(c, 0);
+
+    if (!vst)
+
+        return -1;
+
+    av_set_pts_info(vst, 64, 1, 1000);
+
+    vst->codec->codec_type = CODEC_TYPE_VIDEO;
+
+    vst->codec->codec_id = CODEC_ID_RAWVIDEO;
+
+    vst->codec->time_base.den = fps->frame_rate;
+
+    vst->codec->time_base.num = 1000;
+
+    vst->codec->width = fmt->width;
+
+    vst->codec->height = fmt->height;
+
+    vst->codec->pix_fmt = fmt->pix_fmt;
+
+
+
+    /* packet init */
+
+    av_init_packet(&dc1394->packet);
+
+    dc1394->packet.size = avpicture_get_size(fmt->pix_fmt, fmt->width, fmt->height);
+
+    dc1394->packet.stream_index = vst->index;
+
+    dc1394->packet.flags |= PKT_FLAG_KEY;
+
+
+
+    dc1394->current_frame = 0;
+
+    dc1394->fps = fps->frame_rate;
+
+
+
+    vst->codec->bit_rate = av_rescale(dc1394->packet.size * 8, fps->frame_rate, 1000);
+
+
+
+    /* Now lets prep the hardware */
+
+    dc1394
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

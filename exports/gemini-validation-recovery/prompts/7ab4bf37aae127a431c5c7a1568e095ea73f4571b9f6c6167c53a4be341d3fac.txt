@@ -1,0 +1,237 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_wl4435_2 ( ) {
+ MYSQL_STMT * stmt ;
+ int i ;
+ int rc ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_wl4435_2" ) ;
+ mct_start_logging ( "test_wl4435_2" ) ;
+ for ( i = 0 ;
+ i < 10 ;
+ ++ i ) {
+ rc = mysql_query ( mysql , "DROP PROCEDURE IF EXISTS p1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE PROCEDURE p1()" "BEGIN " " SELECT 1;
+ " " SELECT 2, 3 UNION SELECT 4, 5;
+ " " SELECT 6, 7, 8;
+ " "END" ) ;
+ myquery ( rc ) ;
+ strmov ( query , "CALL p1()" ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_commit ( mysql ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP PROCEDURE p1" ) ;
+ myquery ( rc ) ;
+ }
+ mct_close_log ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ int i ;
+ int rc ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_wl4435_2" ) ;
+ mct_start_logging ( "test_wl4435_2" ) ;
+ for ( i = 0 ;
+ i < 10 ;
+ ++ i ) {
+ rc = mysql_query ( mysql , "DROP PROCEDURE IF EXISTS p1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE PROCEDURE p1()" "BEGIN " " SELECT 1;
+ " " SELECT 2, 3 UNION SELECT 4, 5;
+ " " SELECT 6, 7, 8;
+ " "END" ) ;
+ myquery ( rc ) ;
+ strmov ( query , "CALL p1()" ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_commit ( mysql ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP PROCEDURE p1" ) ;
+ myquery ( rc ) ;
+ }
+ mct_close_log ( ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ rc = mysql_query ( mysql , "DROP PROCEDURE IF EXISTS p1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE PROCEDURE p1()" "BEGIN " " SELECT 1;
+ " " SELECT 2, 3 UNION SELECT 4, 5;
+ " " SELECT 6, 7, 8;
+ " "END" ) ;
+ myquery ( rc ) ;
+ strmov ( query , "CALL p1()" ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_commit ( mysql ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP PROCEDURE p1" ) ;
+ myquery ( rc ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | query [ MAX_TEST_QUERY_LENGTH ]
+30064771073 | CALL | query [ MAX_TEST_QUERY_LENGTH ]
+30064771074 | CALL | myheader ( "test_wl4435_2" )
+30064771075 | CALL | mct_start_logging ( "test_wl4435_2" )
+30064771076 | CALL | i = 0
+30064771077 | CALL | i < 10
+30064771078 | CALL | ++ i
+30064771079 | CALL | rc = mysql_query ( mysql , "DROP PROCEDURE IF EXISTS p1" )
+30064771080 | CALL | mysql_query ( mysql , "DROP PROCEDURE IF EXISTS p1" )
+30064771081 | CALL | myquery ( rc )
+30064771082 | CALL | myquery ( rc )
+30064771083 | CALL | strmov ( query , "CALL p1()" )
+30064771084 | CALL | stmt = mysql_simple_prepare ( mysql , query )
+30064771085 | CALL | mysql_simple_prepare ( mysql , query )
+30064771086 | CALL | check_stmt ( stmt )
+30064771087 | CALL | rc = mysql_stmt_execute ( stmt )
+30064771088 | CALL | mysql_stmt_execute ( stmt )
+30064771089 | CALL | check_execute ( stmt , rc )
+30064771090 | CALL | mysql_stmt_close ( stmt )
+30064771091 | CALL | rc = mysql_commit ( mysql )
+30064771092 | CALL | mysql_commit ( mysql )
+30064771093 | CALL | myquery ( rc )
+30064771094 | CALL | rc = mysql_query ( mysql , "DROP PROCEDURE p1" )
+30064771095 | CALL | mysql_query ( mysql , "DROP PROCEDURE p1" )
+30064771096 | CALL | myquery ( rc )
+30064771097 | CALL | mct_close_log ( )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < 10;++ i)
+68719476736 | IDENTIFIER | query
+68719476737 | IDENTIFIER | char[MAX_TEST_QUERY_LENGTH]
+68719476738 | IDENTIFIER | <unknown> MAX_TEST_QUERY_LENGTH
+68719476739 | IDENTIFIER | i
+68719476740 | IDENTIFIER | i
+68719476741 | IDENTIFIER | i
+68719476742 | IDENTIFIER | rc
+68719476743 | IDENTIFIER | <unknown> mysql
+68719476744 | IDENTIFIER | rc
+68719476745 | IDENTIFIER | <unknown> SELECT
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 68719476745 [AST]
+25769803777 -> 25769803778 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771096 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476742 [CDG]
+30064771077 -> 68719476741 [CDG]
+30064771077 -> 68719476740 [CDG]
+30064771077 -> 30064771096 [CDG]
+30064771077 -> 30064771095 [CDG]
+30064771077 -> 30064771094 [CDG]
+30064771077 -> 30064771093 [CDG]
+30064771077 -> 30064771092 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 25769803778 [CDG]
+30064771077 -> 68719476742 [CFG]
+30064771077 -> 30064771097 [CFG]
+30064771077 -> 68719476742 [DOMINATE]
+30064771077 -> 30064771097 [DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476740 [CFG]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_prepare_noparam ( ) {
+ MYSQL_STMT * stmt ;
+ int rc ;
+ MYSQL_RES * result ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_prepare_noparam" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS my_prepare" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE my_prepare(col1 int, col2 varchar(50))" ) ;
+ myquery ( rc ) ;
+ strmov ( query , "INSERT INTO my_prepare VALUES(10, 'venu')" ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ verify_param_count ( stmt , 0 ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ rc = mys
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

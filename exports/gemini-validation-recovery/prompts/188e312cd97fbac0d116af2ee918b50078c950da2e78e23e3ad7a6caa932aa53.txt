@@ -1,0 +1,249 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void rgb24_to_pal8(AVPicture *dst, AVPicture *src,
+
+                          int width, int height)
+
+{
+
+    const unsigned char *p;
+
+    unsigned char *q;
+
+    int r, g, b, dst_wrap, src_wrap;
+
+    int x, y, i;
+
+    static const uint8_t pal_value[6] = { 0x00, 0x33, 0x66, 0x99, 0xcc, 0xff };
+
+    uint32_t *pal;
+
+
+
+    p = src->data[0];
+
+    src_wrap = src->linesize[0] - 3 * width;
+
+
+
+    q = dst->data[0];
+
+    dst_wrap = dst->linesize[0] - width;
+
+
+
+    for(y=0;y<height;y++) {
+
+        for(x=0;x<width;x++) {
+
+            r = p[0];
+
+            g = p[1];
+
+            b = p[2];
+
+
+
+            q[0] = gif_clut_index(r, g, b);
+
+            q++;
+
+            p += 3;
+
+        }
+
+        p += src_wrap;
+
+        q += dst_wrap;
+
+    }
+
+
+
+    /* build palette */
+
+    pal = (uint32_t *)dst->data[1];
+
+    i = 0;
+
+    for(r = 0; r < 6; r++) {
+
+        for(g = 0; g < 6; g++) {
+
+            for(b = 0; b < 6; b++) {
+
+                pal[i++] = (0xff << 24) | (pal_value[r] << 16) | 
+
+                    (pal_value[g] << 8) | pal_value[b];
+
+            }
+
+        }
+
+    }
+
+    while (i < 256)
+
+        pal[i++] = 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+13 -> 17 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+13 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+13 -> 23 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+13 -> 26 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+29 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+29 -> 36 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+47 -> 52 [IS_AST_PARENT]
+47 -> 53 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+69 -> 75 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void rgb24_to_rgb555(AVPicture *dst, AVPicture *src,
+
+                            int width, int height)
+
+{
+
+    const unsigned char *p;
+
+    unsigned char *q;
+
+    int r, g, b, dst_wrap, src_wrap;
+
+    int x, y;
+
+
+
+    p = src->data[0];
+
+    src_wrap = src->linesize[0] - 3 * width;
+
+
+
+    q = dst->data[0];
+
+    dst_wrap = dst->linesize[0] - 2 * width;
+
+
+
+    for(y=0;y<height;y++) {
+
+        for(x=0;x<width;x++) {
+
+            r = p[0];
+
+            g = p[1];
+
+            b = p[2];
+
+
+
+            ((unsigned short *)q)[0] = 
+
+                ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3) | 0x8000;
+
+            q += 2;
+
+            p += 3;
+
+        }
+
+        p += src_wrap;
+
+        q += dst_wrap;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,152 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_spoolss_printer_enum_values ( tvbuff_t * tvb , int offset , packet_info * pinfo , proto_tree * tree , dcerpc_info * di , guint8 * drep ) {
+ guint32 start_offset = offset ;
+ guint32 name_offset , name_len , val_offset , val_len , val_type ;
+ char * name ;
+ proto_item * item ;
+ proto_tree * subtree ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_offset , & name_offset ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_len , & name_len ) ;
+ dissect_spoolss_uint16uni ( tvb , start_offset + name_offset , pinfo , NULL , drep , & name , hf_enumprinterdataex_name ) ;
+ subtree = proto_tree_add_subtree_format ( tree , tvb , offset , 0 , ett_printer_enumdataex_value , & item , "Name: %s" , name ) ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_name_offset , tvb , offset - 8 , 4 , name_offset ) ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_name_len , tvb , offset - 4 , 4 , name_len ) ;
+ proto_tree_add_string ( subtree , hf_enumprinterdataex_name , tvb , start_offset + name_offset , ( ( int ) strlen ( name ) + 1 ) * 2 , name ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_printerdata_type , & val_type ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_enumprinterdataex_val_offset , & val_offset ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_enumprinterdataex_val_len , & val_len ) ;
+ if ( val_len == 0 ) {
+ proto_tree_add_uint_format_value ( subtree , hf_enumprinterdataex_value_null , tvb , start_offset + val_offset , 4 , 0 , "(null)" ) ;
+ goto done ;
+ }
+ switch ( val_type ) {
+ case DCERPC_REG_DWORD : {
+ guint32 value ;
+ guint16 low , high ;
+ int offset2 = start_offset + val_offset ;
+ offset2 = dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_low , & low ) ;
+ dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_high , & high ) ;
+ value = ( high << 16 ) | low ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_value_uint , tvb , start_offset + val_offset , 4 , value ) ;
+ proto_item_append_text ( item , ", Value: %d" , value ) ;
+ break ;
+ }
+ case DCERPC_REG_SZ : {
+ char * value ;
+ dissect_spoolss_uint16uni ( tvb , start_offset + val_offset , pinfo , subtree , drep , & value , hf_value_string ) ;
+ proto_item_append_text ( item , ", Value: %s" , value ) ;
+ g_free ( value ) ;
+ break ;
+ }
+ case DCERPC_REG_BINARY : proto_tree_add_bytes_format_value ( subtree , hf_enumprinterdataex_value_binary , tvb , start_offset + val_offset , val_len , NULL , "<binary data>" ) ;
+ break ;
+ case DCERPC_REG_MULTI_SZ : proto_tree_add_bytes_format_value ( subtree , hf_enumprinterdataex_value_multi_sz , tvb , start_offset + val_offset , val_len , NULL , "<REG_MULTI_SZ not implemented>" ) ;
+ break ;
+ default : proto_tree_add_expert_format ( subtree , p
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint32 start_offset = offset ;
+ guint32 name_offset , name_len , val_offset , val_len , val_type ;
+ char * name ;
+ proto_item * item ;
+ proto_tree * subtree ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_offset , & name_offset ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_len , & name_len ) ;
+ dissect_spoolss_uint16uni ( tvb , start_offset + name_offset , pinfo , NULL , drep , & name , hf_enumprinterdataex_name ) ;
+ subtree = proto_tree_add_subtree_format ( tree , tvb , offset , 0 , ett_printer_enumdataex_value , & item , "Name: %s" , name ) ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_name_offset , tvb , offset - 8 , 4 , name_offset ) ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_name_len , tvb , offset - 4 , 4 , name_len ) ;
+ proto_tree_add_string ( subtree , hf_enumprinterdataex_name , tvb , start_offset + name_offset , ( ( int ) strlen ( name ) ...
+      
+25769803777 | BLOCK | 
+        {
+ proto_tree_add_uint_format_value ( subtree , hf_enumprinterdataex_value_null , tvb , start_offset + val_offset , 4 , 0 , "(null)" ) ;
+ goto done ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case DCERPC_REG_DWORD : {
+ guint32 value ;
+ guint16 low , high ;
+ int offset2 = start_offset + val_offset ;
+ offset2 = dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_low , & low ) ;
+ dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_high , & high ) ;
+ value = ( high << 16 ) | low ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_value_uint , tvb , start_offset + val_offset , 4 , value ) ;
+ proto_item_append_text ( item , ", Value: %d" , value ) ;
+ break ;
+ }
+ case DCERPC_REG_SZ : {
+ char * value ;
+ dissect_spoolss_uint16uni ( tvb , start_offset + val_offset , pinfo , subtree , drep , & value , hf_value_string ) ;
+ proto_item_append_text ( item , ", Value: %s" , value ) ;
+ g_free ( value ) ;
+ break ;
+ }
+ case DCERPC_REG_BINARY : proto_tree_add_bytes_format_value ( subtree , hf_enumprinterdataex_value_binary , tvb , start_offset + val_offset , val_len , NULL , "<binary data>" ) ...
+      
+25769803779 | BLOCK | 
+        {
+ guint32 value ;
+ guint16 low , high ;
+ int offset2 = start_offset + val_offset ;
+ offset2 = dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_low , & low ) ;
+ dissect_ndr_uint16 ( tvb , offset2 , pinfo , subtree , di , drep , hf_enumprinterdataex_val_dword_high , & high ) ;
+ value = ( high << 16 ) | low ;
+ proto_tree_add_uint ( subtree , hf_enumprinterdataex_value_uint , tvb , start_offset + val_offset , 4 , value ) ;
+ proto_item_append_text ( item , ", Value: %d" , value ) ;
+ break ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ char * value ;
+ dissect_spoolss_uint16uni ( tvb , start_offset + val_offset , pinfo , subtree , drep , & value , hf_value_string ) ;
+ proto_item_append_text ( item , ", Value: %s" , value ) ;
+ g_free ( value ) ;
+ break ;
+ }
+      
+30064771072 | CALL | start_offset = offset
+30064771073 | CALL | 
+        offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_offset , & name_offset )
+      
+30064771074 | CALL | 
+        dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_offset , & name_offset )
+      
+30064771075 | CALL | & name_offset
+30064771076 | CALL | 
+        offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_len , & name_len )
+      
+30064771077 | CALL | 
+        dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , hf_enumprinterdataex_name_len , & name_len )
+      
+30064771078 | CALL | & name_len
+30064771079 | CALL | 
+        dissect_spoolss_uint16uni ( tvb , start_offset + name_offset , pinfo , NULL , drep , & name , hf_enumprinterdataex_name )
+      
+30064771080 | CALL | start_offset + name_offset
+30064771081 | CALL | & name
+30064771082 | CALL | 
+        subtree = proto_tree_add_subtree_format ( tree , tvb , offset , 0 , ett_printer_enumdataex_value , & item , "Name: %s" , name )
+      
+30064771083 | CALL | 
+        proto_tree_add_subtree_format ( tree , tvb , offset , 0 , ett_printer_enumdataex_value , & item , "Name: %s" , name 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

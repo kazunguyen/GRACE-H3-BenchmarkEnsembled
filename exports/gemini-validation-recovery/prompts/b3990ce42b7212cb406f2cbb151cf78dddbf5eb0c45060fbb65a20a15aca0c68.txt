@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void string_dealloc ( PyObject * op ) {
+ switch ( PyString_CHECK_INTERNED ( op ) ) {
+ case SSTATE_NOT_INTERNED : break ;
+ case SSTATE_INTERNED_MORTAL : Py_REFCNT ( op ) = 3 ;
+ if ( PyDict_DelItem ( interned , op ) != 0 ) Py_FatalError ( "deletion of interned string failed" ) ;
+ break ;
+ case SSTATE_INTERNED_IMMORTAL : Py_FatalError ( "Immortal interned string died." ) ;
+ default : Py_FatalError ( "Inconsistent interned string state." ) ;
+ }
+ Py_TYPE ( op ) -> tp_free ( op ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ switch ( PyString_CHECK_INTERNED ( op ) ) {
+ case SSTATE_NOT_INTERNED : break ;
+ case SSTATE_INTERNED_MORTAL : Py_REFCNT ( op ) = 3 ;
+ if ( PyDict_DelItem ( interned , op ) != 0 ) Py_FatalError ( "deletion of interned string failed" ) ;
+ break ;
+ case SSTATE_INTERNED_IMMORTAL : Py_FatalError ( "Immortal interned string died." ) ;
+ default : Py_FatalError ( "Inconsistent interned string state." ) ;
+ }
+ Py_TYPE ( op ) -> tp_free ( op ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case SSTATE_NOT_INTERNED : break ;
+ case SSTATE_INTERNED_MORTAL : Py_REFCNT ( op ) = 3 ;
+ if ( PyDict_DelItem ( interned , op ) != 0 ) Py_FatalError ( "deletion of interned string failed" ) ;
+ break ;
+ case SSTATE_INTERNED_IMMORTAL : Py_FatalError ( "Immortal interned string died." ) ;
+ default : Py_FatalError ( "Inconsistent interned string state." ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | PyString_CHECK_INTERNED ( op )
+30064771073 | CALL | ( op ) = 3
+30064771074 | CALL | PyDict_DelItem ( interned , op ) != 0
+30064771075 | CALL | PyDict_DelItem ( interned , op )
+30064771076 | CALL | Py_FatalError ( "deletion of interned string failed" )
+30064771077 | CALL | Py_FatalError ( "Immortal interned string died." )
+30064771078 | CALL | Py_FatalError ( "Inconsistent interned string state." )
+30064771079 | CALL | Py_TYPE ( op ) -> tp_free ( op )
+30064771080 | CALL | Py_TYPE ( op ) -> tp_free
+30064771081 | CALL | Py_TYPE ( op )
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( PyString_CHECK_INTERNED ( op ) ) {
+ case SSTATE_NOT_INTERNED : break ;
+ case SSTATE_INTERNED_MORTAL : Py_REFCNT ( op ) = 3 ;
+ if ( PyDict_DelItem ( interned , op ) != 0 ) Py_FatalError ( "deletion of interned string failed" ) ;
+ break ;
+ case SSTATE_INTERNED_IMMORTAL : Py_FatalError ( "Immortal interned string died." ) ;
+ default : Py_FatalError ( "Inconsistent interned string state." ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | 
+        if ( PyDict_DelItem ( interned , op ) != 0 ) Py_FatalError ( "deletion of interned string failed" ) ;
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | tp_free
+68719476736 | IDENTIFIER | op
+68719476737 | IDENTIFIER | <unknown> SSTATE_NOT_INTERNED
+68719476738 | IDENTIFIER | <unknown> SSTATE_INTERNED_MORTAL
+68719476739 | IDENTIFIER | 
+68719476740 | IDENTIFIER | <unknown> interned
+68719476741 | IDENTIFIER | op
+68719476742 | IDENTIFIER | <unknown> SSTATE_INTERNED_IMMORTAL
+68719476743 | IDENTIFIER | op
+68719476744 | IDENTIFIER | op
+81604378624 | JUMP_TARGET | case SSTATE_NOT_INTERNED :
+81604378625 | JUMP_TARGET | case SSTATE_INTERNED_MORTAL :
+81604378626 | JUMP_TARGET | case SSTATE_INTERNED_IMMORTAL :
+81604378627 | JUMP_TARGET | default :
+90194313216 | LITERAL | 3
+90194313217 | LITERAL | 0
+90194313218 | LITERAL | "deletion of interned string failed"
+90194313219 | LITERAL | "Immortal interned string died."
+90194313220 | LITERAL | "Inconsistent interned string state."
+94489280512 | LOCAL | Py_REFCNT ( op )
+94489280513 | LOCAL | <unknown> SSTATE_INTERNED_IMMORTAL
+94489280514 | LOCAL | <unknown> interned
+94489280515 | LOCAL | <unknown> SSTATE_INTERNED_MORTAL
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803777 -> 81604378624 [AST]
+25769803777 -> 68719476737 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 81604378625 [AST]
+25769803777 -> 68719476738 [AST]
+25769803777 -> 94489280512 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 47244640259 [AST]
+25769803777 -> 81604378626 [AST]
+25769803777 -> 68719476742 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 81604378627 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771076 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 81604378626 [CDG]
+30064771072 -> 90194313220 [CDG]
+30064771072 -> 81604378625 [CDG]
+30064771072 -> 90194313219 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 81604378627 [CDG]
+30064771072 -> 90194313216 [CDG]
+30064771072 -> 81604378624 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 47244640257 [CDG]
+30064771072 -> 47244640259 [CDG]
+30064771072 -> 81604378624 [CFG]
+30064771072 -> 81604378625 [CFG]
+30064771072 -> 81604378626 [CFG]
+30064771072 -> 81604378627 [CFG]
+30064771072 -> 68719476743 [DOMINATE]
+30064771072 -> 81604378624 [DOMINATE]
+30064771072 -> 81604378625 [DOMINATE]
+30064771072 -> 81604378627 [DOMINATE]
+30064771072 -> 81604378626 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 90194313218 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 90194313218 [CFG]
+30064771074 -> 47244640259 [CFG]
+30064771074 -> 47244640259 [DOMINATE]
+30064771074 -> 90194313218 [DOMINATE]
+30064771074 -> 90194313217 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 90194313217 [CFG]
+30064771075 -> 90194313217 [DOMINATE]
+30064771075 -> 68719476741 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 90194313218 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int fetch_indices ( void ) {
+ int ret ;
+ if ( push_verbosely ) fprintf ( stderr , "Getting pack list\n" ) ;
+ switch ( http_get_info_packs ( repo -> url , & repo -> packs ) ) {
+ case HTTP_OK : case HTTP_MISSING_TARGET : ret = 0 ;
+ break ;
+ default : ret = - 1 ;
+ }
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

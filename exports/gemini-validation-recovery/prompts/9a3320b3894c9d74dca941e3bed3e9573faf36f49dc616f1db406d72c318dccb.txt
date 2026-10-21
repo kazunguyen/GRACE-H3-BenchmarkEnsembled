@@ -1,0 +1,265 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool parse_authorityInfoAccess ( chunk_t blob , int level0 , private_x509_cert_t * this ) {
+ asn1_parser_t * parser ;
+ chunk_t object ;
+ int objectID ;
+ int accessMethod = OID_UNKNOWN ;
+ bool success = FALSE ;
+ parser = asn1_parser_create ( authInfoAccessObjects , blob ) ;
+ parser -> set_top_level ( parser , level0 ) ;
+ while ( parser -> iterate ( parser , & objectID , & object ) ) {
+ switch ( objectID ) {
+ case AUTH_INFO_ACCESS_METHOD : accessMethod = asn1_known_oid ( object ) ;
+ break ;
+ case AUTH_INFO_ACCESS_LOCATION : {
+ switch ( accessMethod ) {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+ break ;
+ }
+ default : break ;
+ }
+ }
+ success = parser -> success ( parser ) ;
+ end : parser -> destroy ( parser ) ;
+ return success ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ asn1_parser_t * parser ;
+ chunk_t object ;
+ int objectID ;
+ int accessMethod = OID_UNKNOWN ;
+ bool success = FALSE ;
+ parser = asn1_parser_create ( authInfoAccessObjects , blob ) ;
+ parser -> set_top_level ( parser , level0 ) ;
+ while ( parser -> iterate ( parser , & objectID , & object ) ) {
+ switch ( objectID ) {
+ case AUTH_INFO_ACCESS_METHOD : accessMethod = asn1_known_oid ( object ) ;
+ break ;
+ case AUTH_INFO_ACCESS_LOCATION : {
+ switch ( accessMethod ) {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+ break ;
+ }
+ default : break ;
+ }
+ }
+ success = parser -> success ( parser ) ;
+ end : parser -> destroy ( parser )...
+      
+25769803777 | BLOCK | 
+        {
+ switch ( objectID ) {
+ case AUTH_INFO_ACCESS_METHOD : accessMethod = asn1_known_oid ( object ) ;
+ break ;
+ case AUTH_INFO_ACCESS_LOCATION : {
+ switch ( accessMethod ) {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+ break ;
+ }
+ default : break ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case AUTH_INFO_ACCESS_METHOD : accessMethod = asn1_known_oid ( object ) ;
+ break ;
+ case AUTH_INFO_ACCESS_LOCATION : {
+ switch ( accessMethod ) {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+ break ;
+ }
+ default : break ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ switch ( accessMethod ) {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+ break ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case OID_OCSP : case OID_CA_ISSUERS : {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+ break ;
+ default : break ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ identification_t * id ;
+ char * uri ;
+ id = parse_generalName ( object , parser -> get_level ( parser ) + 1 ) ;
+ if ( id == NULL ) {
+ goto end ;
+ }
+ DBG2 ( DBG_ASN , " '%Y'" , id ) ;
+ if ( accessMethod == OID_OCSP && gn_to_string ( id , & uri ) ) {
+ this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ;
+ }
+ id -> destroy ( id ) ;
+ }
+      
+25769803782 | BLOCK | { goto end ; }
+25769803783 | BLOCK | { this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri ) ; }
+30064771072 | CALL | accessMethod = OID_UNKNOWN
+30064771073 | CALL | success = FALSE
+30064771074 | CALL | parser = asn1_parser_create ( authInfoAccessObjects , blob )
+30064771075 | CALL | asn1_parser_create ( authInfoAccessObjects , blob )
+30064771076 | CALL | parser -> set_top_level ( parser , level0 )
+30064771077 | CALL | parser -> set_top_level
+30064771078 | CALL | parser -> iterate ( parser , & objectID , & object )
+30064771079 | CALL | parser -> iterate
+30064771080 | CALL | & objectID
+30064771081 | CALL | & object
+30064771082 | CALL | accessMethod = asn1_known_oid ( object )
+30064771083 | CALL | asn1_known_oid ( object )
+30064771084 | CALL | id = parse_generalName ( object , parser -> get_level ( parser ) + 1 )
+30064771085 | CALL | parse_generalName ( object , parser -> get_level ( parser ) + 1 )
+30064771086 | CALL | parser -> get_level ( parser ) + 1
+30064771087 | CALL | parser -> get_level ( parser )
+30064771088 | CALL | parser -> get_level
+30064771089 | CALL | id == NULL
+30064771090 | CALL | DBG2 ( DBG_ASN , " '%Y'" , id )
+30064771091 | CALL | accessMethod == OID_OCSP && gn_to_string ( id , & uri )
+30064771092 | CALL | accessMethod == OID_OCSP
+30064771093 | CALL | gn_to_string ( id , & uri )
+30064771094 | CALL | & uri
+30064771095 | CALL | this -> ocsp_uris -> insert_last ( this -> ocsp_uris , uri )
+30064771096 | CALL | this -> ocsp_uris -> insert_last
+30064771097 | CALL | this -> ocsp_uris
+30064771098 | CALL | this -> ocsp_uris
+30064771099 | CALL | id -> destroy ( id )
+30064771100 | CALL | id -> destroy
+30064771101 | CALL | success = parser -> success ( parser )
+30064771102 | CALL | parser -> success ( parser )
+30064771103 | CALL | parser -> success
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771101 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 25769803779 [AST]
+25769803780 -> 25769803781 [AST]
+25769803781 -> 30064771084 [AST]
+25769803781 -> 30064771090 [AST]
+25769803781 -> 30064771099 [AST]
+25769803781 -> 30064771099 [POST_DOMINATE]
+25769803783 -> 30064771095 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [RECEIVER]
+30064771078 -> 30064771080 [ARGUMEN
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

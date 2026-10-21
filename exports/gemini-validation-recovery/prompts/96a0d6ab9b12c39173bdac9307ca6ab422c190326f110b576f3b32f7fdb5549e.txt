@@ -1,0 +1,128 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void U_CALLCONV UConverter_toUnicode_ISCII_OFFSETS_LOGIC ( UConverterToUnicodeArgs * args , UErrorCode * err ) {
+ const char * source = ( char * ) args -> source ;
+ UChar * target = args -> target ;
+ const char * sourceLimit = args -> sourceLimit ;
+ const UChar * targetLimit = args -> targetLimit ;
+ uint32_t targetUniChar = 0x0000 ;
+ uint8_t sourceChar = 0x0000 ;
+ UConverterDataISCII * data ;
+ UChar32 * toUnicodeStatus = NULL ;
+ UChar32 tempTargetUniChar = 0x0000 ;
+ UChar * contextCharToUnicode = NULL ;
+ UBool found ;
+ int i ;
+ int offset = 0 ;
+ if ( ( args -> converter == NULL ) || ( target < args -> target ) || ( source < args -> source ) ) {
+ * err = U_ILLEGAL_ARGUMENT_ERROR ;
+ return ;
+ }
+ data = ( UConverterDataISCII * ) ( args -> converter -> extraInfo ) ;
+ contextCharToUnicode = & data -> contextCharToUnicode ;
+ toUnicodeStatus = ( UChar32 * ) & args -> converter -> toUnicodeStatus ;
+ while ( U_SUCCESS ( * err ) && source < sourceLimit ) {
+ targetUniChar = missingCharMarker ;
+ if ( target < targetLimit ) {
+ sourceChar = ( unsigned char ) * ( source ) ++ ;
+ if ( * contextCharToUnicode == ATR ) {
+ if ( ( uint8_t ) ( PNJ - sourceChar ) <= PNJ - DEV ) {
+ data -> currentDeltaToUnicode = ( uint16_t ) ( lookupTable [ sourceChar & 0x0F ] [ 0 ] * DELTA ) ;
+ data -> currentMaskToUnicode = ( MaskEnum ) lookupTable [ sourceChar & 0x0F ] [ 1 ] ;
+ }
+ else if ( sourceChar == DEF ) {
+ data -> currentDeltaToUnicode = data -> defDeltaToUnicode ;
+ data -> currentMaskToUnicode = data -> defMaskToUnicode ;
+ }
+ else {
+ if ( ( sourceChar >= 0x21 && sourceChar <= 0x3F ) ) {
+ }
+ else {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ * contextCharToUnicode = NO_CHAR_MARKER ;
+ goto CALLBACK ;
+ }
+ }
+ * contextCharToUnicode = NO_CHAR_MARKER ;
+ continue ;
+ }
+ else if ( * contextCharToUnicode == EXT ) {
+ if ( ( uint8_t ) ( EXT_RANGE_END - sourceChar ) <= ( EXT_RANGE_END - EXT_RANGE_BEGIN ) ) {
+ if ( sourceChar == 0xBF || sourceChar == 0xB8 ) {
+ targetUniChar = ( sourceChar == 0xBF ) ? DEV_ABBR_SIGN : DEV_ANUDATTA ;
+ if ( validityTable [ ( uint8_t ) targetUniChar ] & data -> currentMaskToUnicode ) {
+ * contextCharToUnicode = NO_CHAR_MARKER ;
+ if ( data -> prevToUnicodeStatus ) {
+ WRITE_TO_TARGET_TO_U ( args , source , target , args -> offsets , ( source - args -> source - 1 ) , data -> prevToUnicodeStatus , 0 , err ) ;
+ data -> prevToUnicodeStatus = 0x0000 ;
+ }
+ WRITE_TO_TARGET_TO_U ( args , source , target , args -> offsets , ( source - args -> source - 2 ) , targetUniChar , data -> currentDeltaToUnicode , err ) ;
+ continue ;
+ }
+ }
+ targetUniChar = missingCharMarker ;
+ * err = U_INVALID_CHAR_FOUND ;
+ }
+ else {
+ * contextCharToUnicode = NO_CHAR_MARKER ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ goto CALLBACK ;
+ }
+ else if ( * contextCharToUnicode == ISCII_INV ) {
+ if ( sourceChar == ISCII_HALANT ) {
+ targetUniChar = 0x0020 ;
+ }
+ else {
+ targetUniChar = ZWJ ;
+ }
+ if ( data -> prevToUnicodeStatus ) {
+ WRITE_TO_TARGET_TO_U ( args , source , target , args -> offsets , ( source - args -> s
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void UConverter_toUnicode_ISCII_OFFSETS_LOGIC ( UConverterToUnicodeArgs * args , UErrorCode * err ) {
+ const char * source = ( char * ) args -> source ;
+ UChar * target = args -> target ;
+ const char * sourceLimit = args -> sourceLimit ;
+ const UChar * targetLimit = args -> targetLimit ;
+ uint32_t targetUniChar = 0x0000 ;
+ uint8_t sourceChar = 0x0000 ;
+ UConverterDataISCII * data ;
+ UChar32 * toUnicodeStatus = NULL ;
+ UChar32 tempTargetUniChar = 0x0000 ;
+ UChar * contextCharToUnicode = NULL ;
+ UBool found ;
+ int i ;
+ int offset = 0 ;
+ if ( ( args -> converter == NULL ) || ( target < args -> target ) || ( source < args -> source ) ) {
+ * err = U_ILLEGAL_ARGUMENT_ERROR ;
+ return ;
+ }
+ data = ( UConverterDataISCII * ) ( args -> converter -> extraInfo ) ;
+ contextCharToUnicode = & data -> contextCharToUnicode ;
+ toUnicodeStatus = ( UChar32 * ) & args -> converter -> toUnicodeStatus ;
+ while ( U_SUCCESS ( * err ) && source < sourceLimit ) {
+ targetUniChar = missingCharMarker ;
+ if ( target < targetLimit ) {
+ sourceChar = ( unsigned char ) * ( source ) ++ ;
+ if ( * contextCharToUnicode == ATR ) {
+ if ( ( uint8_t ) ( PNJ - sourceChar ) <= PNJ - DEV ) {
+ data -> currentDeltaToUnicode = ( uint16_t ) ( lookupTable [ sourceChar & 0x0F ] [ 0 ] * DELTA ) ;
+ data -> currentMaskToUnicode = ( MaskEnum ) lookupTable [ sourceChar & 0x0F ] [ 1 ] ;
+ }
+ else if ( sourceChar == DEF ) {
+ data -> currentDeltaToUnicode = data -> defDeltaToUnicode ;
+ data -> currentMaskToUnicode = data -> defMa
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

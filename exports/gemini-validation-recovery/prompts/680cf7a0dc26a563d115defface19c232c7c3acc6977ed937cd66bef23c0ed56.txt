@@ -1,0 +1,375 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void zynq_init(MachineState *machine)
+
+{
+
+    ram_addr_t ram_size = machine->ram_size;
+
+    const char *cpu_model = machine->cpu_model;
+
+    const char *kernel_filename = machine->kernel_filename;
+
+    const char *kernel_cmdline = machine->kernel_cmdline;
+
+    const char *initrd_filename = machine->initrd_filename;
+
+    ObjectClass *cpu_oc;
+
+    ARMCPU *cpu;
+
+    MemoryRegion *address_space_mem = get_system_memory();
+
+    MemoryRegion *ext_ram = g_new(MemoryRegion, 1);
+
+    MemoryRegion *ocm_ram = g_new(MemoryRegion, 1);
+
+    DeviceState *dev;
+
+    SysBusDevice *busdev;
+
+    qemu_irq pic[64];
+
+    Error *err = NULL;
+
+    int n;
+
+
+
+    if (!cpu_model) {
+
+        cpu_model = "cortex-a9";
+
+    }
+
+    cpu_oc = cpu_class_by_name(TYPE_ARM_CPU, cpu_model);
+
+
+
+    cpu = ARM_CPU(object_new(object_class_get_name(cpu_oc)));
+
+
+
+    /* By default A9 CPUs have EL3 enabled.  This board does not
+
+     * currently support EL3 so the CPU EL3 property is disabled before
+
+     * realization.
+
+     */
+
+    if (object_property_find(OBJECT(cpu), "has_el3", NULL)) {
+
+        object_property_set_bool(OBJECT(cpu), false, "has_el3", &err);
+
+        if (err) {
+
+            error_report_err(err);
+
+            exit(1);
+
+        }
+
+    }
+
+
+
+    object_property_set_int(OBJECT(cpu), ZYNQ_BOARD_MIDR, "midr", &err);
+
+    if (err) {
+
+        error_report_err(err);
+
+        exit(1);
+
+    }
+
+
+
+    object_property_set_int(OBJECT(cpu), MPCORE_PERIPHBASE, "reset-cbar", &err);
+
+    if (err) {
+
+        error_report_err(err);
+
+        exit(1);
+
+    }
+
+    object_property_set_bool(OBJECT(cpu), true, "realized", &err);
+
+    if (err) {
+
+        error_report_err(err);
+
+        exit(1);
+
+    }
+
+
+
+    /* max 2GB ram */
+
+    if (ram_size > 0x80000000) {
+
+        ram_size = 0x80000000;
+
+    }
+
+
+
+    /* DDR remapped to address zero.  */
+
+    memory_region_allocate_system_memory(ext_ram, NULL, "zynq.ext_ram",
+
+                                         ram_size);
+
+    memory_region_add_subregion(address_space_mem, 0, ext_ram);
+
+
+
+    /* 256K of on-chip memory */
+
+    memory_region_init_ram(ocm_ram, NULL, "zynq.ocm_ram", 256 << 10,
+
+                           &error_abort);
+
+    vmstate_register_ram_global(ocm_ram);
+
+    memory_region_add_subregion(address_space_mem, 0xFFFC0000, ocm_ram);
+
+
+
+    DriveInfo *dinfo = drive_get(IF_PFLASH, 0, 0);
+
+
+
+    /* AMD */
+
+    pflash_cfi02_register(0xe2000000, NULL, "zynq.pflash", FLASH_SIZE,
+
+                          dinfo ? blk_by_legacy_dinfo(dinfo) : NULL,
+
+                          FLASH_SECTOR_SIZE,
+
+                          FLASH_SIZE/FLASH_SECTOR_SIZE, 1,
+
+                          1, 0x0066, 0x0022, 0x0000, 0x0000, 0x0555, 0x2aa,
+
+                              0);
+
+
+
+    dev = qdev_create(NULL, "xilinx,zynq_slcr");
+
+    qdev_init_nofail(dev);
+
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0xF8000000);
+
+
+
+    dev = qdev_create(NULL, "a9mpcore_priv");
+
+    qdev_prop_set_uint32(dev, "num-cpu", 1);
+
+    qdev_init_nofail(dev);
+
+    busdev = SYS_BUS_DEVICE
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+74 -> 77 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void zynq_init(MachineState *machine)
+
+{
+
+    ram_addr_t ram_size = machine->ram_size;
+
+    const char *cpu_model = machine->cpu_model;
+
+    const char *kernel_filename = machine->kernel_filename;
+
+    const char *kernel_cmdline = machine->kernel_cmdline;
+
+    const char *initrd_filename = machine->initrd_filename;
+
+    ObjectClass *cpu_oc;
+
+    ARMCPU *cpu;
+
+    MemoryRegion *address_space_mem = get_system_memory();
+
+    MemoryRegion *ext_ram = g_new(MemoryRegion, 1);
+
+    MemoryRegion *ocm_ram = g_new(MemoryRegion, 1);
+
+    DeviceState *dev;
+
+    SysBusDevice *busdev;
+
+    qemu_irq pic[64];
+
+    Error *err = NULL;
+
+    int n;
+
+
+
+    if (!cpu_model) {
+
+        cpu_model = "cortex-a9";
+
+    }
+
+    cpu_oc = cpu_class_by_name(TYPE_ARM_CPU, cpu_model);
+
+
+
+    cpu = ARM_CPU(object_new(object_class_get_name(cpu_oc)));
+
+
+
+    object_property_set_int(OBJECT(cpu), ZYNQ_BOARD_MIDR, "midr", &err);
+
+    if (err) {
+
+        error_report("%s", error_get_pretty(err));
+
+        exit(1);
+
+    }
+
+
+
+    object_property_set_int(OBJECT(cpu), MPCORE_PERIPHBASE, "reset-cbar", &err);
+
+    if (err) {
+
+        error_report("%s", error_get_pretty(err));
+
+        exit(1);
+
+    }
+
+    object_property_set_bool(OBJECT(cpu), true, "realized", &err);
+
+    if (err) {
+
+        error_report("%s", error_get_pretty(err));
+
+        exit(1);
+
+    }
+
+
+
+    /* max 2GB ram */
+
+    if (ram_size > 0x80000000) {
+
+        ram_size = 0x80000000;
+
+    }
+
+
+
+    /* DDR remapped to address zero.  */
+
+    memory_region_
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

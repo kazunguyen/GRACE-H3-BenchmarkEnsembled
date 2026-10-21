@@ -1,0 +1,32 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void LaunchPermissionUpdateInfoBar ( JNIEnv * env , const JavaParamRef < jclass > & clazz , const JavaParamRef < jobject > & tab , const JavaParamRef < jstring > & jpermission , jlong callback_id ) {
+ TabAndroid * tab_android = TabAndroid : : GetNativeTab ( env , tab ) ;
+ std : : string permission = base : : android : : ConvertJavaStringToUTF8 ( env , jpermission ) ;
+ scoped_ptr < DownloadControllerAndroid : : AcquireFileAccessPermissionCallback > cb ( reinterpret_cast < DownloadControllerAndroid : : AcquireFileAccessPermissionCallback * > ( callback_id ) ) ;
+ std : : vector < std : : string > permissions ;
+ permissions . push_back ( permission ) ;
+ PermissionUpdateInfoBarDelegate : : Create ( tab_android -> web_contents ( ) , permissions , IDS_MISSING_STORAGE_PERMISSION_DOWNLOAD_EDUCATION_TEXT , * cb ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void LaunchDownloadOverwriteInfoBar ( JNIEnv * env , const JavaParamRef < jclass > & clazz , const JavaParamRef < jobject > & delegate , const JavaParamRef < jobject > & tab , const JavaParamRef < jobject > & download_info , const JavaParamRef < jstring > & jfile_name , const JavaParamRef < jstring > & jdir_name , const JavaParamRef < jstring > & jdir_full_path ) {
+ TabAndroid * tab_android = TabAndroid : : GetNativeTab ( env , tab ) ;
+ std : : string file_name = base : : android : : ConvertJavaStringToUTF8 ( env , jfile_name ) ;
+ std : : string dir_name = base : : android : : ConvertJavaStringToUTF8 ( env , jdir_name ) ;
+ std : : string dir_full_path = base : : android : : ConvertJavaStringToUTF8 ( env , jdir_full_path ) ;
+ chrome : : android : : AndroidDownloadManagerOverwriteInfoBarDelegate : : Create ( InfoBarService : : FromWebContents ( tab_android -> web_contents ( ) ) , file_name , dir_name , dir_full_path , delegate , download_info ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

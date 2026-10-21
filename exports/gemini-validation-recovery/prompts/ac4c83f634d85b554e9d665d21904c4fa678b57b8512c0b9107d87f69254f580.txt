@@ -1,0 +1,278 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int svq1_decode_frame(AVCodecContext *avctx,
+                             void *data, int *data_size,
+                             AVPacket *avpkt)
+{
+  const uint8_t *buf = avpkt->data;
+  int buf_size = avpkt->size;
+  MpegEncContext *s=avctx->priv_data;
+  uint8_t        *current, *previous;
+  int             result, i, x, y, width, height;
+  AVFrame *pict = data;
+  svq1_pmv *pmv;
+  /* initialize bit buffer */
+  init_get_bits(&s->gb,buf,buf_size*8);
+  /* decode frame header */
+  s->f_code = get_bits (&s->gb, 22);
+  if ((s->f_code & ~0x70) || !(s->f_code & 0x60))
+    return -1;
+  /* swap some header bytes (why?) */
+  if (s->f_code != 0x20) {
+    uint32_t *src = (uint32_t *) (buf + 4);
+    for (i=0; i < 4; i++) {
+      src[i] = ((src[i] << 16) | (src[i] >> 16)) ^ src[7 - i];
+    }
+  }
+  result = svq1_decode_frame_header (&s->gb, s);
+  if (result != 0)
+  {
+    av_dlog(s->avctx, "Error in svq1_decode_frame_header %i\n",result);
+    return result;
+  }
+  avcodec_set_dimensions(avctx, s->width, s->height);
+  //FIXME this avoids some confusion for "B frames" without 2 references
+  //this should be removed after libavcodec can handle more flexible picture types & ordering
+  if(s->pict_type==AV_PICTURE_TYPE_B && s->last_picture_ptr==NULL) return buf_size;
+  if(  (avctx->skip_frame >= AVDISCARD_NONREF && s->pict_type==AV_PICTURE_TYPE_B)
+     ||(avctx->skip_frame >= AVDISCARD_NONKEY && s->pict_type!=AV_PICTURE_TYPE_I)
+     || avctx->skip_frame >= AVDISCARD_ALL)
+      return buf_size;
+  if(ff_MPV_frame_start(s, avctx) < 0)
+      return -1;
+  pmv = av_malloc((FFALIGN(s->width, 16)/8 + 3) * sizeof(*pmv));
+  if (!pmv)
+      return -1;
+  /* decode y, u and v components */
+  for (i=0; i < 3; i++) {
+    int linesize;
+    if (i == 0) {
+      width  = FFALIGN(s->width, 16);
+      height = FFALIGN(s->height, 16);
+      linesize= s->linesize;
+    } else {
+      if(s->flags&CODEC_FLAG_GRAY) break;
+      width  = FFALIGN(s->width/4, 16);
+      height = FFALIGN(s->height/4, 16);
+      linesize= s->uvlinesize;
+    }
+    current = s->current_picture.f.data[i];
+    if(s->pict_type==AV_PICTURE_TYPE_B){
+        previous = s->next_picture.f.data[i];
+    }else{
+        previous = s->last_picture.f.data[i];
+    }
+    if (s->pict_type == AV_PICTURE_TYPE_I) {
+      /* keyframe */
+      for (y=0; y < height; y+=16) {
+        for (x=0; x < width; x+=16) {
+          result = svq1_decode_block_intra (&s->gb, &current[x], linesize);
+          if (result != 0)
+          {
+            av_log(s->avctx, AV_LOG_ERROR, "Error in svq1_decode_block %i (keyframe)\n",result);
+            goto err;
+          }
+        }
+        current += 16*linesize;
+      }
+    } else {
+      /* delta frame */
+      memset (pmv, 0, ((width / 8) + 3) * sizeof(svq1_pmv));
+      for (y=0; y < height; y+=16) {
+        for (x=0; x < width; x+=16) {
+          result = svq1_decode_delta_block (s, &s->gb, &current[x], previous,
+                                            linesize, pmv, x, y);
+          if (result 
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+39 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+39 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+39 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+39 -> 55 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+73 -> 80 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+73 -> 82 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int svq1_decode_frame(AVCodecContext *avctx,
+
+                             void *data, int *data_size,
+
+                             AVPacket *avpkt)
+
+{
+
+  const uint8_t *buf = avpkt->data;
+
+  int buf_size = avpkt->size;
+
+  MpegEncContext *s=avctx->priv_data;
+
+  uint8_t        *current, *previous;
+
+  int             result, i, x, y, width, height;
+
+  AVFrame *pict = data;
+
+  svq1_pmv *pmv;
+
+
+
+  /* initialize bit buffer */
+
+  init_get_bits(&s->gb,buf,buf_size*8);
+
+
+
+  /* decode frame header */
+
+  s->f_code = get_bits (&s->gb, 22);
+
+
+
+  if ((s->f_code & ~0x70) || !(s->f_code & 0x60))
+
+    return -1;
+
+
+
+  /* swap some header bytes (why?) */
+
+  if (s->f_code != 0x20) {
+
+    uint32_t *src = (uint32_t *) (buf + 4);
+
+
+
+    for (i=0; i < 4; i++) {
+
+      src[i] = ((src[i] << 16) | (src[i] >> 16)) ^ src[7 - i];
+
+    }
+
+  }
+
+
+
+  result = svq1_decode_frame_header (&s->gb, s);
+
+
+
+  if (result != 0)
+
+  {
+
+    av_dlog(s->avctx, "Error in svq1_decode_frame_header %i\n",result);
+
+    return result;
+
+  }
+
+
+
+
+  //FIXME this avoids some confusion for "B frames" without 2 references
+
+  //this should be removed after libavcodec can handle more flexible picture types & ordering
+
+  if(s->pict_type==AV_PICTURE_TYPE_B && s->last_picture_ptr==NULL) return buf_size;
+
+
+
+  if(  (avctx->skip_frame >= AVDISCARD_NONREF && s->pict_type==AV_PICTURE_TYPE_B)
+
+     ||(avctx->skip_frame >= AVDISCARD_NONKEY && s->pict_type!=AV_PICTURE_TYPE_I)
+
+     || avctx->skip_frame >= AVDISCARD_ALL)
+
+      return buf_si
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

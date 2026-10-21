@@ -1,0 +1,208 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bluetooth_uuid_t get_uuid_from_handle ( packet_info * pinfo , guint32 handle , bluetooth_data_t * bluetooth_data ) {
+ wmem_tree_key_t key [ 4 ] ;
+ guint32 frame_number ;
+ handle_data_t * handle_data ;
+ wmem_tree_t * sub_wmemtree ;
+ bluetooth_uuid_t uuid ;
+ memset ( & uuid , 0 , sizeof uuid ) ;
+ frame_number = pinfo -> num ;
+ key [ 0 ] . length = 1 ;
+ key [ 0 ] . key = & bluetooth_data -> interface_id ;
+ key [ 1 ] . length = 1 ;
+ key [ 1 ] . key = & bluetooth_data -> adapter_id ;
+ key [ 2 ] . length = 1 ;
+ key [ 2 ] . key = & handle ;
+ key [ 3 ] . length = 0 ;
+ key [ 3 ] . key = NULL ;
+ sub_wmemtree = ( wmem_tree_t * ) wmem_tree_lookup32_array ( handle_to_uuid , key ) ;
+ handle_data = ( sub_wmemtree ) ? ( handle_data_t * ) wmem_tree_lookup32_le ( sub_wmemtree , frame_number ) : NULL ;
+ if ( handle_data ) uuid = handle_data -> uuid ;
+ return uuid ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ wmem_tree_key_t key [ 4 ] ;
+ guint32 frame_number ;
+ handle_data_t * handle_data ;
+ wmem_tree_t * sub_wmemtree ;
+ bluetooth_uuid_t uuid ;
+ memset ( & uuid , 0 , sizeof uuid ) ;
+ frame_number = pinfo -> num ;
+ key [ 0 ] . length = 1 ;
+ key [ 0 ] . key = & bluetooth_data -> interface_id ;
+ key [ 1 ] . length = 1 ;
+ key [ 1 ] . key = & bluetooth_data -> adapter_id ;
+ key [ 2 ] . length = 1 ;
+ key [ 2 ] . key = & handle ;
+ key [ 3 ] . length = 0 ;
+ key [ 3 ] . key = NULL ;
+ sub_wmemtree = ( wmem_tree_t * ) wmem_tree_lookup32_array ( handle_to_uuid , key ) ;
+ handle_data = ( sub_wmemtree ) ? ( handle_data_t * ) wmem_tree_lookup32_le ( sub_wmemtree , frame_number ) : NULL ;
+ if ( handle_data ) uuid = handle_data -> uuid ;
+ return uuid ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | key [ 4 ]
+30064771073 | CALL | key [ 4 ]
+30064771074 | CALL | memset ( & uuid , 0 , sizeof uuid )
+30064771075 | CALL | & uuid
+30064771076 | CALL | sizeof uuid
+30064771077 | CALL | frame_number = pinfo -> num
+30064771078 | CALL | pinfo -> num
+30064771079 | CALL | key [ 0 ] . length = 1
+30064771080 | CALL | key [ 0 ] . length
+30064771081 | CALL | key [ 0 ]
+30064771082 | CALL | key [ 0 ] . key = & bluetooth_data -> interface_id
+30064771083 | CALL | key [ 0 ] . key
+30064771084 | CALL | key [ 0 ]
+30064771085 | CALL | & bluetooth_data -> interface_id
+30064771086 | CALL | bluetooth_data -> interface_id
+30064771087 | CALL | key [ 1 ] . length = 1
+30064771088 | CALL | key [ 1 ] . length
+30064771089 | CALL | key [ 1 ]
+30064771090 | CALL | key [ 1 ] . key = & bluetooth_data -> adapter_id
+30064771091 | CALL | key [ 1 ] . key
+30064771092 | CALL | key [ 1 ]
+30064771093 | CALL | & bluetooth_data -> adapter_id
+30064771094 | CALL | bluetooth_data -> adapter_id
+30064771095 | CALL | key [ 2 ] . length = 1
+30064771096 | CALL | key [ 2 ] . length
+30064771097 | CALL | key [ 2 ]
+30064771098 | CALL | key [ 2 ] . key = & handle
+30064771099 | CALL | key [ 2 ] . key
+30064771100 | CALL | key [ 2 ]
+30064771101 | CALL | & handle
+30064771102 | CALL | key [ 3 ] . length = 0
+30064771103 | CALL | key [ 3 ] . length
+30064771104 | CALL | key [ 3 ]
+30064771105 | CALL | key [ 3 ] . key = NULL
+30064771106 | CALL | key [ 3 ] . key
+30064771107 | CALL | key [ 3 ]
+30064771108 | CALL | sub_wmemtree = ( wmem_tree_t * ) wmem_tree_lookup32_array ( handle_to_uuid , key )
+30064771109 | CALL | ( wmem_tree_t * ) wmem_tree_lookup32_array ( handle_to_uuid , key )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771108 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771082 [CFG]
+30064771085 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771092 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771093 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771093 [AST]
+30064771090 -> 30064771093 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771090 [CFG]
+30064771093 -> 30064771090 [DOMINATE]
+30064771093 -> 30064771094 [POST_DOMINATE]
+30064771093 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771090 [REACHING_DEF]
+30064771094 -> 30064771093 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static bluetooth_uuid_t get_service_uuid_from_handle ( packet_info * pinfo , guint32 handle , bluetooth_data_t * bluetooth_data ) {
+ wmem_tree_key_t key [ 4 ] ;
+ guint32 frame_number ;
+ handle_data_t * handle_data ;
+ wmem_tree_t * sub_wmemtree ;
+ bluetooth_uuid_t uuid ;
+ memset ( & uuid , 0 , sizeof uuid ) ;
+ frame_number = pinfo -> num ;
+ key [ 0 ] . length = 1 ;
+ key [ 0 ] . key = & bluetooth_data -> interface_id ;
+ key [ 1 ] . length = 1 ;
+ key [ 1 ] . key = & bluetooth_data -> adapter_id ;
+ key [ 2 ] . length = 1 ;
+ key [ 2 ] . key = & handle ;
+ key [ 3 ] . length = 0 ;
+ key [ 3 ] . key = NULL ;
+ while ( handle > 0 ) {
+ sub_wmemtree = ( wmem_tree_t * ) wmem_tree_lookup32_array ( handle_to_uuid , key ) ;
+ handle_data = ( sub_wmemtree ) ? ( handle_data_t * ) wmem_tree_lookup32_le ( sub_wmemtree , frame_number ) : NULL ;
+ if ( handle_data && handle_data -> type == ATTRIBUTE_TYPE_SERVICE ) {
+ uuid = handle_data -> uuid ;
+ return uuid ;
+ }
+ handle -= 1 ;
+ }
+ return uuid ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

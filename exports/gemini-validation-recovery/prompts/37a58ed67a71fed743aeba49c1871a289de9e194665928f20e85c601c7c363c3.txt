@@ -1,0 +1,167 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( WebFrameSimTest , DisplayNoneIFrameHasNoLayoutObjects ) {
+ SimRequest main_resource ( "https://example.com/test.html" , "text/html" ) ;
+ SimRequest frame_resource ( "https://example.com/frame.html" , "text/html" ) ;
+ LoadURL ( "https://example.com/test.html" ) ;
+ main_resource . Complete ( "<!DOCTYPE html>" "<iframe src=frame.html style='display: none'></iframe>" ) ;
+ frame_resource . Complete ( "<!DOCTYPE html>" "<html><body>This is a visible iframe.</body></html>" ) ;
+ Element * element = GetDocument ( ) . QuerySelector ( "iframe" ) ;
+ HTMLFrameOwnerElement * frame_owner_element = ToHTMLFrameOwnerElement ( element ) ;
+ Document * iframe_doc = frame_owner_element -> contentDocument ( ) ;
+ EXPECT_FALSE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) ) ;
+ element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueBlock ) ;
+ Compositor ( ) . BeginFrame ( ) ;
+ EXPECT_TRUE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) ) ;
+ element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueNone ) ;
+ Compositor ( ) . BeginFrame ( ) ;
+ EXPECT_FALSE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ SimRequest main_resource ( "https://example.com/test.html" , "text/html" ) ;
+ SimRequest frame_resource ( "https://example.com/frame.html" , "text/html" ) ;
+ LoadURL ( "https://example.com/test.html" ) ;
+ main_resource . Complete ( "<!DOCTYPE html>" "<iframe src=frame.html style='display: none'></iframe>" ) ;
+ frame_resource . Complete ( "<!DOCTYPE html>" "<html><body>This is a visible iframe.</body></html>" ) ;
+ Element * element = GetDocument ( ) . QuerySelector ( "iframe" ) ;
+ HTMLFrameOwnerElement * frame_owner_element = ToHTMLFrameOwnerElement ( element ) ;
+ Document * iframe_doc = frame_owner_element -> contentDocument ( ) ;
+ EXPECT_FALSE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) ) ;
+ element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueBlock ) ;
+ Compositor ( ) . BeginFrame ( ) ;
+ EXPECT_TRUE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) ) ;
+ element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueNone ) ;
+ Compositor ( ) ...
+      
+30064771072 | CALL | main_resource ( "https://example.com/test.html" , "text/html" )
+30064771073 | CALL | 
+        frame_resource ( "https://example.com/frame.html" , "text/html" )
+      
+30064771074 | CALL | LoadURL ( "https://example.com/test.html" )
+30064771075 | CALL | 
+        main_resource . Complete ( "<!DOCTYPE html>" "<iframe src=frame.html style='display: none'></iframe>" )
+      
+30064771076 | CALL | main_resource . Complete
+30064771077 | CALL | 
+        frame_resource . Complete ( "<!DOCTYPE html>" "<html><body>This is a visible iframe.</body></html>" )
+      
+30064771078 | CALL | frame_resource . Complete
+30064771079 | CALL | element = GetDocument ( ) . QuerySelector ( "iframe" )
+30064771080 | CALL | GetDocument ( ) . QuerySelector ( "iframe" )
+30064771081 | CALL | GetDocument ( ) . QuerySelector
+30064771082 | CALL | GetDocument ( )
+30064771083 | CALL | frame_owner_element = ToHTMLFrameOwnerElement ( element )
+30064771084 | CALL | ToHTMLFrameOwnerElement ( element )
+30064771085 | CALL | iframe_doc = frame_owner_element -> contentDocument ( )
+30064771086 | CALL | frame_owner_element -> contentDocument ( )
+30064771087 | CALL | frame_owner_element -> contentDocument
+30064771088 | CALL | EXPECT_FALSE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) )
+30064771089 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject ( )
+30064771090 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject
+30064771091 | CALL | iframe_doc -> documentElement ( )
+30064771092 | CALL | iframe_doc -> documentElement
+30064771093 | CALL | element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueBlock )
+30064771094 | CALL | element -> SetInlineStyleProperty
+30064771095 | CALL | Compositor ( ) . BeginFrame ( )
+30064771096 | CALL | Compositor ( ) . BeginFrame
+30064771097 | CALL | Compositor ( )
+30064771098 | CALL | EXPECT_TRUE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) )
+30064771099 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject ( )
+30064771100 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject
+30064771101 | CALL | iframe_doc -> documentElement ( )
+30064771102 | CALL | iframe_doc -> documentElement
+30064771103 | CALL | element -> SetInlineStyleProperty ( CSSPropertyDisplay , CSSValueNone )
+30064771104 | CALL | element -> SetInlineStyleProperty
+30064771105 | CALL | Compositor ( ) . BeginFrame ( )
+30064771106 | CALL | Compositor ( ) . BeginFrame
+30064771107 | CALL | Compositor ( )
+30064771108 | CALL | EXPECT_FALSE ( iframe_doc -> documentElement ( ) -> GetLayoutObject ( ) )
+30064771109 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject ( )
+30064771110 | CALL | iframe_doc -> documentElement ( ) -> GetLayoutObject
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771108 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [RECEIVER]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [RECEIVER]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [RECEIVER]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771087 [RECEIVER]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771090 [RECEIVER]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771091 -> 30064771092 [RECEIVER]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771097 [CFG]
+30064771093 -> 30064771097 [DOMINATE]
+30064771093 -> 30064771094 [RECEIVER]
+3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

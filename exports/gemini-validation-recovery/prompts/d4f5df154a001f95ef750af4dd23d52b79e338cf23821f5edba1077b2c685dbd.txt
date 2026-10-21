@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void check_eol_junk_line ( const char * line ) {
+ const char * p = line ;
+ DBUG_ENTER ( "check_eol_junk_line" ) ;
+ DBUG_PRINT ( "enter" , ( "line: %s" , line ) ) ;
+ if ( * p && ! strncmp ( p , delimiter , delimiter_length ) ) die ( "Extra delimiter \"%s\" found" , delimiter ) ;
+ if ( * p && * p != '#' ) {
+ if ( * p == '\n' ) die ( "Missing delimiter" ) ;
+ die ( "End of line junk detected: \"%s\"" , p ) ;
+ }
+ DBUG_VOID_RETURN ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * p = line ;
+ DBUG_ENTER ( "check_eol_junk_line" ) ;
+ DBUG_PRINT ( "enter" , ( "line: %s" , line ) ) ;
+ if ( * p && ! strncmp ( p , delimiter , delimiter_length ) ) die ( "Extra delimiter \"%s\" found" , delimiter ) ;
+ if ( * p && * p != '#' ) {
+ if ( * p == '\n' ) die ( "Missing delimiter" ) ;
+ die ( "End of line junk detected: \"%s\"" , p ) ;
+ }
+ DBUG_VOID_RETURN ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( * p == '\n' ) die ( "Missing delimiter" ) ;
+ die ( "End of line junk detected: \"%s\"" , p ) ;
+ }
+      
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | p = line
+30064771073 | CALL | DBUG_ENTER ( "check_eol_junk_line" )
+30064771074 | CALL | DBUG_PRINT ( "enter" , ( "line: %s" , line ) )
+30064771075 | CALL | * p && ! strncmp ( p , delimiter , delimiter_length )
+30064771076 | CALL | * p
+30064771077 | CALL | ! strncmp ( p , delimiter , delimiter_length )
+30064771078 | CALL | strncmp ( p , delimiter , delimiter_length )
+30064771079 | CALL | die ( "Extra delimiter \"%s\" found" , delimiter )
+30064771080 | CALL | * p && * p != '#'
+30064771081 | CALL | * p
+30064771082 | CALL | * p != '#'
+30064771083 | CALL | * p
+30064771084 | CALL | * p == '\n'
+30064771085 | CALL | * p
+30064771086 | CALL | die ( "Missing delimiter" )
+30064771087 | CALL | die ( "End of line junk detected: \"%s\"" , p )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( * p && ! strncmp ( p , delimiter , delimiter_length ) ) die ( "Extra delimiter \"%s\" found" , delimiter ) ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( * p && * p != '#' ) {
+ if ( * p == '\n' ) die ( "Missing delimiter" ) ;
+ die ( "End of line junk detected: \"%s\"" , p ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | if ( * p == '\n' ) die ( "Missing delimiter" ) ;
+68719476736 | IDENTIFIER | p
+68719476737 | IDENTIFIER | line
+68719476738 | IDENTIFIER | line
+68719476739 | IDENTIFIER | p
+68719476740 | IDENTIFIER | p
+68719476741 | IDENTIFIER | <unknown> delimiter
+68719476742 | IDENTIFIER | <unknown> delimiter_length
+68719476743 | IDENTIFIER | <unknown> delimiter
+68719476744 | IDENTIFIER | p
+68719476745 | IDENTIFIER | p
+68719476746 | IDENTIFIER | p
+68719476747 | IDENTIFIER | p
+68719476748 | IDENTIFIER | <unknown> DBUG_VOID_RETURN
+90194313216 | LITERAL | "check_eol_junk_line"
+90194313217 | LITERAL | "enter"
+90194313218 | LITERAL | "line: %s"
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 68719476748 [AST]
+25769803777 -> 90194313218 [AST]
+25769803777 -> 68719476738 [AST]
+25769803777 -> 30064771074 [CFG]
+25769803777 -> 30064771074 [DOMINATE]
+25769803777 -> 68719476738 [POST_DOMINATE]
+25769803777 -> 30064771074 [REACHING_DEF]
+25769803777 -> 30064771074 [REACHING_DEF]
+25769803778 -> 30064771079 [AST]
+25769803779 -> 47244640258 [AST]
+25769803779 -> 30064771087 [AST]
+25769803780 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 90194313216 [CFG]
+30064771072 -> 90194313216 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 90194313217 [CFG]
+30064771073 -> 90194313217 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 25769803777 [ARGUMENT]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 25769803777 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 25769803777 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476744 [CFG]
+30064771075 -> 68719476744 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476740 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 30064771083 [REACHING_DEF]
+30064771076 -> 68719476744 [REACHING_DEF]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771081 [REACHING_DEF]
+30064771076 -> 68719476745 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void check_eol_junk ( const char * eol ) {
+ const char * p = eol ;
+ DBUG_ENTER ( "check_eol_junk" ) ;
+ DBUG_PRINT ( "enter" , ( "eol: %s" , eol ) ) ;
+ while ( * p && ( my_isspace ( charset_info , * p ) || * p == '#' || * p == '\n' ) ) {
+ if ( * p && * p == '#' ) {
+ p ++ ;
+ while ( * p && * p != '\n' ) p ++ ;
+ }
+ if ( * p && * p == '\n' ) check_eol_junk_line ( p ) ;
+ if ( * p ) p ++ ;
+ }
+ check_eol_junk_line ( p ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

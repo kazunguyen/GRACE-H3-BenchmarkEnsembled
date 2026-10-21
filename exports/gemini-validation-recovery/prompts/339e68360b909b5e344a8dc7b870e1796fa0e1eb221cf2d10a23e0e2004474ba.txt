@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( BrowsingDataRemoverImplTest , RemoveChannelIDsForServerIdentifiers ) {
+ RemoveChannelIDTester tester ( GetBrowserContext ( ) ) ;
+ tester . AddChannelID ( kTestRegisterableDomain1 ) ;
+ tester . AddChannelID ( kTestRegisterableDomain3 ) ;
+ EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ filter_builder -> AddRegisterableDomain ( kTestRegisterableDomain1 ) ;
+ BlockUntilOriginDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_CHANNEL_IDS , std : : move ( filter_builder ) ) ;
+ EXPECT_EQ ( 1 , tester . ChannelIDCount ( ) ) ;
+ net : : ChannelIDStore : : ChannelIDList channel_ids ;
+ tester . GetChannelIDList ( & channel_ids ) ;
+ EXPECT_EQ ( kTestRegisterableDomain3 , channel_ids . front ( ) . server_identifier ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ RemoveChannelIDTester tester ( GetBrowserContext ( ) ) ;
+ tester . AddChannelID ( kTestRegisterableDomain1 ) ;
+ tester . AddChannelID ( kTestRegisterableDomain3 ) ;
+ EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) ) ;
+ std : : unique_ptr < BrowsingDataFilterBuilder > filter_builder ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ filter_builder -> AddRegisterableDomain ( kTestRegisterableDomain1 ) ;
+ BlockUntilOriginDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_CHANNEL_IDS , std : : move ( filter_builder ) ) ;
+ EXPECT_EQ ( 1 , tester . ChannelIDCount ( ) ) ;
+ net : : ChannelIDStore : : ChannelIDList channel_ids ;
+ tester . GetChannelIDList ( & channel_ids ) ;
+ EXPECT_EQ ( kTestRegisterableDomain3 , channel_ids . front ( ) . server_identifier ( ) ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | tester . AddChannelID ( kTestRegisterableDomain1 )
+30064771073 | CALL | tester . AddChannelID
+30064771074 | CALL | tester . AddChannelID ( kTestRegisterableDomain3 )
+30064771075 | CALL | tester . AddChannelID
+30064771076 | CALL | EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) )
+30064771077 | CALL | tester . ChannelIDCount ( )
+30064771078 | CALL | tester . ChannelIDCount
+30064771079 | CALL | filter_builder -> AddRegisterableDomain ( kTestRegisterableDomain1 )
+30064771080 | CALL | filter_builder -> AddRegisterableDomain
+30064771081 | CALL | EXPECT_EQ ( 1 , tester . ChannelIDCount ( ) )
+30064771082 | CALL | tester . ChannelIDCount ( )
+30064771083 | CALL | tester . ChannelIDCount
+30064771084 | CALL | tester . GetChannelIDList ( & channel_ids )
+30064771085 | CALL | tester . GetChannelIDList
+30064771086 | CALL | & channel_ids
+30064771087 | CALL | 
+        EXPECT_EQ ( kTestRegisterableDomain3 , channel_ids . front ( ) . server_identifier ( ) )
+      
+30064771088 | CALL | channel_ids . front ( ) . server_identifier ( )
+30064771089 | CALL | channel_ids . front ( ) . server_identifier
+30064771090 | CALL | channel_ids . front ( )
+30064771091 | CALL | channel_ids . front
+55834574848 | FIELD_IDENTIFIER | AddChannelID
+55834574849 | FIELD_IDENTIFIER | AddChannelID
+55834574850 | FIELD_IDENTIFIER | ChannelIDCount
+55834574851 | FIELD_IDENTIFIER | AddRegisterableDomain
+55834574852 | FIELD_IDENTIFIER | ChannelIDCount
+55834574853 | FIELD_IDENTIFIER | GetChannelIDList
+55834574854 | FIELD_IDENTIFIER | front
+55834574855 | FIELD_IDENTIFIER | server_identifier
+68719476736 | IDENTIFIER | <unknown> kTestRegisterableDomain1
+68719476737 | IDENTIFIER | <unknown> kTestRegisterableDomain3
+68719476738 | IDENTIFIER | <unknown> filter_builder
+68719476739 | IDENTIFIER | <unknown> kTestRegisterableDomain1
+68719476740 | IDENTIFIER | <unknown> channel_ids
+68719476741 | IDENTIFIER | <unknown> kTestRegisterableDomain3
+68719476742 | IDENTIFIER | <unknown> channel_ids
+90194313216 | LITERAL | 2
+90194313217 | LITERAL | 1
+94489280512 | LOCAL | <unknown> channel_ids
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 94489280512 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 68719476736 [CFG]
+30064771073 -> 68719476736 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 90194313216 [CFG]
+30064771074 -> 90194313216 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 30064771075 [RECEIVER]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 68719476737 [CFG]
+30064771075 -> 68719476737 [DOMINATE]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476738 [CFG]
+30064771076 -> 68719476738 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [RECEIVER]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 68719476739 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476739 [AST]
+30064771079 -> 90194313217 [CFG]
+30064771079 -> 90194313217 [DOMINATE]
+30064771079 -> 68719476739 [POST_DOMINATE]
+30064771079 -> 30064771080 [RECEIVER]
+30064771080 -> 68719476738 [ARGUMENT]
+30064771080 -> 55834574851 [ARGUMENT]
+30064771080 -> 68719476738 [AST]
+30064771080 -> 55834574851 [AST]
+30064771080 -> 68719476739 [CFG]
+30064771080 -> 68719476739 [DOMINATE]
+30064771080 -> 55834574851 [POST_DOMINATE]
+30064771081 -> 90194313217 [ARGUMENT]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 90194313217 [AST]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771083 [RECEIVER]
+30064771083 -> 55834574852 [ARGUMENT]
+30064771083 -> 55834574852 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 55834574852 [POST_DOMINATE]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TEST_F ( BrowsingDataRemoverImplTest , RemoveDownloadsByTimeOnly ) {
+ RemoveDownloadsTester tester ( GetBrowserContext ( ) ) ;
+ base : : Callback < bool ( const GURL & ) > filter = BrowsingDataFilterBuilder : : BuildNoopFilter ( ) ;
+ EXPECT_CALL ( * tester . download_manager ( ) , RemoveDownloadsByURLAndTime ( ProbablySameFilter ( filter ) , _ , _ ) ) ;
+ BlockUntilBrowsingDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_DOWNLOADS , false ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

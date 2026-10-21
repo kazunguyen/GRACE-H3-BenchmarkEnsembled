@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( BrowsingDataRemoverImplTest , RemoveChannelIDLastHour ) {
+ RemoveChannelIDTester tester ( GetBrowserContext ( ) ) ;
+ base : : Time now = base : : Time : : Now ( ) ;
+ tester . AddChannelID ( kTestOrigin1 ) ;
+ tester . AddChannelIDWithTimes ( kTestOrigin2 , now - base : : TimeDelta : : FromHours ( 2 ) ) ;
+ EXPECT_EQ ( 0 , tester . ssl_config_changed_count ( ) ) ;
+ EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) ) ;
+ BlockUntilBrowsingDataRemoved ( AnHourAgo ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_CHANNEL_IDS , false ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_CHANNEL_IDS , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ EXPECT_EQ ( 1 , tester . ssl_config_changed_count ( ) ) ;
+ ASSERT_EQ ( 1 , tester . ChannelIDCount ( ) ) ;
+ net : : ChannelIDStore : : ChannelIDList channel_ids ;
+ tester . GetChannelIDList ( & channel_ids ) ;
+ ASSERT_EQ ( 1U , channel_ids . size ( ) ) ;
+ EXPECT_EQ ( kTestOrigin2 , channel_ids . front ( ) . server_identifier ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ RemoveChannelIDTester tester ( GetBrowserContext ( ) ) ;
+ base : : Time now = base : : Time : : Now ( ) ;
+ tester . AddChannelID ( kTestOrigin1 ) ;
+ tester . AddChannelIDWithTimes ( kTestOrigin2 , now - base : : TimeDelta : : FromHours ( 2 ) ) ;
+ EXPECT_EQ ( 0 , tester . ssl_config_changed_count ( ) ) ;
+ EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) ) ;
+ BlockUntilBrowsingDataRemoved ( AnHourAgo ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_CHANNEL_IDS , false ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_CHANNEL_IDS , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ EXPECT_EQ ( 1 , tester . ssl_config_changed_count ( ) ) ;
+ ASSERT_EQ ( 1 , tester . ChannelIDCount ( ) ) ;
+ net : : ChannelIDStore : : ChannelIDList channel_ids ;
+ tester . GetChannelIDList ( & channel_ids ) ;
+ ASSERT_EQ ( 1U , channel_ids . size ( ) ) ;
+ EXPECT_EQ ( kTestOrigin2 , channel_ids . front ( ) . server_identifier ( ) ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | tester . AddChannelID ( kTestOrigin1 )
+30064771073 | CALL | tester . AddChannelID
+30064771074 | CALL | EXPECT_EQ ( 0 , tester . ssl_config_changed_count ( ) )
+30064771075 | CALL | tester . ssl_config_changed_count ( )
+30064771076 | CALL | tester . ssl_config_changed_count
+30064771077 | CALL | EXPECT_EQ ( 2 , tester . ChannelIDCount ( ) )
+30064771078 | CALL | tester . ChannelIDCount ( )
+30064771079 | CALL | tester . ChannelIDCount
+30064771080 | CALL | EXPECT_EQ ( 1 , tester . ssl_config_changed_count ( ) )
+30064771081 | CALL | tester . ssl_config_changed_count ( )
+30064771082 | CALL | tester . ssl_config_changed_count
+30064771083 | CALL | ASSERT_EQ ( 1 , tester . ChannelIDCount ( ) )
+30064771084 | CALL | tester . ChannelIDCount ( )
+30064771085 | CALL | tester . ChannelIDCount
+30064771086 | CALL | tester . GetChannelIDList ( & channel_ids )
+30064771087 | CALL | tester . GetChannelIDList
+30064771088 | CALL | & channel_ids
+30064771089 | CALL | ASSERT_EQ ( 1U , channel_ids . size ( ) )
+30064771090 | CALL | channel_ids . size ( )
+30064771091 | CALL | channel_ids . size
+30064771092 | CALL | EXPECT_EQ ( kTestOrigin2 , channel_ids . front ( ) . server_identifier ( ) )
+30064771093 | CALL | channel_ids . front ( ) . server_identifier ( )
+30064771094 | CALL | channel_ids . front ( ) . server_identifier
+30064771095 | CALL | channel_ids . front ( )
+30064771096 | CALL | channel_ids . front
+55834574848 | FIELD_IDENTIFIER | AddChannelID
+55834574849 | FIELD_IDENTIFIER | ssl_config_changed_count
+55834574850 | FIELD_IDENTIFIER | ChannelIDCount
+55834574851 | FIELD_IDENTIFIER | ssl_config_changed_count
+55834574852 | FIELD_IDENTIFIER | ChannelIDCount
+55834574853 | FIELD_IDENTIFIER | GetChannelIDList
+55834574854 | FIELD_IDENTIFIER | size
+55834574855 | FIELD_IDENTIFIER | front
+55834574856 | FIELD_IDENTIFIER | server_identifier
+68719476736 | IDENTIFIER | <unknown> kTestOrigin1
+68719476737 | IDENTIFIER | <unknown> channel_ids
+68719476738 | IDENTIFIER | <unknown> channel_ids
+68719476739 | IDENTIFIER | <unknown> kTestOrigin2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 68719476736 [CFG]
+30064771073 -> 68719476736 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771079 [RECEIVER]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [RECEIVER]
+30064771082 -> 55834574851 [ARGUMENT]
+30064771082 -> 55834574851 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 55834574851 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771085 [RECEIVER]
+30064771085 -> 55834574852 [ARGUMENT]
+30064771085 -> 55834574852 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 55834574852 [POST_DOMINATE]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771088 [POST_DOMINATE]
+30064771086 -> 30064771087 [RECEIVER]
+30064771087 -> 55834574853 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TEST_F ( BrowsingDataRemoverImplTest , RemoveLocalStorageForLastWeek ) {
+ # if BUILDFLAG ( ENABLE_EXTENSIONS ) CreateMockPolicy ( ) ;
+ # endif BlockUntilBrowsingDataRemoved ( base : : Time : : Now ( ) - base : : TimeDelta : : FromDays ( 7 ) , base : : 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,210 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void resume ( lua_State * L , void * ud ) {
+ StkId firstArg = cast ( StkId , ud ) ;
+ CallInfo * ci = L -> ci ;
+ if ( L -> status == 0 ) {
+ lua_assert ( ci == L -> base_ci && firstArg > L -> base ) ;
+ if ( luaD_precall ( L , firstArg - 1 , LUA_MULTRET ) != PCRLUA ) return ;
+ }
+ else {
+ lua_assert ( L -> status == LUA_YIELD ) ;
+ L -> status = 0 ;
+ if ( ! f_isLua ( ci ) ) {
+ lua_assert ( GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL ) ;
+ if ( luaD_poscall ( L , firstArg ) ) L -> top = L -> ci -> top ;
+ }
+ else L -> base = L -> ci -> base ;
+ }
+ luaV_execute ( L , cast_int ( L -> ci - L -> base_ci ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ StkId firstArg = cast ( StkId , ud ) ;
+ CallInfo * ci = L -> ci ;
+ if ( L -> status == 0 ) {
+ lua_assert ( ci == L -> base_ci && firstArg > L -> base ) ;
+ if ( luaD_precall ( L , firstArg - 1 , LUA_MULTRET ) != PCRLUA ) return ;
+ }
+ else {
+ lua_assert ( L -> status == LUA_YIELD ) ;
+ L -> status = 0 ;
+ if ( ! f_isLua ( ci ) ) {
+ lua_assert ( GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL ) ;
+ if ( luaD_poscall ( L , firstArg ) ) L -> top = L -> ci -> top ;
+ }
+ else L -> base = L -> ci -> base ;
+ }
+ luaV_execute ( L , cast_int ( L -> ci - L -> base_ci ) ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ lua_assert ( ci == L -> base_ci && firstArg > L -> base ) ;
+ if ( luaD_precall ( L , firstArg - 1 , LUA_MULTRET ) != PCRLUA ) return ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ lua_assert ( L -> status == LUA_YIELD ) ;
+ L -> status = 0 ;
+ if ( ! f_isLua ( ci ) ) {
+ lua_assert ( GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL ) ;
+ if ( luaD_poscall ( L , firstArg ) ) L -> top = L -> ci -> top ;
+ }
+ else L -> base = L -> ci -> base ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ lua_assert ( GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL ) ;
+ if ( luaD_poscall ( L , firstArg ) ) L -> top = L -> ci -> top ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | firstArg = cast ( StkId , ud )
+30064771073 | CALL | cast ( StkId , ud )
+30064771074 | CALL | ci = L -> ci
+30064771075 | CALL | L -> ci
+30064771076 | CALL | L -> status == 0
+30064771077 | CALL | L -> status
+30064771078 | CALL | lua_assert ( ci == L -> base_ci && firstArg > L -> base )
+30064771079 | CALL | ci == L -> base_ci && firstArg > L -> base
+30064771080 | CALL | ci == L -> base_ci
+30064771081 | CALL | L -> base_ci
+30064771082 | CALL | firstArg > L -> base
+30064771083 | CALL | L -> base
+30064771084 | CALL | luaD_precall ( L , firstArg - 1 , LUA_MULTRET ) != PCRLUA
+30064771085 | CALL | luaD_precall ( L , firstArg - 1 , LUA_MULTRET )
+30064771086 | CALL | firstArg - 1
+30064771087 | CALL | lua_assert ( L -> status == LUA_YIELD )
+30064771088 | CALL | L -> status == LUA_YIELD
+30064771089 | CALL | L -> status
+30064771090 | CALL | L -> status = 0
+30064771091 | CALL | L -> status
+30064771092 | CALL | ! f_isLua ( ci )
+30064771093 | CALL | f_isLua ( ci )
+30064771094 | CALL | 
+        lua_assert ( GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL )
+      
+30064771095 | CALL | 
+        GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL || GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL
+      
+30064771096 | CALL | GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_CALL
+30064771097 | CALL | GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) )
+30064771098 | CALL | * ( ( ci - 1 ) -> savedpc - 1 )
+30064771099 | CALL | ( ci - 1 ) -> savedpc - 1
+30064771100 | CALL | ( ci - 1 ) -> savedpc
+30064771101 | CALL | ci - 1
+30064771102 | CALL | GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) ) == OP_TAILCALL
+30064771103 | CALL | GET_OPCODE ( * ( ( ci - 1 ) -> savedpc - 1 ) )
+30064771104 | CALL | * ( ( ci - 1 ) -> savedpc - 1 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803779 -> 30064771087 [AST]
+25769803779 -> 30064771090 [AST]
+25769803780 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771093 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771077 -> 30064771089 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771082 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771082 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771082 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771079 [CFG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771079 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int luaD_poscall ( lua_State * L , StkId firstResult ) {
+ StkId res ;
+ int wanted , i ;
+ CallInfo * ci ;
+ if ( L -> hookmask & LUA_MASKRET ) firstResult = callrethooks ( L , firstResult ) ;
+ ci = L -> ci -- ;
+ res = ci -> func ;
+ wanted = ci -> nresults ;
+ L -> base = ( ci - 1 ) -> base ;
+ L -> savedpc = ( ci - 1 ) -> savedpc ;
+ for ( i
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

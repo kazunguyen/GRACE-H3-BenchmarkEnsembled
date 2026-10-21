@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+VAR * var_get ( const char * var_name , const char * * var_name_end , my_bool raw , my_bool ignore_not_existing ) {
+ int digit ;
+ VAR * v ;
+ DBUG_ENTER ( "var_get" ) ;
+ DBUG_PRINT ( "enter" , ( "var_name: %s" , var_name ) ) ;
+ if ( * var_name != '$' ) goto err ;
+ digit = * ++ var_name - '0' ;
+ if ( digit < 0 || digit >= 10 ) {
+ const char * save_var_name = var_name , * end ;
+ uint length ;
+ end = ( var_name_end ) ? * var_name_end : 0 ;
+ while ( my_isvar ( charset_info , * var_name ) && var_name != end ) var_name ++ ;
+ if ( var_name == save_var_name ) {
+ if ( ignore_not_existing ) DBUG_RETURN ( 0 ) ;
+ die ( "Empty variable" ) ;
+ }
+ length = ( uint ) ( var_name - save_var_name ) ;
+ if ( length >= MAX_VAR_NAME_LENGTH ) die ( "Too long variable name: %s" , save_var_name ) ;
+ if ( ! ( v = ( VAR * ) my_hash_search ( & var_hash , ( const uchar * ) save_var_name , length ) ) ) {
+ char buff [ MAX_VAR_NAME_LENGTH + 1 ] ;
+ strmake ( buff , save_var_name , length ) ;
+ v = var_from_env ( buff , "" ) ;
+ }
+ var_name -- ;
+ }
+ else v = var_reg + digit ;
+ if ( ! raw && v -> int_dirty ) {
+ sprintf ( v -> str_val , "%d" , v -> int_val ) ;
+ v -> int_dirty = false ;
+ v -> str_val_len = strlen ( v -> str_val ) ;
+ }
+ if ( var_name_end ) * var_name_end = var_name ;
+ DBUG_RETURN ( v ) ;
+ err : if ( var_name_end ) * var_name_end = 0 ;
+ die ( "Unsupported variable name: %s" , var_name ) ;
+ DBUG_RETURN ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int digit ;
+ VAR * v ;
+ DBUG_ENTER ( "var_get" ) ;
+ DBUG_PRINT ( "enter" , ( "var_name: %s" , var_name ) ) ;
+ if ( * var_name != '$' ) goto err ;
+ digit = * ++ var_name - '0' ;
+ if ( digit < 0 || digit >= 10 ) {
+ const char * save_var_name = var_name , * end ;
+ uint length ;
+ end = ( var_name_end ) ? * var_name_end : 0 ;
+ while ( my_isvar ( charset_info , * var_name ) && var_name != end ) var_name ++ ;
+ if ( var_name == save_var_name ) {
+ if ( ignore_not_existing ) DBUG_RETURN ( 0 ) ;
+ die ( "Empty variable" ) ;
+ }
+ length = ( uint ) ( var_name - save_var_name ) ;
+ if ( length >= MAX_VAR_NAME_LENGTH ) die ( "Too long variable name: %s" , save_var_name ) ;
+ if ( ! ( v = ( VAR * ) my_hash_search ( & var_hash , ( const uchar * ) save_var_name , length ) ) ) {
+ char buff [ MAX_VAR_NAME_LENGTH + 1 ] ;
+ strmake ( buff , save_var_name , length ) ;
+ v = var_from_env ( buff , "" ) ;
+ }
+ var_name -- ;
+ }
+ else v = var_reg + digit ;
+ if ( ! raw && v -> int_dirty ) {
+ sprintf ( v -> str_val ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ const char * save_var_name = var_name , * end ;
+ uint length ;
+ end = ( var_name_end ) ? * var_name_end : 0 ;
+ while ( my_isvar ( charset_info , * var_name ) && var_name != end ) var_name ++ ;
+ if ( var_name == save_var_name ) {
+ if ( ignore_not_existing ) DBUG_RETURN ( 0 ) ;
+ die ( "Empty variable" ) ;
+ }
+ length = ( uint ) ( var_name - save_var_name ) ;
+ if ( length >= MAX_VAR_NAME_LENGTH ) die ( "Too long variable name: %s" , save_var_name ) ;
+ if ( ! ( v = ( VAR * ) my_hash_search ( & var_hash , ( const uchar * ) save_var_name , length ) ) ) {
+ char buff [ MAX_VAR_NAME_LENGTH + 1 ] ;
+ strmake ( buff , save_var_name , length ) ;
+ v = var_from_env ( buff , "" ) ;
+ }
+ var_name -- ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ if ( ignore_not_existing ) DBUG_RETURN ( 0 ) ;
+ die ( "Empty variable" ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ char buff [ MAX_VAR_NAME_LENGTH + 1 ] ;
+ strmake ( buff , save_var_name , length ) ;
+ v = var_from_env ( buff , "" ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ sprintf ( v -> str_val , "%d" , v -> int_val ) ;
+ v -> int_dirty = false ;
+ v -> str_val_len = strlen ( v -> str_val ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+30064771072 | CALL | DBUG_ENTER ( "var_get" )
+30064771073 | CALL | DBUG_PRINT ( "enter" , ( "var_name: %s" , var_name ) )
+30064771074 | CALL | * var_name != '$'
+30064771075 | CALL | * var_name
+30064771076 | CALL | digit = * ++ var_name - '0'
+30064771077 | CALL | * ++ var_name - '0'
+30064771078 | CALL | * ++ var_name
+30064771079 | CALL | ++ var_name
+30064771080 | CALL | digit < 0 || digit >= 10
+30064771081 | CALL | digit < 0
+30064771082 | CALL | digit >= 10
+30064771083 | CALL | save_var_name = var_name
+30064771084 | CALL | end = ( var_name_end ) ? * var_name_end : 0
+30064771085 | CALL | ( var_name_end ) ? * var_name_end : 0
+30064771086 | CALL | * var_name_end
+30064771087 | CALL | my_isvar ( charset_info , * var_name ) && var_name != end
+30064771088 | CALL | my_isvar ( charset_info , * var_name )
+30064771089 | CALL | * var_name
+30064771090 | CALL | var_name != end
+30064771091 | CALL | var_name ++
+30064771092 | CALL | var_name == save_var_name
+30064771093 | CALL | ignore_not_existing != 0
+30064771094 | CALL | DBUG_RETURN ( 0 )
+30064771095 | CALL | die ( "Empty variable" )
+30064771096 | CALL | length = ( uint ) ( var_name - save_var_name )
+30064771097 | CALL | ( uint ) ( var_name - save_var_name )
+30064771098 | CALL | var_name - save_var_name
+30064771099 | CALL | length >= MAX_VAR_NAME_LENGTH
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771073 [CFG]
+25769803777 -> 30064771073 [DOMINATE]
+25769803777 -> 30064771073 [REACHING_DEF]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771084 [AST]
+25769803779 -> 30064771096 [AST]
+25769803780 -> 30064771095 [AST]
+25769803781 -> 30064771094 [AST]
+30064771073 -> 25769803777 [ARGUMENT]
+30064771073 -> 25769803777 [AST]
+30064771073 -> 25769803777 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771089 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771099 [CDG]
+30064771080 -> 30064771098 [CDG]
+30064771080 -> 30064771097 [CDG]
+30064771080 -> 30064771096 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771081 [REACHING_DEF]
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

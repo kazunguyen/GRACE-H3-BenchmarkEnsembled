@@ -1,0 +1,244 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int32_t compareMappings ( UCMTable * lTable , const UCMapping * l , UCMTable * rTable , const UCMapping * r , UBool uFirst ) {
+ int32_t result ;
+ if ( uFirst ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ if ( result == 0 ) {
+ result = compareBytes ( lTable , l , rTable , r , FALSE ) ;
+ }
+ }
+ else {
+ result = compareBytes ( lTable , l , rTable , r , TRUE ) ;
+ if ( result == 0 ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ }
+ }
+ if ( result != 0 ) {
+ return result ;
+ }
+ return l -> f - r -> f ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int32_t result ;
+ if ( uFirst ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ if ( result == 0 ) {
+ result = compareBytes ( lTable , l , rTable , r , FALSE ) ;
+ }
+ }
+ else {
+ result = compareBytes ( lTable , l , rTable , r , TRUE ) ;
+ if ( result == 0 ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ }
+ }
+ if ( result != 0 ) {
+ return result ;
+ }
+ return l -> f - r -> f ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ if ( result == 0 ) {
+ result = compareBytes ( lTable , l , rTable , r , FALSE ) ;
+ }
+ }
+      
+25769803778 | BLOCK | { result = compareBytes ( lTable , l , rTable , r , FALSE ) ; }
+25769803779 | BLOCK | 
+        {
+ result = compareBytes ( lTable , l , rTable , r , TRUE ) ;
+ if ( result == 0 ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ }
+ }
+      
+25769803780 | BLOCK | { result = compareUnicode ( lTable , l , rTable , r ) ; }
+25769803781 | BLOCK | { return result ; }
+30064771072 | CALL | uFirst != 0
+30064771073 | CALL | result = compareUnicode ( lTable , l , rTable , r )
+30064771074 | CALL | compareUnicode ( lTable , l , rTable , r )
+30064771075 | CALL | result == 0
+30064771076 | CALL | result = compareBytes ( lTable , l , rTable , r , FALSE )
+30064771077 | CALL | compareBytes ( lTable , l , rTable , r , FALSE )
+30064771078 | CALL | result = compareBytes ( lTable , l , rTable , r , TRUE )
+30064771079 | CALL | compareBytes ( lTable , l , rTable , r , TRUE )
+30064771080 | CALL | result == 0
+30064771081 | CALL | result = compareUnicode ( lTable , l , rTable , r )
+30064771082 | CALL | compareUnicode ( lTable , l , rTable , r )
+30064771083 | CALL | result != 0
+30064771084 | CALL | l -> f - r -> f
+30064771085 | CALL | l -> f
+30064771086 | CALL | r -> f
+47244640256 | CONTROL_STRUCTURE | 
+        if ( uFirst ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ if ( result == 0 ) {
+ result = compareBytes ( lTable , l , rTable , r , FALSE ) ;
+ }
+ }
+ else {
+ result = compareBytes ( lTable , l , rTable , r , TRUE ) ;
+ if ( result == 0 ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ }
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( result == 0 ) {
+ result = compareBytes ( lTable , l , rTable , r , FALSE ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( result == 0 ) {
+ result = compareUnicode ( lTable , l , rTable , r ) ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | if ( result != 0 ) { return result ; }
+55834574848 | FIELD_IDENTIFIER | f
+55834574849 | FIELD_IDENTIFIER | f
+68719476736 | IDENTIFIER | uFirst
+68719476737 | IDENTIFIER | result
+68719476738 | IDENTIFIER | lTable
+68719476739 | IDENTIFIER | l
+68719476740 | IDENTIFIER | rTable
+68719476741 | IDENTIFIER | r
+68719476742 | IDENTIFIER | result
+68719476743 | IDENTIFIER | result
+68719476744 | IDENTIFIER | lTable
+68719476745 | IDENTIFIER | l
+68719476746 | IDENTIFIER | rTable
+68719476747 | IDENTIFIER | r
+68719476748 | IDENTIFIER | <unknown> FALSE
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640259 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771078 [AST]
+25769803779 -> 47244640258 [AST]
+25769803780 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476742 [CFG]
+30064771073 -> 68719476742 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476741 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476741 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476742 [ARGUMENT]
+30064771075 -> 68719476742 [AST]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 68719476748 [CDG]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476743 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476743 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 68719476745 [ARGUMENT]
+30064771077 -> 68719476746 [ARGUMENT]
+30064771077 -> 68719476747 [ARGUMENT]
+30064771077 -> 68719476748 [ARGUMENT]
+30064771077 -> 68719476744 [AST]
+30064771077 -> 68719476745 [AST]
+30064771077 -> 68719476746 [AST]
+30064771077 -> 68719476747 [AST]
+30064771077 -> 68719476748 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476748 [POST_DOMINATE]
+30064771077 -> 68719476743 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int32_t compareBytes ( UCMTable * lTable , const UCMapping * l , UCMTable * rTable , const UCMapping * r , UBool lexical ) {
+ const uint8_t * lb , * rb ;
+ int32_t result , i , length ;
+ if ( lexical ) {
+ if ( l -> bLen <= r -> bLen ) {
+ length = l -> bLen ;
+ }
+ else {
+ length = r -> bLen ;
+ }
+ }
+ else {
+ result = l -> bLen - r -> bLen ;
+ if ( result != 0 ) {
+ return result ;
+ }
+ else {
+ length = l -> bLen ;
+ }
+ }
+ lb = UCM_GET_BYTES ( lTable , l ) ;
+ rb = UCM_GET_BYTES ( rTable , r ) ;
+ for ( i = 0 ;
+ i < length ;
+ ++ i ) {
+ result = lb [ i ] - rb [ i ] ;
+ if ( result != 0 ) {
+ return result ;
+ }
+ }
+ return l -> bLen - r -> bLen ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int jbig2_text_region ( Jbig2Ctx * ctx , Jbig2Segment * segment , const byte * segment_data ) {
+ uint32_t offset = 0 ;
+ Jbig2RegionSegmentInfo region_info ;
+ Jbig2TextRegionParams params ;
+ Jbig2Image * image = NULL ;
+ Jbig2SymbolDict * * dicts = NULL ;
+ uint32_t n_dicts = 0 ;
+ uint16_t flags = 0 ;
+ uint16_t huffman_flags = 0 ;
+ Jbig2ArithCx * GR_stats = NULL ;
+ int code = 0 ;
+ Jbig2WordStream * ws = NULL ;
+ Jbig2ArithState * as = NULL ;
+ uint32_t table_index = 0 ;
+ const Jbig2HuffmanParams * huffman_params = NULL ;
+ if ( segment -> data_length < 17 ) goto too_short ;
+ jbig2_get_region_segment_info ( & region_info , segment_data ) ;
+ offset += 17 ;
+ flags = jbig2_get_uint16 ( segment_data + offset ) ;
+ offset += 2 ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "text region header flags 0x%04x" , flags ) ;
+ memset ( & params , 0 , sizeof ( Jbig2TextRegionParams ) ) ;
+ params . SBHUFF = flags & 0x0001 ;
+ params . SBREFINE = flags & 0x0002 ;
+ params . LOGSBSTRIPS = ( flags & 0x000c ) >> 2 ;
+ params . SBSTRIPS = 1 << params . LOGSBSTRIPS ;
+ params . REFCORNER = ( Jbig2RefCorner ) ( ( flags & 0x0030 ) >> 4 ) ;
+ params . TRANSPOSED = flags & 0x0040 ;
+ params . SBCOMBOP = ( Jbig2ComposeOp ) ( ( flags & 0x0180 ) >> 7 ) ;
+ params . SBDEFPIXEL = flags & 0x0200 ;
+ params . SBDSOFFSET = ( flags & 0x7C00 ) >> 10 ;
+ if ( params . SBDSOFFSET > 0x0f ) params . SBDSOFFSET -= 0x20 ;
+ params . SBRTEMPLATE = flags & 0x8000 ;
+ if ( params . SBDSOFFSET ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "text region has SBDSOFFSET %d" , params . SBDSOFFSET ) ;
+ }
+ if ( params . SBHUFF ) {
+ huffman_flags = jbig2_get_uint16 ( segment_data + offset ) ;
+ offset += 2 ;
+ if ( huffman_flags & 0x8000 ) jbig2_error ( ctx , JBIG2_SEVERITY_WARNING , segment -> number , "reserved bit 15 of text region huffman flags is not zero" ) ;
+ }
+ else {
+ if ( ( params . SBREFINE ) && ! ( params . SBRTEMPLATE ) ) {
+ params . sbrat [ 0 ] = segment_data [ offset ] ;
+ params . sbrat [ 1 ] = segment_data [ offset + 1 ] ;
+ params . sbrat [ 2 ] = segment_data [ offset + 2 ] ;
+ params . sbrat [ 3 ] = segment_data [ offset + 3 ] ;
+ offset += 4 ;
+ }
+ }
+ params . SBNUMINSTANCES = jbig2_get_uint32 ( segment_data + offset ) ;
+ offset += 4 ;
+ if ( params . SBHUFF ) {
+ switch ( huffman_flags & 0x0003 ) {
+ case 0 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_F ) ;
+ break ;
+ case 1 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_G ) ;
+ break ;
+ case 3 : huffman_params = jbig2_find_table ( ctx , segment , table_index ) ;
+ if ( huffman_params == NULL ) {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "Custom FS huffman table not found (%d)" , table_index ) ;
+ goto cleanup1 ;
+ }
+ params . SBHUFFFS = jbig2_build_huffman_table ( ctx , huffman_params ) ;
+ ++ table_index ;
+ break ;
+ case 2 : default : code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "text region specified 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t offset = 0 ;
+ Jbig2RegionSegmentInfo region_info ;
+ Jbig2TextRegionParams params ;
+ Jbig2Image * image = NULL ;
+ Jbig2SymbolDict * * dicts = NULL ;
+ uint32_t n_dicts = 0 ;
+ uint16_t flags = 0 ;
+ uint16_t huffman_flags = 0 ;
+ Jbig2ArithCx * GR_stats = NULL ;
+ int code = 0 ;
+ Jbig2WordStream * ws = NULL ;
+ Jbig2ArithState * as = NULL ;
+ uint32_t table_index = 0 ;
+ const Jbig2HuffmanParams * huffman_params = NULL ;
+ if ( segment -> data_length < 17 ) goto too_short ;
+ jbig2_get_region_segment_info ( & region_info , segment_data ) ;
+ offset += 17 ;
+ flags = jbig2_get_uint16 ( segment_data + offset ) ;
+ offset += 2 ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "text region header flags 0x%04x" , flags ) ;
+ memset ( & params , 0 , sizeof ( Jbig2TextRegionParams ) ) ;
+ params . SBHUFF = flags & 0x0001 ;
+ params . SBREFINE = flags & 0x0002 ;
+ params . LOGSBSTRIPS = ( flags & 0x000c ) >> 2 ;
+ params . SBSTRIPS = 1 << params . LOGSBSTRIPS ;
+ params . REFCORNER ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "text region has SBDSOFFSET %d" , params . SBDSOFFSET ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ huffman_flags = jbig2_get_uint16 ( segment_data + offset ) ;
+ offset += 2 ;
+ if ( huffman_flags & 0x8000 ) jbig2_error ( ctx , JBIG2_SEVERITY_WARNING , segment -> number , "reserved bit 15 of text region huffman flags is not zero" ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ if ( ( params . SBREFINE ) && ! ( params . SBRTEMPLATE ) ) {
+ params . sbrat [ 0 ] = segment_data [ offset ] ;
+ params . sbrat [ 1 ] = segment_data [ offset + 1 ] ;
+ params . sbrat [ 2 ] = segment_data [ offset + 2 ] ;
+ params . sbrat [ 3 ] = segment_data [ offset + 3 ] ;
+ offset += 4 ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ params . sbrat [ 0 ] = segment_data [ offset ] ;
+ params . sbrat [ 1 ] = segment_data [ offset + 1 ] ;
+ params . sbrat [ 2 ] = segment_data [ offset + 2 ] ;
+ params . sbrat [ 3 ] = segment_data [ offset + 3 ] ;
+ offset += 4 ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ switch ( huffman_flags & 0x0003 ) {
+ case 0 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_F ) ;
+ break ;
+ case 1 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_G ) ;
+ break ;
+ case 3 : huffman_params = jbig2_find_table ( ctx , segment , table_index ) ;
+ if ( huffman_params == NULL ) {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "Custom FS huffman table not found (%d)" , table_index ) ;
+ goto cleanup1 ;
+ }
+ params . SBHUFFFS = jbig2_build_huffman_table ( ctx , huffman_params ) ;
+ ++ table_index ;
+ break ;
+ case 2 : default : code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "text region specified invalid FS huffman table" ) ;
+ goto cleanup1 ;
+ break ;
+ }
+ if ( params . SBHUFFFS == NULL ) {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "failed to allocate text region specified FS huffman table" ) ;
+ goto cleanup1 ;
+ }
+ switch ( ( huffman_flags & 0...
+      
+25769803785 | BLOCK | 
+        {
+ case 0 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_F ) ;
+ break ;
+ case 1 : params . SBHUFFFS = jbig2_build_huffman_table ( ctx , & jbig2_huffman_params_G ) ;
+ break ;
+ case 3 : huffman_params = jbig2_find_table ( ctx , segment , table_index ) ;
+ if ( huffman_params == NULL ) {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "Custom FS huffman table not found (%d)" , table_index ) ;
+ goto cleanup1 ;
+ }
+ params . SBHUFFFS = jbig2_build_huffman_table ( ctx , huffman_params ) ;
+ ++ table_index ;
+ break ;
+ case 2 : default : code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "text region specified invalid FS huffman table" ) ;
+ goto cleanup1 ;
+ break ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "Custom FS huffman table not found (%d)" , table_index ) ;
+ goto cleanup1 ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ code = jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "failed to allocate text region specified FS huffman table" ) ;
+ goto cleanup1 ;
+ }
+      
+257698
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

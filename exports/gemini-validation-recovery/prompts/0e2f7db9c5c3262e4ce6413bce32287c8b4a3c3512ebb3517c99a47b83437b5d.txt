@@ -1,0 +1,159 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void h245_setup_channels ( packet_info * pinfo , channel_info_t * upcoming_channel_lcl ) {
+ gint * key ;
+ GHashTable * rtp_dyn_payload = NULL ;
+ struct srtp_info * dummy_srtp_info = NULL ;
+ if ( ! upcoming_channel_lcl ) return ;
+ if ( ! strcmp ( upcoming_channel_lcl -> data_type_str , "t38fax" ) ) {
+ if ( upcoming_channel_lcl -> media_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_addr . port != 0 ) {
+ t38_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num ) ;
+ }
+ return ;
+ }
+ if ( upcoming_channel_lcl -> rfc2198 > 0 ) {
+ encoding_name_and_rate_t * encoding_name_and_rate = wmem_new ( wmem_file_scope ( ) , encoding_name_and_rate_t ) ;
+ rtp_dyn_payload = g_hash_table_new ( g_int_hash , g_int_equal ) ;
+ encoding_name_and_rate -> encoding_name = wmem_strdup ( wmem_file_scope ( ) , "red" ) ;
+ encoding_name_and_rate -> sample_rate = 8000 ;
+ key = wmem_new ( wmem_file_scope ( ) , gint ) ;
+ * key = upcoming_channel_lcl -> rfc2198 ;
+ g_hash_table_insert ( rtp_dyn_payload , key , encoding_name_and_rate ) ;
+ }
+ if ( upcoming_channel_lcl -> srtp_flag ) {
+ dummy_srtp_info = wmem_new0 ( wmem_file_scope ( ) , struct srtp_info ) ;
+ }
+ if ( upcoming_channel_lcl -> media_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_addr . port != 0 ) {
+ srtp_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num , upcoming_channel_lcl -> is_video , rtp_dyn_payload , dummy_srtp_info ) ;
+ }
+ if ( upcoming_channel_lcl -> media_control_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_control_addr . port != 0 && rtcp_handle ) {
+ srtcp_add_address ( pinfo , & upcoming_channel_lcl -> media_control_addr . addr , upcoming_channel_lcl -> media_control_addr . port , 0 , "H245" , pinfo -> fd -> num , dummy_srtp_info ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gint * key ;
+ GHashTable * rtp_dyn_payload = NULL ;
+ struct srtp_info * dummy_srtp_info = NULL ;
+ if ( ! upcoming_channel_lcl ) return ;
+ if ( ! strcmp ( upcoming_channel_lcl -> data_type_str , "t38fax" ) ) {
+ if ( upcoming_channel_lcl -> media_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_addr . port != 0 ) {
+ t38_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num ) ;
+ }
+ return ;
+ }
+ if ( upcoming_channel_lcl -> rfc2198 > 0 ) {
+ encoding_name_and_rate_t * encoding_name_and_rate = wmem_new ( wmem_file_scope ( ) , encoding_name_and_rate_t ) ;
+ rtp_dyn_payload = g_hash_table_new ( g_int_hash , g_int_equal ) ;
+ encoding_name_and_rate -> encoding_name = wmem_strdup ( wmem_file_scope ( ) , "red" ) ;
+ encoding_name_and_rate -> sample_rate = 8000 ;
+ key = wmem_new ( wmem_file_scope ( ) , gint ) ;
+ * key = upcoming_channel_lcl -> rfc2198 ;
+ g_hash_table_insert ( rtp_dyn_payload ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( upcoming_channel_lcl -> media_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_addr . port != 0 ) {
+ t38_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num ) ;
+ }
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ t38_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ encoding_name_and_rate_t * encoding_name_and_rate = wmem_new ( wmem_file_scope ( ) , encoding_name_and_rate_t ) ;
+ rtp_dyn_payload = g_hash_table_new ( g_int_hash , g_int_equal ) ;
+ encoding_name_and_rate -> encoding_name = wmem_strdup ( wmem_file_scope ( ) , "red" ) ;
+ encoding_name_and_rate -> sample_rate = 8000 ;
+ key = wmem_new ( wmem_file_scope ( ) , gint ) ;
+ * key = upcoming_channel_lcl -> rfc2198 ;
+ g_hash_table_insert ( rtp_dyn_payload , key , encoding_name_and_rate ) ;
+ }
+      
+25769803781 | BLOCK | { dummy_srtp_info = wmem_new0 ( wmem_file_scope ( ) , struct srtp_info ) ; }
+25769803782 | BLOCK | 
+        {
+ srtp_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num , upcoming_channel_lcl -> is_video , rtp_dyn_payload , dummy_srtp_info ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ srtcp_add_address ( pinfo , & upcoming_channel_lcl -> media_control_addr . addr , upcoming_channel_lcl -> media_control_addr . port , 0 , "H245" , pinfo -> fd -> num , dummy_srtp_info ) ;
+ }
+      
+30064771072 | CALL | rtp_dyn_payload = NULL
+30064771073 | CALL | dummy_srtp_info = NULL
+30064771074 | CALL | ! upcoming_channel_lcl
+30064771075 | CALL | ! strcmp ( upcoming_channel_lcl -> data_type_str , "t38fax" )
+30064771076 | CALL | strcmp ( upcoming_channel_lcl -> data_type_str , "t38fax" )
+30064771077 | CALL | upcoming_channel_lcl -> data_type_str
+30064771078 | CALL | 
+        upcoming_channel_lcl -> media_addr . addr . type != AT_NONE && upcoming_channel_lcl -> media_addr . port != 0
+      
+30064771079 | CALL | upcoming_channel_lcl -> media_addr . addr . type != AT_NONE
+30064771080 | CALL | upcoming_channel_lcl -> media_addr . addr . type
+30064771081 | CALL | upcoming_channel_lcl -> media_addr . addr
+30064771082 | CALL | upcoming_channel_lcl -> media_addr
+30064771083 | CALL | upcoming_channel_lcl -> media_addr . port != 0
+30064771084 | CALL | upcoming_channel_lcl -> media_addr . port
+30064771085 | CALL | upcoming_channel_lcl -> media_addr
+30064771086 | CALL | 
+        t38_add_address ( pinfo , & upcoming_channel_lcl -> media_addr . addr , upcoming_channel_lcl -> media_addr . port , 0 , "H245" , pinfo -> fd -> num )
+      
+30064771087 | CALL | & upcoming_channel_lcl -> media_addr . addr
+30064771088 | CALL | upcoming_channel_lcl -> media_addr . addr
+30064771089 | CALL | upcoming_channel_lcl -> media_addr
+30064771090 | CALL | upcoming_channel_lcl -> media_addr . port
+30064771091 | CALL | upcoming_channel_lcl -> media_addr
+30064771092 | CALL | pinfo -> fd -> num
+30064771093 | CALL | pinfo -> fd
+30064771094 | CALL | upcoming_channel_lcl -> rfc2198 > 0
+30064771095 | CALL | upcoming_channel_lcl -> rfc2198
+30064771096 | CALL | 
+        encoding_name_and_rate = wmem_new ( wmem_file_scope ( ) , encoding_name_and_rate_t )
+      
+30064771097 | CALL | wmem_new ( wmem_file_scope ( ) , encoding_name_and_rate_t )
+30064771098 | CALL | wmem_file_scope ( )
+30064771099 | CALL | rtp_dyn_payload = g_hash_table_new ( g_int_hash , g_int_equal )
+30064771100 | CALL | g_hash_table_new ( g_int_hash , g_int_equal )
+30064771101 | CALL | 
+        encoding_name_and_rate -> encoding_name = wmem_strdup ( wmem_file_scope ( ) , "red" )
+      
+30064771102 | CALL | encoding_name_and_rate -> encoding_name
+30064771103 | CALL | wmem_strdup ( wmem_file_scope ( ) , "red" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803779 -> 30064771086 [AST]
+25769803780 -> 30064771096 [AST]
+25769803780 -> 30064771099 [AST]
+25769803780 -> 30064771101 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

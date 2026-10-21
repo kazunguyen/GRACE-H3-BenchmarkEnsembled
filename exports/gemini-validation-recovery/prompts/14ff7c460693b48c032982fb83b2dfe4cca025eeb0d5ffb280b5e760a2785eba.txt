@@ -1,0 +1,228 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextExpirePassword ( qemuMonitorPtr mon , const char * protocol , const char * expire_time ) {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ if ( virAsprintf ( & cmd , "expire_password %s %s" , protocol , expire_time ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "expiring password failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "unknown command:" ) ) {
+ ret = - 2 ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( reply ) ;
+ VIR_FREE ( cmd ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ if ( virAsprintf ( & cmd , "expire_password %s %s" , protocol , expire_time ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "expiring password failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "unknown command:" ) ) {
+ ret = - 2 ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( reply ) ;
+ VIR_FREE ( cmd ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | { virReportOOMError ( ) ; goto cleanup ; }
+25769803778 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "expiring password failed" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803779 | BLOCK | { ret = - 2 ; goto cleanup ; }
+30064771072 | CALL | cmd = NULL
+30064771073 | CALL | reply = NULL
+30064771074 | CALL | ret = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | 
+        virAsprintf ( & cmd , "expire_password %s %s" , protocol , expire_time ) < 0
+      
+30064771077 | CALL | 
+        virAsprintf ( & cmd , "expire_password %s %s" , protocol , expire_time )
+      
+30064771078 | CALL | & cmd
+30064771079 | CALL | virReportOOMError ( )
+30064771080 | CALL | qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0
+30064771081 | CALL | qemuMonitorHMPCommand ( mon , cmd , & reply )
+30064771082 | CALL | & reply
+30064771083 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "expiring password failed" ) )
+      
+30064771084 | CALL | _ ( "expiring password failed" )
+30064771085 | CALL | strstr ( reply , "unknown command:" )
+30064771086 | CALL | ret = - 2
+30064771087 | CALL | - 2
+30064771088 | CALL | ret = 0
+30064771089 | CALL | VIR_FREE ( reply )
+30064771090 | CALL | VIR_FREE ( cmd )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( virAsprintf ( & cmd , "expire_password %s %s" , protocol , expire_time ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | goto cleanup;
+47244640258 | CONTROL_STRUCTURE | 
+        if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "expiring password failed" ) ) ;
+ goto cleanup ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | goto cleanup;
+47244640260 | CONTROL_STRUCTURE | 
+        if ( strstr ( reply , "unknown command:" ) ) {
+ ret = - 2 ;
+ goto cleanup ;
+ }
+      
+47244640261 | CONTROL_STRUCTURE | goto cleanup;
+68719476736 | IDENTIFIER | cmd
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | reply
+68719476739 | IDENTIFIER | <unknown> NULL
+68719476740 | IDENTIFIER | ret
+68719476741 | IDENTIFIER | cmd
+68719476742 | IDENTIFIER | protocol
+68719476743 | IDENTIFIER | expire_time
+68719476744 | IDENTIFIER | mon
+68719476745 | IDENTIFIER | cmd
+68719476746 | IDENTIFIER | reply
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640260 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 47244640259 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 47244640261 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 47244640257 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 30064771079 [CFG]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 30064771079 [DOMINATE]
+30064771076 -> 68719476744 [DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476743 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771078 -> 68719476745 [REACHING_DEF]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 47244640257 [CFG]
+30064771079 -> 47244640257 [DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 47244640259 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771081 -> 68719476744 [ARGUMENT]
+30064771081 -> 68719476745 [ARGUMENT]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int qemuMonitorTextSetPassword ( qemuMonitorPtr mon , const char * protocol , const char * password , const char * action_if_connected ) {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ if ( virAsprintf ( & cmd , "set_password %s \"%s\" %s" , protocol , password , action_if_connected ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "setting password failed" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "unknown command:" ) ) {
+ ret = - 2 ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( reply ) ;
+ VIR_FREE ( cmd ) ;
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

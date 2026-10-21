@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PyObject * string_center ( PyStringObject * self , PyObject * args ) {
+ Py_ssize_t marg , left ;
+ Py_ssize_t width ;
+ char fillchar = ' ' ;
+ if ( ! PyArg_ParseTuple ( args , "n|c:center" , & width , & fillchar ) ) return NULL ;
+ if ( PyString_GET_SIZE ( self ) >= width && PyString_CheckExact ( self ) ) {
+ Py_INCREF ( self ) ;
+ return ( PyObject * ) self ;
+ }
+ marg = width - PyString_GET_SIZE ( self ) ;
+ left = marg / 2 + ( marg & width & 1 ) ;
+ return pad ( self , left , marg - left , fillchar ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Py_ssize_t marg , left ;
+ Py_ssize_t width ;
+ char fillchar = ' ' ;
+ if ( ! PyArg_ParseTuple ( args , "n|c:center" , & width , & fillchar ) ) return NULL ;
+ if ( PyString_GET_SIZE ( self ) >= width && PyString_CheckExact ( self ) ) {
+ Py_INCREF ( self ) ;
+ return ( PyObject * ) self ;
+ }
+ marg = width - PyString_GET_SIZE ( self ) ;
+ left = marg / 2 + ( marg & width & 1 ) ;
+ return pad ( self , left , marg - left , fillchar ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { Py_INCREF ( self ) ; return ( PyObject * ) self ; }
+30064771072 | CALL | fillchar = ' '
+30064771073 | CALL | ! PyArg_ParseTuple ( args , "n|c:center" , & width , & fillchar )
+30064771074 | CALL | PyArg_ParseTuple ( args , "n|c:center" , & width , & fillchar )
+30064771075 | CALL | & width
+30064771076 | CALL | & fillchar
+30064771077 | CALL | PyString_GET_SIZE ( self ) >= width && PyString_CheckExact ( self )
+30064771078 | CALL | PyString_GET_SIZE ( self ) >= width
+30064771079 | CALL | PyString_GET_SIZE ( self )
+30064771080 | CALL | PyString_CheckExact ( self )
+30064771081 | CALL | Py_INCREF ( self )
+30064771082 | CALL | ( PyObject * ) self
+30064771083 | CALL | marg = width - PyString_GET_SIZE ( self )
+30064771084 | CALL | width - PyString_GET_SIZE ( self )
+30064771085 | CALL | PyString_GET_SIZE ( self )
+30064771086 | CALL | left = marg / 2 + ( marg & width & 1 )
+30064771087 | CALL | marg / 2 + ( marg & width & 1 )
+30064771088 | CALL | marg / 2
+30064771089 | CALL | marg & width & 1
+30064771090 | CALL | marg & width
+30064771091 | CALL | pad ( self , left , marg - left , fillchar )
+30064771092 | CALL | marg - left
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! PyArg_ParseTuple ( args , "n|c:center" , & width , & fillchar ) ) return NULL ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( PyString_GET_SIZE ( self ) >= width && PyString_CheckExact ( self ) ) {
+ Py_INCREF ( self ) ;
+ return ( PyObject * ) self ;
+ }
+      
+68719476736 | IDENTIFIER | fillchar
+68719476737 | IDENTIFIER | args
+68719476738 | IDENTIFIER | width
+68719476739 | IDENTIFIER | fillchar
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | self
+68719476742 | IDENTIFIER | width
+68719476743 | IDENTIFIER | self
+68719476744 | IDENTIFIER | self
+68719476745 | IDENTIFIER | self
+68719476746 | IDENTIFIER | marg
+68719476747 | IDENTIFIER | width
+68719476748 | IDENTIFIER | self
+68719476749 | IDENTIFIER | left
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 68719476740 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476747 [REACHING_DEF]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 68719476742 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 68719476737 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 68719476748 [CDG]
+30064771077 -> 68719476749 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771092 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 68719476744 [CFG]
+30064771077 -> 68719476746 [CFG]
+30064771077 -> 68719476744 [DOMINATE]
+30064771077 -> 68719476746 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static PyObject * string_ljust ( PyStringObject * self , PyObject * args ) {
+ Py_ssize_t width ;
+ char fillchar = ' ' ;
+ if ( ! PyArg_ParseTuple ( args , "n|c:ljust" , & width , & fillchar ) ) return NULL ;
+ if ( PyString_GET_SIZE ( self ) >= width && PyString_CheckExact ( self ) ) {
+ Py_INCREF ( self ) ;
+ return ( PyObject * ) self ;
+ }
+ return pad ( self , 0 , width - PyString_GET_SIZE ( self ) , fillchar ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

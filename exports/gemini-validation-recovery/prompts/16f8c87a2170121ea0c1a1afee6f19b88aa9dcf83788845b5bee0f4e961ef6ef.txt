@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static ssize_t v9fs_synth_pwritev(FsContext *ctx, V9fsFidOpenState *fs,
+
+                                  const struct iovec *iov,
+
+                                  int iovcnt, off_t offset)
+
+{
+
+    int i, count = 0, wcount;
+
+    V9fsSynthOpenState *synth_open = fs->private;
+
+    V9fsSynthNode *node = synth_open->node;
+
+    if (!node->attr->write) {
+
+        errno = EPERM;
+
+        return -1;
+
+    }
+
+    for (i = 0; i < iovcnt; i++) {
+
+        wcount = node->attr->write(iov[i].iov_base, iov[i].iov_len,
+
+                                   offset, node->private);
+
+        offset += wcount;
+
+        count  += wcount;
+
+        /* If we wrote less than requested. we are done */
+
+        if (wcount < iov[i].iov_len) {
+
+            break;
+
+        }
+
+    }
+
+    return count;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+9 -> 12 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+45 -> 50 [IS_AST_PARENT]
+36 -> 45 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+54 -> 59 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+54 -> 63 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 76 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 89 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+77 -> 84 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static ssize_t v9fs_synth_preadv(FsContext *ctx, V9fsFidOpenState *fs,
+
+                                 const struct iovec *iov,
+
+                                 int iovcnt, off_t offset)
+
+{
+
+    int i, count = 0, rcount;
+
+    V9fsSynthOpenState *synth_open = fs->private;
+
+    V9fsSynthNode *node = synth_open->node;
+
+    if (!node->attr->read) {
+
+        errno = EPERM;
+
+        return -1;
+
+    }
+
+    for (i = 0; i < iovcnt; i++) {
+
+        rcount = node->attr->read(iov[i].iov_base, iov[i].iov_len,
+
+                                  offset, node->private);
+
+        offset += rcount;
+
+        count  += rcount;
+
+        /* If we read less than requested. we are done */
+
+        if (rcount < iov[i].iov_len) {
+
+            break;
+
+        }
+
+    }
+
+    return count;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

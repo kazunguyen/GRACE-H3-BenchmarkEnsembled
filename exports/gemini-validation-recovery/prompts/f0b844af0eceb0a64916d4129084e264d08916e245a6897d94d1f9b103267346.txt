@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pcnet_rdte_poll ( PCNetState * s ) {
+ s -> csr [ 28 ] = s -> csr [ 29 ] = 0 ;
+ if ( s -> rdra ) {
+ int bad = 0 ;
+ # if 1 hwaddr crda = pcnet_rdra_addr ( s , CSR_RCVRC ( s ) ) ;
+ hwaddr nrda = pcnet_rdra_addr ( s , - 1 + CSR_RCVRC ( s ) ) ;
+ hwaddr nnrd = pcnet_rdra_addr ( s , - 2 + CSR_RCVRC ( s ) ) ;
+ # else hwaddr crda = s -> rdra + ( CSR_RCVRL ( s ) - CSR_RCVRC ( s ) ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nrdc = CSR_RCVRC ( s ) <= 1 ? CSR_RCVRL ( s ) : CSR_RCVRC ( s ) - 1 ;
+ hwaddr nrda = s -> rdra + ( CSR_RCVRL ( s ) - nrdc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nnrc = nrdc <= 1 ? CSR_RCVRL ( s ) : nrdc - 1 ;
+ hwaddr nnrd = s -> rdra + ( CSR_RCVRL ( s ) - nnrc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ # endif CHECK_RMD ( crda , bad ) ;
+ if ( ! bad ) {
+ CHECK_RMD ( nrda , bad ) ;
+ if ( bad || ( nrda == crda ) ) nrda = 0 ;
+ CHECK_RMD ( nnrd , bad ) ;
+ if ( bad || ( nnrd == crda ) ) nnrd = 0 ;
+ s -> csr [ 28 ] = crda & 0xffff ;
+ s -> csr [ 29 ] = crda >> 16 ;
+ s -> csr [ 26 ] = nrda & 0xffff ;
+ s -> csr [ 27 ] = nrda >> 16 ;
+ s -> csr [ 36 ] = nnrd & 0xffff ;
+ s -> csr [ 37 ] = nnrd >> 16 ;
+ # ifdef PCNET_DEBUG if ( bad ) {
+ printf ( "pcnet: BAD RMD RECORDS AFTER 0x" TARGET_FMT_plx "\n" , crda ) ;
+ }
+ }
+ else {
+ printf ( "pcnet: BAD RMD RDA=0x" TARGET_FMT_plx "\n" , crda ) ;
+ # endif }
+ }
+ if ( CSR_CRDA ( s ) ) {
+ struct pcnet_RMD rmd ;
+ RMDLOAD ( & rmd , PHYSADDR ( s , CSR_CRDA ( s ) ) ) ;
+ CSR_CRBC ( s ) = GET_FIELD ( rmd . buf_length , RMDL , BCNT ) ;
+ CSR_CRST ( s ) = rmd . status ;
+ # ifdef PCNET_DEBUG_RMD_X printf ( "CRDA=0x%08x CRST=0x%04x RCVRC=%d RMDL=0x%04x RMDS=0x%04x RMDM=0x%08x\n" , PHYSADDR ( s , CSR_CRDA ( s ) ) , CSR_CRST ( s ) , CSR_RCVRC ( s ) , rmd . buf_length , rmd . status , rmd . msg_length ) ;
+ PRINT_RMD ( & rmd ) ;
+ # endif }
+ else {
+ CSR_CRBC ( s ) = CSR_CRST ( s ) = 0 ;
+ }
+ if ( CSR_NRDA ( s ) ) {
+ struct pcnet_RMD rmd ;
+ RMDLOAD ( & rmd , PHYSADDR ( s , CSR_NRDA ( s ) ) ) ;
+ CSR_NRBC ( s ) = GET_FIELD ( rmd . buf_length , RMDL , BCNT ) ;
+ CSR_NRST ( s ) = rmd . status ;
+ }
+ else {
+ CSR_NRBC ( s ) = CSR_NRST ( s ) = 0 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ s -> csr [ 28 ] = s -> csr [ 29 ] = 0 ;
+ if ( s -> rdra ) {
+ int bad = 0 ;
+ # if 1 hwaddr crda = pcnet_rdra_addr ( s , CSR_RCVRC ( s ) ) ;
+ hwaddr nrda = pcnet_rdra_addr ( s , - 1 + CSR_RCVRC ( s ) ) ;
+ hwaddr nnrd = pcnet_rdra_addr ( s , - 2 + CSR_RCVRC ( s ) ) ;
+ # else hwaddr crda = s -> rdra + ( CSR_RCVRL ( s ) - CSR_RCVRC ( s ) ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nrdc = CSR_RCVRC ( s ) <= 1 ? CSR_RCVRL ( s ) : CSR_RCVRC ( s ) - 1 ;
+ hwaddr nrda = s -> rdra + ( CSR_RCVRL ( s ) - nrdc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nnrc = nrdc <= 1 ? CSR_RCVRL ( s ) : nrdc - 1 ;
+ hwaddr nnrd = s -> rdra + ( CSR_RCVRL ( s ) - nnrc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ # endif CHECK_RMD ( crda , bad ) ;
+ if ( ! bad ) {
+ CHECK_RMD ( nrda , bad ) ;
+ if ( bad || ( nrda == crda ) ) nrda = 0 ;
+ CHECK_RMD ( nnrd , bad ) ;
+ if ( bad || ( nnrd == crda ) ) nnrd = 0 ;
+ s -> csr [ 28 ] = crda & 0xffff ;
+ s -> csr [ 29 ] = crda >> 16 ;
+ s -> csr [ 26 ] = nrda & 0xffff ;
+ s -> csr [ 27 ] = n...
+      
+30064771072 | CALL | s -> csr [ 28 ] = s -> csr [ 29 ] = 0
+30064771073 | CALL | s -> csr [ 28 ]
+30064771074 | CALL | s -> csr
+30064771075 | CALL | s -> csr [ 29 ] = 0
+30064771076 | CALL | s -> csr [ 29 ]
+30064771077 | CALL | s -> csr
+55834574848 | FIELD_IDENTIFIER | csr
+55834574849 | FIELD_IDENTIFIER | csr
+68719476736 | IDENTIFIER | s
+68719476737 | IDENTIFIER | s
+90194313216 | LITERAL | 28
+90194313217 | LITERAL | 29
+90194313218 | LITERAL | 0
+107374182400 | METHOD | 
+        static void pcnet_rdte_poll ( PCNetState * s ) {
+ s -> csr [ 28 ] = s -> csr [ 29 ] = 0 ;
+ if ( s -> rdra ) {
+ int bad = 0 ;
+ # if 1 hwaddr crda = pcnet_rdra_addr ( s , CSR_RCVRC ( s ) ) ;
+ hwaddr nrda = pcnet_rdra_addr ( s , - 1 + CSR_RCVRC ( s ) ) ;
+ hwaddr nnrd = pcnet_rdra_addr ( s , - 2 + CSR_RCVRC ( s ) ) ;
+ # else hwaddr crda = s -> rdra + ( CSR_RCVRL ( s ) - CSR_RCVRC ( s ) ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nrdc = CSR_RCVRC ( s ) <= 1 ? CSR_RCVRL ( s ) : CSR_RCVRC ( s ) - 1 ;
+ hwaddr nrda = s -> rdra + ( CSR_RCVRL ( s ) - nrdc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ int nnrc = nrdc <= 1 ? CSR_RCVRL ( s ) : nrdc - 1 ;
+ hwaddr nnrd = s -> rdra + ( CSR_RCVRL ( s ) - nnrc ) * ( BCR_SWSTYLE ( s ) ? 16 : 8 ) ;
+ # endif CHECK_RMD ( crda , bad ) ;
+ if ( ! bad ) {
+ CHECK_RMD ( nrda , bad ) ;
+ if ( bad || ( nrda == crda ) ) nrda = 0 ;
+ CHECK_RMD ( nnrd , bad ) ;
+ if ( bad || ( nnrd == crda ) ) nnrd = 0 ;
+ s -> csr [ 28 ] = crda & 0xffff ;
+ s -> csr [ 29 ] = crda >> 16 ;
+ s -> cs...
+      
+111669149696 | METHOD_PARAMETER_IN | PCNetState * s
+115964116992 | METHOD_PARAMETER_OUT | PCNetState * s
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 30064771072 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 124554051584 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 30064771075 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 90194313216 [CFG]
+30064771074 -> 90194313216 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 90194313218 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 90194313218 [AST]
+30064771075 -> 30064771072 [CFG]
+30064771075 -> 30064771072 [DOMINATE]
+30064771075 -> 90194313218 [POST_DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313217 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 90194313217 [AST]
+30064771076 -> 90194313218 [CFG]
+30064771076 -> 90194313218 [DOMINATE]
+30064771076 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476737 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 68719476737 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 90194313217 [CFG]
+30064771077 -> 90194313217 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+55834574848 -> 30064771074 [CFG]
+55834574848 -> 30064771074 [DOMINATE]
+55834574848 -> 68719476736 [POST_DOMINATE]
+55834574849 -> 30064771077 [CFG]
+55834574849 -> 30064771077 [DOMINATE]
+55834574849 -> 68719476737 [POST_DOMINATE]
+68719476736 -> 55834574848 [CFG]
+68719476736 -> 55834574848 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 111669149696 [REF]
+68719476737 -> 55834574849 [CFG]
+68719476737 -> 55834574849 [DOMINATE]
+68719476737 -> 30064771073 [POST_DOMINATE]
+68719476737 -> 111669149696 [REF]
+90194313216 -> 30064771073 [CFG]
+90194313216 -> 30064771073 [DOMINATE]
+90194313216 -> 30064771074 [POST_DOMINATE]
+90194313217 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,255 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void denoise_dct_c ( MpegEncContext * s , int16_t * block ) {
+ const int intra = s -> mb_intra ;
+ int i ;
+ s -> dct_count [ intra ] ++ ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) {
+ int level = block [ i ] ;
+ if ( level ) {
+ if ( level > 0 ) {
+ s -> dct_error_sum [ intra ] [ i ] += level ;
+ level -= s -> dct_offset [ intra ] [ i ] ;
+ if ( level < 0 ) level = 0 ;
+ }
+ else {
+ s -> dct_error_sum [ intra ] [ i ] -= level ;
+ level += s -> dct_offset [ intra ] [ i ] ;
+ if ( level > 0 ) level = 0 ;
+ }
+ block [ i ] = level ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int intra = s -> mb_intra ;
+ int i ;
+ s -> dct_count [ intra ] ++ ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) {
+ int level = block [ i ] ;
+ if ( level ) {
+ if ( level > 0 ) {
+ s -> dct_error_sum [ intra ] [ i ] += level ;
+ level -= s -> dct_offset [ intra ] [ i ] ;
+ if ( level < 0 ) level = 0 ;
+ }
+ else {
+ s -> dct_error_sum [ intra ] [ i ] -= level ;
+ level += s -> dct_offset [ intra ] [ i ] ;
+ if ( level > 0 ) level = 0 ;
+ }
+ block [ i ] = level ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int level = block [ i ] ;
+ if ( level ) {
+ if ( level > 0 ) {
+ s -> dct_error_sum [ intra ] [ i ] += level ;
+ level -= s -> dct_offset [ intra ] [ i ] ;
+ if ( level < 0 ) level = 0 ;
+ }
+ else {
+ s -> dct_error_sum [ intra ] [ i ] -= level ;
+ level += s -> dct_offset [ intra ] [ i ] ;
+ if ( level > 0 ) level = 0 ;
+ }
+ block [ i ] = level ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( level > 0 ) {
+ s -> dct_error_sum [ intra ] [ i ] += level ;
+ level -= s -> dct_offset [ intra ] [ i ] ;
+ if ( level < 0 ) level = 0 ;
+ }
+ else {
+ s -> dct_error_sum [ intra ] [ i ] -= level ;
+ level += s -> dct_offset [ intra ] [ i ] ;
+ if ( level > 0 ) level = 0 ;
+ }
+ block [ i ] = level ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ s -> dct_error_sum [ intra ] [ i ] += level ;
+ level -= s -> dct_offset [ intra ] [ i ] ;
+ if ( level < 0 ) level = 0 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ s -> dct_error_sum [ intra ] [ i ] -= level ;
+ level += s -> dct_offset [ intra ] [ i ] ;
+ if ( level > 0 ) level = 0 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | intra = s -> mb_intra
+30064771073 | CALL | s -> mb_intra
+30064771074 | CALL | s -> dct_count [ intra ] ++
+30064771075 | CALL | s -> dct_count [ intra ]
+30064771076 | CALL | s -> dct_count
+30064771077 | CALL | i = 0
+30064771078 | CALL | i < 64
+30064771079 | CALL | i ++
+30064771080 | CALL | level = block [ i ]
+30064771081 | CALL | block [ i ]
+30064771082 | CALL | level != 0
+30064771083 | CALL | level > 0
+30064771084 | CALL | s -> dct_error_sum [ intra ] [ i ] += level
+30064771085 | CALL | s -> dct_error_sum [ intra ] [ i ]
+30064771086 | CALL | s -> dct_error_sum [ intra ]
+30064771087 | CALL | s -> dct_error_sum
+30064771088 | CALL | level -= s -> dct_offset [ intra ] [ i ]
+30064771089 | CALL | s -> dct_offset [ intra ] [ i ]
+30064771090 | CALL | s -> dct_offset [ intra ]
+30064771091 | CALL | s -> dct_offset
+30064771092 | CALL | level < 0
+30064771093 | CALL | level = 0
+30064771094 | CALL | s -> dct_error_sum [ intra ] [ i ] -= level
+30064771095 | CALL | s -> dct_error_sum [ intra ] [ i ]
+30064771096 | CALL | s -> dct_error_sum [ intra ]
+30064771097 | CALL | s -> dct_error_sum
+30064771098 | CALL | level += s -> dct_offset [ intra ] [ i ]
+30064771099 | CALL | s -> dct_offset [ intra ] [ i ]
+30064771100 | CALL | s -> dct_offset [ intra ]
+30064771101 | CALL | s -> dct_offset
+30064771102 | CALL | level > 0
+30064771103 | CALL | level = 0
+30064771104 | CALL | block [ i ] = level
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771104 [AST]
+25769803779 -> 30064771084 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771093 [AST]
+25769803781 -> 30064771094 [AST]
+25769803781 -> 30064771098 [AST]
+25769803782 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771104 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771099 [CDG]
+30064771083 -> 30064771098 [CDG]
+30064771083 -> 30064771097 [CDG]
+30064771083 -> 30064771096 [CDG]
+30064771083 -> 30064771095 [CDG]
+30064771083 -> 30064771094 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771102 [CDG]
+30064771083 -> 30064771101 [CDG]
+30064771083 -> 30064771100 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771095 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771096 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771100 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771089 -> 30064771099 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771092 -> 30064771093 [CDG]
+30064771094 -> 30064771095 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void dct_unquantize_mpeg2_inter_c ( MpegEncContext * s , int16_t * block , int n , int qscale ) {
+ int i , level , nCoeffs ;
+ const uint16_t * quant_matrix ;
+ int sum = - 1 ;
+ if ( s -> alternate_scan ) nCoeffs = 63 ;
+ else nCoeffs = s -> block_last_index [ n ] ;
+ quant_matrix = s -> inter_matrix ;
+ for ( i = 0 ;
+ i <= nCoeffs ;
+ i ++ ) {
+ int j = s -> intra_scantable . permutated [ i ] ;
+ level = block [ j ] ;
+ if ( level ) {
+ if ( level < 0 ) {
+ level = - level ;
+ level = ( ( ( level << 1 ) + 1 ) * qscale * ( ( int ) ( quant_matrix [ j ] ) ) ) >> 4 ;
+ level = - level ;
+ }
+ else {
+ level = ( ( ( level << 1 ) + 1 ) * qscale * ( ( int ) ( quant_matrix [ j ] ) ) ) >> 4 ;
+ }
+ block [ j ] = level ;
+ sum += level ;
+ }
+ }
+ block [ 63 ] ^= sum & 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

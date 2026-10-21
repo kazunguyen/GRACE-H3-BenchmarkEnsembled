@@ -1,0 +1,331 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_h264_decode_mb_cabac(const H264Context *h, H264SliceContext *sl)
+
+{
+
+    int mb_xy;
+
+    int mb_type, partition_count, cbp = 0;
+
+    int dct8x8_allowed= h->pps.transform_8x8_mode;
+
+    int decode_chroma = h->sps.chroma_format_idc == 1 || h->sps.chroma_format_idc == 2;
+
+    const int pixel_shift = h->pixel_shift;
+
+
+
+    mb_xy = sl->mb_xy = sl->mb_x + sl->mb_y*h->mb_stride;
+
+
+
+    ff_tlog(h->avctx, "pic:%d mb:%d/%d\n", h->frame_num, sl->mb_x, sl->mb_y);
+
+    if (sl->slice_type_nos != AV_PICTURE_TYPE_I) {
+
+        int skip;
+
+        /* a skipped mb needs the aff flag from the following mb */
+
+        if (FRAME_MBAFF(h) && (sl->mb_y & 1) == 1 && sl->prev_mb_skipped)
+
+            skip = sl->next_mb_skipped;
+
+        else
+
+            skip = decode_cabac_mb_skip(h, sl, sl->mb_x, sl->mb_y );
+
+        /* read skip flags */
+
+        if( skip ) {
+
+            if (FRAME_MBAFF(h) && (sl->mb_y & 1) == 0) {
+
+                h->cur_pic.mb_type[mb_xy] = MB_TYPE_SKIP;
+
+                sl->next_mb_skipped = decode_cabac_mb_skip(h, sl, sl->mb_x, sl->mb_y+1 );
+
+                if(!sl->next_mb_skipped)
+
+                    sl->mb_mbaff = sl->mb_field_decoding_flag = decode_cabac_field_decoding_flag(h, sl);
+
+            }
+
+
+
+            decode_mb_skip(h, sl);
+
+
+
+            h->cbp_table[mb_xy] = 0;
+
+            h->chroma_pred_mode_table[mb_xy] = 0;
+
+            sl->last_qscale_diff = 0;
+
+
+
+            return 0;
+
+
+
+        }
+
+    }
+
+    if (FRAME_MBAFF(h)) {
+
+        if ((sl->mb_y & 1) == 0)
+
+            sl->mb_mbaff =
+
+            sl->mb_field_decoding_flag = decode_cabac_field_decoding_flag(h, sl);
+
+    }
+
+
+
+    sl->prev_mb_skipped = 0;
+
+
+
+    fill_decode_neighbors(h, sl, -(MB_FIELD(sl)));
+
+
+
+    if (sl->slice_type_nos == AV_PICTURE_TYPE_B) {
+
+        int ctx = 0;
+
+        av_assert2(sl->slice_type_nos == AV_PICTURE_TYPE_B);
+
+
+
+        if (!IS_DIRECT(sl->left_type[LTOP] - 1))
+
+            ctx++;
+
+        if (!IS_DIRECT(sl->top_type - 1))
+
+            ctx++;
+
+
+
+        if( !get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+ctx] ) ){
+
+            mb_type= 0; /* B_Direct_16x16 */
+
+        }else if( !get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+3] ) ) {
+
+            mb_type= 1 + get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+5] ); /* B_L[01]_16x16 */
+
+        }else{
+
+            int bits;
+
+            bits = get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+4] ) << 3;
+
+            bits+= get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+5] ) << 2;
+
+            bits+= get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+5] ) << 1;
+
+            bits+= get_cabac_noinline( &sl->cabac, &sl->cabac_state[27+5] );
+
+            if( bits < 8 ){
+
+                mb_type= bits + 3; /* B_Bi_16x16 through B_L1_L0_16x8 */
+
+            }else if( bits == 13 ){
+
+                mb_type = decode_cabac_intra_mb_type(sl, 32, 0);
+
+                goto decode_intra_mb;
+
+            }else if( bits == 14 ){
+
+                mb_type= 11; /* B_L1_L0_8x16 */
+
+            }el
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+9 -> 16 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 32 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 46 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 52 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 53 [IS_AST_PARENT]
+39 -> 47 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+74 -> 78 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int ff_h264_decode_mb_cabac(H264Context *h) {
+
+    MpegEncContext * const s = &h->s;
+
+    int mb_xy;
+
+    int mb_type, partition_count, cbp = 0;
+
+    int dct8x8_allowed= h->pps.transform_8x8_mode;
+
+    int decode_chroma = h->sps.chroma_format_idc == 1 || h->sps.chroma_format_idc == 2;
+
+    const int pixel_shift = h->pixel_shift;
+
+
+
+    mb_xy = h->mb_xy = s->mb_x + s->mb_y*s->mb_stride;
+
+
+
+    tprintf(s->avctx, "pic:%d mb:%d/%d\n", h->frame_num, s->mb_x, s->mb_y);
+
+    if( h->slice_type_nos != AV_PICTURE_TYPE_I ) {
+
+        int skip;
+
+        /* a skipped mb needs the aff flag from the following mb */
+
+        if( FRAME_MBAFF && (s->mb_y&1)==1 && h->prev_mb_skipped )
+
+            skip = h->next_mb_skipped;
+
+        else
+
+            skip = decode_cabac_mb_skip( h, s->mb_x, s->mb_y );
+
+        /* read skip flags */
+
+        if( skip ) {
+
+            if( FRAME_MBAFF && (s->mb_y&1)==0 ){
+
+                s->current_picture.f.mb_type[mb_xy] = MB_TYPE_SKIP;
+
+                h->next_mb_skipped = decode_cabac_mb_skip( h, s->mb_x, s->mb_y+1 );
+
+                if(!h->next_mb_skipped)
+
+                    h->mb_mbaff = h->mb_field_decoding_flag = decode_cabac_field_decoding_flag(h);
+
+            }
+
+
+
+            decode_mb_skip(h);
+
+
+
+            h->cbp_table[mb_xy] = 0;
+
+            h->chroma_pred_mode_table[mb_xy] = 0;
+
+            h->last_qscale_diff = 0;
+
+
+
+            return 0;
+
+
+
+        }
+
+    }
+
+    if(FRAME_MBAFF){
+
+        if( (s->mb_y&1) == 0 )
+
+            h->mb_mbaff =
+
+   
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

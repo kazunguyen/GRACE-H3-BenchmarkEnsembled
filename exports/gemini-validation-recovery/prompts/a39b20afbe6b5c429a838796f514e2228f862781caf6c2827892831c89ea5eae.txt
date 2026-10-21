@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int mime_hdr_length_get ( MIMEHdrImpl * mh ) {
+ unsigned int length , index ;
+ MIMEFieldBlockImpl * fblock ;
+ MIMEField * field ;
+ length = 2 ;
+ for ( fblock = & ( mh -> m_first_fblock ) ;
+ fblock != nullptr ;
+ fblock = fblock -> m_next ) {
+ for ( index = 0 ;
+ index < fblock -> m_freetop ;
+ index ++ ) {
+ field = & ( fblock -> m_field_slots [ index ] ) ;
+ if ( field -> is_live ( ) ) {
+ length += mime_field_length_get ( field ) ;
+ }
+ }
+ }
+ return length ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int length , index ;
+ MIMEFieldBlockImpl * fblock ;
+ MIMEField * field ;
+ length = 2 ;
+ for ( fblock = & ( mh -> m_first_fblock ) ;
+ fblock != nullptr ;
+ fblock = fblock -> m_next ) {
+ for ( index = 0 ;
+ index < fblock -> m_freetop ;
+ index ++ ) {
+ field = & ( fblock -> m_field_slots [ index ] ) ;
+ if ( field -> is_live ( ) ) {
+ length += mime_field_length_get ( field ) ;
+ }
+ }
+ }
+ return length ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( index = 0 ;
+ index < fblock -> m_freetop ;
+ index ++ ) {
+ field = & ( fblock -> m_field_slots [ index ] ) ;
+ if ( field -> is_live ( ) ) {
+ length += mime_field_length_get ( field ) ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ field = & ( fblock -> m_field_slots [ index ] ) ;
+ if ( field -> is_live ( ) ) {
+ length += mime_field_length_get ( field ) ;
+ }
+ }
+      
+25769803779 | BLOCK | { length += mime_field_length_get ( field ) ; }
+30064771072 | CALL | length = 2
+30064771073 | CALL | fblock = & ( mh -> m_first_fblock )
+30064771074 | CALL | & ( mh -> m_first_fblock )
+30064771075 | CALL | mh -> m_first_fblock
+30064771076 | CALL | fblock != nullptr
+30064771077 | CALL | fblock = fblock -> m_next
+30064771078 | CALL | fblock -> m_next
+30064771079 | CALL | index = 0
+30064771080 | CALL | index < fblock -> m_freetop
+30064771081 | CALL | fblock -> m_freetop
+30064771082 | CALL | index ++
+30064771083 | CALL | field = & ( fblock -> m_field_slots [ index ] )
+30064771084 | CALL | & ( fblock -> m_field_slots [ index ] )
+30064771085 | CALL | fblock -> m_field_slots [ index ]
+30064771086 | CALL | fblock -> m_field_slots
+30064771087 | CALL | field -> is_live ( )
+30064771088 | CALL | field -> is_live
+30064771089 | CALL | length += mime_field_length_get ( field )
+30064771090 | CALL | mime_field_length_get ( field )
+47244640256 | CONTROL_STRUCTURE | 
+        for (fblock = & ( mh -> m_first_fblock ) ;fblock != nullptr;fblock = fblock -> m_next)
+      
+47244640257 | CONTROL_STRUCTURE | for (index = 0 ;index < fblock -> m_freetop;index ++)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( field -> is_live ( ) ) {
+ length += mime_field_length_get ( field ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | m_first_fblock
+55834574849 | FIELD_IDENTIFIER | m_next
+55834574850 | FIELD_IDENTIFIER | m_freetop
+55834574851 | FIELD_IDENTIFIER | m_field_slots
+55834574852 | FIELD_IDENTIFIER | is_live
+68719476736 | IDENTIFIER | length
+68719476737 | IDENTIFIER | fblock
+68719476738 | IDENTIFIER | mh
+68719476739 | IDENTIFIER | fblock
+68719476740 | IDENTIFIER | <unknown> nullptr
+68719476741 | IDENTIFIER | fblock
+68719476742 | IDENTIFIER | fblock
+68719476743 | IDENTIFIER | index
+68719476744 | IDENTIFIER | index
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476739 [CDG]
+30064771076 -> 68719476740 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 55834574850 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476739 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476744 [DOMINATE]
+30064771080 -> 68719476744 [ARGUMENT]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 68719476744 [AST]
+30064771080 -> 30064771081 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+MIMEField * mime_hdr_field_get ( MIMEHdrImpl * mh , int idx ) {
+ unsigned int index ;
+ MIMEFieldBlockImpl * fblock ;
+ MIMEField * field ;
+ int got_idx ;
+ got_idx = - 1 ;
+ for ( fblock = & ( mh -> m_first_fblock ) ;
+ fblock != nullptr ;
+ fblock = fblock -> m_next ) {
+ for ( index = 0 ;
+ index < fblock -> m_freetop ;
+ index ++ ) {
+ field = & ( fblock -> m_field_slots [ index ] ) ;
+ if ( field -> is_live ( ) ) {
+ ++ got_idx ;
+ }
+ if ( got_idx == idx ) {
+ return field ;
+ }
+ }
+ }
+ return nullptr ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

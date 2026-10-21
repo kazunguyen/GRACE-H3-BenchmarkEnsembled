@@ -1,0 +1,162 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestDownloadDirPref ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ base : : FilePath new_download_dir = DownloadPrefs ( browser ( ) -> profile ( ) ) . DownloadPath ( ) . AppendASCII ( "subdir" ) ;
+ base : : FilePath downloaded_pkg = new_download_dir . AppendASCII ( "a_zip_file.zip" ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , new_download_dir ) ;
+ std : : unique_ptr < content : : DownloadTestObserver > downloads_observer ( CreateWaiter ( browser ( ) , 1 ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/downloads/a_zip_file.zip" ) ) ;
+ downloads_observer -> WaitForFinished ( ) ;
+ base : : ScopedAllowBlockingForTesting allow_blocking ;
+ EXPECT_TRUE ( base : : PathExists ( downloaded_pkg ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ base : : FilePath new_download_dir = DownloadPrefs ( browser ( ) -> profile ( ) ) . DownloadPath ( ) . AppendASCII ( "subdir" ) ;
+ base : : FilePath downloaded_pkg = new_download_dir . AppendASCII ( "a_zip_file.zip" ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , new_download_dir ) ;
+ std : : unique_ptr < content : : DownloadTestObserver > downloads_observer ( CreateWaiter ( browser ( ) , 1 ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/downloads/a_zip_file.zip" ) ) ;
+ downloads_observer -> WaitForFinished ( ) ;
+ base : : ScopedAllowBlockingForTesting allow_blocking ;
+ EXPECT_TRUE ( base : : PathExists ( downloaded_pkg ) ) ;
+ }
+      
+30064771072 | CALL | ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) )
+30064771073 | CALL | embedded_test_server ( ) -> Start ( )
+30064771074 | CALL | embedded_test_server ( ) -> Start
+30064771075 | CALL | embedded_test_server ( )
+30064771076 | CALL | downloads_observer -> WaitForFinished ( )
+30064771077 | CALL | downloads_observer -> WaitForFinished
+55834574848 | FIELD_IDENTIFIER | Start
+55834574849 | FIELD_IDENTIFIER | WaitForFinished
+68719476736 | IDENTIFIER | <unknown> downloads_observer
+94489280512 | LOCAL | <unknown> downloads_observer
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestDownloadDirPref ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ base : : FilePath new_download_dir = DownloadPrefs ( browser ( ) -> profile ( ) ) . DownloadPath ( ) . AppendASCII ( "subdir" ) ;
+ base : : FilePath downloaded_pkg = new_download_dir . AppendASCII ( "a_zip_file.zip" ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , new_download_dir ) ;
+ std : : unique_ptr < content : : DownloadTestObserver > downloads_observer ( CreateWaiter ( browser ( ) , 1 ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/downloads/a_zip_file.zip" ) ) ;
+ downloads_observer -> WaitForFinished ( ) ;
+ base : : ScopedAllowBlockingForTesting allow_blocking ;
+ EXPECT_TRUE ( base : : PathExists ( downloaded_pkg ) ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | PrefsFunctionalTest
+111669149697 | METHOD_PARAMETER_IN | TestDownloadDirPref
+115964116992 | METHOD_PARAMETER_OUT | PrefsFunctionalTest
+115964116993 | METHOD_PARAMETER_OUT | TestDownloadDirPref
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 94489280512 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476736 [CFG]
+30064771072 -> 68719476736 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771075 -> 107374182400 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 124554051584 [CFG]
+30064771076 -> 124554051584 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 68719476736 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 68719476736 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+55834574848 -> 30064771074 [CFG]
+55834574848 -> 30064771074 [DOMINATE]
+55834574848 -> 30064771075 [POST_DOMINATE]
+55834574849 -> 30064771077 [CFG]
+55834574849 -> 30064771077 [DOMINATE]
+55834574849 -> 68719476736 [POST_DOMINATE]
+68719476736 -> 55834574849 [CFG]
+68719476736 -> 55834574849 [DOMINATE]
+68719476736 -> 30064771072 [POST_DOMINATE]
+68719476736 -> 94489280512 [REF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 30064771075 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 30064771072 [CONTAINS]
+107374182400 -> 30064771076 [CONTAINS]
+107374182400 -> 30064771073 [CONTAINS]
+107374182400 -> 30064771077 [CONTAINS]
+107374182400 -> 30064771074 [CONTAINS]
+107374182400 -> 68719476736 [CONTAINS]
+107374182400 -> 55834574849 [CONTAINS]
+107374182400 -> 30064771075 [CONTAINS]
+107374182400 -> 55834574848 [CONTAINS]
+107374182400 -> 30064771075 [DOMINATE]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 30064771073 [REACHING_DEF]
+107374182400 -> 30064771076 [REACHING_DEF]
+107374182400 -> 68719476736 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 30064771075 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestDownloadDirPref ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ base : : ScopedAllowBlockingForTesting allow_blocking ;
+ base : : ScopedTempDir new_download_dir ;
+ ASSERT_TRUE ( new_download_dir . CreateUniqueTempDir ( ) ) ;
+ base : : FilePath downloaded_pkg = new_download_dir . GetPath ( ) . AppendASCII ( "a_zip_file.zip" ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , new_download_dir . GetPath ( ) ) ;
+ std : : unique_ptr < content : : DownloadTestObserver > downloads_observer ( CreateWaiter ( browser ( ) , 1 ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/downloads/a_zip_file.zip" ) ) ;
+ downloads_observer -> WaitForFinished ( ) ;
+ EXPECT_TRUE ( base : : PathExists ( downloaded_pkg ) ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

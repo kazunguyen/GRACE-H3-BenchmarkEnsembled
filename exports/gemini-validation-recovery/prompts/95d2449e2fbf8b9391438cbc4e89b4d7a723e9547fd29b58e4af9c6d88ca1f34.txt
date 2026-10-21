@@ -1,0 +1,208 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ohci_detach ( USBPort * port1 ) {
+ OHCIState * s = port1 -> opaque ;
+ OHCIPort * port = & s -> rhport [ port1 -> index ] ;
+ uint32_t old_state = port -> ctrl ;
+ ohci_async_cancel_device ( s , port1 -> dev ) ;
+ if ( port -> ctrl & OHCI_PORT_CCS ) {
+ port -> ctrl &= ~ OHCI_PORT_CCS ;
+ port -> ctrl |= OHCI_PORT_CSC ;
+ }
+ if ( port -> ctrl & OHCI_PORT_PES ) {
+ port -> ctrl &= ~ OHCI_PORT_PES ;
+ port -> ctrl |= OHCI_PORT_PESC ;
+ }
+ trace_usb_ohci_port_detach ( port1 -> index ) ;
+ if ( old_state != port -> ctrl ) {
+ ohci_set_interrupt ( s , OHCI_INTR_RHSC ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ OHCIState * s = port1 -> opaque ;
+ OHCIPort * port = & s -> rhport [ port1 -> index ] ;
+ uint32_t old_state = port -> ctrl ;
+ ohci_async_cancel_device ( s , port1 -> dev ) ;
+ if ( port -> ctrl & OHCI_PORT_CCS ) {
+ port -> ctrl &= ~ OHCI_PORT_CCS ;
+ port -> ctrl |= OHCI_PORT_CSC ;
+ }
+ if ( port -> ctrl & OHCI_PORT_PES ) {
+ port -> ctrl &= ~ OHCI_PORT_PES ;
+ port -> ctrl |= OHCI_PORT_PESC ;
+ }
+ trace_usb_ohci_port_detach ( port1 -> index ) ;
+ if ( old_state != port -> ctrl ) {
+ ohci_set_interrupt ( s , OHCI_INTR_RHSC ) ;
+ }
+ }
+      
+25769803777 | BLOCK | { port -> ctrl &= ~ OHCI_PORT_CCS ; port -> ctrl |= OHCI_PORT_CSC ; }
+25769803778 | BLOCK | { port -> ctrl &= ~ OHCI_PORT_PES ; port -> ctrl |= OHCI_PORT_PESC ; }
+25769803779 | BLOCK | { ohci_set_interrupt ( s , OHCI_INTR_RHSC ) ; }
+30064771072 | CALL | s = port1 -> opaque
+30064771073 | CALL | port1 -> opaque
+30064771074 | CALL | port = & s -> rhport [ port1 -> index ]
+30064771075 | CALL | & s -> rhport [ port1 -> index ]
+30064771076 | CALL | s -> rhport [ port1 -> index ]
+30064771077 | CALL | s -> rhport
+30064771078 | CALL | port1 -> index
+30064771079 | CALL | old_state = port -> ctrl
+30064771080 | CALL | port -> ctrl
+30064771081 | CALL | ohci_async_cancel_device ( s , port1 -> dev )
+30064771082 | CALL | port1 -> dev
+30064771083 | CALL | port -> ctrl & OHCI_PORT_CCS
+30064771084 | CALL | port -> ctrl
+30064771085 | CALL | port -> ctrl &= ~ OHCI_PORT_CCS
+30064771086 | CALL | port -> ctrl
+30064771087 | CALL | ~ OHCI_PORT_CCS
+30064771088 | CALL | port -> ctrl |= OHCI_PORT_CSC
+30064771089 | CALL | port -> ctrl
+30064771090 | CALL | port -> ctrl & OHCI_PORT_PES
+30064771091 | CALL | port -> ctrl
+30064771092 | CALL | port -> ctrl &= ~ OHCI_PORT_PES
+30064771093 | CALL | port -> ctrl
+30064771094 | CALL | ~ OHCI_PORT_PES
+30064771095 | CALL | port -> ctrl |= OHCI_PORT_PESC
+30064771096 | CALL | port -> ctrl
+30064771097 | CALL | trace_usb_ohci_port_detach ( port1 -> index )
+30064771098 | CALL | port1 -> index
+30064771099 | CALL | old_state != port -> ctrl
+30064771100 | CALL | port -> ctrl
+30064771101 | CALL | ohci_set_interrupt ( s , OHCI_INTR_RHSC )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( port -> ctrl & OHCI_PORT_CCS ) {
+ port -> ctrl &= ~ OHCI_PORT_CCS ;
+ port -> ctrl |= OHCI_PORT_CSC ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( port -> ctrl & OHCI_PORT_PES ) {
+ port -> ctrl &= ~ OHCI_PORT_PES ;
+ port -> ctrl |= OHCI_PORT_PESC ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( old_state != port -> ctrl ) {
+ ohci_set_interrupt ( s , OHCI_INTR_RHSC ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | opaque
+55834574849 | FIELD_IDENTIFIER | rhport
+55834574850 | FIELD_IDENTIFIER | index
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 47244640258 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771095 [AST]
+25769803779 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771076 [CFG]
+30064771078 -> 30064771076 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771084 -> 30064771086 [REACHING_DEF]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771089 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void ohci_attach ( USBPort * port1 ) {
+ OHCIState * s = port1 -> opaque ;
+ OHCIPort * port = & s -> rhport [ port1 -> index ] ;
+ uint32_t old_state = port -> ctrl ;
+ port -> ctrl |= OHCI_PORT_CCS | OHCI_PORT_CSC ;
+ if ( port -> port . dev -> speed == USB_SPEED_LOW ) {
+ port -> ctrl |= OHCI_PORT_LSDA ;
+ }
+ else {
+ port -> ctrl &= ~ OHCI_PORT_LSDA ;
+ }
+ if ( ( s -> ctl & OHCI_CTL_HCFS ) == OHCI_USB_SUSPEND ) {
+ ohci_set_interrupt ( s , OHCI_INTR_RD ) ;
+ }
+ trace_usb_ohci_port_attach ( port1 -> index ) ;
+ if ( old_state != port -> ctrl ) {
+ ohci_set_interrupt ( s , OHCI_INTR_RHSC ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int remoteStreamFilter ( struct qemud_client * client , struct qemud_client_message * msg , void * opaque ) {
+ struct qemud_client_stream * stream = opaque ;
+ if ( msg -> hdr . serial == stream -> serial && msg -> hdr . proc == stream -> procedure && msg -> hdr . type == REMOTE_STREAM ) {
+ VIR_DEBUG ( "Incoming rx=%p serial=%d proc=%d status=%d" , stream -> rx , msg -> hdr . proc , msg -> hdr . serial , msg -> hdr . status ) ;
+ if ( stream -> rx ) {
+ qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ }
+ else {
+ int ret = 0 ;
+ switch ( msg -> hdr . status ) {
+ case REMOTE_OK : ret = remoteStreamHandleFinish ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ case REMOTE_CONTINUE : qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ break ;
+ case REMOTE_ERROR : default : ret = remoteStreamHandleAbort ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ }
+ if ( ret < 0 ) return - 1 ;
+ }
+ return 1 ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct qemud_client_stream * stream = opaque ;
+ if ( msg -> hdr . serial == stream -> serial && msg -> hdr . proc == stream -> procedure && msg -> hdr . type == REMOTE_STREAM ) {
+ VIR_DEBUG ( "Incoming rx=%p serial=%d proc=%d status=%d" , stream -> rx , msg -> hdr . proc , msg -> hdr . serial , msg -> hdr . status ) ;
+ if ( stream -> rx ) {
+ qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ }
+ else {
+ int ret = 0 ;
+ switch ( msg -> hdr . status ) {
+ case REMOTE_OK : ret = remoteStreamHandleFinish ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ case REMOTE_CONTINUE : qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ break ;
+ case REMOTE_ERROR : default : ret = remoteStreamHandleAbort ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ }
+ if ( ret < 0 ) return - 1 ;
+ }
+ return 1 ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ VIR_DEBUG ( "Incoming rx=%p serial=%d proc=%d status=%d" , stream -> rx , msg -> hdr . proc , msg -> hdr . serial , msg -> hdr . status ) ;
+ if ( stream -> rx ) {
+ qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ }
+ else {
+ int ret = 0 ;
+ switch ( msg -> hdr . status ) {
+ case REMOTE_OK : ret = remoteStreamHandleFinish ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ case REMOTE_CONTINUE : qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ break ;
+ case REMOTE_ERROR : default : ret = remoteStreamHandleAbort ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ }
+ if ( ret < 0 ) return - 1 ;
+ }
+ return 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int ret = 0 ;
+ switch ( msg -> hdr . status ) {
+ case REMOTE_OK : ret = remoteStreamHandleFinish ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ case REMOTE_CONTINUE : qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ break ;
+ case REMOTE_ERROR : default : ret = remoteStreamHandleAbort ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ }
+ if ( ret < 0 ) return - 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case REMOTE_OK : ret = remoteStreamHandleFinish ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ case REMOTE_CONTINUE : qemudClientMessageQueuePush ( & stream -> rx , msg ) ;
+ remoteStreamUpdateEvents ( stream ) ;
+ break ;
+ case REMOTE_ERROR : default : ret = remoteStreamHandleAbort ( client , stream , msg ) ;
+ if ( ret == 0 ) qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | stream = opaque
+30064771073 | CALL | 
+        msg -> hdr . serial == stream -> serial && msg -> hdr . proc == stream -> procedure && msg -> hdr . type == REMOTE_STREAM
+      
+30064771074 | CALL | 
+        msg -> hdr . serial == stream -> serial && msg -> hdr . proc == stream -> procedure
+      
+30064771075 | CALL | msg -> hdr . serial == stream -> serial
+30064771076 | CALL | msg -> hdr . serial
+30064771077 | CALL | msg -> hdr
+30064771078 | CALL | stream -> serial
+30064771079 | CALL | msg -> hdr . proc == stream -> procedure
+30064771080 | CALL | msg -> hdr . proc
+30064771081 | CALL | msg -> hdr
+30064771082 | CALL | stream -> procedure
+30064771083 | CALL | msg -> hdr . type == REMOTE_STREAM
+30064771084 | CALL | msg -> hdr . type
+30064771085 | CALL | msg -> hdr
+30064771086 | CALL | 
+        VIR_DEBUG ( "Incoming rx=%p serial=%d proc=%d status=%d" , stream -> rx , msg -> hdr . proc , msg -> hdr . serial , msg -> hdr . status )
+      
+30064771087 | CALL | stream -> rx
+30064771088 | CALL | msg -> hdr . proc
+30064771089 | CALL | msg -> hdr
+30064771090 | CALL | msg -> hdr . serial
+30064771091 | CALL | msg -> hdr
+30064771092 | CALL | msg -> hdr . status
+30064771093 | CALL | msg -> hdr
+30064771094 | CALL | stream -> rx
+30064771095 | CALL | qemudClientMessageQueuePush ( & stream -> rx , msg )
+30064771096 | CALL | & stream -> rx
+30064771097 | CALL | stream -> rx
+30064771098 | CALL | remoteStreamUpdateEvents ( stream )
+30064771099 | CALL | ret = 0
+30064771100 | CALL | msg -> hdr . status
+30064771101 | CALL | msg -> hdr
+30064771102 | CALL | ret = remoteStreamHandleFinish ( client , stream , msg )
+30064771103 | CALL | remoteStreamHandleFinish ( client , stream , msg )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771086 [AST]
+25769803778 -> 30064771095 [AST]
+25769803778 -> 30064771098 [AST]
+25769803779 -> 30064771099 [AST]
+25769803780 -> 30064771102 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771083 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771083 [AST]
+30064771073 -> 30064771086 [CDG]
+30064771073 -> 30064771087 [CDG]
+30064771073 -> 30064771088 [CDG]
+30064771073 -> 30064771089 [CDG]
+30064771073 -> 30064771090 [CDG]
+30064771073 -> 30064771091 [CDG]
+30064771073 -> 30064771092 [CDG]
+30064771073 -> 30064771093 [CDG]
+30064771073 -> 30064771094 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771083 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [C
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

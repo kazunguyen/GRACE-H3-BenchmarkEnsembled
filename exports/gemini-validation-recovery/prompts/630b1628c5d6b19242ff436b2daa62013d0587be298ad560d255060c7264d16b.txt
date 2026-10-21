@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TSReturnCode TSMimeHdrFieldValueDateInsert ( TSMBuffer bufp , TSMLoc hdr , TSMLoc field , time_t value ) {
+ sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS ) ;
+ sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS ) ) ;
+ sdk_assert ( sdk_sanity_check_field_handle ( field , hdr ) == TS_SUCCESS ) ;
+ if ( ! isWriteable ( bufp ) ) {
+ return TS_ERROR ;
+ }
+ if ( TSMimeHdrFieldValuesClear ( bufp , hdr , field ) == TS_ERROR ) {
+ return TS_ERROR ;
+ }
+ char tmp [ 33 ] ;
+ int len = mime_format_date ( tmp , value ) ;
+ ( void ) TSMimeFieldValueSet ( bufp , field , - 1 , tmp , len ) ;
+ return TS_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS ) ;
+ sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS ) ) ;
+ sdk_assert ( sdk_sanity_check_field_handle ( field , hdr ) == TS_SUCCESS ) ;
+ if ( ! isWriteable ( bufp ) ) {
+ return TS_ERROR ;
+ }
+ if ( TSMimeHdrFieldValuesClear ( bufp , hdr , field ) == TS_ERROR ) {
+ return TS_ERROR ;
+ }
+ char tmp [ 33 ] ;
+ int len = mime_format_date ( tmp , value ) ;
+ ( void ) TSMimeFieldValueSet ( bufp , field , - 1 , tmp , len ) ;
+ return TS_SUCCESS ;
+ }
+      
+25769803777 | BLOCK | { return TS_ERROR ; }
+25769803778 | BLOCK | { return TS_ERROR ; }
+30064771072 | CALL | sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS )
+30064771073 | CALL | sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS
+30064771074 | CALL | sdk_sanity_check_mbuffer ( bufp )
+30064771075 | CALL | 
+        sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS ) )
+      
+30064771076 | CALL | 
+        ( sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS )
+      
+30064771077 | CALL | sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS
+30064771078 | CALL | sdk_sanity_check_mime_hdr_handle ( hdr )
+30064771079 | CALL | sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS
+30064771080 | CALL | sdk_sanity_check_http_hdr_handle ( hdr )
+30064771081 | CALL | sdk_assert ( sdk_sanity_check_field_handle ( field , hdr ) == TS_SUCCESS )
+30064771082 | CALL | sdk_sanity_check_field_handle ( field , hdr ) == TS_SUCCESS
+30064771083 | CALL | sdk_sanity_check_field_handle ( field , hdr )
+30064771084 | CALL | ! isWriteable ( bufp )
+30064771085 | CALL | isWriteable ( bufp )
+30064771086 | CALL | TSMimeHdrFieldValuesClear ( bufp , hdr , field ) == TS_ERROR
+30064771087 | CALL | TSMimeHdrFieldValuesClear ( bufp , hdr , field )
+30064771088 | CALL | tmp [ 33 ]
+30064771089 | CALL | tmp [ 33 ]
+30064771090 | CALL | len = mime_format_date ( tmp , value )
+30064771091 | CALL | mime_format_date ( tmp , value )
+30064771092 | CALL | ( void ) TSMimeFieldValueSet ( bufp , field , - 1 , tmp , len )
+30064771093 | CALL | TSMimeFieldValueSet ( bufp , field , - 1 , tmp , len )
+30064771094 | CALL | - 1
+47244640256 | CONTROL_STRUCTURE | if ( ! isWriteable ( bufp ) ) { return TS_ERROR ; }
+47244640257 | CONTROL_STRUCTURE | 
+        if ( TSMimeHdrFieldValuesClear ( bufp , hdr , field ) == TS_ERROR ) {
+ return TS_ERROR ;
+ }
+      
+68719476736 | IDENTIFIER | bufp
+68719476737 | IDENTIFIER | <unknown> TS_SUCCESS
+68719476738 | IDENTIFIER | hdr
+68719476739 | IDENTIFIER | <unknown> TS_SUCCESS
+68719476740 | IDENTIFIER | hdr
+68719476741 | IDENTIFIER | <unknown> TS_SUCCESS
+68719476742 | IDENTIFIER | field
+68719476743 | IDENTIFIER | hdr
+68719476744 | IDENTIFIER | <unknown> TS_SUCCESS
+68719476745 | IDENTIFIER | bufp
+68719476746 | IDENTIFIER | <unknown> TS_ERROR
+68719476747 | IDENTIFIER | bufp
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 68719476737 [CFG]
+30064771074 -> 68719476737 [DOMINATE]
+30064771074 -> 68719476736 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 68719476741 [CDG]
+30064771077 -> 68719476740 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 68719476740 [CFG]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476740 [DOMINATE]
+30064771077 -> 68719476739 [POST_DOMINATE]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476738 [ARGUMENT]
+30064771078 -> 68719476738 [AST]
+30064771078 -> 68719476739 [CFG]
+30064771078 -> 68719476739 [DOMINATE]
+30064771078 -> 68719476738 [POST_DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476741 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476741 [AST]
+30064771079 -> 30064771076 [CFG]
+30064771079 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 68719476740 [ARGUMENT]
+30064771080 -> 68719476740 [AST]
+30064771080 -> 68719476741 [CFG]
+30064771080 -> 68719476741 [DOMINATE]
+30064771080 -> 68719476740 [POST_DOMINATE]
+30064771080 -> 68719476741 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TSReturnCode TSMimeHdrFieldValueDateSet ( TSMBuffer bufp , TSMLoc hdr , TSMLoc field , time_t value ) {
+ sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS ) ;
+ sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( hdr ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( hdr ) == TS_SUCCESS ) ) ;
+ sdk_assert ( sdk_sanity_check_field_handle ( field , hdr ) == TS_SUCCESS ) ;
+ if ( ! isWriteable ( bufp ) ) {
+ return TS_ERROR ;
+ }
+ char tmp [ 33 ] ;
+ int len = mime_format_date ( tmp , value ) ;
+ TSMimeFieldValueSet ( bufp , field , - 1 , tmp , len ) ;
+ return TS_SUCCESS ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

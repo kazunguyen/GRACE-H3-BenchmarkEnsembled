@@ -1,0 +1,452 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void RENAME(yuv2packedX)(SwsContext *c, int16_t *lumFilter, int16_t **lumSrc, int lumFilterSize,
+
+				    int16_t *chrFilter, int16_t **chrSrc, int chrFilterSize,
+
+			    uint8_t *dest, long dstW, long dstY)
+
+{
+
+	long dummy=0;
+
+	switch(c->dstFormat)
+
+	{
+
+#ifdef HAVE_MMX
+
+	case IMGFMT_BGR32:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+				WRITEBGR32(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR24:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+				"lea (%%"REG_a", %%"REG_a", 2), %%"REG_b"\n\t" //FIXME optimize
+
+				"add %4, %%"REG_b"			\n\t"
+
+				WRITEBGR24(%%REGb, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_b, "%"REG_d, "%"REG_S //FIXME ebx
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR15:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+		/* mm2=B, %%mm4=G, %%mm5=R, %%mm7=0 */
+
+#ifdef DITHER1XBPP
+
+				"paddusb "MANGLE(b5Dither)", %%mm2\n\t"
+
+				"paddusb "MANGLE(g5Dither)", %%mm4\n\t"
+
+				"paddusb "MANGLE(r5Dither)", %%mm5\n\t"
+
+#endif
+
+
+
+				WRITEBGR15(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR16:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+		/* mm2=B, %%mm4=G, %%mm5=R, %%mm7=0 */
+
+#ifdef DITHER1XBPP
+
+				"paddusb "MANGLE(b5Dither)", %%mm2\n\t"
+
+				"paddusb "MANGLE(g6Dither)", %%mm4\n\t"
+
+				"paddusb "MANGLE(r5Dither)", %%mm5\n\t"
+
+#endif
+
+
+
+				WRITEBGR16(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_YUY2:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2PACKEDX
+
+		/* mm2=B, %%mm4=G, %%mm5=R, %%mm7=0 */
+
+
+
+				"psraw $3, %%mm3		\n\t"
+
+				"psraw $3, %%mm4		\n\t"
+
+				"psraw $3, %%mm1		\n\t"
+
+				"psraw $3, %%mm7		\n\t"
+
+				WRITEYUY2(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+#endif
+
+	default:
+
+#ifdef HAVE_ALTIVEC
+
+		/* The following list of supported dstFormat values should
+
+		   match what's found in the body of altivec_yuv2packedX() */
+
+		if(c->dstFormat==IMGFMT_ABGR  || c->dstFormat==IMGFMT_BGRA  ||
+
+		   c->dstFormat==IMGFMT_BGR24 || c->dstFormat==IMGFMT_RGB24 ||
+
+		   c->dstFormat==IMGFMT_RGBA  || c->dstFormat==IMGFMT_ARGB)
+
+			altivec_yuv2packedX (c, lumFilter, lumSrc, lumFilterSize,
+
+				    chrFilter, chrSrc, chrFilterSize,
+
+				    dest, dstW, dstY);
+
+		else
+
+#endif
+
+			yuv2packedXinC(c, lumFilter, lumSrc, lumFilterSize,
+
+				    chrFilter, chrSrc, chrFilterSize,
+
+				    dest, dstW, dstY);
+
+		break;
+
+	}
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+20 -> 24 [IS_AST_PARENT]
+20 -> 25 [IS_AST_PARENT]
+20 -> 26 [IS_AST_PARENT]
+20 -> 27 [IS_AST_PARENT]
+20 -> 28 [IS_AST_PARENT]
+20 -> 29 [IS_AST_PARENT]
+20 -> 30 [IS_AST_PARENT]
+20 -> 31 [IS_AST_PARENT]
+20 -> 32 [IS_AST_PARENT]
+20 -> 33 [IS_AST_PARENT]
+20 -> 34 [IS_AST_PARENT]
+20 -> 35 [IS_AST_PARENT]
+20 -> 36 [IS_AST_PARENT]
+20 -> 37 [IS_AST_PARENT]
+20 -> 38 [IS_AST_PARENT]
+20 -> 39 [IS_AST_PARENT]
+20 -> 40 [IS_AST_PARENT]
+20 -> 41 [IS_AST_PARENT]
+20 -> 42 [IS_AST_PARENT]
+20 -> 43 [IS_AST_PARENT]
+20 -> 44 [IS_AST_PARENT]
+20 -> 45 [IS_AST_PARENT]
+20 -> 46 [IS_AST_PARENT]
+20 -> 47 [IS_AST_PARENT]
+20 -> 48 [IS_AST_PARENT]
+20 -> 49 [IS_AST_PARENT]
+20 -> 50 [IS_AST_PARENT]
+20 -> 51 [IS_AST_PARENT]
+20 -> 52 [IS_AST_PARENT]
+20 -> 53 [IS_AST_PARENT]
+20 -> 54 [IS_AST_PARENT]
+20 -> 55 [IS_AST_PARENT]
+20 -> 56 [IS_AST_PARENT]
+20 -> 57 [IS_AST_PARENT]
+20 -> 58 [IS_AST_PARENT]
+20 -> 59 [IS_AST_PARENT]
+20 -> 60 [IS_AST_PARENT]
+20 -> 61 [IS_AST_PARENT]
+20 -> 62 [IS_AST_PARENT]
+20 -> 63 [IS_AST_PARENT]
+20 -> 64 [IS_AST_PARENT]
+20 -> 65 [IS_AST_PARENT]
+20 -> 66 [IS_AST_PARENT]
+20 -> 67 [IS_AST_PARENT]
+20 -> 68 [IS_AST_PARENT]
+20 -> 69 [IS_AST_PARENT]
+20 -> 70 [IS_AST_PARENT]
+20 -> 71 [IS_AST_PARENT]
+20 -> 72 [IS_AST_PARENT]
+20 -> 73 [IS_AST_PARENT]
+20 -> 74 [IS_AST_PARENT]
+20 -> 75 [IS_AST_PARENT]
+20 -> 76 [IS_AST_PARENT]
+20 -> 77 [IS_AST_PARENT]
+20 -> 78 [IS_AST_PARENT]
+20 -> 79 [IS_AST_PARENT]
+20 -> 80 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+17 -> 81 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+17 -> 82 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+84 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static inline void RENAME(yuv2packedX)(SwsContext *c, int16_t *lumFilter, int16_t **lumSrc, int lumFilterSize,
+
+				    int16_t *chrFilter, int16_t **chrSrc, int chrFilterSize,
+
+			    uint8_t *dest, int dstW, int dstY)
+
+{
+
+	int dummy=0;
+
+	switch(c->dstFormat)
+
+	{
+
+#ifdef HAVE_MMX
+
+	case IMGFMT_BGR32:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+				WRITEBGR32(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR24:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+				"lea (%%"REG_a", %%"REG_a", 2), %%"REG_b"\n\t" //FIXME optimize
+
+				"add %4, %%"REG_b"			\n\t"
+
+				WRITEBGR24(%%REGb, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_b, "%"REG_d, "%"REG_S //FIXME ebx
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR15:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+		/* mm2=B, %%mm4=G, %%mm5=R, %%mm7=0 */
+
+#ifdef DITHER1XBPP
+
+				"paddusb "MANGLE(b5Dither)", %%mm2\n\t"
+
+				"paddusb "MANGLE(g5Dither)", %%mm4\n\t"
+
+				"paddusb "MANGLE(r5Dither)", %%mm5\n\t"
+
+#endif
+
+
+
+				WRITEBGR15(%4, %5, %%REGa)
+
+
+
+			:: "r" (&c->redDither), 
+
+			   "m" (dummy), "m" (dummy), "m" (dummy),
+
+			   "r" (dest), "m" (dstW)
+
+			: "%"REG_a, "%"REG_d, "%"REG_S
+
+			);
+
+		}
+
+		break;
+
+	case IMGFMT_BGR16:
+
+		{
+
+			asm volatile(
+
+				YSCALEYUV2RGBX
+
+		/* mm2=B, %%mm4=G, %%mm5=R, %%mm7=0 *
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint32_t virtio_ioport_read ( VirtIOPCIProxy * proxy , uint32_t addr ) {
+ VirtIODevice * vdev = proxy -> vdev ;
+ uint32_t ret = 0xFFFFFFFF ;
+ switch ( addr ) {
+ case VIRTIO_PCI_HOST_FEATURES : ret = proxy -> host_features ;
+ break ;
+ case VIRTIO_PCI_GUEST_FEATURES : ret = vdev -> guest_features ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : ret = virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NUM : ret = virtio_queue_get_num ( vdev , vdev -> queue_sel ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : ret = vdev -> queue_sel ;
+ break ;
+ case VIRTIO_PCI_STATUS : ret = vdev -> status ;
+ break ;
+ case VIRTIO_PCI_ISR : ret = vdev -> isr ;
+ vdev -> isr = 0 ;
+ qemu_set_irq ( proxy -> pci_dev . irq [ 0 ] , 0 ) ;
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : ret = vdev -> config_vector ;
+ break ;
+ case VIRTIO_MSI_QUEUE_VECTOR : ret = virtio_queue_vector ( vdev , vdev -> queue_sel ) ;
+ break ;
+ default : break ;
+ }
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VirtIODevice * vdev = proxy -> vdev ;
+ uint32_t ret = 0xFFFFFFFF ;
+ switch ( addr ) {
+ case VIRTIO_PCI_HOST_FEATURES : ret = proxy -> host_features ;
+ break ;
+ case VIRTIO_PCI_GUEST_FEATURES : ret = vdev -> guest_features ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : ret = virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NUM : ret = virtio_queue_get_num ( vdev , vdev -> queue_sel ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : ret = vdev -> queue_sel ;
+ break ;
+ case VIRTIO_PCI_STATUS : ret = vdev -> status ;
+ break ;
+ case VIRTIO_PCI_ISR : ret = vdev -> isr ;
+ vdev -> isr = 0 ;
+ qemu_set_irq ( proxy -> pci_dev . irq [ 0 ] , 0 ) ;
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : ret = vdev -> config_vector ;
+ break ;
+ case VIRTIO_MSI_QUEUE_VECTOR : ret = virtio_queue_vector ( vdev , vdev -> queue_sel ) ;
+ break ;
+ default : break ;
+ }
+ return ret ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case VIRTIO_PCI_HOST_FEATURES : ret = proxy -> host_features ;
+ break ;
+ case VIRTIO_PCI_GUEST_FEATURES : ret = vdev -> guest_features ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : ret = virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NUM : ret = virtio_queue_get_num ( vdev , vdev -> queue_sel ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : ret = vdev -> queue_sel ;
+ break ;
+ case VIRTIO_PCI_STATUS : ret = vdev -> status ;
+ break ;
+ case VIRTIO_PCI_ISR : ret = vdev -> isr ;
+ vdev -> isr = 0 ;
+ qemu_set_irq ( proxy -> pci_dev . irq [ 0 ] , 0 ) ;
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : ret = vdev -> config_vector ;
+ break ;
+ case VIRTIO_MSI_QUEUE_VECTOR : ret = virtio_queue_vector ( vdev , vdev -> queue_sel ) ;
+ break ;
+ default : break ;
+ }
+      
+30064771072 | CALL | vdev = proxy -> vdev
+30064771073 | CALL | proxy -> vdev
+30064771074 | CALL | ret = 0xFFFFFFFF
+30064771075 | CALL | ret = proxy -> host_features
+30064771076 | CALL | proxy -> host_features
+30064771077 | CALL | ret = vdev -> guest_features
+30064771078 | CALL | vdev -> guest_features
+30064771079 | CALL | 
+        ret = virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT
+      
+30064771080 | CALL | 
+        virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT
+      
+30064771081 | CALL | virtio_queue_get_addr ( vdev , vdev -> queue_sel )
+30064771082 | CALL | vdev -> queue_sel
+30064771083 | CALL | ret = virtio_queue_get_num ( vdev , vdev -> queue_sel )
+30064771084 | CALL | virtio_queue_get_num ( vdev , vdev -> queue_sel )
+30064771085 | CALL | vdev -> queue_sel
+30064771086 | CALL | ret = vdev -> queue_sel
+30064771087 | CALL | vdev -> queue_sel
+30064771088 | CALL | ret = vdev -> status
+30064771089 | CALL | vdev -> status
+30064771090 | CALL | ret = vdev -> isr
+30064771091 | CALL | vdev -> isr
+30064771092 | CALL | vdev -> isr = 0
+30064771093 | CALL | vdev -> isr
+30064771094 | CALL | qemu_set_irq ( proxy -> pci_dev . irq [ 0 ] , 0 )
+30064771095 | CALL | proxy -> pci_dev . irq [ 0 ]
+30064771096 | CALL | proxy -> pci_dev . irq
+30064771097 | CALL | proxy -> pci_dev
+30064771098 | CALL | ret = vdev -> config_vector
+30064771099 | CALL | vdev -> config_vector
+30064771100 | CALL | ret = virtio_queue_vector ( vdev , vdev -> queue_sel )
+30064771101 | CALL | virtio_queue_vector ( vdev , vdev -> queue_sel )
+30064771102 | CALL | vdev -> queue_sel
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( addr ) {
+ case VIRTIO_PCI_HOST_FEATURES : ret = proxy -> host_features ;
+ break ;
+ case VIRTIO_PCI_GUEST_FEATURES : ret = vdev -> guest_features ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : ret = virtio_queue_get_addr ( vdev , vdev -> queue_sel ) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NUM : ret = virtio_queue_get_num ( vdev , vdev -> queue_sel ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : ret = vdev -> queue_sel ;
+ break ;
+ case VIRTIO_PCI_STATUS : ret = vdev -> status ;
+ break ;
+ case VIRTIO_PCI_ISR : ret = vdev -> isr ;
+ vdev -> isr = 0 ;
+ qemu_set_irq ( proxy -> pci_dev . irq [ 0 ] , 0 ) ;
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : ret = vdev -> config_vector ;
+ break ;
+ case VIRTIO_MSI_QUEUE_VECTOR : ret = virtio_queue_vector ( vdev , vdev -> queue_sel ) ;
+ break ;
+ default : break ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | break ;
+47244640261 | CONTROL_STRUCTURE | break ;
+47244640262 | CONTROL_STRUCTURE | break ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 47244640259 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 47244640260 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 47244640261 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 47244640262 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771098 [AST]
+25769803777 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 47244640257 [CFG]
+30064771075 -> 47244640257 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 47244640258 [CFG]
+30064771077 -> 47244640258 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 47244640259 [CFG]
+30064771079 -> 47244640259 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

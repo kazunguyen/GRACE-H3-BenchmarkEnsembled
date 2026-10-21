@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorJSONGetBlockIoThrottle ( qemuMonitorPtr mon , const char * device , virDomainBlockIoTuneInfoPtr reply ) {
+ int ret = - 1 ;
+ virJSONValuePtr cmd = NULL ;
+ virJSONValuePtr result = NULL ;
+ cmd = qemuMonitorJSONMakeCommand ( "query-block" , NULL ) ;
+ if ( ! cmd ) {
+ return - 1 ;
+ }
+ ret = qemuMonitorJSONCommand ( mon , cmd , & result ) ;
+ if ( ret == 0 && virJSONValueObjectHasKey ( result , "error" ) ) {
+ if ( qemuMonitorJSONHasError ( result , "DeviceNotActive" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device ) ;
+ else if ( qemuMonitorJSONHasError ( result , "NotSupported" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device ) ;
+ else qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) ) ;
+ ret = - 1 ;
+ }
+ if ( ret == 0 ) ret = qemuMonitorJSONBlockIoThrottleInfo ( result , device , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( result ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret = - 1 ;
+ virJSONValuePtr cmd = NULL ;
+ virJSONValuePtr result = NULL ;
+ cmd = qemuMonitorJSONMakeCommand ( "query-block" , NULL ) ;
+ if ( ! cmd ) {
+ return - 1 ;
+ }
+ ret = qemuMonitorJSONCommand ( mon , cmd , & result ) ;
+ if ( ret == 0 && virJSONValueObjectHasKey ( result , "error" ) ) {
+ if ( qemuMonitorJSONHasError ( result , "DeviceNotActive" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device ) ;
+ else if ( qemuMonitorJSONHasError ( result , "NotSupported" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device ) ;
+ else qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) ) ;
+ ret = - 1 ;
+ }
+ if ( ret == 0 ) ret = qemuMonitorJSONBlockIoThrottleInfo ( result , device , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( result ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | { return - 1 ; }
+25769803778 | BLOCK | 
+        {
+ if ( qemuMonitorJSONHasError ( result , "DeviceNotActive" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device ) ;
+ else if ( qemuMonitorJSONHasError ( result , "NotSupported" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device ) ;
+ else qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) ) ;
+ ret = - 1 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | ret = - 1
+30064771073 | CALL | - 1
+30064771074 | CALL | cmd = NULL
+30064771075 | CALL | result = NULL
+30064771076 | CALL | cmd = qemuMonitorJSONMakeCommand ( "query-block" , NULL )
+30064771077 | CALL | qemuMonitorJSONMakeCommand ( "query-block" , NULL )
+30064771078 | CALL | ! cmd
+30064771079 | CALL | - 1
+30064771080 | CALL | ret = qemuMonitorJSONCommand ( mon , cmd , & result )
+30064771081 | CALL | qemuMonitorJSONCommand ( mon , cmd , & result )
+30064771082 | CALL | & result
+30064771083 | CALL | ret == 0 && virJSONValueObjectHasKey ( result , "error" )
+30064771084 | CALL | ret == 0
+30064771085 | CALL | virJSONValueObjectHasKey ( result , "error" )
+30064771086 | CALL | qemuMonitorJSONHasError ( result , "DeviceNotActive" )
+30064771087 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device )
+      
+30064771088 | CALL | _ ( "No active operation on device: %s" )
+30064771089 | CALL | qemuMonitorJSONHasError ( result , "NotSupported" )
+30064771090 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device )
+      
+30064771091 | CALL | _ ( "Operation is not supported for device: %s" )
+30064771092 | CALL | 
+        qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) )
+      
+30064771093 | CALL | _ ( "Unexpected error" )
+30064771094 | CALL | ret = - 1
+30064771095 | CALL | - 1
+30064771096 | CALL | ret == 0
+30064771097 | CALL | ret = qemuMonitorJSONBlockIoThrottleInfo ( result , device , reply )
+30064771098 | CALL | qemuMonitorJSONBlockIoThrottleInfo ( result , device , reply )
+30064771099 | CALL | virJSONValueFree ( cmd )
+30064771100 | CALL | virJSONValueFree ( result )
+47244640256 | CONTROL_STRUCTURE | if ( ! cmd ) { return - 1 ; }
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ret == 0 && virJSONValueObjectHasKey ( result , "error" ) ) {
+ if ( qemuMonitorJSONHasError ( result , "DeviceNotActive" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device ) ;
+ else if ( qemuMonitorJSONHasError ( result , "NotSupported" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device ) ;
+ else qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) ) ;
+ ret = - 1 ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( qemuMonitorJSONHasError ( result , "DeviceNotActive" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "No active operation on device: %s" ) , device ) ;
+ else if ( qemuMonitorJSONHasError ( result , "NotSupported" ) ) qemuReportError ( VIR_ERR_OPERATION_INVALID , _ ( "Operation is not supported for device: %s" ) , device ) ;
+ else qemuReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "Unexpected error" ) ) ;
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771094 [AST]
+25769803779 -> 30064771087 [AST]
+25769803781 -> 30064771090 [AST]
+25769803782 -> 30064771092 [AST]
+25769803783 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771099 [CDG]
+30064771078 -> 30064771100 [CDG]
+30064771078 -> 30064771096 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771095 [CDG]
+30064771083 -> 300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

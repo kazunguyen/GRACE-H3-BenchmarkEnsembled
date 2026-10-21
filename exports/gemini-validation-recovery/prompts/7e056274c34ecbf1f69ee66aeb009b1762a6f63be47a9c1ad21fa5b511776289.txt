@@ -1,0 +1,294 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+abi_long do_sigaltstack(abi_ulong uss_addr, abi_ulong uoss_addr, abi_ulong sp)
+
+{
+
+    int ret;
+
+    struct target_sigaltstack oss;
+
+
+
+    /* XXX: test errors */
+
+    if(uoss_addr)
+
+    {
+
+        __put_user(target_sigaltstack_used.ss_sp, &oss.ss_sp);
+
+        __put_user(target_sigaltstack_used.ss_size, &oss.ss_size);
+
+        __put_user(sas_ss_flags(sp), &oss.ss_flags);
+
+    }
+
+
+
+    if(uss_addr)
+
+    {
+
+        struct target_sigaltstack *uss;
+
+        struct target_sigaltstack ss;
+
+
+
+	ret = -TARGET_EFAULT;
+
+        if (!lock_user_struct(VERIFY_READ, uss, uss_addr, 1)
+
+	    || __get_user(ss.ss_sp, &uss->ss_sp)
+
+	    || __get_user(ss.ss_size, &uss->ss_size)
+
+	    || __get_user(ss.ss_flags, &uss->ss_flags))
+
+            goto out;
+
+        unlock_user_struct(uss, uss_addr, 0);
+
+
+
+	ret = -TARGET_EPERM;
+
+	if (on_sig_stack(sp))
+
+            goto out;
+
+
+
+	ret = -TARGET_EINVAL;
+
+	if (ss.ss_flags != TARGET_SS_DISABLE
+
+            && ss.ss_flags != TARGET_SS_ONSTACK
+
+            && ss.ss_flags != 0)
+
+            goto out;
+
+
+
+	if (ss.ss_flags == TARGET_SS_DISABLE) {
+
+            ss.ss_size = 0;
+
+            ss.ss_sp = 0;
+
+	} else {
+
+            ret = -TARGET_ENOMEM;
+
+            if (ss.ss_size < MINSIGSTKSZ)
+
+                goto out;
+
+	}
+
+
+
+        target_sigaltstack_used.ss_sp = ss.ss_sp;
+
+        target_sigaltstack_used.ss_size = ss.ss_size;
+
+    }
+
+
+
+    if (uoss_addr) {
+
+        ret = -TARGET_EFAULT;
+
+        if (copy_to_user(uoss_addr, &oss, sizeof(oss)))
+
+            goto out;
+
+    }
+
+
+
+    ret = 0;
+
+out:
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+21 -> 26 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+36 -> 41 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+16 -> 32 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+51 -> 59 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+16 -> 47 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+68 -> 73 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+68 -> 77 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+92 -> 93 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void setup_rt_frame(int sig, struct target_sigaction *ka,
+
+                           target_siginfo_t *info,
+
+                           target_sigset_t *set, CPUS390XState *env)
+
+{
+
+    int i;
+
+    rt_sigframe *frame;
+
+    abi_ulong frame_addr;
+
+
+
+    frame_addr = get_sigframe(ka, env, sizeof *frame);
+
+    qemu_log("%s: frame_addr 0x%llx\n", __FUNCTION__,
+
+             (unsigned long long)frame_addr);
+
+    if (!lock_user_struct(VERIFY_WRITE, frame, frame_addr, 0)) {
+
+        goto give_sigsegv;
+
+    }
+
+
+
+    qemu_log("%s: 1\n", __FUNCTION__);
+
+    copy_siginfo_to_user(&frame->info, info);
+
+
+
+    /* Create the ucontext.  */
+
+    __put_user(0, &frame->uc.tuc_flags);
+
+    __put_user((abi_ulong)0, (abi_ulong *)&frame->uc.tuc_link);
+
+    __put_user(target_sigaltstack_used.ss_sp, &frame->uc.tuc_stack.ss_sp);
+
+    __put_user(sas_ss_flags(get_sp_from_cpustate(env)),
+
+                      &frame->uc.tuc_stack.ss_flags);
+
+    __put_user(target_sigaltstack_used.ss_size, &frame->uc.tuc_stack.ss_size);
+
+    save_sigregs(env, &frame->uc.tuc_mcontext);
+
+    for (i = 0; i < TARGET_NSIG_WORDS; i++) {
+
+        __put_user((abi_ulong)set->sig[i],
+
+        (abi_ulong *)&frame->uc.tuc_sigmask.sig[i]);
+
+    }
+
+
+
+    /* Set up to return from userspace.  If provided, use a stub
+
+       already in userspace.  */
+
+    if (ka->sa_flags & TARGET_SA_RESTORER) {
+
+        env->regs[14] = (unsigned long) ka->sa_restorer | PSW_ADDR_AMODE;
+
+    } else {
+
+        env->regs[14] = (unsigned long) frame->
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

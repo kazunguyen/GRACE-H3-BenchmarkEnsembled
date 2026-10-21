@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_pcp_message_pmns_ids ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , int offset ) {
+ proto_item * pcp_pmns_ids_item ;
+ proto_tree * pcp_pmns_ids_tree ;
+ guint32 num_ids ;
+ guint32 i ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "[%s]" , val_to_str ( PCP_PDU_PMNS_IDS , packettypenames , "Unknown Type:0x%02x" ) ) ;
+ pcp_pmns_ids_item = proto_tree_add_item ( tree , hf_pcp_pmns_ids , tvb , offset , - 1 , ENC_NA ) ;
+ pcp_pmns_ids_tree = proto_item_add_subtree ( pcp_pmns_ids_item , ett_pcp ) ;
+ proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_status , tvb , offset , 4 , ENC_BIG_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_numids , tvb , offset , 4 , ENC_BIG_ENDIAN ) ;
+ num_ids = tvb_get_ntohl ( tvb , offset ) ;
+ offset += 4 ;
+ populate_pmids_to_names ( pinfo , tvb , offset , num_ids ) ;
+ for ( i = 0 ;
+ i < num_ids ;
+ i ++ ) {
+ offset = dissect_pcp_partial_pmid ( tvb , pinfo , pcp_pmns_ids_tree , offset ) ;
+ }
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * pcp_pmns_ids_item ;
+ proto_tree * pcp_pmns_ids_tree ;
+ guint32 num_ids ;
+ guint32 i ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "[%s]" , val_to_str ( PCP_PDU_PMNS_IDS , packettypenames , "Unknown Type:0x%02x" ) ) ;
+ pcp_pmns_ids_item = proto_tree_add_item ( tree , hf_pcp_pmns_ids , tvb , offset , - 1 , ENC_NA ) ;
+ pcp_pmns_ids_tree = proto_item_add_subtree ( pcp_pmns_ids_item , ett_pcp ) ;
+ proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_status , tvb , offset , 4 , ENC_BIG_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_numids , tvb , offset , 4 , ENC_BIG_ENDIAN ) ;
+ num_ids = tvb_get_ntohl ( tvb , offset ) ;
+ offset += 4 ;
+ populate_pmids_to_names ( pinfo , tvb , offset , num_ids ) ;
+ for ( i = 0 ;
+ i < num_ids ;
+ i ++ ) {
+ offset = dissect_pcp_partial_pmid ( tvb , pinfo , pcp_pmns_ids_tree , offset ) ;
+ }
+ return offset ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ offset = dissect_pcp_partial_pmid ( tvb , pinfo , pcp_pmns_ids_tree , offset ) ;
+ }
+      
+30064771072 | CALL | 
+        col_append_fstr ( pinfo -> cinfo , COL_INFO , "[%s]" , val_to_str ( PCP_PDU_PMNS_IDS , packettypenames , "Unknown Type:0x%02x" ) )
+      
+30064771073 | CALL | pinfo -> cinfo
+30064771074 | CALL | val_to_str ( PCP_PDU_PMNS_IDS , packettypenames , "Unknown Type:0x%02x" )
+30064771075 | CALL | 
+        pcp_pmns_ids_item = proto_tree_add_item ( tree , hf_pcp_pmns_ids , tvb , offset , - 1 , ENC_NA )
+      
+30064771076 | CALL | proto_tree_add_item ( tree , hf_pcp_pmns_ids , tvb , offset , - 1 , ENC_NA )
+30064771077 | CALL | - 1
+30064771078 | CALL | pcp_pmns_ids_tree = proto_item_add_subtree ( pcp_pmns_ids_item , ett_pcp )
+30064771079 | CALL | proto_item_add_subtree ( pcp_pmns_ids_item , ett_pcp )
+30064771080 | CALL | 
+        proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_status , tvb , offset , 4 , ENC_BIG_ENDIAN )
+      
+30064771081 | CALL | offset += 4
+30064771082 | CALL | 
+        proto_tree_add_item ( pcp_pmns_ids_tree , hf_pcp_pmns_ids_numids , tvb , offset , 4 , ENC_BIG_ENDIAN )
+      
+30064771083 | CALL | num_ids = tvb_get_ntohl ( tvb , offset )
+30064771084 | CALL | tvb_get_ntohl ( tvb , offset )
+30064771085 | CALL | offset += 4
+30064771086 | CALL | populate_pmids_to_names ( pinfo , tvb , offset , num_ids )
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < num_ids
+30064771089 | CALL | i ++
+30064771090 | CALL | offset = dissect_pcp_partial_pmid ( tvb , pinfo , pcp_pmns_ids_tree , offset )
+30064771091 | CALL | dissect_pcp_partial_pmid ( tvb , pinfo , pcp_pmns_ids_tree , offset )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < num_ids;i ++)
+55834574848 | FIELD_IDENTIFIER | cinfo
+68719476736 | IDENTIFIER | pinfo
+68719476737 | IDENTIFIER | <unknown> COL_INFO
+68719476738 | IDENTIFIER | <unknown> PCP_PDU_PMNS_IDS
+68719476739 | IDENTIFIER | <unknown> packettypenames
+68719476740 | IDENTIFIER | pcp_pmns_ids_item
+68719476741 | IDENTIFIER | tree
+68719476742 | IDENTIFIER | <unknown> hf_pcp_pmns_ids
+68719476743 | IDENTIFIER | tvb
+68719476744 | IDENTIFIER | offset
+68719476745 | IDENTIFIER | <unknown> ENC_NA
+68719476746 | IDENTIFIER | pcp_pmns_ids_tree
+68719476747 | IDENTIFIER | pcp_pmns_ids_item
+68719476748 | IDENTIFIER | <unknown> ett_pcp
+68719476749 | IDENTIFIER | pcp_pmns_ids_tree
+68719476750 | IDENTIFIER | <unknown> hf_pcp_pmns_ids_status
+68719476751 | IDENTIFIER | tvb
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 68719476740 [CFG]
+30064771072 -> 68719476740 [DOMINATE]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476737 [REACHING_DEF]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476746 [CFG]
+30064771075 -> 68719476746 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476743 [ARGUMENT]
+30064771076 -> 68719476744 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476745 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476743 [AST]
+30064771076 -> 68719476744 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476745 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476745 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771077 -> 68719476742 [REACHING_DEF]
+30064771077 -> 68719476743 [REACHING_DEF]
+30064771077 -> 68719476744 [REACHING_DEF]
+30064771077 -> 68719476745 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476746 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476746 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476749 [CFG]
+30064771078 -> 68719476749 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 68719476747 [ARGUMENT]
+30064771079 -> 68719476748 [ARGUM
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

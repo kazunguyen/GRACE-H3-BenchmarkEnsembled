@@ -1,0 +1,258 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void qmp_memsave ( int64_t addr , int64_t size , const char * filename , bool has_cpu , int64_t cpu_index , Error * * errp ) {
+ FILE * f ;
+ uint32_t l ;
+ CPUArchState * env ;
+ CPUState * cpu ;
+ uint8_t buf [ 1024 ] ;
+ if ( ! has_cpu ) {
+ cpu_index = 0 ;
+ }
+ cpu = qemu_get_cpu ( cpu_index ) ;
+ if ( cpu == NULL ) {
+ error_set ( errp , QERR_INVALID_PARAMETER_VALUE , "cpu-index" , "a CPU number" ) ;
+ return ;
+ }
+ env = cpu -> env_ptr ;
+ f = fopen ( filename , "wb" ) ;
+ if ( ! f ) {
+ error_setg_file_open ( errp , errno , filename ) ;
+ return ;
+ }
+ while ( size != 0 ) {
+ l = sizeof ( buf ) ;
+ if ( l > size ) l = size ;
+ cpu_memory_rw_debug ( env , addr , buf , l , 0 ) ;
+ if ( fwrite ( buf , 1 , l , f ) != l ) {
+ error_set ( errp , QERR_IO_ERROR ) ;
+ goto exit ;
+ }
+ addr += l ;
+ size -= l ;
+ }
+ exit : fclose ( f ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ FILE * f ;
+ uint32_t l ;
+ CPUArchState * env ;
+ CPUState * cpu ;
+ uint8_t buf [ 1024 ] ;
+ if ( ! has_cpu ) {
+ cpu_index = 0 ;
+ }
+ cpu = qemu_get_cpu ( cpu_index ) ;
+ if ( cpu == NULL ) {
+ error_set ( errp , QERR_INVALID_PARAMETER_VALUE , "cpu-index" , "a CPU number" ) ;
+ return ;
+ }
+ env = cpu -> env_ptr ;
+ f = fopen ( filename , "wb" ) ;
+ if ( ! f ) {
+ error_setg_file_open ( errp , errno , filename ) ;
+ return ;
+ }
+ while ( size != 0 ) {
+ l = sizeof ( buf ) ;
+ if ( l > size ) l = size ;
+ cpu_memory_rw_debug ( env , addr , buf , l , 0 ) ;
+ if ( fwrite ( buf , 1 , l , f ) != l ) {
+ error_set ( errp , QERR_IO_ERROR ) ;
+ goto exit ;
+ }
+ addr += l ;
+ size -= l ;
+ }
+ exit : fclose ( f ) ;
+ }
+      
+25769803777 | BLOCK | { cpu_index = 0 ; }
+25769803778 | BLOCK | 
+        {
+ error_set ( errp , QERR_INVALID_PARAMETER_VALUE , "cpu-index" , "a CPU number" ) ;
+ return ;
+ }
+      
+25769803779 | BLOCK | { error_setg_file_open ( errp , errno , filename ) ; return ; }
+25769803780 | BLOCK | 
+        {
+ l = sizeof ( buf ) ;
+ if ( l > size ) l = size ;
+ cpu_memory_rw_debug ( env , addr , buf , l , 0 ) ;
+ if ( fwrite ( buf , 1 , l , f ) != l ) {
+ error_set ( errp , QERR_IO_ERROR ) ;
+ goto exit ;
+ }
+ addr += l ;
+ size -= l ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { error_set ( errp , QERR_IO_ERROR ) ; goto exit ; }
+30064771072 | CALL | buf [ 1024 ]
+30064771073 | CALL | buf [ 1024 ]
+30064771074 | CALL | ! has_cpu
+30064771075 | CALL | cpu_index = 0
+30064771076 | CALL | cpu = qemu_get_cpu ( cpu_index )
+30064771077 | CALL | qemu_get_cpu ( cpu_index )
+30064771078 | CALL | cpu == NULL
+30064771079 | CALL | 
+        error_set ( errp , QERR_INVALID_PARAMETER_VALUE , "cpu-index" , "a CPU number" )
+      
+30064771080 | CALL | env = cpu -> env_ptr
+30064771081 | CALL | cpu -> env_ptr
+30064771082 | CALL | f = fopen ( filename , "wb" )
+30064771083 | CALL | fopen ( filename , "wb" )
+30064771084 | CALL | ! f
+30064771085 | CALL | error_setg_file_open ( errp , errno , filename )
+30064771086 | CALL | size != 0
+30064771087 | CALL | l = sizeof ( buf )
+30064771088 | CALL | sizeof ( buf )
+30064771089 | CALL | l > size
+30064771090 | CALL | l = size
+30064771091 | CALL | cpu_memory_rw_debug ( env , addr , buf , l , 0 )
+30064771092 | CALL | fwrite ( buf , 1 , l , f ) != l
+30064771093 | CALL | fwrite ( buf , 1 , l , f )
+30064771094 | CALL | error_set ( errp , QERR_IO_ERROR )
+30064771095 | CALL | addr += l
+30064771096 | CALL | size -= l
+30064771097 | CALL | fclose ( f )
+47244640256 | CONTROL_STRUCTURE | if ( ! has_cpu ) { cpu_index = 0 ; }
+47244640257 | CONTROL_STRUCTURE | 
+        if ( cpu == NULL ) {
+ error_set ( errp , QERR_INVALID_PARAMETER_VALUE , "cpu-index" , "a CPU number" ) ;
+ return ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ! f ) {
+ error_setg_file_open ( errp , errno , filename ) ;
+ return ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | while (size != 0)
+47244640260 | CONTROL_STRUCTURE | if ( l > size ) l = size ;
+47244640261 | CONTROL_STRUCTURE | 
+        if ( fwrite ( buf , 1 , l , f ) != l ) {
+ error_set ( errp , QERR_IO_ERROR ) ;
+ goto exit ;
+ }
+      
+47244640262 | CONTROL_STRUCTURE | goto exit;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771079 [AST]
+25769803779 -> 30064771085 [AST]
+25769803780 -> 30064771087 [AST]
+25769803780 -> 47244640260 [AST]
+25769803780 -> 30064771091 [AST]
+25769803780 -> 47244640261 [AST]
+25769803780 -> 30064771095 [AST]
+25769803780 -> 30064771096 [AST]
+25769803781 -> 30064771090 [AST]
+25769803782 -> 30064771094 [AST]
+25769803782 -> 47244640262 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771097 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771093 [CDG]
+30064771086 -> 30064771091 [CDG]
+30064771086 -> 30064771092 [CDG]
+30064771086 -> 30064771089 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771090 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 47244640262 [CDG]
+30064771092 -> 30064771086 [CDG]
+30064771092 -> 30064771095 [CDG]
+30064771092 -> 30064771096 [CDG]
+30064771092 -> 30064771094 [CDG]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 47244640262 [CFG]
+30064771094 -> 47244640262 [DOMINATE]
+47244640256 -> 30064771074 [AST]
+47244640256 -> 25769803777 [AST]
+47244640256 -> 30064771074 [CONDITION]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void xprintf ( const char * fmt , ... ) {
+ char buf [ 1000 ] ;
+ va_list a ;
+ int size ;
+ va_start ( a , fmt ) ;
+ size = vsnprintf_func ( buf , 1000 , fmt , a ) ;
+ va_end ( a ) ;
+ if ( size < 0 ) {
+ size = sizeof ( buf ) - 1 ;
+ buf [ size ] = 0 ;
+ }
+ if ( xprintf_message_func != NULL ) {
+ xprintf_message_func ( buf ) ;
+ }
+ else {
+ size_t ignore = fwrite ( buf , 1 , size , stderr ) ;
+ ( void ) ignore ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

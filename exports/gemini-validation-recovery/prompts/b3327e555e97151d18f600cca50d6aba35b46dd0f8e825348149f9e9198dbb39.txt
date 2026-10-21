@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ber_check_length ( guint32 length , gint32 min_len , gint32 max_len , asn1_ctx_t * actx , proto_item * item , gboolean bit ) {
+ if ( ( min_len != - 1 ) && ( length < ( guint32 ) min_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too short: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+ else if ( ( max_len != - 1 ) && ( length > ( guint32 ) max_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ( min_len != - 1 ) && ( length < ( guint32 ) min_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too short: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+ else if ( ( max_len != - 1 ) && ( length > ( guint32 ) max_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too short: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+      
+30064771072 | CALL | ( min_len != - 1 ) && ( length < ( guint32 ) min_len )
+30064771073 | CALL | min_len != - 1
+30064771074 | CALL | - 1
+30064771075 | CALL | length < ( guint32 ) min_len
+30064771076 | CALL | ( guint32 ) min_len
+30064771077 | CALL | 
+        expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too short: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len )
+      
+30064771078 | CALL | actx -> pinfo
+30064771079 | CALL | & ei_ber_size_constraint_string
+30064771080 | CALL | bit ? "bit " : ""
+30064771081 | CALL | ( max_len != - 1 ) && ( length > ( guint32 ) max_len )
+30064771082 | CALL | max_len != - 1
+30064771083 | CALL | - 1
+30064771084 | CALL | length > ( guint32 ) max_len
+30064771085 | CALL | ( guint32 ) max_len
+30064771086 | CALL | 
+        expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len )
+      
+30064771087 | CALL | actx -> pinfo
+30064771088 | CALL | & ei_ber_size_constraint_string
+30064771089 | CALL | bit ? "bit " : ""
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( min_len != - 1 ) && ( length < ( guint32 ) min_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too short: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+ else if ( ( max_len != - 1 ) && ( length > ( guint32 ) max_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ( max_len != - 1 ) && ( length > ( guint32 ) max_len ) ) {
+ expert_add_info_format ( actx -> pinfo , item , & ei_ber_size_constraint_string , "Size constraint: %sstring too long: %d (%d .. %d)" , bit ? "bit " : "" , length , min_len , max_len ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | pinfo
+55834574849 | FIELD_IDENTIFIER | pinfo
+68719476736 | IDENTIFIER | min_len
+68719476737 | IDENTIFIER | length
+68719476738 | IDENTIFIER | min_len
+68719476739 | IDENTIFIER | actx
+68719476740 | IDENTIFIER | item
+68719476741 | IDENTIFIER | <unknown> ei_ber_size_constraint_string
+68719476742 | IDENTIFIER | bit
+68719476743 | IDENTIFIER | length
+68719476744 | IDENTIFIER | min_len
+68719476745 | IDENTIFIER | max_len
+68719476746 | IDENTIFIER | max_len
+68719476747 | IDENTIFIER | length
+68719476748 | IDENTIFIER | max_len
+68719476749 | IDENTIFIER | actx
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 47244640257 [AST]
+25769803779 -> 30064771086 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476744 [CDG]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476746 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 68719476746 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 68719476738 [CDG]
+30064771073 -> 68719476737 [CDG]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476736 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771072 [CFG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 68719476737 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 68719476745 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476744 [AST]
+30064771077 -> 68719476745 [AST]
+30064771077 -> 68719476745 [POST_DOMINATE]
+30064771078 -> 68719476739 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void ber_check_value ( guint32 value , gint32 min_len , gint32 max_len , asn1_ctx_t * actx , proto_item * item ) {
+ if ( ( min_len != - 1 ) && ( value < ( guint32 ) min
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,252 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static fz_image * parse_inline_image ( fz_context * ctx , pdf_csi * csi , fz_stream * stm ) {
+ pdf_document * doc = csi -> doc ;
+ pdf_obj * rdb = csi -> rdb ;
+ pdf_obj * obj = NULL ;
+ fz_image * img = NULL ;
+ int ch , found ;
+ fz_var ( obj ) ;
+ fz_var ( img ) ;
+ fz_try ( ctx ) {
+ obj = pdf_parse_dict ( ctx , doc , stm , & doc -> lexbuf . base ) ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == '\r' ) if ( fz_peek_byte ( ctx , stm ) == '\n' ) fz_read_byte ( ctx , stm ) ;
+ img = pdf_load_inline_image ( ctx , doc , rdb , obj , stm ) ;
+ found = 0 ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ do {
+ while ( ch != 'E' && ch != EOF ) ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'E' ) {
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'I' ) {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+ }
+ }
+ while ( ch != EOF ) ;
+ if ( ! found ) fz_throw ( ctx , FZ_ERROR_SYNTAX , "syntax error after inline image" ) ;
+ }
+ fz_always ( ctx ) {
+ pdf_drop_obj ( ctx , obj ) ;
+ }
+ fz_catch ( ctx ) {
+ fz_drop_image ( ctx , img ) ;
+ fz_rethrow ( ctx ) ;
+ }
+ return img ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ pdf_document * doc = csi -> doc ;
+ pdf_obj * rdb = csi -> rdb ;
+ pdf_obj * obj = NULL ;
+ fz_image * img = NULL ;
+ int ch , found ;
+ fz_var ( obj ) ;
+ fz_var ( img ) ;
+ fz_try ( ctx ) {
+ obj = pdf_parse_dict ( ctx , doc , stm , & doc -> lexbuf . base ) ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == '\r' ) if ( fz_peek_byte ( ctx , stm ) == '\n' ) fz_read_byte ( ctx , stm ) ;
+ img = pdf_load_inline_image ( ctx , doc , rdb , obj , stm ) ;
+ found = 0 ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ do {
+ while ( ch != 'E' && ch != EOF ) ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'E' ) {
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'I' ) {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+ }
+ }
+ while ( ch != EOF ) ;
+ if ( ! found ) fz_throw ( ctx , FZ_ERROR_SYNTAX , "syntax error after inline image" ) ;
+ }
+ fz_always ( ctx ) {
+ pdf_drop_obj ( ctx , obj ) ;
+ }
+ fz_catch ( ctx ) {
+ fz_drop_image ( ctx , img...
+      
+25769803777 | BLOCK | 
+        {
+ obj = pdf_parse_dict ( ctx , doc , stm , & doc -> lexbuf . base ) ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == '\r' ) if ( fz_peek_byte ( ctx , stm ) == '\n' ) fz_read_byte ( ctx , stm ) ;
+ img = pdf_load_inline_image ( ctx , doc , rdb , obj , stm ) ;
+ found = 0 ;
+ ch = fz_read_byte ( ctx , stm ) ;
+ do {
+ while ( ch != 'E' && ch != EOF ) ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'E' ) {
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'I' ) {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+ }
+ }
+ while ( ch != EOF ) ;
+ if ( ! found ) fz_throw ( ctx , FZ_ERROR_SYNTAX , "syntax error after inline image" ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ while ( ch != 'E' && ch != EOF ) ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'E' ) {
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'I' ) {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ ch = fz_read_byte ( ctx , stm ) ;
+ if ( ch == 'I' ) {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ ch = fz_peek_byte ( ctx , stm ) ;
+ if ( ch == ' ' || ch <= 32 || ch == EOF || ch == '<' || ch == '/' ) {
+ found = 1 ;
+ break ;
+ }
+ }
+      
+25769803783 | BLOCK | { found = 1 ; break ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { pdf_drop_obj ( ctx , obj ) ; }
+25769803786 | BLOCK | { fz_drop_image ( ctx , img ) ; fz_rethrow ( ctx ) ; }
+30064771072 | CALL | doc = csi -> doc
+30064771073 | CALL | csi -> doc
+30064771074 | CALL | rdb = csi -> rdb
+30064771075 | CALL | csi -> rdb
+30064771076 | CALL | obj = NULL
+30064771077 | CALL | img = NULL
+30064771078 | CALL | fz_var ( obj )
+30064771079 | CALL | fz_var ( img )
+30064771080 | CALL | fz_try ( ctx )
+30064771081 | CALL | obj = pdf_parse_dict ( ctx , doc , stm , & doc -> lexbuf . base )
+30064771082 | CALL | pdf_parse_dict ( ctx , doc , stm , & doc -> lexbuf . base )
+30064771083 | CALL | & doc -> lexbuf . base
+30064771084 | CALL | doc -> lexbuf . base
+30064771085 | CALL | doc -> lexbuf
+30064771086 | CALL | ch = fz_read_byte ( ctx , stm )
+30064771087 | CALL | fz_read_byte ( ctx , stm )
+30064771088 | CALL | ch == '\r'
+30064771089 | CALL | fz_peek_byte ( ctx , stm ) == '\n'
+30064771090 | CALL | fz_peek_byte ( ctx , stm )
+30064771091 | CALL | fz_read_byte ( ctx , stm )
+30064771092 | CALL | img = pdf_load_inline_image ( ctx , doc , rdb , obj , stm )
+30064771093 | CALL | pdf_load_inline_image ( ctx , doc , rdb , obj , stm )
+30064771094 | CALL | found = 0
+30064771095 | CALL | ch = fz_read_byte ( ctx , stm )
+30064771096 | CALL | fz_read_byte ( ctx , stm )
+30064771097 | CALL | ch != 'E' && ch != EOF
+30064771098 | CALL | ch != 'E'
+30064771099 | CALL | ch != EOF
+30064771100 | CALL | ch = fz_read_byte ( ctx , stm )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 25769803785 [AST]
+25769803776 -> 25769803786 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771095 [AST]
+25769803779 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

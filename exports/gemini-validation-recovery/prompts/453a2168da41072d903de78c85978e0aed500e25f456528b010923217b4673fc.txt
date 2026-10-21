@@ -1,0 +1,263 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static VncClientInfo *qmp_query_vnc_client(const VncState *client)
+
+{
+
+    struct sockaddr_storage sa;
+
+    socklen_t salen = sizeof(sa);
+
+    char host[NI_MAXHOST];
+
+    char serv[NI_MAXSERV];
+
+    VncClientInfo *info;
+
+
+
+    if (getpeername(client->csock, (struct sockaddr *)&sa, &salen) < 0) {
+
+        return NULL;
+
+    }
+
+
+
+    if (getnameinfo((struct sockaddr *)&sa, salen,
+
+                    host, sizeof(host),
+
+                    serv, sizeof(serv),
+
+                    NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
+
+        return NULL;
+
+    }
+
+
+
+    info = g_malloc0(sizeof(*info));
+
+    info->base = g_malloc0(sizeof(*info->base));
+
+    info->base->host = g_strdup(host);
+
+    info->base->service = g_strdup(serv);
+
+    info->base->family = inet_netfamily(sa.ss_family);
+
+    info->base->websocket = client->websocket;
+
+
+
+#ifdef CONFIG_VNC_TLS
+
+    if (client->tls.session && client->tls.dname) {
+
+        info->has_x509_dname = true;
+
+        info->x509_dname = g_strdup(client->tls.dname);
+
+    }
+
+#endif
+
+#ifdef CONFIG_VNC_SASL
+
+    if (client->sasl.conn && client->sasl.username) {
+
+        info->has_sasl_username = true;
+
+        info->sasl_username = g_strdup(client->sasl.username);
+
+    }
+
+#endif
+
+
+
+    return info;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+38 -> 43 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+38 -> 49 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 53 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+32 -> 54 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+63 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+63 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+63 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+63 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+63 -> 80 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+63 -> 84 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static VncClientInfo *qmp_query_vnc_client(const VncState *client)
+
+{
+
+    struct sockaddr_storage sa;
+
+    socklen_t salen = sizeof(sa);
+
+    char host[NI_MAXHOST];
+
+    char serv[NI_MAXSERV];
+
+    VncClientInfo *info;
+
+
+
+    if (getpeername(client->csock, (struct sockaddr *)&sa, &salen) < 0) {
+
+        return NULL;
+
+    }
+
+
+
+    if (getnameinfo((struct sockaddr *)&sa, salen,
+
+                    host, sizeof(host),
+
+                    serv, sizeof(serv),
+
+                    NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
+
+        return NULL;
+
+    }
+
+
+
+    info = g_malloc0(sizeof(*info));
+
+    info->base = g_malloc0(sizeof(*info->base));
+
+    info->base->host = g_strdup(host);
+
+    info->base->service = g_strdup(serv);
+
+    info->base->family = inet_netfamily(sa.ss_family);
+
+    info->base->websocket = client->websocket;
+
+
+
+    if (client->tls) {
+
+        info->x509_dname = qcrypto_tls_session_get_peer_name(client->tls);
+
+        info->has_x509_dname = info->x509_dname != NULL;
+
+    }
+
+#ifdef CONFIG_VNC_SASL
+
+    if (client->sasl.conn && client->sasl.username) {
+
+        info->has_sasl_username = true;
+
+        info->sasl_username = g_strdup(client->sasl.username);
+
+    }
+
+#endif
+
+
+
+    return info;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,168 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pk_transaction_update_packages ( PkTransaction * transaction , GVariant * params , GDBusMethodInvocation * context ) {
+ gboolean ret ;
+ guint length ;
+ PkBitfield transaction_flags ;
+ g_autoptr ( GError ) error = NULL ;
+ g_autofree gchar * * package_ids = NULL ;
+ g_autofree gchar * package_ids_temp = NULL ;
+ g_autofree gchar * transaction_flags_temp = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_variant_get ( params , "(t^a&s)" , & transaction_flags , & package_ids ) ;
+ package_ids_temp = pk_package_ids_to_string ( package_ids ) ;
+ transaction_flags_temp = pk_transaction_flag_bitfield_to_string ( transaction_flags ) ;
+ g_debug ( "UpdatePackages method called: %s (transaction_flags: %s)" , package_ids_temp , transaction_flags_temp ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_UPDATE_PACKAGES ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "UpdatePackages not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ length = g_strv_length ( package_ids ) ;
+ if ( length > PK_TRANSACTION_MAX_PACKAGES_TO_PROCESS ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NUMBER_OF_PACKAGES_INVALID , "Too many packages to process (%i/%i)" , length , PK_TRANSACTION_MAX_PACKAGES_TO_PROCESS ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ ret = pk_package_ids_check ( package_ids ) ;
+ if ( ! ret ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_PACKAGE_ID_INVALID , "The package id's '%s' are not valid" , package_ids_temp ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ transaction -> priv -> cached_transaction_flags = transaction_flags ;
+ transaction -> priv -> cached_package_ids = g_strdupv ( package_ids ) ;
+ pk_transaction_set_role ( transaction , PK_ROLE_ENUM_UPDATE_PACKAGES ) ;
+ pk_transaction_emit_property_changed ( transaction , "TransactionFlags" , g_variant_new_uint64 ( transaction_flags ) ) ;
+ ret = pk_transaction_obtain_authorization ( transaction , PK_ROLE_ENUM_UPDATE_PACKAGES , & error ) ;
+ if ( ! ret ) {
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ out : pk_transaction_dbus_return ( context , error ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gboolean ret ;
+ guint length ;
+ PkBitfield transaction_flags ;
+ g_autoptr ( GError ) error = NULL ;
+ g_autofree gchar * * package_ids = NULL ;
+ g_autofree gchar * package_ids_temp = NULL ;
+ g_autofree gchar * transaction_flags_temp = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_variant_get ( params , "(t^a&s)" , & transaction_flags , & package_ids ) ;
+ package_ids_temp = pk_package_ids_to_string ( package_ids ) ;
+ transaction_flags_temp = pk_transaction_flag_bitfield_to_string ( transaction_flags ) ;
+ g_debug ( "UpdatePackages method called: %s (transaction_flags: %s)" , package_ids_temp , transaction_flags_temp ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_UPDATE_PACKAGES ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "UpdatePackages not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACT...
+      
+25769803777 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "UpdatePackages not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NUMBER_OF_PACKAGES_INVALID , "Too many packages to process (%i/%i)" , length , PK_TRANSACTION_MAX_PACKAGES_TO_PROCESS ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_PACKAGE_ID_INVALID , "The package id's '%s' are not valid" , package_ids_temp ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+30064771072 | CALL | error = NULL
+30064771073 | CALL | * * package_ids = NULL
+30064771074 | CALL | * * package_ids
+30064771075 | CALL | * package_ids
+30064771076 | CALL | * package_ids_temp = NULL
+30064771077 | CALL | * package_ids_temp
+30064771078 | CALL | * transaction_flags_temp = NULL
+30064771079 | CALL | * transaction_flags_temp
+30064771080 | CALL | g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) )
+30064771081 | CALL | PK_IS_TRANSACTION ( transaction )
+30064771082 | CALL | g_return_if_fail ( transaction -> priv -> tid != NULL )
+30064771083 | CALL | transaction -> priv -> tid != NULL
+30064771084 | CALL | transaction -> priv -> tid
+30064771085 | CALL | transaction -> priv
+30064771086 | CALL | 
+        g_variant_get ( params , "(t^a&s)" , & transaction_flags , & package_ids )
+      
+30064771087 | CALL | & transaction_flags
+30064771088 | CALL | & package_ids
+30064771089 | CALL | package_ids_temp = pk_package_ids_to_string ( package_ids )
+30064771090 | CALL | pk_package_ids_to_string ( package_ids )
+30064771091 | CALL | 
+        transaction_flags_temp = pk_transaction_flag_bitfield_to_string ( transaction_flags )
+      
+30064771092 | CALL | pk_transaction_flag_bitfield_to_string ( transaction_flags )
+30064771093 | CALL | 
+        g_debug ( "UpdatePackages method called: %s (transaction_flags: %s)" , package_ids_temp , transaction_flags_temp )
+      
+30064771094 | CALL | 
+        ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_UPDATE_PACKAGES )
+      
+30064771095 | CALL | 
+        pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_UPDATE_PACKAGES )
+      
+30064771096 | CALL | transaction -> priv -> backend
+30064771097 | CALL | transaction -> priv
+30064771098 | CALL | 
+        g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "UpdatePackages not supported by backend" )
+      
+30064771099 | CALL | & error
+30064771100 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+30064771101 | CALL | length = g_strv_length ( package_ids )
+30064771102 | CALL | g_strv_length ( package_ids )
+30064771103 | CALL | length > PK_TRANSACTION_MAX_PACKAGES_TO_PROCESS
+30064771104 | CALL | 
+        g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NUMBER_OF_PACKAGES_INVALID , "Too many packages to process (%i/%i)" , length , PK_TRANSACTION_MAX_PACKAGES_TO_PROCESS )
+      
+30064771105 | CALL | & error
+30064771106 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771101 [AST]
+257
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

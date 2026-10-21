@@ -1,0 +1,53 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dbstmt_prop_delete ( zval * object , zval * member , const zend_literal * key TSRMLS_DC ) {
+ pdo_stmt_t * stmt = ( pdo_stmt_t * ) zend_object_store_get_object ( object TSRMLS_CC ) ;
+ convert_to_string ( member ) ;
+ if ( strcmp ( Z_STRVAL_P ( member ) , "queryString" ) == 0 ) {
+ pdo_raise_impl_error ( stmt -> dbh , stmt , "HY000" , "property queryString is read only" TSRMLS_CC ) ;
+ }
+ else {
+ std_object_handlers . unset_property ( object , member , key TSRMLS_CC ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int row_prop_exists ( zval * object , zval * member , int check_empty , const zend_literal * key TSRMLS_DC ) {
+ pdo_stmt_t * stmt = ( pdo_stmt_t * ) zend_object_store_get_object ( object TSRMLS_CC ) ;
+ int colno = - 1 ;
+ if ( stmt ) {
+ if ( Z_TYPE_P ( member ) == IS_LONG ) {
+ return Z_LVAL_P ( member ) >= 0 && Z_LVAL_P ( member ) < stmt -> column_count ;
+ }
+ else {
+ convert_to_string ( member ) ;
+ for ( colno = 0 ;
+ colno < stmt -> column_count ;
+ colno ++ ) {
+ if ( strcmp ( stmt -> columns [ colno ] . name , Z_STRVAL_P ( member ) ) == 0 ) {
+ int res ;
+ zval * val ;
+ MAKE_STD_ZVAL ( val ) ;
+ fetch_value ( stmt , val , colno , NULL TSRMLS_CC ) ;
+ res = check_empty ? i_zend_is_true ( val ) : Z_TYPE_P ( val ) != IS_NULL ;
+ zval_ptr_dtor ( & val ) ;
+ return res ;
+ }
+ }
+ }
+ }
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

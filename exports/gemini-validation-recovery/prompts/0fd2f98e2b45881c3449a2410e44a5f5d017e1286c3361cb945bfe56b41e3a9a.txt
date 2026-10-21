@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int evsignal_init ( struct event_base * base ) {
+ int i ;
+ if ( evutil_socketpair ( AF_UNIX , SOCK_STREAM , 0 , base -> sig . ev_signal_pair ) == - 1 ) {
+ # ifdef WIN32 event_warn ( "%s: socketpair" , __func__ ) ;
+ # else event_err ( 1 , "%s: socketpair" , __func__ ) ;
+ # endif return - 1 ;
+ }
+ FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 0 ] ) ;
+ FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 1 ] ) ;
+ base -> sig . sh_old = NULL ;
+ base -> sig . sh_old_max = 0 ;
+ base -> sig . evsignal_caught = 0 ;
+ memset ( & base -> sig . evsigcaught , 0 , sizeof ( sig_atomic_t ) * NSIG ) ;
+ for ( i = 0 ;
+ i < NSIG ;
+ ++ i ) TAILQ_INIT ( & base -> sig . evsigevents [ i ] ) ;
+ evutil_make_socket_nonblocking ( base -> sig . ev_signal_pair [ 0 ] ) ;
+ evutil_make_socket_nonblocking ( base -> sig . ev_signal_pair [ 1 ] ) ;
+ event_set ( & base -> sig . ev_signal , base -> sig . ev_signal_pair [ 1 ] , EV_READ | EV_PERSIST , evsignal_cb , & base -> sig . ev_signal ) ;
+ base -> sig . ev_signal . ev_base = base ;
+ base -> sig . ev_signal . ev_flags |= EVLIST_INTERNAL ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ if ( evutil_socketpair ( AF_UNIX , SOCK_STREAM , 0 , base -> sig . ev_signal_pair ) == - 1 ) {
+ # ifdef WIN32 event_warn ( "%s: socketpair" , __func__ ) ;
+ # else event_err ( 1 , "%s: socketpair" , __func__ ) ;
+ # endif return - 1 ;
+ }
+ FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 0 ] ) ;
+ FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 1 ] ) ;
+ base -> sig . sh_old = NULL ;
+ base -> sig . sh_old_max = 0 ;
+ base -> sig . evsignal_caught = 0 ;
+ memset ( & base -> sig . evsigcaught , 0 , sizeof ( sig_atomic_t ) * NSIG ) ;
+ for ( i = 0 ;
+ i < NSIG ;
+ ++ i ) TAILQ_INIT ( & base -> sig . evsigevents [ i ] ) ;
+ evutil_make_socket_nonblocking ( base -> sig . ev_signal_pair [ 0 ] ) ;
+ evutil_make_socket_nonblocking ( base -> sig . ev_signal_pair [ 1 ] ) ;
+ event_set ( & base -> sig . ev_signal , base -> sig . ev_signal_pair [ 1 ] , EV_READ | EV_PERSIST , evsignal_cb , & base -> sig . ev_signal ) ;
+ base -> sig . ev_signal . ev_base = base ;
+ base -> sig . ev_signal . ev_flags...
+      
+25769803777 | BLOCK | 
+        {
+ # ifdef WIN32 event_warn ( "%s: socketpair" , __func__ ) ;
+ # else event_err ( 1 , "%s: socketpair" , __func__ ) ;
+ # endif return - 1 ;
+ }
+      
+30064771072 | CALL | 
+        evutil_socketpair ( AF_UNIX , SOCK_STREAM , 0 , base -> sig . ev_signal_pair ) == - 1
+      
+30064771073 | CALL | evutil_socketpair ( AF_UNIX , SOCK_STREAM , 0 , base -> sig . ev_signal_pair )
+30064771074 | CALL | base -> sig . ev_signal_pair
+30064771075 | CALL | base -> sig
+30064771076 | CALL | - 1
+30064771077 | CALL | FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 0 ] )
+30064771078 | CALL | base -> sig . ev_signal_pair [ 0 ]
+30064771079 | CALL | base -> sig . ev_signal_pair
+30064771080 | CALL | base -> sig
+30064771081 | CALL | FD_CLOSEONEXEC ( base -> sig . ev_signal_pair [ 1 ] )
+30064771082 | CALL | base -> sig . ev_signal_pair [ 1 ]
+30064771083 | CALL | base -> sig . ev_signal_pair
+30064771084 | CALL | base -> sig
+30064771085 | CALL | base -> sig . sh_old = NULL
+30064771086 | CALL | base -> sig . sh_old
+30064771087 | CALL | base -> sig
+30064771088 | CALL | base -> sig . sh_old_max = 0
+30064771089 | CALL | base -> sig . sh_old_max
+30064771090 | CALL | base -> sig
+30064771091 | CALL | base -> sig . evsignal_caught = 0
+30064771092 | CALL | base -> sig . evsignal_caught
+30064771093 | CALL | base -> sig
+30064771094 | CALL | memset ( & base -> sig . evsigcaught , 0 , sizeof ( sig_atomic_t ) * NSIG )
+30064771095 | CALL | & base -> sig . evsigcaught
+30064771096 | CALL | base -> sig . evsigcaught
+30064771097 | CALL | base -> sig
+30064771098 | CALL | sizeof ( sig_atomic_t ) * NSIG
+30064771099 | CALL | sizeof ( sig_atomic_t )
+30064771100 | CALL | i = 0
+30064771101 | CALL | i < NSIG
+30064771102 | CALL | ++ i
+30064771103 | CALL | TAILQ_INIT ( & base -> sig . evsigevents [ i ] )
+30064771104 | CALL | & base -> sig . evsigevents [ i ]
+30064771105 | CALL | base -> sig . evsigevents [ i ]
+30064771106 | CALL | base -> sig . evsigevents
+30064771107 | CALL | base -> sig
+30064771108 | CALL | evutil_make_socket_nonblocking ( base -> sig . ev_signal_pair [ 0 ] )
+30064771109 | CALL | base -> sig . ev_signal_pair [ 0 ]
+EDGES:
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771108 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771076 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771076 [AST]
+30064771072 -> 30064771076 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771076 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771090 [REACHING_DEF]
+30064771074 -> 30064771097 [REACHING_DEF]
+30064771074 -> 30064771087 [REACHING_DEF]
+30064771074 -> 30064771107 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771093 [REACHING_DEF]
+30064771074 -> 30064771080 [REACHING_DEF]
+30064771074 -> 30064771084 [REACHING_DEF]
+30064771074 -> 30064771079 [REACHING_DEF]
+30064771076 -> 30064771072 [CFG]
+30064771076 -> 30064771072 [DOMINATE]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771083 [REACHING_DEF]
+30064771078 -> 30064771109 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771090 [REACHING_DEF]
+30064771086 -> 30064771097 [REACHING_DEF]
+30064771086 -> 30064771107 [REACHING_DEF]
+30064771086 -> 30064771093 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771097 [REACHING_DEF]
+30064771089 -> 30064771107 [REACHING_DEF]
+30064771089 -> 30064771093 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771097 [REACHING_DEF]
+30064771092 -> 30064771107 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int evsignal_init ( struct event_base * base ) {
+ int i ;
+ if ( evutil_socket
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

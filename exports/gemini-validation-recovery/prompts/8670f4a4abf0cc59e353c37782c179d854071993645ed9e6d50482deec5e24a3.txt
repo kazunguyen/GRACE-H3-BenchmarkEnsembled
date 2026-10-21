@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_comp_avg_pred ( uint8_t * comp_pred , const uint8_t * pred , int width , int height , const uint8_t * ref , int ref_stride ) {
+ int i , j ;
+ for ( i = 0 ;
+ i < height ;
+ i ++ ) {
+ for ( j = 0 ;
+ j < width ;
+ j ++ ) {
+ const int tmp = pred [ j ] + ref [ j ] ;
+ comp_pred [ j ] = ROUND_POWER_OF_TWO ( tmp , 1 ) ;
+ }
+ comp_pred += width ;
+ pred += width ;
+ ref += ref_stride ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ for ( i = 0 ;
+ i < height ;
+ i ++ ) {
+ for ( j = 0 ;
+ j < width ;
+ j ++ ) {
+ const int tmp = pred [ j ] + ref [ j ] ;
+ comp_pred [ j ] = ROUND_POWER_OF_TWO ( tmp , 1 ) ;
+ }
+ comp_pred += width ;
+ pred += width ;
+ ref += ref_stride ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( j = 0 ;
+ j < width ;
+ j ++ ) {
+ const int tmp = pred [ j ] + ref [ j ] ;
+ comp_pred [ j ] = ROUND_POWER_OF_TWO ( tmp , 1 ) ;
+ }
+ comp_pred += width ;
+ pred += width ;
+ ref += ref_stride ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ const int tmp = pred [ j ] + ref [ j ] ;
+ comp_pred [ j ] = ROUND_POWER_OF_TWO ( tmp , 1 ) ;
+ }
+      
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < height
+30064771074 | CALL | i ++
+30064771075 | CALL | j = 0
+30064771076 | CALL | j < width
+30064771077 | CALL | j ++
+30064771078 | CALL | tmp = pred [ j ] + ref [ j ]
+30064771079 | CALL | pred [ j ] + ref [ j ]
+30064771080 | CALL | pred [ j ]
+30064771081 | CALL | ref [ j ]
+30064771082 | CALL | comp_pred [ j ] = ROUND_POWER_OF_TWO ( tmp , 1 )
+30064771083 | CALL | comp_pred [ j ]
+30064771084 | CALL | ROUND_POWER_OF_TWO ( tmp , 1 )
+30064771085 | CALL | comp_pred += width
+30064771086 | CALL | pred += width
+30064771087 | CALL | ref += ref_stride
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < height;i ++)
+47244640257 | CONTROL_STRUCTURE | for (j = 0 ;j < width;j ++)
+68719476736 | IDENTIFIER | i
+68719476737 | IDENTIFIER | i
+68719476738 | IDENTIFIER | height
+68719476739 | IDENTIFIER | i
+68719476740 | IDENTIFIER | j
+68719476741 | IDENTIFIER | j
+68719476742 | IDENTIFIER | width
+68719476743 | IDENTIFIER | j
+68719476744 | IDENTIFIER | tmp
+68719476745 | IDENTIFIER | pred
+68719476746 | IDENTIFIER | j
+68719476747 | IDENTIFIER | ref
+68719476748 | IDENTIFIER | j
+68719476749 | IDENTIFIER | comp_pred
+68719476750 | IDENTIFIER | j
+68719476751 | IDENTIFIER | tmp
+68719476752 | IDENTIFIER | comp_pred
+68719476753 | IDENTIFIER | width
+68719476754 | IDENTIFIER | pred
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771078 [AST]
+25769803778 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771085 [CDG]
+30064771073 -> 30064771073 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 68719476754 [CDG]
+30064771073 -> 68719476753 [CDG]
+30064771073 -> 68719476752 [CDG]
+30064771073 -> 68719476738 [CDG]
+30064771073 -> 68719476737 [CDG]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 68719476740 [CDG]
+30064771073 -> 68719476739 [CDG]
+30064771073 -> 30064771087 [CDG]
+30064771073 -> 30064771086 [CDG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476737 [CFG]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 68719476751 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476750 [CDG]
+30064771076 -> 68719476749 [CDG]
+30064771076 -> 68719476748 [CDG]
+30064771076 -> 68719476747 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 68719476752 [CFG]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 68719476752 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476743 [POST_DOMINATE]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476749 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void var_filter_block2d_bil_second_pass ( const uint16_t * src_ptr , uint8_t * output_ptr , unsigned int src_pixels_per_line , unsigned int pixel_step , unsigned int output_height , unsigned int output_width , const int16_t * vp9_filter ) {
+ unsigned int i , j ;
+ for ( i = 0 ;
+ i < output_height ;
+ i ++ ) {
+ for ( j = 0 ;
+ j < output_width ;
+ j ++ ) {
+ output_ptr [ j ] = ROUND_POWER_OF_TWO ( ( int ) src_ptr [ 0 ] * vp9_filter [ 0 ] + ( int ) src_ptr [ pixel_step ] * vp9_filter [ 1 ] , FILTER_BITS ) ;
+ src_ptr ++ ;
+ }
+ src_ptr += src_pixels_per_line - output_width ;
+ output_ptr += output_width ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

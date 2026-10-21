@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static double get_sr_decay_rate ( const VP9_COMMON * cm , const FIRSTPASS_STATS * frame ) {
+ double sr_diff = ( frame -> sr_coded_error - frame -> coded_error ) / cm -> MBs ;
+ double sr_decay = 1.0 ;
+ const double motion_amplitude_factor = frame -> pcnt_motion * ( ( frame -> mvc_abs + frame -> mvr_abs ) / 2 ) ;
+ const double pcnt_intra = 100 * ( 1.0 - frame -> pcnt_inter ) ;
+ if ( ( sr_diff > LOW_SR_DIFF_TRHESH ) ) {
+ sr_diff = MIN ( sr_diff , SR_DIFF_MAX ) ;
+ sr_decay = 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra ) ;
+ }
+ return MAX ( sr_decay , MIN ( DEFAULT_DECAY_LIMIT , frame -> pcnt_inter ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ double sr_diff = ( frame -> sr_coded_error - frame -> coded_error ) / cm -> MBs ;
+ double sr_decay = 1.0 ;
+ const double motion_amplitude_factor = frame -> pcnt_motion * ( ( frame -> mvc_abs + frame -> mvr_abs ) / 2 ) ;
+ const double pcnt_intra = 100 * ( 1.0 - frame -> pcnt_inter ) ;
+ if ( ( sr_diff > LOW_SR_DIFF_TRHESH ) ) {
+ sr_diff = MIN ( sr_diff , SR_DIFF_MAX ) ;
+ sr_decay = 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra ) ;
+ }
+ return MAX ( sr_decay , MIN ( DEFAULT_DECAY_LIMIT , frame -> pcnt_inter ) ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ sr_diff = MIN ( sr_diff , SR_DIFF_MAX ) ;
+ sr_decay = 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra ) ;
+ }
+      
+30064771072 | CALL | sr_diff = ( frame -> sr_coded_error - frame -> coded_error ) / cm -> MBs
+30064771073 | CALL | ( frame -> sr_coded_error - frame -> coded_error ) / cm -> MBs
+30064771074 | CALL | frame -> sr_coded_error - frame -> coded_error
+30064771075 | CALL | frame -> sr_coded_error
+30064771076 | CALL | frame -> coded_error
+30064771077 | CALL | cm -> MBs
+30064771078 | CALL | sr_decay = 1.0
+30064771079 | CALL | 
+        motion_amplitude_factor = frame -> pcnt_motion * ( ( frame -> mvc_abs + frame -> mvr_abs ) / 2 )
+      
+30064771080 | CALL | frame -> pcnt_motion * ( ( frame -> mvc_abs + frame -> mvr_abs ) / 2 )
+30064771081 | CALL | frame -> pcnt_motion
+30064771082 | CALL | ( frame -> mvc_abs + frame -> mvr_abs ) / 2
+30064771083 | CALL | frame -> mvc_abs + frame -> mvr_abs
+30064771084 | CALL | frame -> mvc_abs
+30064771085 | CALL | frame -> mvr_abs
+30064771086 | CALL | pcnt_intra = 100 * ( 1.0 - frame -> pcnt_inter )
+30064771087 | CALL | 100 * ( 1.0 - frame -> pcnt_inter )
+30064771088 | CALL | 1.0 - frame -> pcnt_inter
+30064771089 | CALL | frame -> pcnt_inter
+30064771090 | CALL | sr_diff > LOW_SR_DIFF_TRHESH
+30064771091 | CALL | sr_diff = MIN ( sr_diff , SR_DIFF_MAX )
+30064771092 | CALL | MIN ( sr_diff , SR_DIFF_MAX )
+30064771093 | CALL | 
+        sr_decay = 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra )
+      
+30064771094 | CALL | 
+        1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra )
+      
+30064771095 | CALL | 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor )
+30064771096 | CALL | 1.0 - ( SR_DIFF_PART * sr_diff )
+30064771097 | CALL | SR_DIFF_PART * sr_diff
+30064771098 | CALL | MOTION_AMP_PART * motion_amplitude_factor
+30064771099 | CALL | INTRA_PART * pcnt_intra
+30064771100 | CALL | MAX ( sr_decay , MIN ( DEFAULT_DECAY_LIMIT , frame -> pcnt_inter ) )
+30064771101 | CALL | MIN ( DEFAULT_DECAY_LIMIT , frame -> pcnt_inter )
+30064771102 | CALL | frame -> pcnt_inter
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( sr_diff > LOW_SR_DIFF_TRHESH ) ) {
+ sr_diff = MIN ( sr_diff , SR_DIFF_MAX ) ;
+ sr_decay = 1.0 - ( SR_DIFF_PART * sr_diff ) - ( MOTION_AMP_PART * motion_amplitude_factor ) - ( INTRA_PART * pcnt_intra ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | sr_coded_error
+55834574849 | FIELD_IDENTIFIER | coded_error
+55834574850 | FIELD_IDENTIFIER | MBs
+55834574851 | FIELD_IDENTIFIER | pcnt_motion
+55834574852 | FIELD_IDENTIFIER | mvc_abs
+55834574853 | FIELD_IDENTIFIER | mvr_abs
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771093 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771077 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 55834574850 [ARGUMENT]
+30064771077 -> 55834574850 [AST]
+30064771077 -> 30064771073 [CFG]
+30064771077 -> 30064771073 [DOMINATE]
+30064771077 -> 55834574850 [POST_DOMINATE]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 55834574851 [ARGUMENT]
+30064771081 -> 55834574851 [AST]
+30064771081 -> 55834574851 [POST_DOMINATE]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 55834574852 [ARGUMENT]
+30064771084 -> 55834574852 [AST]
+30064771084 -> 55834574852 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 55834574853 [ARGUMENT]
+30064771085 -> 55834574853 [AST]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static double get_prediction_decay_rate ( const VP9_COMMON * cm , const FIRSTPASS_STATS * next_frame ) {
+ const double mb_sr_err_diff = ( next_frame -> sr_coded_error - next_frame -> coded_error ) / cm -> MBs ;
+ const double second_ref_decay = mb_sr_err_diff <= 512.0 ? fclamp ( pow ( 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

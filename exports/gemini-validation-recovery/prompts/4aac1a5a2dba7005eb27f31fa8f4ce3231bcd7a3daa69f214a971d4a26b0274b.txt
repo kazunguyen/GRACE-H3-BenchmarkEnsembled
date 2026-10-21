@@ -1,0 +1,161 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool DecoderIsFlushing ( decoder_t * p_dec ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ bool b_flushing ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ b_flushing = p_owner -> b_flushing ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ return b_flushing ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ bool b_flushing ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ b_flushing = p_owner -> b_flushing ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ return b_flushing ;
+ }
+      
+30064771072 | CALL | p_owner = p_dec -> p_owner
+30064771073 | CALL | p_dec -> p_owner
+30064771074 | CALL | vlc_mutex_lock ( & p_owner -> lock )
+30064771075 | CALL | & p_owner -> lock
+30064771076 | CALL | p_owner -> lock
+30064771077 | CALL | b_flushing = p_owner -> b_flushing
+30064771078 | CALL | p_owner -> b_flushing
+30064771079 | CALL | vlc_mutex_unlock ( & p_owner -> lock )
+30064771080 | CALL | & p_owner -> lock
+30064771081 | CALL | p_owner -> lock
+55834574848 | FIELD_IDENTIFIER | p_owner
+55834574849 | FIELD_IDENTIFIER | lock
+55834574850 | FIELD_IDENTIFIER | b_flushing
+55834574851 | FIELD_IDENTIFIER | lock
+68719476736 | IDENTIFIER | p_owner
+68719476737 | IDENTIFIER | p_dec
+68719476738 | IDENTIFIER | p_owner
+68719476739 | IDENTIFIER | b_flushing
+68719476740 | IDENTIFIER | p_owner
+68719476741 | IDENTIFIER | p_owner
+68719476742 | IDENTIFIER | b_flushing
+94489280512 | LOCAL | decoder_owner_sys_t * p_owner
+94489280513 | LOCAL | bool b_flushing
+107374182400 | METHOD | 
+        static bool DecoderIsFlushing ( decoder_t * p_dec ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ bool b_flushing ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ b_flushing = p_owner -> b_flushing ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ return b_flushing ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | decoder_t * p_dec
+115964116992 | METHOD_PARAMETER_OUT | decoder_t * p_dec
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return b_flushing ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 141733920768 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 115964116992 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771080 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771081 [REACHING_DEF]
+30064771076 -> 30064771080 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476741 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476742 [CFG]
+30064771079 -> 68719476742 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 124554051584 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static bool DecoderIsExitRequested ( decoder_t * p_dec ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ bool b_exit = p_owner -> b_exit ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ return b_exit ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

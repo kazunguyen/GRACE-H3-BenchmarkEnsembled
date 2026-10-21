@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+const DVprofile* ff_dv_frame_profile2(AVCodecContext* codec, const DVprofile *sys,
+
+                                  const uint8_t* frame, unsigned buf_size)
+
+{
+
+   int i;
+
+
+
+   int dsf = (frame[3] & 0x80) >> 7;
+
+
+
+   int stype = frame[80*5 + 48 + 3] & 0x1f;
+
+
+
+   /* 576i50 25Mbps 4:1:1 is a special case */
+
+   if (dsf == 1 && stype == 0 && frame[4] & 0x07 /* the APT field */) {
+
+       return &dv_profiles[2];
+
+   }
+
+
+
+   if(codec && codec->codec_tag==AV_RL32("dvsd") &&  codec->width==720 && codec->height==576)
+
+       return &dv_profiles[1];
+
+
+
+   for (i=0; i<FF_ARRAY_ELEMS(dv_profiles); i++)
+
+       if (dsf == dv_profiles[i].dsf && stype == dv_profiles[i].video_stype)
+
+           return &dv_profiles[i];
+
+
+
+   /* check if old sys matches and assumes corrupted input */
+
+   if (sys && buf_size == sys->frame_size)
+
+       return sys;
+
+
+
+   return NULL;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 20 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 21 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+31 -> 35 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 38 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 53 [IS_AST_PARENT]
+45 -> 49 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+39 -> 54 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+76 -> 82 [IS_AST_PARENT]
+65 -> 76 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+const DVprofile* avpriv_dv_frame_profile(const DVprofile *sys,
+
+                                  const uint8_t* frame, unsigned buf_size)
+
+{
+
+   int i;
+
+
+
+   int dsf = (frame[3] & 0x80) >> 7;
+
+
+
+   int stype = frame[80*5 + 48 + 3] & 0x1f;
+
+
+
+   /* 576i50 25Mbps 4:1:1 is a special case */
+
+   if (dsf == 1 && stype == 0 && frame[4] & 0x07 /* the APT field */) {
+
+       return &dv_profiles[2];
+
+   }
+
+
+
+   for (i=0; i<FF_ARRAY_ELEMS(dv_profiles); i++)
+
+       if (dsf == dv_profiles[i].dsf && stype == dv_profiles[i].video_stype)
+
+           return &dv_profiles[i];
+
+
+
+   /* check if old sys matches and assumes corrupted input */
+
+   if (sys && buf_size == sys->frame_size)
+
+       return sys;
+
+
+
+   return NULL;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,193 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static char * allocString ( uint32_t length ) {
+ uint32_t top = stringTop + length ;
+ char * p ;
+ if ( top > STRING_STORE_SIZE ) {
+ fprintf ( stderr , "gencmn: out of memory\n" ) ;
+ exit ( U_MEMORY_ALLOCATION_ERROR ) ;
+ }
+ p = stringStore + stringTop ;
+ stringTop = top ;
+ return p ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t top = stringTop + length ;
+ char * p ;
+ if ( top > STRING_STORE_SIZE ) {
+ fprintf ( stderr , "gencmn: out of memory\n" ) ;
+ exit ( U_MEMORY_ALLOCATION_ERROR ) ;
+ }
+ p = stringStore + stringTop ;
+ stringTop = top ;
+ return p ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ fprintf ( stderr , "gencmn: out of memory\n" ) ;
+ exit ( U_MEMORY_ALLOCATION_ERROR ) ;
+ }
+      
+30064771072 | CALL | top = stringTop + length
+30064771073 | CALL | stringTop + length
+30064771074 | CALL | top > STRING_STORE_SIZE
+30064771075 | CALL | fprintf ( stderr , "gencmn: out of memory\n" )
+30064771076 | CALL | exit ( U_MEMORY_ALLOCATION_ERROR )
+30064771077 | CALL | p = stringStore + stringTop
+30064771078 | CALL | stringStore + stringTop
+30064771079 | CALL | stringTop = top
+47244640256 | CONTROL_STRUCTURE | 
+        if ( top > STRING_STORE_SIZE ) {
+ fprintf ( stderr , "gencmn: out of memory\n" ) ;
+ exit ( U_MEMORY_ALLOCATION_ERROR ) ;
+ }
+      
+68719476736 | IDENTIFIER | top
+68719476737 | IDENTIFIER | <unknown> stringTop
+68719476738 | IDENTIFIER | length
+68719476739 | IDENTIFIER | top
+68719476740 | IDENTIFIER | <unknown> STRING_STORE_SIZE
+68719476741 | IDENTIFIER | <unknown> stderr
+68719476742 | IDENTIFIER | <unknown> U_MEMORY_ALLOCATION_ERROR
+68719476743 | IDENTIFIER | p
+68719476744 | IDENTIFIER | <unknown> stringStore
+68719476745 | IDENTIFIER | <unknown> stringTop
+68719476746 | IDENTIFIER | <unknown> stringTop
+68719476747 | IDENTIFIER | top
+68719476748 | IDENTIFIER | p
+90194313216 | LITERAL | "gencmn: out of memory\n"
+94489280512 | LOCAL | uint32_t top
+94489280513 | LOCAL | char * p
+94489280514 | LOCAL | <unknown> stringTop
+94489280515 | LOCAL | <unknown> stringStore
+94489280516 | LOCAL | <unknown> U_MEMORY_ALLOCATION_ERROR
+94489280517 | LOCAL | <unknown> stderr
+94489280518 | LOCAL | <unknown> STRING_STORE_SIZE
+107374182400 | METHOD | 
+        static char * allocString ( uint32_t length ) {
+ uint32_t top = stringTop + length ;
+ char * p ;
+ if ( top > STRING_STORE_SIZE ) {
+ fprintf ( stderr , "gencmn: out of memory\n" ) ;
+ exit ( U_MEMORY_ALLOCATION_ERROR ) ;
+ }
+ p = stringStore + stringTop ;
+ stringTop = top ;
+ return p ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | uint32_t length
+115964116992 | METHOD_PARAMETER_OUT | uint32_t length
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return p ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+25769803776 -> 94489280518 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771076 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 90194313216 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 68719476743 [DOMINATE]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 90194313216 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 90194313216 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 90194313216 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476746 [CFG]
+30064771077 -> 68719476746 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476745 [POST_DOMINATE]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 68719476746 [ARGUMENT]
+30064771079 -> 68719476747 [ARGUMENT]
+30064771079 -> 68719476746 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int main ( int argc , char * * argv ) {
+ if ( argc < 2 ) {
+ fprintf ( stderr , "Usage:\n%s t_header.h\n" , argv [ 0 ] ) ;
+ exit ( 1 ) ;
+ }
+ debug = 1 ;
+ populate_symb ( argv [ 1 ] ) ;
+ generate_preamble ( ) ;
+ generate_token_text ( ) ;
+ generate_fsm ( ) ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

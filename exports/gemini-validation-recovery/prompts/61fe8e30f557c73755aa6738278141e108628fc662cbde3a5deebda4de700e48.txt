@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void calc_thr_3gpp(const FFPsyWindowInfo *wi, const int num_bands, AacPsyChannel *pch,
+
+                          const uint8_t *band_sizes, const float *coefs)
+
+{
+
+    int i, w, g;
+
+    int start = 0;
+
+    for (w = 0; w < wi->num_windows*16; w += 16) {
+
+        for (g = 0; g < num_bands; g++) {
+
+            AacPsyBand *band = &pch->band[w+g];
+
+
+
+            float form_factor = 0.0f;
+
+            float Temp;
+
+            band->energy = 0.0f;
+
+            for (i = 0; i < band_sizes[g]; i++) {
+
+                band->energy += coefs[start+i] * coefs[start+i];
+
+                form_factor  += sqrtf(fabs(coefs[start+i]));
+
+            }
+
+            Temp = band->energy > 0 ? sqrtf((float)band_sizes[g] / band->energy) : 0;
+
+            band->thr      = band->energy * 0.001258925f;
+
+            band->nz_lines = form_factor * sqrtf(Temp);
+
+
+
+            start += band_sizes[g];
+
+        }
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+22 -> 27 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+22 -> 35 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+39 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+39 -> 48 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+51 -> 67 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+51 -> 74 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+51 -> 78 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void psy_3gpp_analyze(FFPsyContext *ctx, int channel,
+
+                             const float *coefs, const FFPsyWindowInfo *wi)
+
+{
+
+    AacPsyContext *pctx = (AacPsyContext*) ctx->model_priv_data;
+
+    AacPsyChannel *pch  = &pctx->ch[channel];
+
+    int start = 0;
+
+    int i, w, g;
+
+    const int num_bands       = ctx->num_bands[wi->num_windows == 8];
+
+    const uint8_t* band_sizes = ctx->bands[wi->num_windows == 8];
+
+    AacPsyCoeffs *coeffs     = &pctx->psy_coef[wi->num_windows == 8];
+
+
+
+    //calculate energies, initial thresholds and related values - 5.4.2 "Threshold Calculation"
+
+    for (w = 0; w < wi->num_windows*16; w += 16) {
+
+        for (g = 0; g < num_bands; g++) {
+
+            AacPsyBand *band = &pch->band[w+g];
+
+            band->energy = 0.0f;
+
+            for (i = 0; i < band_sizes[g]; i++)
+
+                band->energy += coefs[start+i] * coefs[start+i];
+
+            band->thr     = band->energy * 0.001258925f;
+
+            start        += band_sizes[g];
+
+
+
+            ctx->psy_bands[channel*PSY_MAX_BANDS+w+g].energy = band->energy;
+
+        }
+
+    }
+
+    //modify thresholds - spread, threshold in quiet - 5.4.3 "Spreaded Energy Calculation"
+
+    for (w = 0; w < wi->num_windows*16; w += 16) {
+
+        AacPsyBand *band = &pch->band[w];
+
+        for (g = 1; g < num_bands; g++)
+
+            band[g].thr = FFMAX(band[g].thr, band[g-1].thr * coeffs->spread_hi [g]);
+
+        for (g = num_bands - 2; g >= 0; g--)
+
+            band[g].thr = FFMAX(band[g].thr, b
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

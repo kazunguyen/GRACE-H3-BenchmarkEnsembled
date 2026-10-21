@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void rtas_start_cpu(PowerPCCPU *cpu_, sPAPRMachineState *spapr,
+                           uint32_t token, uint32_t nargs,
+                           target_ulong args,
+                           uint32_t nret, target_ulong rets)
+{
+    target_ulong id, start, r3;
+    PowerPCCPU *cpu;
+    if (nargs != 3 || nret != 1) {
+        rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+        return;
+    }
+    id = rtas_ld(args, 0);
+    start = rtas_ld(args, 1);
+    r3 = rtas_ld(args, 2);
+    cpu = spapr_find_cpu(id);
+    if (cpu != NULL) {
+        CPUState *cs = CPU(cpu);
+        CPUPPCState *env = &cpu->env;
+        PowerPCCPUClass *pcc = POWERPC_CPU_GET_CLASS(cpu);
+        if (!cs->halted) {
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+            return;
+        }
+        /* This will make sure qemu state is up to date with kvm, and
+         * mark it dirty so our changes get flushed back before the
+         * new cpu enters */
+        kvm_cpu_synchronize_state(cs);
+        env->msr = (1ULL << MSR_SF) | (1ULL << MSR_ME);
+        env->nip = start;
+        env->gpr[3] = r3;
+        cs->halted = 0;
+        spapr_cpu_set_endianness(cpu);
+        spapr_cpu_update_tb_offset(cpu);
+        qemu_cpu_kick(cs);
+        rtas_st(rets, 0, RTAS_OUT_SUCCESS);
+        return;
+    }
+    /* Didn't find a matching cpu */
+    rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+21 -> 25 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+33 -> 38 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 40 [IS_AST_PARENT]
+19 -> 28 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+4 -> 74 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void rtas_start_cpu(PowerPCCPU *cpu_, sPAPRMachineState *spapr,
+
+                           uint32_t token, uint32_t nargs,
+
+                           target_ulong args,
+
+                           uint32_t nret, target_ulong rets)
+
+{
+
+    target_ulong id, start, r3;
+
+    PowerPCCPU *cpu;
+
+
+
+    if (nargs != 3 || nret != 1) {
+
+        rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+
+        return;
+
+    }
+
+
+
+    id = rtas_ld(args, 0);
+
+    start = rtas_ld(args, 1);
+
+    r3 = rtas_ld(args, 2);
+
+
+
+    cpu = spapr_find_cpu(id);
+
+    if (cpu != NULL) {
+
+        CPUState *cs = CPU(cpu);
+
+        CPUPPCState *env = &cpu->env;
+
+
+
+
+        if (!cs->halted) {
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        /* This will make sure qemu state is up to date with kvm, and
+
+         * mark it dirty so our changes get flushed back before the
+
+         * new cpu enters */
+
+        kvm_cpu_synchronize_state(cs);
+
+
+
+        env->msr = (1ULL << MSR_SF) | (1ULL << MSR_ME);
+
+
+
+        /* Enable Power-saving mode Exit Cause exceptions for the new CPU */
+
+        env->spr[SPR_LPCR] |= pcc->lpcr_pm;
+
+
+
+        env->nip = start;
+
+        env->gpr[3] = r3;
+
+        cs->halted = 0;
+
+        spapr_cpu_set_endianness(cpu);
+
+        spapr_cpu_update_tb_offset(cpu);
+
+
+
+        qemu_cpu_kick(cs);
+
+
+
+        rtas_st(rets, 0, RTAS_OUT_SUCCESS);
+
+        return;
+
+    }
+
+
+
+    /* Didn't find a matching cpu */
+
+    rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+
+}
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

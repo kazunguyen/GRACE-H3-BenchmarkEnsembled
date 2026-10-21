@@ -1,0 +1,383 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void jpc_ft_fwdlift_colgrp ( jpc_fix_t * a , int numrows , int stride , int parity ) {
+ jpc_fix_t * lptr ;
+ jpc_fix_t * hptr ;
+ register jpc_fix_t * lptr2 ;
+ register jpc_fix_t * hptr2 ;
+ register int n ;
+ register int i ;
+ int llen ;
+ llen = ( numrows + 1 - parity ) >> 1 ;
+ if ( numrows > 1 ) {
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( parity ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ hptr2 ;
+ ++ lptr2 ;
+ }
+ hptr += stride ;
+ }
+ n = numrows - llen - parity - ( parity == ( numrows & 1 ) ) ;
+ while ( n -- > 0 ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= jpc_fix_asr ( lptr2 [ 0 ] + lptr2 [ stride ] , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ hptr += stride ;
+ lptr += stride ;
+ }
+ if ( parity == ( numrows & 1 ) ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( ! parity ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ lptr += stride ;
+ }
+ n = llen - ( ! parity ) - ( parity != ( numrows & 1 ) ) ;
+ while ( n -- > 0 ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + hptr2 [ stride ] + 2 , 2 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ lptr += stride ;
+ hptr += stride ;
+ }
+ if ( parity != ( numrows & 1 ) ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+ }
+ else {
+ if ( parity ) {
+ lptr2 = & a [ 0 ] ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] = jpc_fix_asl ( lptr2 [ 0 ] , 1 ) ;
+ ++ lptr2 ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ jpc_fix_t * lptr ;
+ jpc_fix_t * hptr ;
+ register jpc_fix_t * lptr2 ;
+ register jpc_fix_t * hptr2 ;
+ register int n ;
+ register int i ;
+ int llen ;
+ llen = ( numrows + 1 - parity ) >> 1 ;
+ if ( numrows > 1 ) {
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( parity ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ hptr2 ;
+ ++ lptr2 ;
+ }
+ hptr += stride ;
+ }
+ n = numrows - llen - parity - ( parity == ( numrows & 1 ) ) ;
+ while ( n -- > 0 ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= jpc_fix_asr ( lptr2 [ 0 ] + lptr2 [ stride ] , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ hptr += stride ;
+ lptr += stride ;
+ }
+ if ( parity == ( numrows & 1 ) ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( ! parity ) {...
+      
+25769803777 | BLOCK | 
+        {
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( parity ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ hptr2 ;
+ ++ lptr2 ;
+ }
+ hptr += stride ;
+ }
+ n = numrows - llen - parity - ( parity == ( numrows & 1 ) ) ;
+ while ( n -- > 0 ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= jpc_fix_asr ( lptr2 [ 0 ] + lptr2 [ stride ] , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ hptr += stride ;
+ lptr += stride ;
+ }
+ if ( parity == ( numrows & 1 ) ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+ lptr = & a [ 0 ] ;
+ hptr = & a [ llen * stride ] ;
+ if ( ! parity ) {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ lptr += stride ;
+ }
+ n = llen - ( ! parity ...
+      
+25769803778 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ hptr2 ;
+ ++ lptr2 ;
+ }
+ hptr += stride ;
+ }
+      
+25769803779 | BLOCK | { hptr2 [ 0 ] -= lptr2 [ 0 ] ; ++ hptr2 ; ++ lptr2 ; }
+25769803780 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= jpc_fix_asr ( lptr2 [ 0 ] + lptr2 [ stride ] , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ hptr += stride ;
+ lptr += stride ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ hptr2 [ 0 ] -= jpc_fix_asr ( lptr2 [ 0 ] + lptr2 [ stride ] , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ hptr2 [ 0 ] -= lptr2 [ 0 ] ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+      
+25769803783 | BLOCK | { hptr2 [ 0 ] -= lptr2 [ 0 ] ; ++ lptr2 ; ++ hptr2 ; }
+25769803784 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ lptr += stride ;
+ }
+      
+25769803785 | BLOCK | { lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ; ++ lptr2 ; ++ hptr2 ; }
+25769803786 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + hptr2 [ stride ] + 2 , 2 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ lptr += stride ;
+ hptr += stride ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + hptr2 [ stride ] + 2 , 2 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ lptr2 = lptr ;
+ hptr2 = hptr ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ;
+ ++ lptr2 ;
+ ++ hptr2 ;
+ }
+ }
+      
+25769803789 | BLOCK | { lptr2 [ 0 ] += jpc_fix_asr ( hptr2 [ 0 ] + 1 , 1 ) ; ++ lptr2 ; ++ hptr2 ; }
+25769803790 | BLOCK | 
+        {
+ if ( parity ) {
+ lptr2 = & a [ 0 ] ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] = jpc_fix_asl ( lptr2 [ 0 ] , 1 ) ;
+ ++ lptr2 ;
+ }
+ }
+ }
+      
+25769803791 | BLOCK | 
+        {
+ lptr2 = & a [ 0 ] ;
+ for ( i = 0 ;
+ i < JPC_QMFB_COLGRPSIZE ;
+ ++ i ) {
+ lptr2 [ 0 ] = jpc_fix_asl ( lptr2 [ 0 ] , 1 ) ;
+ ++ lptr2 ;
+ }
+ }
+      
+25769803792 | BLOCK | { lptr2 [ 0 ] = jpc_fix_asl ( lptr2 [ 0 ] , 1 ) ; ++ lptr2 ; }
+30064771072 | CALL | llen = ( numrows + 1 - parity ) >> 1
+30064771073 | CALL | ( numrows + 1 - parity ) >> 1
+30064771074 | CALL | numrows + 1 - parity
+30064771075 | CALL | numrows + 1
+30064771076 | CALL | numrows > 1
+30064771077 | CALL | lptr = & a [ 0 ]
+30064771078 | CALL | & a [ 0 ]
+30064771079 | CALL | a [ 0 ]
+30064771080 | CALL | hptr = & a [ llen * stride ]
+30064771081 | CALL | & a [ llen * stride ]
+30064771082 | CALL | a [ llen * stride ]
+30064771083 | CALL | llen * stride
+30064771084 | CALL | parity != 0
+30064771085 | CALL | lptr2 = lptr
+30064771086 | CALL | hptr2 = hptr
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < JPC_QMFB_COLGRPSIZE
+30064771089 | CALL | ++ i
+30064771090 | CALL | hptr2 [ 0 ] -= lptr2 [ 0 ]
+30064771091 | CALL | hptr2 [ 0 ]
+30064771092 | CALL | lptr2 [ 0 ]
+30064771093 | CALL | ++ hptr2
+30064771094 | CALL | ++ lptr2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

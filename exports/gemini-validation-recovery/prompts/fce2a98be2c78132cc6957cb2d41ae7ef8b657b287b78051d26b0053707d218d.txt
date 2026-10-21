@@ -1,0 +1,285 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void *lsi_scsi_init(PCIBus *bus, int devfn)
+
+{
+
+    LSIState *s;
+
+
+
+    s = (LSIState *)pci_register_device(bus, "LSI53C895A SCSI HBA",
+
+                                        sizeof(*s), devfn, NULL, NULL);
+
+    if (s == NULL) {
+
+        fprintf(stderr, "lsi-scsi: Failed to register PCI device\n");
+
+        return NULL;
+
+    }
+
+
+
+    s->pci_dev.config[0x00] = 0x00;
+
+    s->pci_dev.config[0x01] = 0x10;
+
+    s->pci_dev.config[0x02] = 0x12;
+
+    s->pci_dev.config[0x03] = 0x00;
+
+    s->pci_dev.config[0x0b] = 0x01;
+
+    s->pci_dev.config[0x3d] = 0x01; /* interrupt pin 1 */
+
+
+
+    s->mmio_io_addr = cpu_register_io_memory(0, lsi_mmio_readfn,
+
+                                             lsi_mmio_writefn, s);
+
+    s->ram_io_addr = cpu_register_io_memory(0, lsi_ram_readfn,
+
+                                            lsi_ram_writefn, s);
+
+
+
+    pci_register_io_region((struct PCIDevice *)s, 0, 256,
+
+                           PCI_ADDRESS_SPACE_IO, lsi_io_mapfunc);
+
+    pci_register_io_region((struct PCIDevice *)s, 1, 0x400,
+
+                           PCI_ADDRESS_SPACE_MEM, lsi_mmio_mapfunc);
+
+    pci_register_io_region((struct PCIDevice *)s, 2, 0x2000,
+
+                           PCI_ADDRESS_SPACE_MEM, lsi_ram_mapfunc);
+
+    s->queue = qemu_malloc(sizeof(lsi_queue));
+
+    s->queue_len = 1;
+
+    s->active_commands = 0;
+
+
+
+    lsi_soft_reset(s);
+
+
+
+    return s;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    LSIState *s;
+
+
+
+    s = (LSIState *)pci_register_device(bus, "LSI53C895A SCSI HBA",
+
+                                        sizeof(*s), devfn, NULL, NULL);
+
+    if (s == NULL) {
+
+        fprintf(stderr, "lsi-scsi: Failed to register PCI device\n");
+
+        return NULL;
+
+    }
+
+
+
+    s->pci_dev.config[0x00] = 0x00;
+
+    s->pci_dev.config[0x01] = 0x10;
+
+    s->pci_dev.config[0x02] = 0x12;
+
+    s->pci_dev.config[0x03] = 0x00;
+
+    s->pci_dev.config[0x0b] = 0x01;
+
+    s->pci_dev.config[0x3d] = 0x01; /* interrupt pin 1 */
+
+
+
+    s->mmio_io_addr = cpu_register_io_memory(0, lsi_mmio_readfn,
+
+                                             lsi_mmio_writefn, s);
+
+    s->ram_io_addr = cpu_register_io_memory(0, lsi_ram_readfn,
+
+                                            lsi_ram_writefn, s);
+
+
+
+    pci_register_io_region((struct PCIDevice *)s, 0, 256,
+
+                           PCI_ADDRESS_SPACE_IO, lsi_io_mapfunc);
+
+    pci_register_io_region((struct PCIDevice *)s, 1, 0x400,
+
+         ...
+      
+25769803777 | BLOCK | 
+        {
+
+        fprintf(stderr, "lsi-scsi: Failed to register PCI device\n");
+
+        return NULL;
+
+    }
+      
+30064771072 | CALL | 
+        s = (LSIState *)pci_register_device(bus, "LSI53C895A SCSI HBA",
+
+                                        sizeof(*s), devfn, NULL, NULL)
+      
+30064771073 | CALL | 
+        (LSIState *)pci_register_device(bus, "LSI53C895A SCSI HBA",
+
+                                        sizeof(*s), devfn, NULL, NULL)
+      
+30064771074 | CALL | 
+        pci_register_device(bus, "LSI53C895A SCSI HBA",
+
+                                        sizeof(*s), devfn, NULL, NULL)
+      
+30064771075 | CALL | sizeof(*s)
+30064771076 | CALL | *s
+30064771077 | CALL | s == NULL
+30064771078 | CALL | fprintf(stderr, "lsi-scsi: Failed to register PCI device\n")
+30064771079 | CALL | s->pci_dev.config[0x00] = 0x00
+30064771080 | CALL | s->pci_dev.config[0x00]
+30064771081 | CALL | s->pci_dev.config
+30064771082 | CALL | s->pci_dev
+30064771083 | CALL | s->pci_dev.config[0x01] = 0x10
+30064771084 | CALL | s->pci_dev.config[0x01]
+30064771085 | CALL | s->pci_dev.config
+30064771086 | CALL | s->pci_dev
+30064771087 | CALL | s->pci_dev.config[0x02] = 0x12
+30064771088 | CALL | s->pci_dev.config[0x02]
+30064771089 | CALL | s->pci_dev.config
+30064771090 | CALL | s->pci_dev
+30064771091 | CALL | s->pci_dev.config[0x03] = 0x00
+30064771092 | CALL | s->pci_dev.config[0x03]
+30064771093 | CALL | s->pci_dev.config
+30064771094 | CALL | s->pci_dev
+30064771095 | CALL | s->pci_dev.config[0x0b] = 0x01
+30064771096 | CALL | s->pci_dev.config[0x0b]
+30064771097 | CALL | s->pci_dev.config
+30064771098 | CALL | s->pci_dev
+30064771099 | CALL | s->pci_dev.config[0x3d] = 0x01
+30064771100 | CALL | s->pci_dev.config[0x3d]
+30064771101 | CALL | s->pci_dev.config
+30064771102 | CALL | s->pci_dev
+30064771103 | CALL | 
+        s->mmio_io_addr = cpu_register_io_memory(0, lsi_mmio_readfn,
+
+                                             lsi_mmio_writefn, s)
+      
+30064771104 | CALL | s->mmio_io_addr
+30064771105 | CALL | cpu_register_io_memory(0, lsi_mmio_readfn, lsi_mmio_writefn, s)
+30064771106 | CALL | s->ram_io_addr = cpu_register_io_memory(0, lsi_ram_readfn, lsi_ram_writefn, s)
+30064771107 | CALL | s->ram_io_addr
+30064771108 | CALL | cpu_register_io_memory(0, lsi_ram_readfn, lsi_ram_writefn, s)
+30064771109 | CALL | 
+        pci_register_io_region((struct PCIDevice *)s, 0, 256,
+
+                           PCI_ADDRESS_SPACE_IO, lsi_io_mapfunc)
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+25769803777 -> 30064771078 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771107 [CDG]
+30064771077 -> 30064771108 [CDG]
+30064771077 -> 30064771109 [CDG]
+30064771077 -> 30064771103 [CDG]
+30064771077 -> 30064771104 [CDG]
+30064771077 -> 30064771105 [CDG]
+30064771077 -> 30064771106 [CDG]
+30064771077 -> 30064771099 [CDG]
+30064771077 -> 30064771100 [CDG]
+30064771077 -> 30064771101 [CDG]
+30064771077 -> 30064771102 [CDG]
+30064771077 -> 30064771095 [CDG]
+30064771077 -> 30064771096 [CDG]
+30064771077 -> 30064771097 [CDG]
+30064771077 -> 30064771098 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771092 [CDG]
+30064771077 -> 30064771093 [CDG]
+30064771077 -> 30064771094 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771101 [REACHING_DEF]
+30064771080 -> 30064771097 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771093 [REACHING_DEF]
+30064771080 -> 30064771085 [REACHING_DEF]
+3
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

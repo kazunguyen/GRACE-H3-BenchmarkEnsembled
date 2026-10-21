@@ -1,0 +1,373 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dnxhd_encode_init(AVCodecContext *avctx)
+
+{
+
+    DNXHDEncContext *ctx = avctx->priv_data;
+
+    int i, index, bit_depth;
+
+
+
+    switch (avctx->pix_fmt) {
+
+    case AV_PIX_FMT_YUV422P:
+
+        bit_depth = 8;
+
+        break;
+
+    case AV_PIX_FMT_YUV422P10:
+
+        bit_depth = 10;
+
+        break;
+
+    default:
+
+        av_log(avctx, AV_LOG_ERROR, "pixel format is incompatible with DNxHD\n");
+
+        return -1;
+
+    }
+
+
+
+    ctx->cid = ff_dnxhd_find_cid(avctx, bit_depth);
+
+    if (!ctx->cid) {
+
+        av_log(avctx, AV_LOG_ERROR, "video parameters incompatible with DNxHD\n");
+
+        return -1;
+
+    }
+
+    av_log(avctx, AV_LOG_DEBUG, "cid %d\n", ctx->cid);
+
+
+
+    index = ff_dnxhd_get_cid_table(ctx->cid);
+
+    av_assert0(index >= 0);
+
+    ctx->cid_table = &ff_dnxhd_cid_table[index];
+
+
+
+    ctx->m.avctx = avctx;
+
+    ctx->m.mb_intra = 1;
+
+    ctx->m.h263_aic = 1;
+
+
+
+    avctx->bits_per_raw_sample = ctx->cid_table->bit_depth;
+
+
+
+    ff_dct_common_init(&ctx->m);
+
+    ff_dct_encode_init(&ctx->m);
+
+
+
+    if (!ctx->m.dct_quantize)
+
+        ctx->m.dct_quantize = ff_dct_quantize_c;
+
+
+
+    if (ctx->cid_table->bit_depth == 10) {
+
+       ctx->m.dct_quantize = dnxhd_10bit_dct_quantize;
+
+       ctx->get_pixels_8x4_sym = dnxhd_10bit_get_pixels_8x4_sym;
+
+       ctx->block_width_l2 = 4;
+
+    } else {
+
+       ctx->get_pixels_8x4_sym = dnxhd_8bit_get_pixels_8x4_sym;
+
+       ctx->block_width_l2 = 3;
+
+    }
+
+
+
+    if (ARCH_X86)
+
+        ff_dnxhdenc_init_x86(ctx);
+
+
+
+    ctx->m.mb_height = (avctx->height + 15) / 16;
+
+    ctx->m.mb_width  = (avctx->width  + 15) / 16;
+
+
+
+    if (avctx->flags & CODEC_FLAG_INTERLACED_DCT) {
+
+        ctx->interlaced = 1;
+
+        ctx->m.mb_height /= 2;
+
+    }
+
+
+
+    ctx->m.mb_num = ctx->m.mb_height * ctx->m.mb_width;
+
+
+
+    if (avctx->intra_quant_bias != FF_DEFAULT_QUANT_BIAS)
+
+        ctx->m.intra_quant_bias = avctx->intra_quant_bias;
+
+    if (dnxhd_init_qmat(ctx, ctx->m.intra_quant_bias, 0) < 0) // XXX tune lbias/cbias
+
+        return -1;
+
+
+
+    // Avid Nitris hardware decoder requires a minimum amount of padding in the coding unit payload
+
+    if (ctx->nitris_compat)
+
+        ctx->min_padding = 1600;
+
+
+
+    if (dnxhd_init_vlc(ctx) < 0)
+
+        return -1;
+
+    if (dnxhd_init_rc(ctx) < 0)
+
+        return -1;
+
+
+
+    FF_ALLOCZ_OR_GOTO(ctx->m.avctx, ctx->slice_size, ctx->m.mb_height*sizeof(uint32_t), fail);
+
+    FF_ALLOCZ_OR_GOTO(ctx->m.avctx, ctx->slice_offs, ctx->m.mb_height*sizeof(uint32_t), fail);
+
+    FF_ALLOCZ_OR_GOTO(ctx->m.avctx, ctx->mb_bits,    ctx->m.mb_num   *sizeof(uint16_t), fail);
+
+    FF_ALLOCZ_OR_GOTO(ctx->m.avctx, ctx->mb_qscale,  ctx->m.mb_num   *sizeof(uint8_t),  fail);
+
+
+
+    ctx->frame.key_frame = 1;
+
+    ctx->frame.pict_type = AV_PICTURE_TYPE_I;
+
+    ctx->m.avctx->coded_frame = &ctx->frame;
+
+
+
+    if (avctx->thread_count > MAX_THREADS) {
+
+        av_log(avctx, AV_LOG_ERROR, "too many threads\n");
+
+        return -1;
+
+    }
+
+
+
+    ctx->thread[0] = ctx;
+
+    for (i = 1; i < avctx->thread_count; i++) {
+
+       
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+14 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+14 -> 21 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+29 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+29 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+29 -> 39 [IS_AST_PARENT]
+29 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+29 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+50 -> 55 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+29 -> 46 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+29 -> 57 [IS_AST_PARENT]
+24 -> 29 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+62 -> 66 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int dnxhd_decode_header(DNXHDContext *ctx, const uint8_t *buf, int buf_size, int first_field)
+
+{
+
+    static const uint8_t header_prefix[] = { 0x00, 0x00, 0x02, 0x80, 0x01 };
+
+    int i, cid;
+
+
+
+    if (buf_size < 0x280)
+
+        return -1;
+
+
+
+    if (memcmp(buf, header_prefix, 5)) {
+
+        av_log(ctx->avctx, AV_LOG_ERROR, "error in header\n");
+
+        return -1;
+
+    }
+
+    if (buf[5] & 2) { /* interlaced */
+
+        ctx->cur_field = buf[5] & 1;
+
+        ctx->picture.interlaced_frame = 1;
+
+        ctx->picture.top_field_first = first_field ^ ctx->cur_field;
+
+        av_log(ctx->avctx, AV_LOG_DEBUG, "interlaced %d, cur field %d\n", buf[5] & 3, ctx->cur_field);
+
+    }
+
+
+
+    ctx->height = AV_RB16(buf + 0x18);
+
+    ctx->width  = AV_RB16(buf + 0x1a);
+
+
+
+    av_dlog(ctx->avctx, "width %d, height %d\n", ctx->width, ctx->height);
+
+
+
+    if (buf[0x21] & 0x40) {
+
+        ctx->avctx->pix_fmt = AV_PIX_FMT_YUV422P10;
+
+        ctx->avctx->bits_per_raw_sample = 10;
+
+        if (ctx->bit_depth != 10) {
+
+            ff_dsputil_init(&ctx->dsp, ctx->avctx);
+
+            ctx->bit_depth = 10;
+
+            ctx->decode_dct_block = dnxhd_decode_dct_block_10;
+
+        }
+
+    } else {
+
+        ctx->avctx->pix_fmt = AV_PIX_FMT_YUV422P;
+
+        ctx->avctx->bits_per_raw_sample = 8;
+
+        if (ctx->bit_depth != 8) {
+
+            ff_dsputil_init(&ctx->dsp, ctx->avctx);
+
+            ctx->bit_depth = 8;
+
+            ctx->decode_dct_block = dnxhd_decode_dct_block_8;
+
+        }
+
+    }
+
+
+
+    cid
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

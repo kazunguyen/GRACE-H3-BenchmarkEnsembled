@@ -1,0 +1,293 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int handle_cpu_signal(unsigned long pc,
+
+                                    unsigned long address,
+
+                                    int is_write,
+
+                                    sigset_t *old_set)
+
+{
+
+#if defined(DEBUG_SIGNAL)
+
+    printf("qemu: SIGSEGV pc=0x%08lx address=%08lx wr=%d oldset=0x%08lx\n", 
+
+           pc, address, is_write, *(unsigned long *)old_set);
+
+#endif
+
+    /* XXX: locking issue */
+
+    if (is_write && page_unprotect(address)) {
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        return 1;
+
+    }
+
+    if (pc >= (unsigned long)code_gen_buffer &&
+
+        pc < (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE) {
+
+        /* the PC is inside the translated code. It means that we have
+
+           a virtual CPU fault */
+
+        /* we restore the process signal mask as the sigreturn should
+
+           do it */
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        /* XXX: need to compute virtual pc position by retranslating
+
+           code. The rest of the CPU state should be correct. */
+
+        env->cr2 = address;
+
+        raise_exception_err(EXCP0E_PAGE, 4 | (is_write << 1));
+
+        /* never comes here */
+
+        return 1;
+
+    } else {
+
+        return 0;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+#if defined(DEBUG_SIGNAL)
+
+    printf("qemu: SIGSEGV pc=0x%08lx address=%08lx wr=%d oldset=0x%08lx\n", 
+
+           pc, address, is_write, *(unsigned long *)old_set);
+
+#endif
+
+    /* XXX: locking issue */
+
+    if (is_write && page_unprotect(address)) {
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        return 1;
+
+    }
+
+    if (pc >= (unsigned long)code_gen_buffer &&
+
+        pc < (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE) {
+
+        /* the PC is inside the translated code. It means that we have
+
+           a virtual CPU fault */
+
+        /* we restore the process signal mask as the sigreturn should
+
+           do it */
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        /* XXX: need to compute virtual pc position by retranslating
+
+           code. The rest of the CPU state should be correct. */
+
+        env->cr2 = address;
+
+        raise_exception_err(EXCP0E_PAGE, 4 | (is_write << 1));
+
+        /* never comes here */
+
+        return 1;
+
+    } else {
+
+ ...
+      
+25769803777 | BLOCK | { sigprocmask(SIG_SETMASK, old_set, NULL); return 1; }
+25769803778 | BLOCK | 
+        {
+
+        /* the PC is inside the translated code. It means that we have
+
+           a virtual CPU fault */
+
+        /* we restore the process signal mask as the sigreturn should
+
+           do it */
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        /* XXX: need to compute virtual pc position by retranslating
+
+           code. The rest of the CPU state should be correct. */
+
+        env->cr2 = address;
+
+        raise_exception_err(EXCP0E_PAGE, 4 | (is_write << 1));
+
+        /* never comes here */
+
+        return 1;
+
+    }
+      
+25769803779 | BLOCK | { return 0; }
+30064771072 | CALL | is_write && page_unprotect(address)
+30064771073 | CALL | page_unprotect(address)
+30064771074 | CALL | sigprocmask(SIG_SETMASK, old_set, NULL)
+30064771075 | CALL | 
+        pc >= (unsigned long)code_gen_buffer &&
+
+        pc < (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE
+      
+30064771076 | CALL | pc >= (unsigned long)code_gen_buffer
+30064771077 | CALL | (unsigned long)code_gen_buffer
+30064771078 | CALL | pc < (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE
+30064771079 | CALL | (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE
+30064771080 | CALL | (unsigned long)code_gen_buffer
+30064771081 | CALL | sigprocmask(SIG_SETMASK, old_set, NULL)
+30064771082 | CALL | env->cr2 = address
+30064771083 | CALL | env->cr2
+30064771084 | CALL | raise_exception_err(EXCP0E_PAGE, 4 | (is_write << 1))
+30064771085 | CALL | 4 | (is_write << 1)
+30064771086 | CALL | is_write << 1
+47244640256 | CONTROL_STRUCTURE | 
+        if (is_write && page_unprotect(address)) {
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        return 1;
+
+    }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if (pc >= (unsigned long)code_gen_buffer &&
+
+        pc < (unsigned long)code_gen_buffer + CODE_GEN_BUFFER_SIZE) {
+
+        /* the PC is inside the translated code. It means that we have
+
+           a virtual CPU fault */
+
+        /* we restore the process signal mask as the sigreturn should
+
+           do it */
+
+        sigprocmask(SIG_SETMASK, old_set, NULL);
+
+        /* XXX: need to compute virtual pc position by retranslating
+
+           code. The rest of the CPU state should be correct. */
+
+        env->cr2 = address;
+
+        raise_exception_err(EXCP0E_PAGE, 4 | (is_write << 1));
+
+        /* never comes here */
+
+        return 1;
+
+    } else {
+
+        return 0;
+
+    }
+      
+55834574848 | FIELD_IDENTIFIER | cr2
+68719476736 | IDENTIFIER | is_write
+68719476737 | IDENTIFIER | address
+68719476738 | IDENTIFIER | <unknown> SIG_SETMASK
+68719476739 | IDENTIFIER | old_set
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | pc
+68719476742 | IDENTIFIER | <unknown> code_gen_buffer
+68719476743 | IDENTIFIER | pc
+68719476744 | IDENTIFIER | <unknown> code_gen_buffer
+68719476745 | IDENTIFIER | <unknown> CODE_GEN_BUFFER_SIZE
+68719476746 | IDENTIFIER | <unknown> SIG_SETMASK
+68719476747 | IDENTIFIER | old_set
+68719476748 | IDENTIFIER | <unknown> NULL
+68719476749 | IDENTIFIER | <unknown> env
+68719476750 | IDENTIFIER | address
+68719476751 | IDENTIFIER | <unknown> EXCP0E_PAGE
+68719476752 | IDENTIFIER | is_write
+90194313216 | LITERAL | 1
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803777 -> 30064771074 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 90194313216 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476741 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476741 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 90194313216 [CFG]
+30064771074 -> 90194313216 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 68719476748 [CDG]
+30064771075 -> 68719476749 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 68719476752 [CDG]
+30064771075 -> 687194767
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

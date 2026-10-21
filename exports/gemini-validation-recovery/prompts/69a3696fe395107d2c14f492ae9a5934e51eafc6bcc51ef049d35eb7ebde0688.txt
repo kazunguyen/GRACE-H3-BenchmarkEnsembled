@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void mi_check_print_warning ( MI_CHECK * param , const char * fmt , ... ) {
+ va_list args ;
+ DBUG_ENTER ( "mi_check_print_warning" ) ;
+ fflush ( stdout ) ;
+ if ( ! param -> warning_printed && ! param -> error_printed ) {
+ if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+ param -> out_flag |= O_DATA_LOST ;
+ }
+ param -> warning_printed = 1 ;
+ va_start ( args , fmt ) ;
+ fprintf ( stderr , "%s: warning: " , my_progname_short ) ;
+ ( void ) vfprintf ( stderr , fmt , args ) ;
+ ( void ) fputc ( '\n' , stderr ) ;
+ fflush ( stderr ) ;
+ va_end ( args ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ va_list args ;
+ DBUG_ENTER ( "mi_check_print_warning" ) ;
+ fflush ( stdout ) ;
+ if ( ! param -> warning_printed && ! param -> error_printed ) {
+ if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+ param -> out_flag |= O_DATA_LOST ;
+ }
+ param -> warning_printed = 1 ;
+ va_start ( args , fmt ) ;
+ fprintf ( stderr , "%s: warning: " , my_progname_short ) ;
+ ( void ) vfprintf ( stderr , fmt , args ) ;
+ ( void ) fputc ( '\n' , stderr ) ;
+ fflush ( stderr ) ;
+ va_end ( args ) ;
+ DBUG_VOID_RETURN ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+ param -> out_flag |= O_DATA_LOST ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | DBUG_ENTER ( "mi_check_print_warning" )
+30064771073 | CALL | fflush ( stdout )
+30064771074 | CALL | ! param -> warning_printed && ! param -> error_printed
+30064771075 | CALL | ! param -> warning_printed
+30064771076 | CALL | param -> warning_printed
+30064771077 | CALL | ! param -> error_printed
+30064771078 | CALL | param -> error_printed
+30064771079 | CALL | param -> testflag & T_SILENT
+30064771080 | CALL | param -> testflag
+30064771081 | CALL | 
+        fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name )
+      
+30064771082 | CALL | param -> isam_file_name
+30064771083 | CALL | param -> out_flag |= O_DATA_LOST
+30064771084 | CALL | param -> out_flag
+30064771085 | CALL | param -> warning_printed = 1
+30064771086 | CALL | param -> warning_printed
+30064771087 | CALL | va_start ( args , fmt )
+30064771088 | CALL | fprintf ( stderr , "%s: warning: " , my_progname_short )
+30064771089 | CALL | ( void ) vfprintf ( stderr , fmt , args )
+30064771090 | CALL | vfprintf ( stderr , fmt , args )
+30064771091 | CALL | ( void ) fputc ( '\n' , stderr )
+30064771092 | CALL | fputc ( '\n' , stderr )
+30064771093 | CALL | fflush ( stderr )
+30064771094 | CALL | va_end ( args )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! param -> warning_printed && ! param -> error_printed ) {
+ if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+ param -> out_flag |= O_DATA_LOST ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+      
+55834574848 | FIELD_IDENTIFIER | warning_printed
+55834574849 | FIELD_IDENTIFIER | error_printed
+55834574850 | FIELD_IDENTIFIER | testflag
+55834574851 | FIELD_IDENTIFIER | isam_file_name
+55834574852 | FIELD_IDENTIFIER | out_flag
+55834574853 | FIELD_IDENTIFIER | warning_printed
+68719476736 | IDENTIFIER | <unknown> stdout
+68719476737 | IDENTIFIER | param
+68719476738 | IDENTIFIER | param
+68719476739 | IDENTIFIER | param
+68719476740 | IDENTIFIER | <unknown> T_SILENT
+68719476741 | IDENTIFIER | <unknown> stderr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [CFG]
+30064771072 -> 68719476736 [DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 55834574852 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 68719476738 [CDG]
+30064771075 -> 55834574849 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 68719476738 [ARGUMENT]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 68719476738 [AST]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476740 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476740 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void mi_check_print_error ( MI_CHECK * param , const char * fmt , ... ) {
+ va_list args ;
+ DBUG_ENTER ( "mi_check_print_error" ) ;
+ DBUG_PRINT ( "enter" , ( "format: %s" , fmt ) ) ;
+ fflush ( stdout ) ;
+ if ( ! param -> warning_printed && ! param -> error_printed ) {
+ if ( param -> testflag & T_SILENT ) fprintf ( stderr , "%s: MyISAM file %s\n" , my_progname_short , param -> isam_file_name ) ;
+ param -> out_flag |= O_DATA_LOST ;
+ }
+ param -> error_printed |= 1 ;
+ va_start ( args , fmt ) ;
+ fprintf ( stderr , "%s: error: " , my_progname_short ) ;
+ ( void ) vfprintf ( stderr , fmt , args ) ;
+ ( void ) fputc ( '\n' , stderr ) ;
+ fflush ( stderr ) ;
+ va_end ( args ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

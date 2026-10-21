@@ -1,0 +1,216 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static av_cold int frei0r_init(AVFilterContext *ctx,
+
+                               const char *dl_name, int type)
+
+{
+
+    Frei0rContext *frei0r = ctx->priv;
+
+    f0r_init_f            f0r_init;
+
+    f0r_get_plugin_info_f f0r_get_plugin_info;
+
+    f0r_plugin_info_t *pi;
+
+    char *path;
+
+    int ret = 0;
+
+
+
+    /* see: http://frei0r.dyne.org/codedoc/html/group__pluglocations.html */
+
+    if ((path = av_strdup(getenv("FREI0R_PATH")))) {
+
+#ifdef _WIN32
+
+        const char *separator = ";";
+
+#else
+
+        const char *separator = ":";
+
+#endif
+
+        char *p, *ptr = NULL;
+
+        for (p = path; p = av_strtok(p, separator, &ptr); p = NULL) {
+
+            /* add additional trailing slash in case it is missing */
+
+            char *p1 = av_asprintf("%s/", p);
+
+            if (!p1) {
+
+                av_free(path);
+
+                return AVERROR(ENOMEM);
+
+            }
+
+            ret = load_path(ctx, &frei0r->dl_handle, p1, dl_name);
+
+            av_free(p1);
+
+            if (ret < 0) {
+
+                av_free(path);
+
+                return ret;
+
+            }
+
+            if (frei0r->dl_handle)
+
+                break;
+
+        }
+
+        av_free(path);
+
+    }
+
+    if (!frei0r->dl_handle && (path = getenv("HOME"))) {
+
+        char *prefix = av_asprintf("%s/.frei0r-1/lib/", path);
+
+        if (!prefix)
+
+            return AVERROR(ENOMEM);
+
+        ret = load_path(ctx, &frei0r->dl_handle, prefix, dl_name);
+
+        av_free(prefix);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+    if (!frei0r->dl_handle) {
+
+        ret = load_path(ctx, &frei0r->dl_handle, "/usr/local/lib/frei0r-1/", dl_name);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+    if (!frei0r->dl_handle) {
+
+        ret = load_path(ctx, &frei0r->dl_handle, "/usr/lib/frei0r-1/", dl_name);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+    if (!frei0r->dl_handle) {
+
+        av_log(ctx, AV_LOG_ERROR, "Could not find module '%s'\n", dl_name);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    if (!(f0r_init                = load_sym(ctx, "f0r_init"           )) ||
+
+        !(f0r_get_plugin_info     = load_sym(ctx, "f0r_get_plugin_info")) ||
+
+        !(frei0r->get_param_info  = load_sym(ctx, "f0r_get_param_info" )) ||
+
+        !(frei0r->get_param_value = load_sym(ctx, "f0r_get_param_value")) ||
+
+        !(frei0r->set_param_value = load_sym(ctx, "f0r_set_param_value")) ||
+
+        !(frei0r->update          = load_sym(ctx, "f0r_update"         )) ||
+
+        !(frei0r->construct       = load_sym(ctx, "f0r_construct"      )) ||
+
+        !(frei0r->destruct        = load_sym(ctx, "f0r_destruct"       )) ||
+
+        !(frei0r->deinit          = load_sym(ctx, "f0r_deinit"         )))
+
+        return AVERROR(EINVAL);
+
+
+
+    if (f0r_init() < 0) {
+
+        av_log(ctx, AV_LOG_ERROR, "Could not init the frei0r module\n");
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    f0r_get_plugin_info(&frei0r->plugin_info);
+
+    pi = &frei0r->plugin_info;
+
+    if (pi->plugin_type != type) {
+
+       
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int set_params(AVFilterContext *ctx, const char *params)
+{
+    Frei0rContext *frei0r = ctx->priv;
+    int i;
+    for (i = 0; i < frei0r->plugin_info.num_params; i++) {
+        f0r_param_info_t info;
+        char *param;
+        int ret;
+        frei0r->get_param_info(&info, i);
+        if (*params) {
+            if (!(param = av_get_token(&params, "|")))
+                return AVERROR(ENOMEM);
+            params++;               /* skip ':' */
+            ret = set_param(ctx, info, i, param);
+            av_free(param);
+            if (ret < 0)
+                return ret;
+        }
+        av_log(ctx, AV_LOG_VERBOSE,
+               "idx:%d name:'%s' type:%s explanation:'%s' ",
+               i, info.name,
+               info.type == F0R_PARAM_BOOL     ? "bool"     :
+               info.type == F0R_PARAM_DOUBLE   ? "double"   :
+               info.type == F0R_PARAM_COLOR    ? "color"    :
+               info.type == F0R_PARAM_POSITION ? "position" :
+               info.type == F0R_PARAM_STRING   ? "string"   : "unknown",
+               info.explanation);
+#ifdef DEBUG
+        av_log(ctx, AV_LOG_DEBUG, "value:");
+        switch (info.type) {
+            void *v;
+            double d;
+            char s[128];
+            f0r_param_color_t col;
+            f0r_param_position_t pos;
+        case F0R_PARAM_BOOL:
+            v = &d;
+            frei0r->get_param_value(frei0r->instance, v, i);
+            av_log(ctx, AV_LOG_DEBUG, "%s", d >= 0.5 && d <= 1.0 ? "y" : "n");
+      
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,266 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ipvideo_decode_opcodes(IpvideoContext *s)
+
+{
+
+    int x, y;
+
+    unsigned char opcode;
+
+    int ret;
+
+    static int frame = 0;
+
+    GetBitContext gb;
+
+
+
+    debug_interplay("------------------ frame %d\n", frame);
+
+    frame++;
+
+
+
+    /* this is PAL8, so make the palette available */
+
+    memcpy(s->current_frame.data[1], s->avctx->palctrl->palette, PALETTE_COUNT * 4);
+
+
+
+    s->stride = s->current_frame.linesize[0];
+
+    s->stream_ptr = s->buf + 14;  /* data starts 14 bytes in */
+
+    s->stream_end = s->buf + s->size;
+
+    s->line_inc = s->stride - 8;
+
+    s->upper_motion_limit_offset = (s->avctx->height - 8) * s->stride
+
+        + s->avctx->width - 8;
+
+
+
+    init_get_bits(&gb, s->decoding_map, s->decoding_map_size * 8);
+
+    for (y = 0; y < (s->stride * s->avctx->height); y += s->stride * 8) {
+
+        for (x = y; x < y + s->avctx->width; x += 8) {
+
+            opcode = get_bits(&gb, 4);
+
+
+
+            debug_interplay("  block @ (%3d, %3d): encoding 0x%X, data ptr @ %p\n",
+
+                            x - y, y / s->stride, opcode, s->stream_ptr);
+
+
+
+            s->pixel_ptr = s->current_frame.data[0] + x;
+
+            ret = ipvideo_decode_block[opcode](s);
+
+            if (ret != 0) {
+
+                av_log(s->avctx, AV_LOG_ERROR, " Interplay video: decode problem on frame %d, @ block (%d, %d)\n",
+
+                       frame, x - y, y / s->stride);
+
+                return;
+
+            }
+
+        }
+
+    }
+
+    if (s->stream_end - s->stream_ptr > 1) {
+
+        av_log(s->avctx, AV_LOG_ERROR, " Interplay video: decode finished with %td bytes left over\n",
+
+               s->stream_end - s->stream_ptr);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 57 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 65 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+49 -> 58 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+49 -> 66 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 81 [IS_AST_PARENT]
+71 -> 75 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void ipvideo_decode_opcodes(IpvideoContext *s, AVFrame *frame)
+
+{
+
+    int x, y;
+
+    unsigned char opcode;
+
+    int ret;
+
+    GetBitContext gb;
+
+
+
+    bytestream2_skip(&s->stream_ptr, 14); /* data starts 14 bytes in */
+
+    if (!s->is_16bpp) {
+
+        /* this is PAL8, so make the palette available */
+
+        memcpy(frame->data[1], s->pal, AVPALETTE_SIZE);
+
+
+
+        s->stride = frame->linesize[0];
+
+    } else {
+
+        s->stride = frame->linesize[0] >> 1;
+
+        s->mv_ptr = s->stream_ptr;
+
+        bytestream2_skip(&s->mv_ptr, bytestream2_get_le16(&s->stream_ptr));
+
+    }
+
+    s->line_inc = s->stride - 8;
+
+    s->upper_motion_limit_offset = (s->avctx->height - 8) * frame->linesize[0]
+
+                                  + (s->avctx->width - 8) * (1 + s->is_16bpp);
+
+
+
+    init_get_bits(&gb, s->decoding_map, s->decoding_map_size * 8);
+
+    for (y = 0; y < s->avctx->height; y += 8) {
+
+        for (x = 0; x < s->avctx->width; x += 8) {
+
+            if (get_bits_left(&gb) < 4)
+
+                return;
+
+            opcode = get_bits(&gb, 4);
+
+
+
+            ff_tlog(s->avctx,
+
+                    "  block @ (%3d, %3d): encoding 0x%X, data ptr offset %d\n",
+
+                    x, y, opcode, bytestream2_tell(&s->stream_ptr));
+
+
+
+            if (!s->is_16bpp) {
+
+                s->pixel_ptr = frame->data[0] + x
+
+                              + y*frame->linesize[0];
+
+                ret = ipvideo_decode_block[opcode](s, frame);
+
+            } else {
+
+                s->pixel_p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

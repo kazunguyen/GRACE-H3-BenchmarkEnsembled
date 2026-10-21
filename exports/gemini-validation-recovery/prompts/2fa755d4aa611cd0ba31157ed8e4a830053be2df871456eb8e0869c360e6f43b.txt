@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static unsigned char isLegalUTF8 ( const UTF8 * source , unsigned long length ) {
+ UTF8 a ;
+ const UTF8 * srcptr = source + length ;
+ switch ( length ) {
+ default : return 0 ;
+ case 4 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 3 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 2 : if ( ( a = ( * -- srcptr ) ) > 0xBF ) return 0 ;
+ switch ( * source ) {
+ case 0xE0 : if ( a < 0xA0 ) return 0 ;
+ break ;
+ case 0xED : if ( a > 0x9F ) return 0 ;
+ break ;
+ case 0xF0 : if ( a < 0x90 ) return 0 ;
+ break ;
+ case 0xF4 : if ( a > 0x8F ) return 0 ;
+ break ;
+ default : if ( a < 0x80 ) return 0 ;
+ }
+ case 1 : if ( * source >= 0x80 && * source < 0xC2 ) return 0 ;
+ }
+ if ( * source > 0xF4 ) return 0 ;
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ UTF8 a ;
+ const UTF8 * srcptr = source + length ;
+ switch ( length ) {
+ default : return 0 ;
+ case 4 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 3 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 2 : if ( ( a = ( * -- srcptr ) ) > 0xBF ) return 0 ;
+ switch ( * source ) {
+ case 0xE0 : if ( a < 0xA0 ) return 0 ;
+ break ;
+ case 0xED : if ( a > 0x9F ) return 0 ;
+ break ;
+ case 0xF0 : if ( a < 0x90 ) return 0 ;
+ break ;
+ case 0xF4 : if ( a > 0x8F ) return 0 ;
+ break ;
+ default : if ( a < 0x80 ) return 0 ;
+ }
+ case 1 : if ( * source >= 0x80 && * source < 0xC2 ) return 0 ;
+ }
+ if ( * source > 0xF4 ) return 0 ;
+ return 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ default : return 0 ;
+ case 4 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 3 : if ( ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF ) return 0 ;
+ case 2 : if ( ( a = ( * -- srcptr ) ) > 0xBF ) return 0 ;
+ switch ( * source ) {
+ case 0xE0 : if ( a < 0xA0 ) return 0 ;
+ break ;
+ case 0xED : if ( a > 0x9F ) return 0 ;
+ break ;
+ case 0xF0 : if ( a < 0x90 ) return 0 ;
+ break ;
+ case 0xF4 : if ( a > 0x8F ) return 0 ;
+ break ;
+ default : if ( a < 0x80 ) return 0 ;
+ }
+ case 1 : if ( * source >= 0x80 && * source < 0xC2 ) return 0 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ case 0xE0 : if ( a < 0xA0 ) return 0 ;
+ break ;
+ case 0xED : if ( a > 0x9F ) return 0 ;
+ break ;
+ case 0xF0 : if ( a < 0x90 ) return 0 ;
+ break ;
+ case 0xF4 : if ( a > 0x8F ) return 0 ;
+ break ;
+ default : if ( a < 0x80 ) return 0 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | srcptr = source + length
+30064771073 | CALL | source + length
+30064771074 | CALL | ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF
+30064771075 | CALL | ( a = ( * -- srcptr ) ) < 0x80
+30064771076 | CALL | a = ( * -- srcptr )
+30064771077 | CALL | * -- srcptr
+30064771078 | CALL | -- srcptr
+30064771079 | CALL | a > 0xBF
+30064771080 | CALL | ( a = ( * -- srcptr ) ) < 0x80 || a > 0xBF
+30064771081 | CALL | ( a = ( * -- srcptr ) ) < 0x80
+30064771082 | CALL | a = ( * -- srcptr )
+30064771083 | CALL | * -- srcptr
+30064771084 | CALL | -- srcptr
+30064771085 | CALL | a > 0xBF
+30064771086 | CALL | ( a = ( * -- srcptr ) ) > 0xBF
+30064771087 | CALL | a = ( * -- srcptr )
+30064771088 | CALL | * -- srcptr
+30064771089 | CALL | -- srcptr
+30064771090 | CALL | * source
+30064771091 | CALL | a < 0xA0
+30064771092 | CALL | a > 0x9F
+30064771093 | CALL | a < 0x90
+30064771094 | CALL | a > 0x8F
+30064771095 | CALL | a < 0x80
+30064771096 | CALL | * source >= 0x80 && * source < 0xC2
+30064771097 | CALL | * source >= 0x80
+30064771098 | CALL | * source
+EDGES:
+25769803776 -> 30064771072 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771084 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771074 [CFG]
+30064771079 -> 30064771085 [REACHING_DEF]
+30064771079 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771074 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771085 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771085 [AST]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771085 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771089 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771080 [CFG]
+30064771085 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771080 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771090 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * t_tob64 ( char * dst , const unsigned char * src , int size ) {
+ int c , pos = size % 3 ;
+ unsigned char b0 = 0 , b1 = 0 , b2 = 0 , notleading = 0 ;
+ char * olddst = dst ;
+ switch ( pos ) {
+ case 1 : b2 = src [ 0 ] ;
+ break ;
+ case 2 : b1 = src [ 0 ] ;
+ b2 = src [ 1 ] ;
+ break ;
+ }
+ while ( 1 ) {
+ c = ( b0 & 0xfc ) >> 2 ;
+ if ( notleading || c != 0 ) {
+ * dst ++ = b64table [ c ] ;
+ notleading = 1 ;
+ }
+ c = ( ( b0 & 3 ) << 4 ) | ( ( b1 & 0xf0 ) >> 4 ) ;
+ if ( notleading || c != 0 ) {
+ * dst ++ = b64table [ c ] ;
+ notleading = 1 ;
+ }
+ c = ( ( b1 & 0xf ) << 2 ) | ( ( b2 & 0xc0 ) >> 6 ) ;
+ if ( notleading || c != 0 ) {
+ * dst ++ = b64table [ c ] ;
+ notleading = 1 ;
+ }
+ c = b2 & 0x3f ;
+ if ( notleading ||
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

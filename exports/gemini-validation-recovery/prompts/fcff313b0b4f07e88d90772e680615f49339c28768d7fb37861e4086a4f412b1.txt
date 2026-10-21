@@ -1,0 +1,197 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void cirrus_vga_write_gr ( CirrusVGAState * s , unsigned reg_index , int reg_value ) {
+ # if defined ( DEBUG_BITBLT ) && 0 printf ( "gr%02x: %02x\n" , reg_index , reg_value ) ;
+ # endif switch ( reg_index ) {
+ case 0x00 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ s -> cirrus_shadow_gr0 = reg_value ;
+ break ;
+ case 0x01 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ s -> cirrus_shadow_gr1 = reg_value ;
+ break ;
+ case 0x02 : case 0x03 : case 0x04 : case 0x06 : case 0x07 : case 0x08 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ break ;
+ case 0x05 : s -> vga . gr [ reg_index ] = reg_value & 0x7f ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0x09 : case 0x0A : s -> vga . gr [ reg_index ] = reg_value ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0x0B : s -> vga . gr [ reg_index ] = reg_value ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0x10 : case 0x11 : case 0x12 : case 0x13 : case 0x14 : case 0x15 : case 0x20 : case 0x22 : case 0x24 : case 0x26 : case 0x28 : case 0x29 : case 0x2c : case 0x2d : case 0x2f : case 0x30 : case 0x32 : case 0x33 : case 0x34 : case 0x35 : case 0x38 : case 0x39 : s -> vga . gr [ reg_index ] = reg_value ;
+ break ;
+ case 0x21 : case 0x23 : case 0x25 : case 0x27 : s -> vga . gr [ reg_index ] = reg_value & 0x1f ;
+ break ;
+ case 0x2a : s -> vga . gr [ reg_index ] = reg_value & 0x3f ;
+ if ( s -> vga . gr [ 0x31 ] & CIRRUS_BLT_AUTOSTART ) {
+ cirrus_bitblt_start ( s ) ;
+ }
+ break ;
+ case 0x2e : s -> vga . gr [ reg_index ] = reg_value & 0x3f ;
+ break ;
+ case 0x31 : cirrus_write_bitblt ( s , reg_value ) ;
+ break ;
+ default : # ifdef DEBUG_CIRRUS printf ( "cirrus: outport gr_index %02x, gr_value %02x\n" , reg_index , reg_value ) ;
+ # endif break ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # if defined ( DEBUG_BITBLT ) && 0 printf ( "gr%02x: %02x\n" , reg_index , reg_value ) ;
+ # endif switch ( reg_index ) {
+ case 0x00 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ s -> cirrus_shadow_gr0 = reg_value ;
+ break ;
+ case 0x01 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ s -> cirrus_shadow_gr1 = reg_value ;
+ break ;
+ case 0x02 : case 0x03 : case 0x04 : case 0x06 : case 0x07 : case 0x08 : s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ] ;
+ break ;
+ case 0x05 : s -> vga . gr [ reg_index ] = reg_value & 0x7f ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0x09 : case 0x0A : s -> vga . gr [ reg_index ] = reg_value ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0x0B : s -> vga . gr [ reg_index ] = reg_value ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ cirrus_update_memory_access ( s ) ;
+ break ;
+ case 0...
+      
+25769803777 | BLOCK | { cirrus_bitblt_start ( s ) ; }
+30064771072 | CALL | s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ]
+30064771073 | CALL | s -> vga . gr [ reg_index ]
+30064771074 | CALL | s -> vga . gr
+30064771075 | CALL | s -> vga
+30064771076 | CALL | reg_value & gr_mask [ reg_index ]
+30064771077 | CALL | gr_mask [ reg_index ]
+30064771078 | CALL | s -> cirrus_shadow_gr0 = reg_value
+30064771079 | CALL | s -> cirrus_shadow_gr0
+30064771080 | CALL | s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ]
+30064771081 | CALL | s -> vga . gr [ reg_index ]
+30064771082 | CALL | s -> vga . gr
+30064771083 | CALL | s -> vga
+30064771084 | CALL | reg_value & gr_mask [ reg_index ]
+30064771085 | CALL | gr_mask [ reg_index ]
+30064771086 | CALL | s -> cirrus_shadow_gr1 = reg_value
+30064771087 | CALL | s -> cirrus_shadow_gr1
+30064771088 | CALL | s -> vga . gr [ reg_index ] = reg_value & gr_mask [ reg_index ]
+30064771089 | CALL | s -> vga . gr [ reg_index ]
+30064771090 | CALL | s -> vga . gr
+30064771091 | CALL | s -> vga
+30064771092 | CALL | reg_value & gr_mask [ reg_index ]
+30064771093 | CALL | gr_mask [ reg_index ]
+30064771094 | CALL | s -> vga . gr [ reg_index ] = reg_value & 0x7f
+30064771095 | CALL | s -> vga . gr [ reg_index ]
+30064771096 | CALL | s -> vga . gr
+30064771097 | CALL | s -> vga
+30064771098 | CALL | reg_value & 0x7f
+30064771099 | CALL | cirrus_update_memory_access ( s )
+30064771100 | CALL | s -> vga . gr [ reg_index ] = reg_value
+30064771101 | CALL | s -> vga . gr [ reg_index ]
+30064771102 | CALL | s -> vga . gr
+30064771103 | CALL | s -> vga
+30064771104 | CALL | cirrus_update_bank_ptr ( s , 0 )
+30064771105 | CALL | cirrus_update_bank_ptr ( s , 1 )
+30064771106 | CALL | cirrus_update_memory_access ( s )
+30064771107 | CALL | s -> vga . gr [ reg_index ] = reg_value
+30064771108 | CALL | s -> vga . gr [ reg_index ]
+30064771109 | CALL | s -> vga . gr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771107 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771076 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771076 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771072 [CFG]
+30064771076 -> 30064771072 [DOMINATE]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771084 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771084 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771080 [CFG]
+30064771085 -> 30064771084 [CFG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771092 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771092 [AST]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771088 [CFG]
+30064771093 -> 30064771092 [CFG]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771098 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771098 [AST]
+30064771095 -> 30064771096 [ARGUMENT]
+30064771095 -> 30064771096 [AST]
+30064771096 -> 30064771097 [ARGUMENT]
+30064771096 -> 30064771097 [AST]
+30064771098 -> 30064771094 [CFG]
+30064771100 -> 30064771101 [ARGUMENT]
+30064771100 -> 30064771101 [AST]
+30064771101 -> 300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

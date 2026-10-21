@@ -1,0 +1,233 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int int_pow(int i, int *exp_ptr)
+
+{
+
+    int e, er, eq, j;
+
+    int a, a1;
+
+    
+
+    /* renormalize */
+
+    a = i;
+
+    e = POW_FRAC_BITS;
+
+    while (a < (1 << (POW_FRAC_BITS - 1))) {
+
+        a = a << 1;
+
+        e--;
+
+    }
+
+    a -= (1 << POW_FRAC_BITS);
+
+    a1 = 0;
+
+    for(j = DEV_ORDER - 1; j >= 0; j--)
+
+        a1 = POW_MULL(a, dev_4_3_coefs[j] + a1);
+
+    a = (1 << POW_FRAC_BITS) + a1;
+
+    /* exponent compute (exact) */
+
+    e = e * 4;
+
+    er = e % 3;
+
+    eq = e / 3;
+
+    a = POW_MULL(a, pow_mult3[er]);
+
+    while (a >= 2 * POW_FRAC_ONE) {
+
+        a = a >> 1;
+
+        eq++;
+
+    }
+
+    /* convert to float */
+
+    while (a < POW_FRAC_ONE) {
+
+        a = a << 1;
+
+        eq--;
+
+    }
+
+    /* now POW_FRAC_ONE <= a < 2 * POW_FRAC_ONE */
+
+#if (POW_FRAC_BITS - 1) > FRAC_BITS
+
+    a = (a + (1 << (POW_FRAC_BITS - FRAC_BITS - 1))) >> (POW_FRAC_BITS - FRAC_BITS);
+
+    /* correct overflow */
+
+    if (a >= 2 * (1 << FRAC_BITS)) {
+
+        a = a >> 1;
+
+        eq++;
+
+    }
+
+#endif
+
+    *exp_ptr = eq;
+
+    return a;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+18 -> 22 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+33 -> 42 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+63 -> 70 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+63 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+88 -> 90 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static inline av_flatten int get_symbol_inline(RangeCoder *c, uint8_t *state,
+
+                                               int is_signed)
+
+{
+
+    if (get_rac(c, state + 0))
+
+        return 0;
+
+    else {
+
+        int i, e, a;
+
+        e = 0;
+
+        while (get_rac(c, state + 1 + FFMIN(e, 9))) { // 1..10
+
+            e++;
+
+            if (e > 31)
+
+                return AVERROR_INVALIDDATA;
+
+        }
+
+
+
+        a = 1;
+
+        for (i = e - 1; i >= 0; i--)
+
+            a += a + get_rac(c, state + 22 + FFMIN(i, 9));  // 22..31
+
+
+
+        e = -(is_signed && get_rac(c, state + 11 + FFMIN(e, 10))); // 11..21
+
+        return (a ^ e) - e;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

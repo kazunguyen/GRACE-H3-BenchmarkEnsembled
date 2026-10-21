@@ -1,0 +1,227 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int iso9660_options ( struct archive_write * a , const char * key , const char * value ) {
+ struct iso9660 * iso9660 = a -> format_data ;
+ const char * p ;
+ int r ;
+ switch ( key [ 0 ] ) {
+ case 'a' : if ( strcmp ( key , "abstract-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> abstract_file_identifier ) , ABSTRACT_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . abstract_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "application-id" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> application_identifier ) , APPLICATION_IDENTIFIER_SIZE , key , value ) ;
+ iso9660 -> opt . application_id = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "allow-vernum" ) == 0 ) {
+ iso9660 -> opt . allow_vernum = value != NULL ;
+ return ( ARCHIVE_OK ) ;
+ }
+ break ;
+ case 'b' : if ( strcmp ( key , "biblio-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> bibliographic_file_identifier ) , BIBLIO_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . biblio_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "boot" ) == 0 ) {
+ if ( value == NULL ) iso9660 -> opt . boot = 0 ;
+ else {
+ iso9660 -> opt . boot = 1 ;
+ archive_strcpy ( & ( iso9660 -> el_torito . boot_filename ) , value ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+ if ( strcmp ( key , "boot-catalog" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> el_torito . catalog_filename ) , 1024 , key , value ) ;
+ iso9660 -> opt . boot_catalog = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "boot-info-table" ) == 0 ) {
+ iso9660 -> opt . boot_info_table = value != NULL ;
+ return ( ARCHIVE_OK ) ;
+ }
+ if ( strcmp ( key , "boot-load-seg" ) == 0 ) {
+ uint32_t seg ;
+ iso9660 -> opt . boot_load_seg = 0 ;
+ if ( value == NULL ) goto invalid_value ;
+ seg = 0 ;
+ p = value ;
+ if ( p [ 0 ] == '0' && ( p [ 1 ] == 'x' || p [ 1 ] == 'X' ) ) p += 2 ;
+ while ( * p ) {
+ if ( seg ) seg <<= 4 ;
+ if ( * p >= 'A' && * p <= 'F' ) seg += * p - 'A' + 0x0a ;
+ else if ( * p >= 'a' && * p <= 'f' ) seg += * p - 'a' + 0x0a ;
+ else if ( * p >= '0' && * p <= '9' ) seg += * p - '0' ;
+ else goto invalid_value ;
+ if ( seg > 0xffff ) {
+ archive_set_error ( & a -> archive , ARCHIVE_ERRNO_MISC , "Invalid value(over 0xffff) for " "option ``%s''" , key ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ p ++ ;
+ }
+ iso9660 -> el_torito . boot_load_seg = ( uint16_t ) seg ;
+ iso9660 -> opt . boot_load_seg = 1 ;
+ return ( ARCHIVE_OK ) ;
+ }
+ if ( strcmp ( key , "boot-load-size" ) == 0 ) {
+ int num = 0 ;
+ r = get_num_opt ( a , & num , 0xffff , 1 , key , value ) ;
+ iso9660 -> opt . boot_load_size = r == ARCHIVE_OK ;
+ if ( r != ARCHIVE_OK ) return ( ARCHIVE_FATAL ) ;
+ iso9660 -> el_torito . boot_load_size = ( uint16_t ) num ;
+ return ( ARCHIVE_OK ) ;
+ }
+ if ( strcmp ( key , "boot-type" ) == 0 ) {
+ if ( value == NULL ) goto invalid_value ;
+ if ( strcmp ( value , "no-emulation" ) == 0 ) iso9660 -> opt . boot_type = OPT_BOOT_TYPE_NO_EMU ;
+ else if ( strcmp ( value , "fd" ) == 0 ) iso9660 -> opt . boot_type = OPT_BOOT_TYPE_FD ;
+ else if ( 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct iso9660 * iso9660 = a -> format_data ;
+ const char * p ;
+ int r ;
+ switch ( key [ 0 ] ) {
+ case 'a' : if ( strcmp ( key , "abstract-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> abstract_file_identifier ) , ABSTRACT_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . abstract_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "application-id" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> application_identifier ) , APPLICATION_IDENTIFIER_SIZE , key , value ) ;
+ iso9660 -> opt . application_id = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "allow-vernum" ) == 0 ) {
+ iso9660 -> opt . allow_vernum = value != NULL ;
+ return ( ARCHIVE_OK ) ;
+ }
+ break ;
+ case 'b' : if ( strcmp ( key , "biblio-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> bibliographic_file_identifier ) , BIBLIO_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . biblio_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "boot" ) == 0 ) {
+ if ( value == NULL ) iso9...
+      
+25769803777 | BLOCK | 
+        {
+ case 'a' : if ( strcmp ( key , "abstract-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> abstract_file_identifier ) , ABSTRACT_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . abstract_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "application-id" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> application_identifier ) , APPLICATION_IDENTIFIER_SIZE , key , value ) ;
+ iso9660 -> opt . application_id = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "allow-vernum" ) == 0 ) {
+ iso9660 -> opt . allow_vernum = value != NULL ;
+ return ( ARCHIVE_OK ) ;
+ }
+ break ;
+ case 'b' : if ( strcmp ( key , "biblio-file" ) == 0 ) {
+ r = get_str_opt ( a , & ( iso9660 -> bibliographic_file_identifier ) , BIBLIO_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . biblio_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+ if ( strcmp ( key , "boot" ) == 0 ) {
+ if ( value == NULL ) iso9660 -> opt . boot = 0 ;
+ else {
+ iso9660 -> opt . boot = 1 ;
+ archive_strcpy ( & ( iso9660 -> el_t...
+      
+25769803778 | BLOCK | 
+        {
+ r = get_str_opt ( a , & ( iso9660 -> abstract_file_identifier ) , ABSTRACT_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . abstract_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ r = get_str_opt ( a , & ( iso9660 -> application_identifier ) , APPLICATION_IDENTIFIER_SIZE , key , value ) ;
+ iso9660 -> opt . application_id = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+      
+25769803780 | BLOCK | { iso9660 -> opt . allow_vernum = value != NULL ; return ( ARCHIVE_OK ) ; }
+25769803781 | BLOCK | 
+        {
+ r = get_str_opt ( a , & ( iso9660 -> bibliographic_file_identifier ) , BIBLIO_FILE_SIZE , key , value ) ;
+ iso9660 -> opt . biblio_file = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( value == NULL ) iso9660 -> opt . boot = 0 ;
+ else {
+ iso9660 -> opt . boot = 1 ;
+ archive_strcpy ( & ( iso9660 -> el_torito . boot_filename ) , value ) ;
+ }
+ return ( ARCHIVE_OK ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ iso9660 -> opt . boot = 1 ;
+ archive_strcpy ( & ( iso9660 -> el_torito . boot_filename ) , value ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ r = get_str_opt ( a , & ( iso9660 -> el_torito . catalog_filename ) , 1024 , key , value ) ;
+ iso9660 -> opt . boot_catalog = r == ARCHIVE_OK ;
+ return ( r ) ;
+ }
+      
+25769803786 | BLOCK | { iso9660 -> opt . boot_info_table = value != NULL ; return ( ARCHIVE_OK ) ; }
+25769803787 | BLOCK | 
+        {
+ uint32_t seg ;
+ iso9660 -> opt . boot_load_seg = 0 ;
+ if ( value == NULL ) goto invalid_value ;
+ seg = 0 ;
+ p = value ;
+ if ( p [ 0 ] == '0' && ( p [ 1 ] == 'x' || p [ 1 ] == 'X' ) ) p += 2 ;
+ while ( * p ) {
+ if ( seg ) seg <<= 4 ;
+ if ( * p >= 'A' && * p <= 'F' ) seg += * p - 'A' + 0x0a ;
+ else if ( * p >= 'a' && * p <= 'f' ) seg += * p - 'a' + 0x0a ;
+ else if ( * p >= '0' && * p <= '9' ) seg += * p - '0' ;
+ else goto invalid_value ;
+ if ( seg > 0xffff ) {
+ archive_set_error ( & a -> archive , ARCHIVE_ERRNO_MISC , "Invalid value(over 0xffff) for " "option ``%s''" , key ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ p ++ ;
+ }
+ iso9660 -> el_torito . boot_load_seg = ( uint16_t ) seg ;
+ iso9660 -> opt . boot_load_seg = 1 ;
+ return ( ARCHIVE_OK ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK |
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

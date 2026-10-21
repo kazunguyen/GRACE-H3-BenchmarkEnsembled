@@ -1,0 +1,359 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void rtas_start_cpu(PowerPCCPU *cpu_, sPAPRMachineState *spapr,
+
+                           uint32_t token, uint32_t nargs,
+
+                           target_ulong args,
+
+                           uint32_t nret, target_ulong rets)
+
+{
+
+    target_ulong id, start, r3;
+
+    PowerPCCPU *cpu;
+
+
+
+    if (nargs != 3 || nret != 1) {
+
+        rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+
+        return;
+
+    }
+
+
+
+    id = rtas_ld(args, 0);
+
+    start = rtas_ld(args, 1);
+
+    r3 = rtas_ld(args, 2);
+
+
+
+    cpu = spapr_find_cpu(id);
+
+    if (cpu != NULL) {
+
+        CPUState *cs = CPU(cpu);
+
+        CPUPPCState *env = &cpu->env;
+
+        PowerPCCPUClass *pcc = POWERPC_CPU_GET_CLASS(cpu);
+
+        Error *local_err = NULL;
+
+
+
+        if (!cs->halted) {
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        /* This will make sure qemu state is up to date with kvm, and
+
+         * mark it dirty so our changes get flushed back before the
+
+         * new cpu enters */
+
+        kvm_cpu_synchronize_state(cs);
+
+
+
+        /* Set compatibility mode to match existing cpus */
+
+        ppc_set_compat(cpu, POWERPC_CPU(first_cpu)->compat_pvr, &local_err);
+
+        if (local_err) {
+
+            error_report_err(local_err);
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        env->msr = (1ULL << MSR_SF) | (1ULL << MSR_ME);
+
+
+
+        /* Enable Power-saving mode Exit Cause exceptions for the new CPU */
+
+        env->spr[SPR_LPCR] |= pcc->lpcr_pm;
+
+
+
+        env->nip = start;
+
+        env->gpr[3] = r3;
+
+        cs->halted = 0;
+
+        spapr_cpu_set_endianness(cpu);
+
+        spapr_cpu_update_tb_offset(cpu);
+
+
+
+        qemu_cpu_kick(cs);
+
+
+
+        rtas_st(rets, 0, RTAS_OUT_SUCCESS);
+
+        return;
+
+    }
+
+
+
+    /* Didn't find a matching cpu */
+
+    rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    target_ulong id, start, r3;
+
+    PowerPCCPU *cpu;
+
+
+
+    if (nargs != 3 || nret != 1) {
+
+        rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+
+        return;
+
+    }
+
+
+
+    id = rtas_ld(args, 0);
+
+    start = rtas_ld(args, 1);
+
+    r3 = rtas_ld(args, 2);
+
+
+
+    cpu = spapr_find_cpu(id);
+
+    if (cpu != NULL) {
+
+        CPUState *cs = CPU(cpu);
+
+        CPUPPCState *env = &cpu->env;
+
+        PowerPCCPUClass *pcc = POWERPC_CPU_GET_CLASS(cpu);
+
+        Error *local_err = NULL;
+
+
+
+        if (!cs->halted) {
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        /* This will make sure qemu state is up to date with kvm, and
+
+         * mark it dirty so our changes get flushed back before the
+
+         * new cpu enters */
+
+        kvm_cpu_synchronize_state(cs);
+
+
+
+        /* Set compatibility mode to match existing cpus */
+
+        ppc_set_compat(cpu, POWERPC_CPU(first_cpu)->compat_pvr, &local_err);
+
+        if (local_err) {
+
+            error_report...
+      
+25769803777 | BLOCK | { rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR); return; }
+25769803778 | BLOCK | 
+        {
+
+        CPUState *cs = CPU(cpu);
+
+        CPUPPCState *env = &cpu->env;
+
+        PowerPCCPUClass *pcc = POWERPC_CPU_GET_CLASS(cpu);
+
+        Error *local_err = NULL;
+
+
+
+        if (!cs->halted) {
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        /* This will make sure qemu state is up to date with kvm, and
+
+         * mark it dirty so our changes get flushed back before the
+
+         * new cpu enters */
+
+        kvm_cpu_synchronize_state(cs);
+
+
+
+        /* Set compatibility mode to match existing cpus */
+
+        ppc_set_compat(cpu, POWERPC_CPU(first_cpu)->compat_pvr, &local_err);
+
+        if (local_err) {
+
+            error_report_err(local_err);
+
+            rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
+
+            return;
+
+        }
+
+
+
+        env->msr = (1ULL << MSR_SF) | (1ULL << MSR_ME);
+
+
+
+        /* Enable Power-saving mode Exit Cause exceptions for the new CPU */
+
+        env->spr[SPR_LPCR] |= pcc->lpcr_pm;
+
+
+
+        env->nip = start;
+...
+      
+25769803779 | BLOCK | { rtas_st(rets, 0, RTAS_OUT_HW_ERROR); return; }
+25769803780 | BLOCK | { error_report_err(local_err); rtas_st(rets, 0, RTAS_OUT_HW_ERROR); return; }
+30064771072 | CALL | nargs != 3 || nret != 1
+30064771073 | CALL | nargs != 3
+30064771074 | CALL | nret != 1
+30064771075 | CALL | rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR)
+30064771076 | CALL | id = rtas_ld(args, 0)
+30064771077 | CALL | rtas_ld(args, 0)
+30064771078 | CALL | start = rtas_ld(args, 1)
+30064771079 | CALL | rtas_ld(args, 1)
+30064771080 | CALL | r3 = rtas_ld(args, 2)
+30064771081 | CALL | rtas_ld(args, 2)
+30064771082 | CALL | cpu = spapr_find_cpu(id)
+30064771083 | CALL | spapr_find_cpu(id)
+30064771084 | CALL | cpu != NULL
+30064771085 | CALL | cs = CPU(cpu)
+30064771086 | CALL | CPU(cpu)
+30064771087 | CALL | env = &cpu->env
+30064771088 | CALL | &cpu->env
+30064771089 | CALL | cpu->env
+30064771090 | CALL | pcc = POWERPC_CPU_GET_CLASS(cpu)
+30064771091 | CALL | POWERPC_CPU_GET_CLASS(cpu)
+30064771092 | CALL | local_err = NULL
+30064771093 | CALL | !cs->halted
+30064771094 | CALL | cs->halted
+30064771095 | CALL | rtas_st(rets, 0, RTAS_OUT_HW_ERROR)
+30064771096 | CALL | kvm_cpu_synchronize_state(cs)
+30064771097 | CALL | ppc_set_compat(cpu, POWERPC_CPU(first_cpu)->compat_pvr, &local_err)
+30064771098 | CALL | POWERPC_CPU(first_cpu)->compat_pvr
+30064771099 | CALL | POWERPC_CPU(first_cpu)
+30064771100 | CALL | &local_err
+30064771101 | CALL | local_err != NULL
+30064771102 | CALL | error_report_err(local_err)
+30064771103 | CALL | rtas_st(rets, 0, RTAS_OUT_HW_ERROR)
+30064771104 | CALL | env->msr = (1ULL << MSR_SF) | (1ULL << MSR_ME)
+30064771105 | CALL | env->msr
+30064771106 | CALL | (1ULL << MSR_SF) | (1ULL << MSR_ME)
+EDGES:
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771085 [AST]
+25769803778 -> 30064771087 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771096 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771104 [AST]
+25769803779 -> 30064771095 [AST]
+25769803780 -> 30064771102 [AST]
+25769803780 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AS
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

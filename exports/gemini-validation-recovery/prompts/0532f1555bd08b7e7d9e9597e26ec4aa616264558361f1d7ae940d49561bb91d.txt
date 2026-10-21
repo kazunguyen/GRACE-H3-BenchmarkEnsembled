@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rebuild_bitmap ( uint32_t * reposition , struct ewah_bitmap * source , struct bitmap * dest ) {
+ uint32_t pos = 0 ;
+ struct ewah_iterator it ;
+ eword_t word ;
+ ewah_iterator_init ( & it , source ) ;
+ while ( ewah_iterator_next ( & word , & it ) ) {
+ uint32_t offset , bit_pos ;
+ for ( offset = 0 ;
+ offset < BITS_IN_EWORD ;
+ ++ offset ) {
+ if ( ( word >> offset ) == 0 ) break ;
+ offset += ewah_bit_ctz64 ( word >> offset ) ;
+ bit_pos = reposition [ pos + offset ] ;
+ if ( bit_pos > 0 ) bitmap_set ( dest , bit_pos - 1 ) ;
+ else return - 1 ;
+ }
+ pos += BITS_IN_EWORD ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t pos = 0 ;
+ struct ewah_iterator it ;
+ eword_t word ;
+ ewah_iterator_init ( & it , source ) ;
+ while ( ewah_iterator_next ( & word , & it ) ) {
+ uint32_t offset , bit_pos ;
+ for ( offset = 0 ;
+ offset < BITS_IN_EWORD ;
+ ++ offset ) {
+ if ( ( word >> offset ) == 0 ) break ;
+ offset += ewah_bit_ctz64 ( word >> offset ) ;
+ bit_pos = reposition [ pos + offset ] ;
+ if ( bit_pos > 0 ) bitmap_set ( dest , bit_pos - 1 ) ;
+ else return - 1 ;
+ }
+ pos += BITS_IN_EWORD ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ uint32_t offset , bit_pos ;
+ for ( offset = 0 ;
+ offset < BITS_IN_EWORD ;
+ ++ offset ) {
+ if ( ( word >> offset ) == 0 ) break ;
+ offset += ewah_bit_ctz64 ( word >> offset ) ;
+ bit_pos = reposition [ pos + offset ] ;
+ if ( bit_pos > 0 ) bitmap_set ( dest , bit_pos - 1 ) ;
+ else return - 1 ;
+ }
+ pos += BITS_IN_EWORD ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( ( word >> offset ) == 0 ) break ;
+ offset += ewah_bit_ctz64 ( word >> offset ) ;
+ bit_pos = reposition [ pos + offset ] ;
+ if ( bit_pos > 0 ) bitmap_set ( dest , bit_pos - 1 ) ;
+ else return - 1 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | pos = 0
+30064771073 | CALL | ewah_iterator_init ( & it , source )
+30064771074 | CALL | & it
+30064771075 | CALL | ewah_iterator_next ( & word , & it )
+30064771076 | CALL | & word
+30064771077 | CALL | & it
+30064771078 | CALL | offset = 0
+30064771079 | CALL | offset < BITS_IN_EWORD
+30064771080 | CALL | ++ offset
+30064771081 | CALL | ( word >> offset ) == 0
+30064771082 | CALL | word >> offset
+30064771083 | CALL | offset += ewah_bit_ctz64 ( word >> offset )
+30064771084 | CALL | ewah_bit_ctz64 ( word >> offset )
+30064771085 | CALL | word >> offset
+30064771086 | CALL | bit_pos = reposition [ pos + offset ]
+30064771087 | CALL | reposition [ pos + offset ]
+30064771088 | CALL | pos + offset
+30064771089 | CALL | bit_pos > 0
+30064771090 | CALL | bitmap_set ( dest , bit_pos - 1 )
+30064771091 | CALL | bit_pos - 1
+30064771092 | CALL | - 1
+30064771093 | CALL | pos += BITS_IN_EWORD
+47244640256 | CONTROL_STRUCTURE | while (ewah_iterator_next ( & word , & it ))
+47244640257 | CONTROL_STRUCTURE | for (offset = 0 ;offset < BITS_IN_EWORD;++ offset)
+47244640258 | CONTROL_STRUCTURE | if ( ( word >> offset ) == 0 ) break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | 
+        if ( bit_pos > 0 ) bitmap_set ( dest , bit_pos - 1 ) ;
+ else return - 1 ;
+      
+68719476736 | IDENTIFIER | pos
+68719476737 | IDENTIFIER | it
+68719476738 | IDENTIFIER | source
+68719476739 | IDENTIFIER | word
+68719476740 | IDENTIFIER | it
+68719476741 | IDENTIFIER | offset
+68719476742 | IDENTIFIER | offset
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771093 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 47244640260 [AST]
+25769803779 -> 47244640259 [AST]
+25769803780 -> 30064771090 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 68719476740 [REACHING_DEF]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 68719476740 [POST_DOMINATE]
+30064771077 -> 68719476740 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 68719476742 [DOMINATE]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 68719476739 [CDG]
+30064771079 -> 68719476740 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771075 [CDG]
+30064771079 -> 30064771076 [CDG]
+30064771079 -> 30064771077 [CDG]
+30064771080 -> 68719476742 [CFG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 68719476739 [CDG]
+30064771081 -> 68719476740 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771083 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void show_objects_for_type ( struct bitmap * objects , struct ewah_bitmap * type_filter , enum object_type object_type , show_reachable_fn show_reach ) {
+ size_t pos = 0 , i = 0 ;
+ uint32_t offset ;
+ struct ewah_iterator it ;
+ eword_t filter ;
+ if ( bitmap_git . reuse_objects == bitmap_git . pack -> num_objects ) return ;
+ ewah_iterator_init ( & it , type_filter ) ;
+ while ( i < objects -> word_alloc && ewah_iterator_next ( & filter , & it ) ) {
+ eword_t word = objects -> words [ i ] & filter ;
+ for ( offset = 0 ;
+ offset < BITS_IN_EWORD ;
+ ++ offset ) {
+ const unsigned char * sha1 ;
+ struct revindex_entry * entry ;
+ uint32_t hash = 0 ;
+ if ( ( word >> offset ) == 0 ) break ;
+ offset += ewah_bit_ctz64 ( word >> offset ) ;
+ if ( pos + offset < bitmap_git . reuse_objects ) continue ;
+ entry = & bitmap_git . pack -> revindex [ pos + offset ] ;
+ sha1 = nth_packed_object_sha1 ( bitmap_git . pack , entry -> nr ) ;
+ if ( bitmap_git . hashes ) hash = ntohl ( bitmap_git . hashes [ entry -> nr ] ) ;
+ show_reach ( sha1 , object_type , 0 , hash , bitmap_git . pack , entry -> offset ) ;
+ }
+ pos += BITS_IN_EWORD ;
+ i ++ ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

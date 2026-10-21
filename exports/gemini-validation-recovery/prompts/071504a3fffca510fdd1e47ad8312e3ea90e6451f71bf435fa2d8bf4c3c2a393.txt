@@ -1,0 +1,128 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void qemu_iovec_destroy(QEMUIOVector *qiov)
+
+{
+
+    assert(qiov->nalloc != -1);
+
+
+
+
+    g_free(qiov->iov);
+
+
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | Callee
+AST 3 | CallExpression
+AST 4 | ExpressionStatement
+AST 5 | CompoundStatement
+AST 6 | FunctionDef
+EDGES (original Joern endpoint IDs):
+7 -> 8 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+11 -> 15 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 27 [IS_AST_PARENT]
+3 -> 28 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+3 -> 29 [IS_AST_PARENT]
+33 -> 30 [FLOWS_TO]
+30 -> 5 [FLOWS_TO]
+5 -> 18 [FLOWS_TO]
+18 -> 34 [FLOWS_TO]
+5 -> 35 [USE]
+10 -> 35 [USE]
+18 -> 35 [USE]
+23 -> 35 [USE]
+18 -> 36 [USE]
+23 -> 36 [USE]
+30 -> 37 [DEF]
+5 -> 37 [USE]
+12 -> 37 [USE]
+18 -> 37 [USE]
+24 -> 37 [USE]
+5 -> 38 [USE]
+10 -> 38 [USE]
+30 -> 5 [REACHES]
+30 -> 18 [REACHES]
+33 -> 30 [CONTROLS]
+33 -> 5 [CONTROLS]
+33 -> 18 [CONTROLS]
+33 -> 30 [DOM]
+5 -> 18 [DOM]
+33 -> 33 [DOM]
+18 -> 34 [DOM]
+30 -> 5 [DOM]
+5 -> 30 [POST_DOM]
+34 -> 18 [POST_DOM]
+30 -> 33 [POST_DOM]
+34 -> 34 [POST_DOM]
+18 -> 5 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 33 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void qemu_iovec_add(QEMUIOVector *qiov, void *base, size_t len)
+
+{
+
+    assert(qiov->nalloc != -1);
+
+
+
+    if (qiov->niov == qiov->nalloc) {
+
+        qiov->nalloc = 2 * qiov->nalloc + 1;
+
+        qiov->iov = g_realloc(qiov->iov, qiov->nalloc * sizeof(struct iovec));
+
+    }
+
+    qiov->iov[qiov->niov].iov_base = base;
+
+    qiov->iov[qiov->niov].iov_len = len;
+
+    qiov->size += len;
+
+    ++qiov->niov;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,437 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static sd_rsp_type_t sd_normal_command(SDState *sd,
+
+                                       SDRequest req)
+
+{
+
+    uint32_t rca = 0x0000;
+
+    uint64_t addr = (sd->ocr & (1 << 30)) ? (uint64_t) req.arg << 9 : req.arg;
+
+
+
+    if (sd_cmd_type[req.cmd] == sd_ac || sd_cmd_type[req.cmd] == sd_adtc)
+
+        rca = req.arg >> 16;
+
+
+
+    DPRINTF("CMD%d 0x%08x state %d\n", req.cmd, req.arg, sd->state);
+
+    switch (req.cmd) {
+
+    /* Basic commands (Class 0 and Class 1) */
+
+    case 0:	/* CMD0:   GO_IDLE_STATE */
+
+        switch (sd->state) {
+
+        case sd_inactive_state:
+
+            return sd->spi ? sd_r1 : sd_r0;
+
+
+
+        default:
+
+            sd->state = sd_idle_state;
+
+            sd_reset(sd, sd->bdrv);
+
+            return sd->spi ? sd_r1 : sd_r0;
+
+        }
+
+        break;
+
+
+
+    case 1:	/* CMD1:   SEND_OP_CMD */
+
+        if (!sd->spi)
+
+            goto bad_cmd;
+
+
+
+        sd->state = sd_transfer_state;
+
+        return sd_r1;
+
+
+
+    case 2:	/* CMD2:   ALL_SEND_CID */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_ready_state:
+
+            sd->state = sd_identification_state;
+
+            return sd_r2_i;
+
+
+
+        default:
+
+            break;
+
+        }
+
+        break;
+
+
+
+    case 3:	/* CMD3:   SEND_RELATIVE_ADDR */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_identification_state:
+
+        case sd_standby_state:
+
+            sd->state = sd_standby_state;
+
+            sd_set_rca(sd);
+
+            return sd_r6;
+
+
+
+        default:
+
+            break;
+
+        }
+
+        break;
+
+
+
+    case 4:	/* CMD4:   SEND_DSR */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_standby_state:
+
+            break;
+
+
+
+        default:
+
+            break;
+
+        }
+
+        break;
+
+
+
+    case 5: /* CMD5: reserved for SDIO cards */
+
+        sd->card_status |= ILLEGAL_COMMAND;
+
+        return sd_r0;
+
+
+
+    case 6:	/* CMD6:   SWITCH_FUNCTION */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->mode) {
+
+        case sd_data_transfer_mode:
+
+            sd_function_switch(sd, req.arg);
+
+            sd->state = sd_sendingdata_state;
+
+            sd->data_start = 0;
+
+            sd->data_offset = 0;
+
+            return sd_r1;
+
+
+
+        default:
+
+            break;
+
+        }
+
+        break;
+
+
+
+    case 7:	/* CMD7:   SELECT/DESELECT_CARD */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_standby_state:
+
+            if (sd->rca != rca)
+
+                return sd_r0;
+
+
+
+            sd->state = sd_transfer_state;
+
+            return sd_r1b;
+
+
+
+        case sd_transfer_state:
+
+        case sd_sendingdata_state:
+
+            if (sd->rca == rca)
+
+                break;
+
+
+
+            sd->state = sd_standby_state;
+
+            return sd_r1b;
+
+
+
+        case sd_disconnect_state:
+
+            if (sd->rca != rca)
+
+                return sd_r0;
+
+
+
+            sd->state =
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+20 -> 24 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 33 [IS_AST_PARENT]
+18 -> 27 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+18 -> 34 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 46 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 53 [IS_AST_PARENT]
+39 -> 47 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 61 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+37 -> 54 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+66 -> 73 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+66 -> 77 [IS_AST_PARENT]
+63 -> 66 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static sd_rsp_type_t sd_normal_command(SDState *sd,
+
+                                       SDRequest req)
+
+{
+
+    uint32_t rca = 0x0000;
+
+    uint64_t addr = (sd->ocr & (1 << 30)) ? (uint64_t) req.arg << 9 : req.arg;
+
+
+
+    /* Not interpreting this as an app command */
+
+    sd->card_status &= ~APP_CMD;
+
+
+
+    if (sd_cmd_type[req.cmd] == sd_ac || sd_cmd_type[req.cmd] == sd_adtc)
+
+        rca = req.arg >> 16;
+
+
+
+    DPRINTF("CMD%d 0x%08x state %d\n", req.cmd, req.arg, sd->state);
+
+    switch (req.cmd) {
+
+    /* Basic commands (Class 0 and Class 1) */
+
+    case 0:	/* CMD0:   GO_IDLE_STATE */
+
+        switch (sd->state) {
+
+        case sd_inactive_state:
+
+            return sd->spi ? sd_r1 : sd_r0;
+
+
+
+        default:
+
+            sd->state = sd_idle_state;
+
+            sd_reset(sd, sd->bdrv);
+
+            return sd->spi ? sd_r1 : sd_r0;
+
+        }
+
+        break;
+
+
+
+    case 1:	/* CMD1:   SEND_OP_CMD */
+
+        if (!sd->spi)
+
+            goto bad_cmd;
+
+
+
+        sd->state = sd_transfer_state;
+
+        return sd_r1;
+
+
+
+    case 2:	/* CMD2:   ALL_SEND_CID */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_ready_state:
+
+            sd->state = sd_identification_state;
+
+            return sd_r2_i;
+
+
+
+        default:
+
+            break;
+
+        }
+
+        break;
+
+
+
+    case 3:	/* CMD3:   SEND_RELATIVE_ADDR */
+
+        if (sd->spi)
+
+            goto bad_cmd;
+
+        switch (sd->state) {
+
+        case sd_identification_state:
+
+      
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

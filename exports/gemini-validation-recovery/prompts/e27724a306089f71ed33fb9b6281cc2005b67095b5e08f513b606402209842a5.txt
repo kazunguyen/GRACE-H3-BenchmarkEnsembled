@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int checkHttpTxnIncomingAddrGet ( SocketTest * test , void * data ) {
+ uint16_t port ;
+ HttpProxyPort * proxy_port = HttpProxyPort : : findHttp ( AF_INET ) ;
+ TSHttpTxn txnp = ( TSHttpTxn ) data ;
+ sockaddr const * ptr = TSHttpTxnIncomingAddrGet ( txnp ) ;
+ if ( nullptr == proxy_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet failed to find configured HTTP port." ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+ if ( nullptr == ptr ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet returns 0 pointer" ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+ port = ats_ip_port_host_order ( ptr ) ;
+ TSDebug ( UTDBG_TAG , "TS HTTP port = %x, Txn incoming client port %x" , proxy_port -> m_port , port ) ;
+ if ( port == proxy_port -> m_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_PASS , "ok" ) ;
+ test -> test_client_incoming_port_get = true ;
+ }
+ else {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_FAIL , "Value's Mismatch. From Function: %d Expected value: %d" , port , proxy_port -> m_port ) ;
+ test -> test_client_incoming_port_get = false ;
+ }
+ return TS_EVENT_CONTINUE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint16_t port ;
+ HttpProxyPort * proxy_port = HttpProxyPort : : findHttp ( AF_INET ) ;
+ TSHttpTxn txnp = ( TSHttpTxn ) data ;
+ sockaddr const * ptr = TSHttpTxnIncomingAddrGet ( txnp ) ;
+ if ( nullptr == proxy_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet failed to find configured HTTP port." ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+ if ( nullptr == ptr ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet returns 0 pointer" ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+ port = ats_ip_port_host_order ( ptr ) ;
+ TSDebug ( UTDBG_TAG , "TS HTTP port = %x, Txn incoming client port %x" , proxy_port -> m_port , port ) ;
+ if ( port == proxy_port -> m_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_PASS , "ok" ) ;
+ test -> test_client_inc...
+      
+25769803777 | BLOCK | 
+        {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet failed to find configured HTTP port." ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet returns 0 pointer" ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_PASS , "ok" ) ;
+ test -> test_client_incoming_port_get = true ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_FAIL , "Value's Mismatch. From Function: %d Expected value: %d" , port , proxy_port -> m_port ) ;
+ test -> test_client_incoming_port_get = false ;
+ }
+      
+30064771072 | CALL | proxy_port = HttpProxyPort
+30064771073 | CALL | txnp = ( TSHttpTxn ) data
+30064771074 | CALL | ( TSHttpTxn ) data
+30064771075 | CALL | ptr = TSHttpTxnIncomingAddrGet ( txnp )
+30064771076 | CALL | TSHttpTxnIncomingAddrGet ( txnp )
+30064771077 | CALL | nullptr == proxy_port
+30064771078 | CALL | 
+        SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet failed to find configured HTTP port." )
+      
+30064771079 | CALL | test -> regtest
+30064771080 | CALL | test -> test_client_incoming_port_get = false
+30064771081 | CALL | test -> test_client_incoming_port_get
+30064771082 | CALL | nullptr == ptr
+30064771083 | CALL | 
+        SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet returns 0 pointer" )
+      
+30064771084 | CALL | test -> regtest
+30064771085 | CALL | test -> test_client_incoming_port_get = false
+30064771086 | CALL | test -> test_client_incoming_port_get
+30064771087 | CALL | port = ats_ip_port_host_order ( ptr )
+30064771088 | CALL | ats_ip_port_host_order ( ptr )
+30064771089 | CALL | 
+        TSDebug ( UTDBG_TAG , "TS HTTP port = %x, Txn incoming client port %x" , proxy_port -> m_port , port )
+      
+30064771090 | CALL | proxy_port -> m_port
+30064771091 | CALL | port == proxy_port -> m_port
+30064771092 | CALL | proxy_port -> m_port
+30064771093 | CALL | 
+        SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_PASS , "ok" )
+      
+30064771094 | CALL | test -> regtest
+30064771095 | CALL | test -> test_client_incoming_port_get = true
+30064771096 | CALL | test -> test_client_incoming_port_get
+30064771097 | CALL | 
+        SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_FAIL , "Value's Mismatch. From Function: %d Expected value: %d" , port , proxy_port -> m_port )
+      
+30064771098 | CALL | test -> regtest
+30064771099 | CALL | proxy_port -> m_port
+30064771100 | CALL | test -> test_client_incoming_port_get = false
+30064771101 | CALL | test -> test_client_incoming_port_get
+47244640256 | CONTROL_STRUCTURE | 
+        if ( nullptr == proxy_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet failed to find configured HTTP port." ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( nullptr == ptr ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingPortGet" , "TestCase1" , TC_FAIL , "TSHttpTxnIncomingAddrGet returns 0 pointer" ) ;
+ test -> test_client_incoming_port_get = false ;
+ return TS_EVENT_CONTINUE ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( port == proxy_port -> m_port ) {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_PASS , "ok" ) ;
+ test -> test_client_incoming_port_get = true ;
+ }
+ else {
+ SDK_RPRINT ( test -> regtest , "TSHttpTxnIncomingAddrGet" , "TestCase1" , TC_FAIL , "Value's Mismatch. From Function: %d Expected value: %d" , port , proxy_port -> m_port ) ;
+ test -> test_client_incoming_port_get = false ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | regtest
+55834574849 | FIELD_IDENTIFIER | test_client_incoming_port_get
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 47244640258 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771085 [AST]
+25769803779 -> 30064771093 [AST]
+25769803779 -> 30064771095 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771100 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

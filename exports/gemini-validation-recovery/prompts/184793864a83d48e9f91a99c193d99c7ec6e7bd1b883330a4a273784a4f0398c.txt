@@ -1,0 +1,197 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_stiny_bug ( ) {
+ MYSQL_STMT * stmt ;
+ MYSQL_BIND my_bind [ 4 ] ;
+ short short_value ;
+ int32 long_value ;
+ ulong s_length , l_length , ll_length , t_length ;
+ ulonglong longlong_value ;
+ int rc ;
+ uchar tiny_value ;
+ char llbuf [ 22 ] ;
+ myheader ( "test_stiny_bug" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_stiny" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_stiny(a tinyint signed, \ b tinyint signed, \ c tinyint unsigned, \ d tinyint unsigned)" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "INSERT INTO test_stiny VALUES(-128, -127, 255, 0)" ) ;
+ myquery ( rc ) ;
+ stmt = mysql_simple_prepare ( mysql , "SELECT * FROM test_stiny" ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ memset ( my_bind , 0 , sizeof ( my_bind ) ) ;
+ my_bind [ 0 ] . buffer_type = MYSQL_TYPE_SHORT ;
+ my_bind [ 0 ] . buffer = ( void * ) & short_value ;
+ my_bind [ 0 ] . length = & s_length ;
+ my_bind [ 1 ] . buffer_type = MYSQL_TYPE_LONG ;
+ my_bind [ 1 ] . buffer = ( void * ) & long_value ;
+ my_bind [ 1 ] . length = & l_length ;
+ my_bind [ 2 ] . buffer_type = MYSQL_TYPE_LONGLONG ;
+ my_bind [ 2 ] . buffer = ( void * ) & longlong_value ;
+ my_bind [ 2 ] . length = & ll_length ;
+ my_bind [ 3 ] . buffer_type = MYSQL_TYPE_TINY ;
+ my_bind [ 3 ] . buffer = ( void * ) & tiny_value ;
+ my_bind [ 3 ] . length = & t_length ;
+ rc = mysql_stmt_bind_result ( stmt , my_bind ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ if ( ! opt_silent ) {
+ fprintf ( stdout , "\n sshort : %d (%ld)" , short_value , s_length ) ;
+ fprintf ( stdout , "\n slong : %ld (%ld)" , ( long ) long_value , l_length ) ;
+ fprintf ( stdout , "\n longlong : %s (%ld)" , llstr ( longlong_value , llbuf ) , ll_length ) ;
+ fprintf ( stdout , "\n tinyint : %d (%ld)" , tiny_value , t_length ) ;
+ }
+ DIE_UNLESS ( short_value == - 128 ) ;
+ DIE_UNLESS ( s_length == 2 ) ;
+ DIE_UNLESS ( long_value == - 127 ) ;
+ DIE_UNLESS ( l_length == 4 ) ;
+ DIE_UNLESS ( longlong_value == 255 ) ;
+ DIE_UNLESS ( ll_length == 8 ) ;
+ DIE_UNLESS ( tiny_value == 0 ) ;
+ DIE_UNLESS ( t_length == 1 ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ DIE_UNLESS ( rc == MYSQL_NO_DATA ) ;
+ mysql_stmt_close ( stmt ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ MYSQL_BIND my_bind [ 4 ] ;
+ short short_value ;
+ int32 long_value ;
+ ulong s_length , l_length , ll_length , t_length ;
+ ulonglong longlong_value ;
+ int rc ;
+ uchar tiny_value ;
+ char llbuf [ 22 ] ;
+ myheader ( "test_stiny_bug" ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_stiny" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE test_stiny(a tinyint signed, \ b tinyint signed, \ c tinyint unsigned, \ d tinyint unsigned)" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "INSERT INTO test_stiny VALUES(-128, -127, 255, 0)" ) ;
+ myquery ( rc ) ;
+ stmt = mysql_simple_prepare ( mysql , "SELECT * FROM test_stiny" ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ memset ( my_bind , 0 , sizeof ( my_bind ) ) ;
+ my_bind [ 0 ] . buffer_type = MYSQL_TYPE_SHORT ;
+ my_bind [ 0 ] . buffer = ( void * ) & short_value ;
+ my_bind [ 0 ] . length = & s_length ;
+ my_bind [ 1 ] . buffer_type = MYSQL_TYPE_LONG ;...
+      
+25769803777 | BLOCK | 
+        {
+ fprintf ( stdout , "\n sshort : %d (%ld)" , short_value , s_length ) ;
+ fprintf ( stdout , "\n slong : %ld (%ld)" , ( long ) long_value , l_length ) ;
+ fprintf ( stdout , "\n longlong : %s (%ld)" , llstr ( longlong_value , llbuf ) , ll_length ) ;
+ fprintf ( stdout , "\n tinyint : %d (%ld)" , tiny_value , t_length ) ;
+ }
+      
+30064771072 | CALL | my_bind [ 4 ]
+30064771073 | CALL | my_bind [ 4 ]
+30064771074 | CALL | llbuf [ 22 ]
+30064771075 | CALL | llbuf [ 22 ]
+30064771076 | CALL | myheader ( "test_stiny_bug" )
+30064771077 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS test_stiny" )
+30064771078 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS test_stiny" )
+30064771079 | CALL | myquery ( rc )
+30064771080 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE test_stiny(a tinyint signed, \ b tinyint signed, \ c tinyint unsigned, \ d tinyint unsigned)" )
+      
+30064771081 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE test_stiny(a tinyint signed, \ b tinyint signed, \ c tinyint unsigned, \ d tinyint unsigned)" )
+      
+30064771082 | CALL | myquery ( rc )
+30064771083 | CALL | 
+        rc = mysql_query ( mysql , "INSERT INTO test_stiny VALUES(-128, -127, 255, 0)" )
+      
+30064771084 | CALL | 
+        mysql_query ( mysql , "INSERT INTO test_stiny VALUES(-128, -127, 255, 0)" )
+      
+30064771085 | CALL | myquery ( rc )
+30064771086 | CALL | stmt = mysql_simple_prepare ( mysql , "SELECT * FROM test_stiny" )
+30064771087 | CALL | mysql_simple_prepare ( mysql , "SELECT * FROM test_stiny" )
+30064771088 | CALL | check_stmt ( stmt )
+30064771089 | CALL | rc = mysql_stmt_execute ( stmt )
+30064771090 | CALL | mysql_stmt_execute ( stmt )
+30064771091 | CALL | check_execute ( stmt , rc )
+30064771092 | CALL | memset ( my_bind , 0 , sizeof ( my_bind ) )
+30064771093 | CALL | sizeof ( my_bind )
+30064771094 | CALL | my_bind [ 0 ] . buffer_type = MYSQL_TYPE_SHORT
+30064771095 | CALL | my_bind [ 0 ] . buffer_type
+30064771096 | CALL | my_bind [ 0 ]
+30064771097 | CALL | my_bind [ 0 ] . buffer = ( void * ) & short_value
+30064771098 | CALL | my_bind [ 0 ] . buffer
+30064771099 | CALL | my_bind [ 0 ]
+30064771100 | CALL | ( void * ) & short_value
+30064771101 | CALL | & short_value
+30064771102 | CALL | my_bind [ 0 ] . length = & s_length
+30064771103 | CALL | my_bind [ 0 ] . length
+30064771104 | CALL | my_bind [ 0 ]
+30064771105 | CALL | & s_length
+30064771106 | CALL | my_bind [ 1 ] . buffer_type = MYSQL_TYPE_LONG
+30064771107 | CALL | my_bind [ 1 ] . buffer_type
+30064771108 | CALL | my_bind [ 1 ]
+30064771109 | CALL | my_bind [ 1 ] . buffer = ( void * ) & long_value
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMI
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

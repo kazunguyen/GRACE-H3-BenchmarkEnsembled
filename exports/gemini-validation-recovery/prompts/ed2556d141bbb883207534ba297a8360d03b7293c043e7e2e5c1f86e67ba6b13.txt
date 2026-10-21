@@ -1,0 +1,225 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+jas_image_t * jas_image_create ( int numcmpts , jas_image_cmptparm_t * cmptparms , int clrspc ) {
+ jas_image_t * image ;
+ uint_fast32_t rawsize ;
+ uint_fast32_t inmem ;
+ int cmptno ;
+ jas_image_cmptparm_t * cmptparm ;
+ if ( ! ( image = jas_image_create0 ( ) ) ) {
+ return 0 ;
+ }
+ image -> clrspc_ = clrspc ;
+ image -> maxcmpts_ = numcmpts ;
+ image -> inmem_ = true ;
+ if ( ! ( image -> cmpts_ = jas_malloc ( image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * ) ) ) ) {
+ jas_image_destroy ( image ) ;
+ return 0 ;
+ }
+ for ( cmptno = 0 ;
+ cmptno < image -> maxcmpts_ ;
+ ++ cmptno ) {
+ image -> cmpts_ [ cmptno ] = 0 ;
+ }
+ rawsize = 0 ;
+ for ( cmptno = 0 , cmptparm = cmptparms ;
+ cmptno < numcmpts ;
+ ++ cmptno , ++ cmptparm ) {
+ rawsize += cmptparm -> width * cmptparm -> height * ( cmptparm -> prec + 7 ) / 8 ;
+ }
+ inmem = ( rawsize < JAS_IMAGE_INMEMTHRESH ) ;
+ for ( cmptno = 0 , cmptparm = cmptparms ;
+ cmptno < numcmpts ;
+ ++ cmptno , ++ cmptparm ) {
+ if ( ! ( image -> cmpts_ [ cmptno ] = jas_image_cmpt_create ( cmptparm -> tlx , cmptparm -> tly , cmptparm -> hstep , cmptparm -> vstep , cmptparm -> width , cmptparm -> height , cmptparm -> prec , cmptparm -> sgnd , inmem ) ) ) {
+ jas_image_destroy ( image ) ;
+ return 0 ;
+ }
+ ++ image -> numcmpts_ ;
+ }
+ jas_image_setbbox ( image ) ;
+ return image ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ jas_image_t * image ;
+ uint_fast32_t rawsize ;
+ uint_fast32_t inmem ;
+ int cmptno ;
+ jas_image_cmptparm_t * cmptparm ;
+ if ( ! ( image = jas_image_create0 ( ) ) ) {
+ return 0 ;
+ }
+ image -> clrspc_ = clrspc ;
+ image -> maxcmpts_ = numcmpts ;
+ image -> inmem_ = true ;
+ if ( ! ( image -> cmpts_ = jas_malloc ( image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * ) ) ) ) {
+ jas_image_destroy ( image ) ;
+ return 0 ;
+ }
+ for ( cmptno = 0 ;
+ cmptno < image -> maxcmpts_ ;
+ ++ cmptno ) {
+ image -> cmpts_ [ cmptno ] = 0 ;
+ }
+ rawsize = 0 ;
+ for ( cmptno = 0 , cmptparm = cmptparms ;
+ cmptno < numcmpts ;
+ ++ cmptno , ++ cmptparm ) {
+ rawsize += cmptparm -> width * cmptparm -> height * ( cmptparm -> prec + 7 ) / 8 ;
+ }
+ inmem = ( rawsize < JAS_IMAGE_INMEMTHRESH ) ;
+ for ( cmptno = 0 , cmptparm = cmptparms ;
+ cmptno < numcmpts ;
+ ++ cmptno , ++ cmptparm ) {
+ if ( ! ( image -> cmpts_ [ cmptno ] = jas_image_cmpt_create ( cmptparm -> tlx , cmptparm -> tly , cmptparm -> hstep , cmptparm -> vstep , cmp...
+      
+25769803777 | BLOCK | { return 0 ; }
+25769803778 | BLOCK | { jas_image_destroy ( image ) ; return 0 ; }
+25769803779 | BLOCK | { image -> cmpts_ [ cmptno ] = 0 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ rawsize += cmptparm -> width * cmptparm -> height * ( cmptparm -> prec + 7 ) / 8 ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ if ( ! ( image -> cmpts_ [ cmptno ] = jas_image_cmpt_create ( cmptparm -> tlx , cmptparm -> tly , cmptparm -> hstep , cmptparm -> vstep , cmptparm -> width , cmptparm -> height , cmptparm -> prec , cmptparm -> sgnd , inmem ) ) ) {
+ jas_image_destroy ( image ) ;
+ return 0 ;
+ }
+ ++ image -> numcmpts_ ;
+ }
+      
+25769803786 | BLOCK | { jas_image_destroy ( image ) ; return 0 ; }
+30064771072 | CALL | ! ( image = jas_image_create0 ( ) )
+30064771073 | CALL | image = jas_image_create0 ( )
+30064771074 | CALL | jas_image_create0 ( )
+30064771075 | CALL | image -> clrspc_ = clrspc
+30064771076 | CALL | image -> clrspc_
+30064771077 | CALL | image -> maxcmpts_ = numcmpts
+30064771078 | CALL | image -> maxcmpts_
+30064771079 | CALL | image -> inmem_ = true
+30064771080 | CALL | image -> inmem_
+30064771081 | CALL | 
+        ! ( image -> cmpts_ = jas_malloc ( image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * ) ) )
+      
+30064771082 | CALL | 
+        image -> cmpts_ = jas_malloc ( image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * ) )
+      
+30064771083 | CALL | image -> cmpts_
+30064771084 | CALL | jas_malloc ( image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * ) )
+30064771085 | CALL | image -> maxcmpts_ * sizeof ( jas_image_cmpt_t * )
+30064771086 | CALL | image -> maxcmpts_
+30064771087 | CALL | sizeof ( jas_image_cmpt_t * )
+30064771088 | CALL | jas_image_destroy ( image )
+30064771089 | CALL | cmptno = 0
+30064771090 | CALL | cmptno < image -> maxcmpts_
+30064771091 | CALL | image -> maxcmpts_
+30064771092 | CALL | ++ cmptno
+30064771093 | CALL | image -> cmpts_ [ cmptno ] = 0
+30064771094 | CALL | image -> cmpts_ [ cmptno ]
+30064771095 | CALL | image -> cmpts_
+30064771096 | CALL | rawsize = 0
+30064771097 | CALL | cmptno = 0
+30064771098 | CALL | cmptparm = cmptparms
+30064771099 | CALL | cmptno < numcmpts
+30064771100 | CALL | ++ cmptno
+EDGES:
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771096 [AST]
+25769803778 -> 30064771088 [AST]
+25769803779 -> 30064771093 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771098 [AST]
+25769803781 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771086 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771098 [CDG]
+30064771081 -> 30064771097 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771099 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771095 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

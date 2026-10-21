@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int binkb_get_value ( BinkContext * c , int bundle_num ) {
+ int16_t ret ;
+ const int bits = binkb_bundle_sizes [ bundle_num ] ;
+ if ( bits <= 8 ) {
+ int val = * c -> bundle [ bundle_num ] . cur_ptr ++ ;
+ return binkb_bundle_signed [ bundle_num ] ? ( int8_t ) val : val ;
+ }
+ ret = * ( int16_t * ) c -> bundle [ bundle_num ] . cur_ptr ;
+ c -> bundle [ bundle_num ] . cur_ptr += 2 ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int16_t ret ;
+ const int bits = binkb_bundle_sizes [ bundle_num ] ;
+ if ( bits <= 8 ) {
+ int val = * c -> bundle [ bundle_num ] . cur_ptr ++ ;
+ return binkb_bundle_signed [ bundle_num ] ? ( int8_t ) val : val ;
+ }
+ ret = * ( int16_t * ) c -> bundle [ bundle_num ] . cur_ptr ;
+ c -> bundle [ bundle_num ] . cur_ptr += 2 ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int val = * c -> bundle [ bundle_num ] . cur_ptr ++ ;
+ return binkb_bundle_signed [ bundle_num ] ? ( int8_t ) val : val ;
+ }
+      
+30064771072 | CALL | bits = binkb_bundle_sizes [ bundle_num ]
+30064771073 | CALL | binkb_bundle_sizes [ bundle_num ]
+30064771074 | CALL | bits <= 8
+30064771075 | CALL | val = * c -> bundle [ bundle_num ] . cur_ptr ++
+30064771076 | CALL | * c -> bundle [ bundle_num ] . cur_ptr ++
+30064771077 | CALL | c -> bundle [ bundle_num ] . cur_ptr ++
+30064771078 | CALL | c -> bundle [ bundle_num ] . cur_ptr
+30064771079 | CALL | c -> bundle [ bundle_num ]
+30064771080 | CALL | c -> bundle
+30064771081 | CALL | binkb_bundle_signed [ bundle_num ] ? ( int8_t ) val : val
+30064771082 | CALL | binkb_bundle_signed [ bundle_num ]
+30064771083 | CALL | ( int8_t ) val
+30064771084 | CALL | ret = * ( int16_t * ) c -> bundle [ bundle_num ] . cur_ptr
+30064771085 | CALL | * ( int16_t * ) c -> bundle [ bundle_num ] . cur_ptr
+30064771086 | CALL | ( int16_t * ) c -> bundle [ bundle_num ] . cur_ptr
+30064771087 | CALL | c -> bundle [ bundle_num ] . cur_ptr
+30064771088 | CALL | c -> bundle [ bundle_num ]
+30064771089 | CALL | c -> bundle
+30064771090 | CALL | c -> bundle [ bundle_num ] . cur_ptr += 2
+30064771091 | CALL | c -> bundle [ bundle_num ] . cur_ptr
+30064771092 | CALL | c -> bundle [ bundle_num ]
+30064771093 | CALL | c -> bundle
+47244640256 | CONTROL_STRUCTURE | 
+        if ( bits <= 8 ) {
+ int val = * c -> bundle [ bundle_num ] . cur_ptr ++ ;
+ return binkb_bundle_signed [ bundle_num ] ? ( int8_t ) val : val ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | bundle
+55834574849 | FIELD_IDENTIFIER | cur_ptr
+55834574850 | FIELD_IDENTIFIER | bundle
+55834574851 | FIELD_IDENTIFIER | cur_ptr
+55834574852 | FIELD_IDENTIFIER | bundle
+55834574853 | FIELD_IDENTIFIER | cur_ptr
+68719476736 | IDENTIFIER | bits
+68719476737 | IDENTIFIER | <unknown> binkb_bundle_sizes
+68719476738 | IDENTIFIER | bundle_num
+68719476739 | IDENTIFIER | bits
+68719476740 | IDENTIFIER | val
+68719476741 | IDENTIFIER | c
+68719476742 | IDENTIFIER | bundle_num
+68719476743 | IDENTIFIER | <unknown> binkb_bundle_signed
+68719476744 | IDENTIFIER | bundle_num
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771075 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 55834574852 [CDG]
+30064771074 -> 55834574853 [CDG]
+30064771074 -> 55834574848 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476743 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline int get_value ( BinkContext * c , int bundle ) {
+ int ret ;
+ if ( bundle < BINK_SRC_X_OFF || bundle == BINK_SRC_RUN ) return * c -> bundle [ bundle ] . cur_ptr ++ ;
+ if ( bundle == BINK_SRC_X_OFF || bundle == BINK_SRC_Y_OFF ) return ( int8_t ) * c -> bundle [ bundle ] . cur_ptr ++ ;
+ ret = * ( int16_t * ) c -> bundle [ bundle ] . cur_ptr ;
+ c -> bundle [ bundle ] . cur_ptr += 2 ;
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

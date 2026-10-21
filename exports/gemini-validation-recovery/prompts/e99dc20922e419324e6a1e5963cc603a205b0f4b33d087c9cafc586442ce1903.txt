@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+kadm5_ret_t kadm5_get_principal ( void * server_handle , krb5_principal principal , kadm5_principal_ent_t entry , long in_mask ) {
+ krb5_db_entry * kdb ;
+ osa_princ_ent_rec adb ;
+ krb5_error_code ret = 0 ;
+ long mask ;
+ int i ;
+ kadm5_server_handle_t handle = server_handle ;
+ CHECK_HANDLE ( server_handle ) ;
+ krb5_clear_error_message ( handle -> context ) ;
+ mask = in_mask ;
+ memset ( entry , 0 , sizeof ( * entry ) ) ;
+ if ( principal == NULL ) return EINVAL ;
+ if ( ( ret = kdb_get_entry ( handle , principal , & kdb , & adb ) ) ) return ret ;
+ if ( ( mask & KADM5_POLICY ) && adb . policy && ( adb . aux_attributes & KADM5_POLICY ) ) {
+ if ( ( entry -> policy = strdup ( adb . policy ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ }
+ if ( mask & KADM5_AUX_ATTRIBUTES ) entry -> aux_attributes = adb . aux_attributes ;
+ if ( ( mask & KADM5_PRINCIPAL ) && ( ret = krb5_copy_principal ( handle -> context , kdb -> princ , & entry -> principal ) ) ) {
+ goto done ;
+ }
+ if ( mask & KADM5_PRINC_EXPIRE_TIME ) entry -> princ_expire_time = kdb -> expiration ;
+ if ( ( mask & KADM5_LAST_PWD_CHANGE ) && ( ret = krb5_dbe_lookup_last_pwd_change ( handle -> context , kdb , & ( entry -> last_pwd_change ) ) ) ) {
+ goto done ;
+ }
+ if ( mask & KADM5_PW_EXPIRATION ) entry -> pw_expiration = kdb -> pw_expiration ;
+ if ( mask & KADM5_MAX_LIFE ) entry -> max_life = kdb -> max_life ;
+ if ( ( mask & KADM5_MOD_NAME ) || ( mask & KADM5_MOD_TIME ) ) {
+ ret = krb5_dbe_lookup_mod_princ_data ( handle -> context , kdb , & ( entry -> mod_date ) , & ( entry -> mod_name ) ) ;
+ if ( ret ) {
+ goto done ;
+ }
+ if ( ! ( mask & KADM5_MOD_TIME ) ) entry -> mod_date = 0 ;
+ if ( ! ( mask & KADM5_MOD_NAME ) ) {
+ krb5_free_principal ( handle -> context , entry -> mod_name ) ;
+ entry -> mod_name = NULL ;
+ }
+ }
+ if ( mask & KADM5_ATTRIBUTES ) entry -> attributes = kdb -> attributes ;
+ if ( mask & KADM5_KVNO ) for ( entry -> kvno = 0 , i = 0 ;
+ i < kdb -> n_key_data ;
+ i ++ ) if ( ( krb5_kvno ) kdb -> key_data [ i ] . key_data_kvno > entry -> kvno ) entry -> kvno = kdb -> key_data [ i ] . key_data_kvno ;
+ if ( mask & KADM5_MKVNO ) {
+ ret = krb5_dbe_get_mkvno ( handle -> context , kdb , & entry -> mkvno ) ;
+ if ( ret ) goto done ;
+ }
+ if ( mask & KADM5_MAX_RLIFE ) entry -> max_renewable_life = kdb -> max_renewable_life ;
+ if ( mask & KADM5_LAST_SUCCESS ) entry -> last_success = kdb -> last_success ;
+ if ( mask & KADM5_LAST_FAILED ) entry -> last_failed = kdb -> last_failed ;
+ if ( mask & KADM5_FAIL_AUTH_COUNT ) entry -> fail_auth_count = kdb -> fail_auth_count ;
+ if ( mask & KADM5_TL_DATA ) {
+ krb5_tl_data * tl , * tl2 ;
+ entry -> tl_data = NULL ;
+ tl = kdb -> tl_data ;
+ while ( tl ) {
+ if ( tl -> tl_data_type > 255 ) {
+ if ( ( tl2 = dup_tl_data ( tl ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ tl2 -> tl_data_next = entry -> tl_data ;
+ entry -> tl_data = tl2 ;
+ entry -> n_tl_data ++ ;
+ }
+ tl = tl -> tl_data_next ;
+ }
+ }
+ if ( mask & KADM5_KEY_DATA ) {
+ entry -> n_key_data = kdb -> n_key_data ;
+ if 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ krb5_db_entry * kdb ;
+ osa_princ_ent_rec adb ;
+ krb5_error_code ret = 0 ;
+ long mask ;
+ int i ;
+ kadm5_server_handle_t handle = server_handle ;
+ CHECK_HANDLE ( server_handle ) ;
+ krb5_clear_error_message ( handle -> context ) ;
+ mask = in_mask ;
+ memset ( entry , 0 , sizeof ( * entry ) ) ;
+ if ( principal == NULL ) return EINVAL ;
+ if ( ( ret = kdb_get_entry ( handle , principal , & kdb , & adb ) ) ) return ret ;
+ if ( ( mask & KADM5_POLICY ) && adb . policy && ( adb . aux_attributes & KADM5_POLICY ) ) {
+ if ( ( entry -> policy = strdup ( adb . policy ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ }
+ if ( mask & KADM5_AUX_ATTRIBUTES ) entry -> aux_attributes = adb . aux_attributes ;
+ if ( ( mask & KADM5_PRINCIPAL ) && ( ret = krb5_copy_principal ( handle -> context , kdb -> princ , & entry -> principal ) ) ) {
+ goto done ;
+ }
+ if ( mask & KADM5_PRINC_EXPIRE_TIME ) entry -> princ_expire_time = kdb -> expiration ;
+ if ( ( mask & KADM5_LAST_PWD_CHANGE ) && ( ret = krb5_dbe_lookup_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( ( entry -> policy = strdup ( adb . policy ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ }
+      
+25769803780 | BLOCK | { ret = ENOMEM ; goto done ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { goto done ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { goto done ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ ret = krb5_dbe_lookup_mod_princ_data ( handle -> context , kdb , & ( entry -> mod_date ) , & ( entry -> mod_name ) ) ;
+ if ( ret ) {
+ goto done ;
+ }
+ if ( ! ( mask & KADM5_MOD_TIME ) ) entry -> mod_date = 0 ;
+ if ( ! ( mask & KADM5_MOD_NAME ) ) {
+ krb5_free_principal ( handle -> context , entry -> mod_name ) ;
+ entry -> mod_name = NULL ;
+ }
+ }
+      
+25769803788 | BLOCK | { goto done ; }
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ krb5_free_principal ( handle -> context , entry -> mod_name ) ;
+ entry -> mod_name = NULL ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ ret = krb5_dbe_get_mkvno ( handle -> context , kdb , & entry -> mkvno ) ;
+ if ( ret ) goto done ;
+ }
+      
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | 
+        {
+ krb5_tl_data * tl , * tl2 ;
+ entry -> tl_data = NULL ;
+ tl = kdb -> tl_data ;
+ while ( tl ) {
+ if ( tl -> tl_data_type > 255 ) {
+ if ( ( tl2 = dup_tl_data ( tl ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ tl2 -> tl_data_next = entry -> tl_data ;
+ entry -> tl_data = tl2 ;
+ entry -> n_tl_data ++ ;
+ }
+ tl = tl -> tl_data_next ;
+ }
+ }
+      
+25769803802 | BLOCK | 
+        {
+ if ( tl -> tl_data_type > 255 ) {
+ if ( ( tl2 = dup_tl_data ( tl ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ tl2 -> tl_data_next = entry -> tl_data ;
+ entry -> tl_data = tl2 ;
+ entry -> n_tl_data ++ ;
+ }
+ tl = tl -> tl_data_next ;
+ }
+      
+25769803803 | BLOCK | 
+        {
+ if ( ( tl2 = dup_tl_data ( tl ) ) == NULL ) {
+ ret = ENOMEM ;
+ goto done ;
+ }
+ tl2 -> tl_data_next = entry -> tl_data ;
+ entry -> tl_data = tl2 ;
+ entry -> n_tl_data ++ ;
+ }
+      
+25769803804 | BLOCK | { ret = ENOMEM ; goto done ; }
+25769803805 | BLOCK | 
+        {
+ entry -> n_key_data = kdb -> n_key_data ;
+ if ( entry -> n_key_data ) {
+ entry -> key_data = k5calloc ( entry -> n_key_data , sizeof ( krb5_key_data ) , & ret ) ;
+ if ( entry -> key_data == NULL ) goto done ;
+ }
+ else entry -> key_data = NULL ;
+ for ( i = 0 ;
+ i < entry -> n_key_data ;
+ i ++ ) ret = krb5_copy_key_data_contents ( handle -> context , & kdb -> key_data [ i ] , & entry -> key_data [ i ] ) ;
+ if ( ret ) goto done ;
+ }
+      
+25769803806 | BLOCK | 
+        {
+ entry -> key_data = k5calloc ( entry -> n_key_data , sizeof ( krb5_key_data ) , & ret ) ;
+ if ( entry -> key_data == NULL ) goto done ;
+ }
+      
+25769803807 | BLOCK | <empty>
+25769803808 | BLOCK | <empty>
+25769803809 | BLOCK | <empty>
+25769803810 | BLOCK | 
+        {
+ krb5_free_principal ( handle -> context , entry -> principal ) ;
+ entry -> principal = NULL ;
+ }
+      
+30064771072 | CALL | ret = 0
+30064771073 | CALL | handle = server_handle
+30064771074 | 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,307 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+e1000e_rss_get_hash_type(E1000ECore *core, struct NetRxPkt *pkt)
+
+{
+
+    bool isip4, isip6, isudp, istcp;
+
+
+
+    assert(e1000e_rss_enabled(core));
+
+
+
+    net_rx_pkt_get_protocols(pkt, &isip4, &isip6, &isudp, &istcp);
+
+
+
+    if (isip4) {
+
+        bool fragment = net_rx_pkt_get_ip4_info(pkt)->fragment;
+
+
+
+        trace_e1000e_rx_rss_ip4(fragment, istcp, core->mac[MRQC],
+
+                                E1000_MRQC_EN_TCPIPV4(core->mac[MRQC]),
+
+                                E1000_MRQC_EN_IPV4(core->mac[MRQC]));
+
+
+
+        if (!fragment && istcp && E1000_MRQC_EN_TCPIPV4(core->mac[MRQC])) {
+
+            return E1000_MRQ_RSS_TYPE_IPV4TCP;
+
+        }
+
+
+
+        if (E1000_MRQC_EN_IPV4(core->mac[MRQC])) {
+
+            return E1000_MRQ_RSS_TYPE_IPV4;
+
+        }
+
+    } else if (isip6) {
+
+        eth_ip6_hdr_info *ip6info = net_rx_pkt_get_ip6_info(pkt);
+
+
+
+        bool ex_dis = core->mac[RFCTL] & E1000_RFCTL_IPV6_EX_DIS;
+
+        bool new_ex_dis = core->mac[RFCTL] & E1000_RFCTL_NEW_IPV6_EXT_DIS;
+
+
+
+        trace_e1000e_rx_rss_ip6(core->mac[RFCTL],
+
+                                ex_dis, new_ex_dis, istcp,
+
+                                ip6info->has_ext_hdrs,
+
+                                ip6info->rss_ex_dst_valid,
+
+                                ip6info->rss_ex_src_valid,
+
+                                core->mac[MRQC],
+
+                                E1000_MRQC_EN_TCPIPV6(core->mac[MRQC]),
+
+                                E1000_MRQC_EN_IPV6EX(core->mac[MRQC]),
+
+                                E1000_MRQC_EN_IPV6(core->mac[MRQC]));
+
+
+
+        if ((!ex_dis || !ip6info->has_ext_hdrs) &&
+
+            (!new_ex_dis || !(ip6info->rss_ex_dst_valid ||
+
+                              ip6info->rss_ex_src_valid))) {
+
+
+
+            if (istcp && !ip6info->fragment &&
+
+                E1000_MRQC_EN_TCPIPV6(core->mac[MRQC])) {
+
+                return E1000_MRQ_RSS_TYPE_IPV6TCP;
+
+            }
+
+
+
+            if (E1000_MRQC_EN_IPV6EX(core->mac[MRQC])) {
+
+                return E1000_MRQ_RSS_TYPE_IPV6EX;
+
+            }
+
+
+
+        }
+
+
+
+        if (E1000_MRQC_EN_IPV6(core->mac[MRQC])) {
+
+            return E1000_MRQ_RSS_TYPE_IPV6;
+
+        }
+
+
+
+    }
+
+
+
+    return E1000_MRQ_RSS_TYPE_NONE;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+34 -> 41 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+34 -> 45 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+34 -> 49 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 70 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+75 -> 80 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+93 -> 94 [IS_AST_PARENT]
+93 -> 95 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void vmxnet3_rx_need_csum_calculate(struct NetRxPkt *pkt,
+
+                                           const void *pkt_data,
+
+                                           size_t pkt_len)
+
+{
+
+    struct virtio_net_hdr *vhdr;
+
+    bool isip4, isip6, istcp, isudp;
+
+    uint8_t *data;
+
+    int len;
+
+
+
+    if (!net_rx_pkt_has_virt_hdr(pkt)) {
+
+        return;
+
+    }
+
+
+
+    vhdr = net_rx_pkt_get_vhdr(pkt);
+
+    if (!VMXNET_FLAG_IS_SET(vhdr->flags, VIRTIO_NET_HDR_F_NEEDS_CSUM)) {
+
+        return;
+
+    }
+
+
+
+    net_rx_pkt_get_protocols(pkt, &isip4, &isip6, &isudp, &istcp);
+
+    if (!(isip4 || isip6) || !(istcp || isudp)) {
+
+        return;
+
+    }
+
+
+
+    vmxnet3_dump_virt_hdr(vhdr);
+
+
+
+    /* Validate packet len: csum_start + scum_offset + length of csum field */
+
+    if (pkt_len < (vhdr->csum_start + vhdr->csum_offset + 2)) {
+
+        VMW_PKPRN("packet len:%zu < csum_start(%d) + csum_offset(%d) + 2, "
+
+                  "cannot calculate checksum",
+
+                  pkt_len, vhdr->csum_start, vhdr->csum_offset);
+
+        return;
+
+    }
+
+
+
+    data = (uint8_t *)pkt_data + vhdr->csum_start;
+
+    len = pkt_len - vhdr->csum_start;
+
+    /* Put the checksum obtained into the packet */
+
+    stw_be_p(data + vhdr->csum_offset, net_raw_checksum(data, len));
+
+
+
+    vhdr->flags &= ~VIRTIO_NET_HDR_F_NEEDS_CSUM;
+
+    vhdr->flags |= VIRTIO_NET_HDR_F_DATA_VALID;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

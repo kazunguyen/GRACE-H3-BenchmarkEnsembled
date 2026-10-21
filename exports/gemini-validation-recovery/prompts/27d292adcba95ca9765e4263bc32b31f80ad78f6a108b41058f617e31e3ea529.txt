@@ -1,0 +1,201 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static cmsBool Type_vcgt_Write ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , void * Ptr , cmsUInt32Number nItems ) {
+ cmsToneCurve * * Curves = ( cmsToneCurve * * ) Ptr ;
+ cmsUInt32Number i , j ;
+ if ( cmsGetToneCurveParametricType ( Curves [ 0 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 1 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 2 ] ) == 5 ) {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaFormulaType ) ) return FALSE ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) {
+ _cmsVCGTGAMMA v ;
+ v . Gamma = Curves [ i ] -> Segments [ 0 ] . Params [ 0 ] ;
+ v . Min = Curves [ i ] -> Segments [ 0 ] . Params [ 5 ] ;
+ v . Max = pow ( Curves [ i ] -> Segments [ 0 ] . Params [ 1 ] , v . Gamma ) + v . Min ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Gamma ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Min ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Max ) ) return FALSE ;
+ }
+ }
+ else {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaTableType ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 3 ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 256 ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 2 ) ) return FALSE ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) {
+ for ( j = 0 ;
+ j < 256 ;
+ j ++ ) {
+ cmsFloat32Number v = cmsEvalToneCurveFloat ( Curves [ i ] , ( cmsFloat32Number ) ( j / 255.0 ) ) ;
+ cmsUInt16Number n = _cmsQuickSaturateWord ( v * 65535.0 ) ;
+ if ( ! _cmsWriteUInt16Number ( io , n ) ) return FALSE ;
+ }
+ }
+ }
+ return TRUE ;
+ cmsUNUSED_PARAMETER ( self ) ;
+ cmsUNUSED_PARAMETER ( nItems ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsToneCurve * * Curves = ( cmsToneCurve * * ) Ptr ;
+ cmsUInt32Number i , j ;
+ if ( cmsGetToneCurveParametricType ( Curves [ 0 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 1 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 2 ] ) == 5 ) {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaFormulaType ) ) return FALSE ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) {
+ _cmsVCGTGAMMA v ;
+ v . Gamma = Curves [ i ] -> Segments [ 0 ] . Params [ 0 ] ;
+ v . Min = Curves [ i ] -> Segments [ 0 ] . Params [ 5 ] ;
+ v . Max = pow ( Curves [ i ] -> Segments [ 0 ] . Params [ 1 ] , v . Gamma ) + v . Min ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Gamma ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Min ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Max ) ) return FALSE ;
+ }
+ }
+ else {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaTableType ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 3 ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 25...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaFormulaType ) ) return FALSE ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) {
+ _cmsVCGTGAMMA v ;
+ v . Gamma = Curves [ i ] -> Segments [ 0 ] . Params [ 0 ] ;
+ v . Min = Curves [ i ] -> Segments [ 0 ] . Params [ 5 ] ;
+ v . Max = pow ( Curves [ i ] -> Segments [ 0 ] . Params [ 1 ] , v . Gamma ) + v . Min ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Gamma ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Min ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Max ) ) return FALSE ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ _cmsVCGTGAMMA v ;
+ v . Gamma = Curves [ i ] -> Segments [ 0 ] . Params [ 0 ] ;
+ v . Min = Curves [ i ] -> Segments [ 0 ] . Params [ 5 ] ;
+ v . Max = pow ( Curves [ i ] -> Segments [ 0 ] . Params [ 1 ] , v . Gamma ) + v . Min ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Gamma ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Min ) ) return FALSE ;
+ if ( ! _cmsWrite15Fixed16Number ( io , v . Max ) ) return FALSE ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaTableType ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 3 ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 256 ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 2 ) ) return FALSE ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) {
+ for ( j = 0 ;
+ j < 256 ;
+ j ++ ) {
+ cmsFloat32Number v = cmsEvalToneCurveFloat ( Curves [ i ] , ( cmsFloat32Number ) ( j / 255.0 ) ) ;
+ cmsUInt16Number n = _cmsQuickSaturateWord ( v * 65535.0 ) ;
+ if ( ! _cmsWriteUInt16Number ( io , n ) ) return FALSE ;
+ }
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ for ( j = 0 ;
+ j < 256 ;
+ j ++ ) {
+ cmsFloat32Number v = cmsEvalToneCurveFloat ( Curves [ i ] , ( cmsFloat32Number ) ( j / 255.0 ) ) ;
+ cmsUInt16Number n = _cmsQuickSaturateWord ( v * 65535.0 ) ;
+ if ( ! _cmsWriteUInt16Number ( io , n ) ) return FALSE ;
+ }
+ }
+      
+25769803789 | BLOCK | 
+        {
+ cmsFloat32Number v = cmsEvalToneCurveFloat ( Curves [ i ] , ( cmsFloat32Number ) ( j / 255.0 ) ) ;
+ cmsUInt16Number n = _cmsQuickSaturateWord ( v * 65535.0 ) ;
+ if ( ! _cmsWriteUInt16Number ( io , n ) ) return FALSE ;
+ }
+      
+25769803790 | BLOCK | <empty>
+30064771072 | CALL | * Curves = ( cmsToneCurve * * ) Ptr
+30064771073 | CALL | ( cmsToneCurve * * ) Ptr
+30064771074 | CALL | 
+        cmsGetToneCurveParametricType ( Curves [ 0 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 1 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 2 ] ) == 5
+      
+30064771075 | CALL | 
+        cmsGetToneCurveParametricType ( Curves [ 0 ] ) == 5 && cmsGetToneCurveParametricType ( Curves [ 1 ] ) == 5
+      
+30064771076 | CALL | cmsGetToneCurveParametricType ( Curves [ 0 ] ) == 5
+30064771077 | CALL | cmsGetToneCurveParametricType ( Curves [ 0 ] )
+30064771078 | CALL | Curves [ 0 ]
+30064771079 | CALL | cmsGetToneCurveParametricType ( Curves [ 1 ] ) == 5
+30064771080 | CALL | cmsGetToneCurveParametricType ( Curves [ 1 ] )
+30064771081 | CALL | Curves [ 1 ]
+30064771082 | CALL | cmsGetToneCurveParametricType ( Curves [ 2 ] ) == 5
+30064771083 | CALL | cmsGetToneCurveParametricType ( Curves [ 2 ] )
+30064771084 | CALL | Curves [ 2 ]
+30064771085 | CALL | ! _cmsWriteUInt32Number ( io , cmsVideoCardGammaFormulaType )
+30064771086 | CALL | _cmsWriteUInt32Number ( io , cmsVideoCardGammaFormulaType )
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < 3
+30064771089 | CALL | i ++
+30064771090 | CALL | v . Gamma = Curves [ i ] -> Segments [ 0 ] . Params [ 0 ]
+30064771091 | CALL | v . Gamma
+30064771092 | CALL | Curves [ i ] -> Segments [ 0 ] . Params [ 0 ]
+30064771093 | CALL | Curves [ i ] -> Segments [ 0 ] . Params
+30064771094 | CALL | Curves [ i ] -> Segments [ 0 ]
+30064771095 | CALL | Curves [ i ] -> Segments
+30064771096 | CALL | Curves [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803779 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771082 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771082 [AST]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771082 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771079 [ARGUMENT]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

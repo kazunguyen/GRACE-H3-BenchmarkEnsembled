@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int cpu_signal_handler ( int host_signum , void * pinfo , void * puc ) {
+ siginfo_t * info = pinfo ;
+ unsigned long pc ;
+ # if defined ( __NetBSD__ ) || defined ( __FreeBSD__ ) || defined ( __DragonFly__ ) ucontext_t * uc = puc ;
+ # elif defined ( __OpenBSD__ ) struct sigcontext * uc = puc ;
+ # else struct ucontext * uc = puc ;
+ # endif pc = PC_sig ( uc ) ;
+ return handle_cpu_signal ( pc , ( unsigned long ) info -> si_addr , TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0 , & MASK_sig ( uc ) , puc ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ siginfo_t * info = pinfo ;
+ unsigned long pc ;
+ # if defined ( __NetBSD__ ) || defined ( __FreeBSD__ ) || defined ( __DragonFly__ ) ucontext_t * uc = puc ;
+ # elif defined ( __OpenBSD__ ) struct sigcontext * uc = puc ;
+ # else struct ucontext * uc = puc ;
+ # endif pc = PC_sig ( uc ) ;
+ return handle_cpu_signal ( pc , ( unsigned long ) info -> si_addr , TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0 , & MASK_sig ( uc ) , puc ) ;
+ }
+      
+30064771072 | CALL | info = pinfo
+30064771073 | CALL | 
+        handle_cpu_signal ( pc , ( unsigned long ) info -> si_addr , TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0 , & MASK_sig ( uc ) , puc )
+      
+30064771074 | CALL | ( unsigned long ) info -> si_addr
+30064771075 | CALL | info -> si_addr
+30064771076 | CALL | TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0
+30064771077 | CALL | TRAP_sig ( uc ) == 0xe
+30064771078 | CALL | TRAP_sig ( uc )
+30064771079 | CALL | ( ERROR_sig ( uc ) >> 1 ) & 1
+30064771080 | CALL | ERROR_sig ( uc ) >> 1
+30064771081 | CALL | ERROR_sig ( uc )
+30064771082 | CALL | & MASK_sig ( uc )
+30064771083 | CALL | MASK_sig ( uc )
+55834574848 | FIELD_IDENTIFIER | si_addr
+68719476736 | IDENTIFIER | info
+68719476737 | IDENTIFIER | pinfo
+68719476738 | IDENTIFIER | pc
+68719476739 | IDENTIFIER | info
+68719476740 | IDENTIFIER | <unknown> uc
+68719476741 | IDENTIFIER | <unknown> uc
+68719476742 | IDENTIFIER | <unknown> uc
+68719476743 | IDENTIFIER | puc
+90194313216 | LITERAL | 0xe
+90194313217 | LITERAL | 1
+90194313218 | LITERAL | 1
+90194313219 | LITERAL | 0
+94489280512 | LOCAL | siginfo_t * info
+94489280513 | LOCAL | unsigned long pc
+94489280514 | LOCAL | <unknown> uc
+107374182400 | METHOD | 
+        int cpu_signal_handler ( int host_signum , void * pinfo , void * puc ) {
+ siginfo_t * info = pinfo ;
+ unsigned long pc ;
+ # if defined ( __NetBSD__ ) || defined ( __FreeBSD__ ) || defined ( __DragonFly__ ) ucontext_t * uc = puc ;
+ # elif defined ( __OpenBSD__ ) struct sigcontext * uc = puc ;
+ # else struct ucontext * uc = puc ;
+ # endif pc = PC_sig ( uc ) ;
+ return handle_cpu_signal ( pc , ( unsigned long ) info -> si_addr , TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0 , & MASK_sig ( uc ) , puc ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | int host_signum
+111669149697 | METHOD_PARAMETER_IN | void * pinfo
+111669149698 | METHOD_PARAMETER_IN | void * puc
+115964116992 | METHOD_PARAMETER_OUT | int host_signum
+115964116993 | METHOD_PARAMETER_OUT | void * pinfo
+115964116994 | METHOD_PARAMETER_OUT | void * puc
+124554051584 | METHOD_RETURN | RET
+141733920768 | RETURN | 
+        return handle_cpu_signal ( pc , ( unsigned long ) info -> si_addr , TRAP_sig ( uc ) == 0xe ? ( ERROR_sig ( uc ) >> 1 ) & 1 : 0 , & MASK_sig ( uc ) , puc ) ;
+      
+176093659136 | TYPE_REF | unsigned long
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771082 [ARGUMENT]
+30064771073 -> 68719476743 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771082 [AST]
+30064771073 -> 68719476743 [AST]
+30064771073 -> 141733920768 [CFG]
+30064771073 -> 141733920768 [DOMINATE]
+30064771073 -> 68719476743 [POST_DOMINATE]
+30064771073 -> 141733920768 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 176093659136 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 176093659136 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771082 [REACHING_DEF]
+30064771074 -> 68719476743 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 90194313219 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 90194313219 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771076 -> 90194313219 [POST_DOMINATE]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 68719476743 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 90194313216 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 90194313216 [AST]
+30064771077 -> 68719476741 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 90194313219 [CDG]
+30064771077 -> 90194313218 [CDG]
+30064771077 -> 90194313217 [CDG]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 90194313219 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void cpu_resume_from_signal ( CPUArchState * env1 , void * puc ) {
+ # ifdef __linux__ struct ucontext * uc = puc ;
+ # elif defined ( __OpenBSD__ ) struct sigcontext * uc = puc ;
+ # endif if ( puc ) {
+ # ifdef __linux__ # ifdef __ia64 sigprocmask ( SIG_SETMASK , ( sigset_t * ) & uc -> uc_sigmask , NULL ) ;
+ # else sigprocmask ( SIG_SETMASK , & uc -> uc_sigmask , NULL ) ;
+ # endif # elif defined ( __OpenBSD__ ) sigprocmask ( SIG_SETMASK , & uc -> sc_mask , NULL ) ;
+ # endif }
+ env1 -> exception_index = - 1 ;
+ siglongjmp ( env1 -> jmp_env , 1 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

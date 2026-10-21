@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool insn_crosses_page(CPUARMState *env, DisasContext *s)
+
+{
+
+    /* Return true if the insn at dc->pc might cross a page boundary.
+
+     * (False positives are OK, false negatives are not.)
+
+     */
+
+    uint16_t insn;
+
+
+
+    if ((s->pc & 3) == 0) {
+
+        /* At a 4-aligned address we can't be crossing a page */
+
+        return false;
+
+    }
+
+
+
+    /* This must be a Thumb insn */
+
+    insn = arm_lduw_code(env, s->pc, s->sctlr_b);
+
+
+
+    if ((insn >> 11) >= 0x1d) {
+
+        /* Top five bits 0b11101 / 0b11110 / 0b11111 : this is the
+
+         * First half of a 32-bit Thumb insn. Thumb-1 cores might
+
+         * end up actually treating this as two 16-bit insns (see the
+
+         * code at the start of disas_thumb2_insn()) but we don't bother
+
+         * to check for that as it is unlikely, and false positives here
+
+         * are harmless.
+
+         */
+
+        return true;
+
+    }
+
+    /* Definitely a 16-bit insn, can't be crossing a page. */
+
+    return false;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 16 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 17 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+9 -> 18 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+27 -> 34 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+38 -> 45 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 50 [IS_AST_PARENT]
+3 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+3 -> 52 [IS_AST_PARENT]
+59 -> 53 [FLOWS_TO]
+53 -> 56 [FLOWS_TO]
+56 -> 5 [FLOWS_TO]
+5 -> 10 [FLOWS_TO]
+10 -> 19 [FLOWS_TO]
+10 -> 21 [FLOWS_TO]
+19 -> 60 [FLOWS_TO]
+21 -> 39 [FLOWS_TO]
+39 -> 46 [FLOWS_TO]
+39 -> 48 [FLOWS_TO]
+46 -> 60 [FLOWS_TO]
+48 -> 60 [FLOWS_TO]
+5 -> 61 [DEF]
+6 -> 61 [DEF]
+21 -> 61 [DEF]
+22 -> 61 [DEF]
+39 -> 61 [USE]
+56 -> 62 [DEF]
+10 -> 62 [USE]
+13 -> 62 [USE]
+21 -> 62 [USE]
+31 -> 62 [USE]
+35 -> 62 [USE]
+21 -> 63 [USE]
+22 -> 63 [USE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void arm_post_translate_insn(CPUARMState *env, DisasContext *dc)
+
+{
+
+    if (dc->condjmp && !dc->base.is_jmp) {
+
+        gen_set_label(dc->condlabel);
+
+        dc->condjmp = 0;
+
+    }
+
+
+
+    /* Translation stops when a conditional branch is encountered.
+
+     * Otherwise the subsequent code could get translated several times.
+
+     * Also stop translation when a page boundary is reached.  This
+
+     * ensures prefetch aborts occur at the right place.
+
+     *
+
+     * We want to stop the TB if the next insn starts in a new page,
+
+     * or if it spans between this page and the next. This means that
+
+     * if we're looking at the last halfword in the page we need to
+
+     * see if it's a 16-bit Thumb insn (which will fit in this TB)
+
+     * or a 32-bit Thumb insn (which won't).
+
+     * This is to avoid generating a silly TB with a single 16-bit insn
+
+     * in it at the end of this page (which would execute correctly
+
+     * but isn't very efficient).
+
+     */
+
+    if (dc->base.is_jmp == DISAS_NEXT
+
+        && (dc->pc >= dc->next_page_start
+
+            || (dc->pc >= dc->next_page_start - 3
+
+                && insn_crosses_page(env, dc)))) {
+
+        dc->base.is_jmp = DISAS_TOO_MANY;
+
+    }
+
+
+
+    dc->base.pc_next = dc->pc;
+
+    translator_loop_temp_check(&dc->base);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

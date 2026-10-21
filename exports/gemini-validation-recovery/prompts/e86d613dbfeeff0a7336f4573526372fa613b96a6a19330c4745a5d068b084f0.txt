@@ -1,0 +1,54 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint16 de_cc_cap ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len , gchar * add_string _U_ , int string_len _U_ ) {
+ guint8 oct ;
+ guint32 curr_offset ;
+ curr_offset = offset ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ if ( ( ( oct & 0xf0 ) >> 4 ) == 0 ) {
+ proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_maximum_number_of_supported_bearers , tvb , curr_offset , 1 , 0 , "1" ) ;
+ }
+ else {
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_maximum_number_of_supported_bearers , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ }
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_mcat , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_enicm , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_pcp , tvb , curr_offset , 1 , ENC_NA ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_dtmf , tvb , curr_offset , 1 , ENC_NA ) ;
+ curr_offset ++ ;
+ NO_MORE_DATA_CHECK ( len ) ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , curr_offset << 3 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_max_num_of_speech_bearers , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ EXTRANEOUS_DATA_CHECK ( len , curr_offset - offset , pinfo , & ei_gsm_a_dtap_extraneous_data ) ;
+ return ( curr_offset - offset ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+guint16 de_serv_cat ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len _U_ , gchar * add_string _U_ , int string_len _U_ ) {
+ guint32 curr_offset ;
+ curr_offset = offset ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , curr_offset << 3 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b7 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b6 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b5 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b4 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b3 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b2 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_serv_cat_b1 , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ return len ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

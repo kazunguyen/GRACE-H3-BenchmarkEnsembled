@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+char * get_opname ( Oid opno ) {
+ HeapTuple tp ;
+ tp = SearchSysCache1 ( OPEROID , ObjectIdGetDatum ( opno ) ) ;
+ if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_operator optup = ( Form_pg_operator ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( optup -> oprname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return NULL ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ HeapTuple tp ;
+ tp = SearchSysCache1 ( OPEROID , ObjectIdGetDatum ( opno ) ) ;
+ if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_operator optup = ( Form_pg_operator ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( optup -> oprname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return NULL ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ Form_pg_operator optup = ( Form_pg_operator ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( optup -> oprname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | tp = SearchSysCache1 ( OPEROID , ObjectIdGetDatum ( opno ) )
+30064771073 | CALL | SearchSysCache1 ( OPEROID , ObjectIdGetDatum ( opno ) )
+30064771074 | CALL | ObjectIdGetDatum ( opno )
+30064771075 | CALL | HeapTupleIsValid ( tp )
+30064771076 | CALL | optup = ( Form_pg_operator ) GETSTRUCT ( tp )
+30064771077 | CALL | ( Form_pg_operator ) GETSTRUCT ( tp )
+30064771078 | CALL | GETSTRUCT ( tp )
+30064771079 | CALL | result = pstrdup ( NameStr ( optup -> oprname ) )
+30064771080 | CALL | pstrdup ( NameStr ( optup -> oprname ) )
+30064771081 | CALL | NameStr ( optup -> oprname )
+30064771082 | CALL | optup -> oprname
+30064771083 | CALL | ReleaseSysCache ( tp )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_operator optup = ( Form_pg_operator ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( optup -> oprname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return NULL ;
+      
+55834574848 | FIELD_IDENTIFIER | oprname
+68719476736 | IDENTIFIER | tp
+68719476737 | IDENTIFIER | <unknown> OPEROID
+68719476738 | IDENTIFIER | opno
+68719476739 | IDENTIFIER | tp
+68719476740 | IDENTIFIER | optup
+68719476741 | IDENTIFIER | tp
+68719476742 | IDENTIFIER | result
+68719476743 | IDENTIFIER | optup
+68719476744 | IDENTIFIER | tp
+68719476745 | IDENTIFIER | result
+68719476746 | IDENTIFIER | <unknown> NULL
+94489280512 | LOCAL | HeapTuple tp
+94489280513 | LOCAL | Form_pg_operator optup
+94489280514 | LOCAL | char * result
+94489280515 | LOCAL | <unknown> NULL
+94489280516 | LOCAL | <unknown> OPEROID
+107374182400 | METHOD | 
+        char * get_opname ( Oid opno ) {
+ HeapTuple tp ;
+ tp = SearchSysCache1 ( OPEROID , ObjectIdGetDatum ( opno ) ) ;
+ if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_operator optup = ( Form_pg_operator ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( optup -> oprname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return NULL ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | Oid opno
+115964116992 | METHOD_PARAMETER_OUT | Oid opno
+124554051584 | METHOD_RETURN | RET
+141733920768 | RETURN | return result ;
+141733920769 | RETURN | return NULL ;
+176093659136 | TYPE_REF | Form_pg_operator
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803777 -> 94489280513 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 94489280514 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 141733920768 [AST]
+25769803778 -> 141733920769 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 141733920769 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 141733920768 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 176093659136 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476746 [CFG]
+30064771075 -> 124554051584 [DOMINATE]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476746 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 176093659136 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 176093659136 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+char * get_func_name ( Oid funcid ) {
+ HeapTuple tp ;
+ tp = SearchSysCache1 ( PROCOID , ObjectIdGetDatum ( funcid ) ) ;
+ if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_proc functup = ( Form_pg_proc ) GETSTRUCT ( tp ) ;
+ char * result ;
+ result = pstrdup ( NameStr ( functup -> proname ) ) ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return NULL ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

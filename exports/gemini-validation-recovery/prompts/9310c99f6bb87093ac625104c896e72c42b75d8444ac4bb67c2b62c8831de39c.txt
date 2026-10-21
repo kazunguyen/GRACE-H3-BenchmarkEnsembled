@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int s302m_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ int block_size , ret ;
+ int frame_size = s302m_parse_frame_header ( avctx , buf , buf_size ) ;
+ if ( frame_size < 0 ) return frame_size ;
+ buf_size -= AES3_HEADER_LEN ;
+ buf += AES3_HEADER_LEN ;
+ block_size = ( avctx -> bits_per_coded_sample + 4 ) / 4 ;
+ frame -> nb_samples = 2 * ( buf_size / block_size ) / avctx -> channels ;
+ if ( ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ buf_size = ( frame -> nb_samples * avctx -> channels / 2 ) * block_size ;
+ if ( avctx -> bits_per_coded_sample == 24 ) {
+ uint32_t * o = ( uint32_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 6 ;
+ buf_size -= 7 ) {
+ * o ++ = ( ff_reverse [ buf [ 2 ] ] << 24 ) | ( ff_reverse [ buf [ 1 ] ] << 16 ) | ( ff_reverse [ buf [ 0 ] ] << 8 ) ;
+ * o ++ = ( ff_reverse [ buf [ 6 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 5 ] ] << 20 ) | ( ff_reverse [ buf [ 4 ] ] << 12 ) | ( ff_reverse [ buf [ 3 ] & 0x0f ] << 4 ) ;
+ buf += 7 ;
+ }
+ }
+ else if ( avctx -> bits_per_coded_sample == 20 ) {
+ uint32_t * o = ( uint32_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 5 ;
+ buf_size -= 6 ) {
+ * o ++ = ( ff_reverse [ buf [ 2 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 1 ] ] << 20 ) | ( ff_reverse [ buf [ 0 ] ] << 12 ) ;
+ * o ++ = ( ff_reverse [ buf [ 5 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 4 ] ] << 20 ) | ( ff_reverse [ buf [ 3 ] ] << 12 ) ;
+ buf += 6 ;
+ }
+ }
+ else {
+ uint16_t * o = ( uint16_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 4 ;
+ buf_size -= 5 ) {
+ * o ++ = ( ff_reverse [ buf [ 1 ] ] << 8 ) | ff_reverse [ buf [ 0 ] ] ;
+ * o ++ = ( ff_reverse [ buf [ 4 ] & 0xf0 ] << 12 ) | ( ff_reverse [ buf [ 3 ] ] << 4 ) | ( ff_reverse [ buf [ 2 ] ] >> 4 ) ;
+ buf += 5 ;
+ }
+ }
+ * got_frame_ptr = 1 ;
+ return avpkt -> size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ int block_size , ret ;
+ int frame_size = s302m_parse_frame_header ( avctx , buf , buf_size ) ;
+ if ( frame_size < 0 ) return frame_size ;
+ buf_size -= AES3_HEADER_LEN ;
+ buf += AES3_HEADER_LEN ;
+ block_size = ( avctx -> bits_per_coded_sample + 4 ) / 4 ;
+ frame -> nb_samples = 2 * ( buf_size / block_size ) / avctx -> channels ;
+ if ( ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ buf_size = ( frame -> nb_samples * avctx -> channels / 2 ) * block_size ;
+ if ( avctx -> bits_per_coded_sample == 24 ) {
+ uint32_t * o = ( uint32_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 6 ;
+ buf_size -= 7 ) {
+ * o ++ = ( ff_reverse [ buf [ 2 ] ] << 24 ) | ( ff_reverse [ buf [ 1 ] ] << 16 ) | ( ff_reverse [ buf [ 0 ] ] << 8 ) ;
+ * o ++ = ( ff_reverse [ buf [ 6 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 5 ] ] << 20 ) | ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ uint32_t * o = ( uint32_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 6 ;
+ buf_size -= 7 ) {
+ * o ++ = ( ff_reverse [ buf [ 2 ] ] << 24 ) | ( ff_reverse [ buf [ 1 ] ] << 16 ) | ( ff_reverse [ buf [ 0 ] ] << 8 ) ;
+ * o ++ = ( ff_reverse [ buf [ 6 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 5 ] ] << 20 ) | ( ff_reverse [ buf [ 4 ] ] << 12 ) | ( ff_reverse [ buf [ 3 ] & 0x0f ] << 4 ) ;
+ buf += 7 ;
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ * o ++ = ( ff_reverse [ buf [ 2 ] ] << 24 ) | ( ff_reverse [ buf [ 1 ] ] << 16 ) | ( ff_reverse [ buf [ 0 ] ] << 8 ) ;
+ * o ++ = ( ff_reverse [ buf [ 6 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 5 ] ] << 20 ) | ( ff_reverse [ buf [ 4 ] ] << 12 ) | ( ff_reverse [ buf [ 3 ] & 0x0f ] << 4 ) ;
+ buf += 7 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ uint32_t * o = ( uint32_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 5 ;
+ buf_size -= 6 ) {
+ * o ++ = ( ff_reverse [ buf [ 2 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 1 ] ] << 20 ) | ( ff_reverse [ buf [ 0 ] ] << 12 ) ;
+ * o ++ = ( ff_reverse [ buf [ 5 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 4 ] ] << 20 ) | ( ff_reverse [ buf [ 3 ] ] << 12 ) ;
+ buf += 6 ;
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ * o ++ = ( ff_reverse [ buf [ 2 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 1 ] ] << 20 ) | ( ff_reverse [ buf [ 0 ] ] << 12 ) ;
+ * o ++ = ( ff_reverse [ buf [ 5 ] & 0xf0 ] << 28 ) | ( ff_reverse [ buf [ 4 ] ] << 20 ) | ( ff_reverse [ buf [ 3 ] ] << 12 ) ;
+ buf += 6 ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ uint16_t * o = ( uint16_t * ) frame -> data [ 0 ] ;
+ for ( ;
+ buf_size > 4 ;
+ buf_size -= 5 ) {
+ * o ++ = ( ff_reverse [ buf [ 1 ] ] << 8 ) | ff_reverse [ buf [ 0 ] ] ;
+ * o ++ = ( ff_reverse [ buf [ 4 ] & 0xf0 ] << 12 ) | ( ff_reverse [ buf [ 3 ] ] << 4 ) | ( ff_reverse [ buf [ 2 ] ] >> 4 ) ;
+ buf += 5 ;
+ }
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ * o ++ = ( ff_reverse [ buf [ 1 ] ] << 8 ) | ff_reverse [ buf [ 0 ] ] ;
+ * o ++ = ( ff_reverse [ buf [ 4 ] & 0xf0 ] << 12 ) | ( ff_reverse [ buf [ 3 ] ] << 4 ) | ( ff_reverse [ buf [ 2 ] ] >> 4 ) ;
+ buf += 5 ;
+ }
+      
+30064771072 | CALL | frame = data
+30064771073 | CALL | buf = avpkt -> data
+30064771074 | CALL | avpkt -> data
+30064771075 | CALL | buf_size = avpkt -> size
+30064771076 | CALL | avpkt -> size
+30064771077 | CALL | frame_size = s302m_parse_frame_header ( avctx , buf , buf_size )
+30064771078 | CALL | s302m_parse_frame_header ( avctx , buf , buf_size )
+30064771079 | CALL | frame_size < 0
+30064771080 | CALL | buf_size -= AES3_HEADER_LEN
+30064771081 | CALL | buf += AES3_HEADER_LEN
+30064771082 | CALL | block_size = ( avctx -> bits_per_coded_sample + 4 ) / 4
+30064771083 | CALL | ( avctx -> bits_per_coded_sample + 4 ) / 4
+30064771084 | CALL | avctx -> bits_per_coded_sample + 4
+30064771085 | CALL | avctx -> bits_per_coded_sample
+30064771086 | CALL | frame -> nb_samples = 2 * ( buf_size / block_size ) / avctx -> channels
+30064771087 | CALL | frame -> nb_samples
+30064771088 | CALL | 2 * ( buf_size / block_size ) / avctx -> channels
+30064771089 | CALL | 2 * ( buf_size / block_size )
+30064771090 | CALL | buf_size / block_size
+30064771091 | CALL | avctx -> channels
+30064771092 | CALL | ( ret = ff_get_buffer ( avctx , frame , 0 ) ) < 0
+30064771093 | CALL | ret = ff_get_buffer ( avctx , frame , 0 )
+30064771094 | CALL | ff_get_buffer ( avctx , frame , 0 )
+30064771095 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771096 | CALL | buf_size = ( frame -> nb_samples * avctx -> channels / 2 ) * block_size
+30064771097 | CALL | ( frame -> nb_samples * avctx -> channels / 2 ) * block_size
+30064771098 | CALL | frame -> nb_samples * avctx -> channels / 2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771096 [AST]
+25769803778 -> 30064771095 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

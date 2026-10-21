@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static TRBCCode xhci_disable_slot ( XHCIState * xhci , unsigned int slotid ) {
+ int i ;
+ trace_usb_xhci_slot_disable ( slotid ) ;
+ assert ( slotid >= 1 && slotid <= xhci -> numslots ) ;
+ for ( i = 1 ;
+ i <= 31 ;
+ i ++ ) {
+ if ( xhci -> slots [ slotid - 1 ] . eps [ i - 1 ] ) {
+ xhci_disable_ep ( xhci , slotid , i ) ;
+ }
+ }
+ xhci -> slots [ slotid - 1 ] . enabled = 0 ;
+ xhci -> slots [ slotid - 1 ] . addressed = 0 ;
+ xhci -> slots [ slotid - 1 ] . uport = NULL ;
+ return CC_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ trace_usb_xhci_slot_disable ( slotid ) ;
+ assert ( slotid >= 1 && slotid <= xhci -> numslots ) ;
+ for ( i = 1 ;
+ i <= 31 ;
+ i ++ ) {
+ if ( xhci -> slots [ slotid - 1 ] . eps [ i - 1 ] ) {
+ xhci_disable_ep ( xhci , slotid , i ) ;
+ }
+ }
+ xhci -> slots [ slotid - 1 ] . enabled = 0 ;
+ xhci -> slots [ slotid - 1 ] . addressed = 0 ;
+ xhci -> slots [ slotid - 1 ] . uport = NULL ;
+ return CC_SUCCESS ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( xhci -> slots [ slotid - 1 ] . eps [ i - 1 ] ) {
+ xhci_disable_ep ( xhci , slotid , i ) ;
+ }
+ }
+      
+25769803778 | BLOCK | { xhci_disable_ep ( xhci , slotid , i ) ; }
+30064771072 | CALL | trace_usb_xhci_slot_disable ( slotid )
+30064771073 | CALL | assert ( slotid >= 1 && slotid <= xhci -> numslots )
+30064771074 | CALL | slotid >= 1 && slotid <= xhci -> numslots
+30064771075 | CALL | slotid >= 1
+30064771076 | CALL | slotid <= xhci -> numslots
+30064771077 | CALL | xhci -> numslots
+30064771078 | CALL | i = 1
+30064771079 | CALL | i <= 31
+30064771080 | CALL | i ++
+30064771081 | CALL | xhci -> slots [ slotid - 1 ] . eps [ i - 1 ]
+30064771082 | CALL | xhci -> slots [ slotid - 1 ] . eps
+30064771083 | CALL | xhci -> slots [ slotid - 1 ]
+30064771084 | CALL | xhci -> slots
+30064771085 | CALL | slotid - 1
+30064771086 | CALL | i - 1
+30064771087 | CALL | xhci_disable_ep ( xhci , slotid , i )
+30064771088 | CALL | xhci -> slots [ slotid - 1 ] . enabled = 0
+30064771089 | CALL | xhci -> slots [ slotid - 1 ] . enabled
+30064771090 | CALL | xhci -> slots [ slotid - 1 ]
+30064771091 | CALL | xhci -> slots
+30064771092 | CALL | slotid - 1
+30064771093 | CALL | xhci -> slots [ slotid - 1 ] . addressed = 0
+30064771094 | CALL | xhci -> slots [ slotid - 1 ] . addressed
+30064771095 | CALL | xhci -> slots [ slotid - 1 ]
+30064771096 | CALL | xhci -> slots
+30064771097 | CALL | slotid - 1
+30064771098 | CALL | xhci -> slots [ slotid - 1 ] . uport = NULL
+30064771099 | CALL | xhci -> slots [ slotid - 1 ] . uport
+30064771100 | CALL | xhci -> slots [ slotid - 1 ]
+30064771101 | CALL | xhci -> slots
+30064771102 | CALL | slotid - 1
+47244640256 | CONTROL_STRUCTURE | for (i = 1 ;i <= 31;i ++)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( xhci -> slots [ slotid - 1 ] . eps [ i - 1 ] ) {
+ xhci_disable_ep ( xhci , slotid , i ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | numslots
+55834574849 | FIELD_IDENTIFIER | slots
+55834574850 | FIELD_IDENTIFIER | eps
+55834574851 | FIELD_IDENTIFIER | slots
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771087 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 55834574850 [CDG]
+30064771079 -> 55834574849 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771086 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771086 [AST]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 55834574850 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 55834574850 [AST]
+30064771082 -> 55834574850 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 55834574850 [CFG]
+30064771083 -> 55834574850 [DOMINATE]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 55834574849 [ARGUMENT]
+30064771084 -> 55834574849 [AST]
+30064771084 -> 55834574849 [POST_DOMINATE]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771086 -> 30064771081 [CFG]
+30064771086 -> 30064771081 [DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void xhci_kick_ep ( XHCIState * xhci , unsigned int slotid , unsigned int epid , unsigned int streamid ) {
+ XHCIEPContext * epctx ;
+ assert ( slotid >= 1 && slotid <= xhci -> numslots ) ;
+ assert ( epid >= 1 && epid <= 31 ) ;
+ if ( ! xhci -> slots [ slotid - 1 ] . enabled ) {
+ DPRINTF ( "xhci: xhci_kick_ep for disabled slot %d\n" , slotid ) ;
+ return ;
+ }
+ epctx = xhci -> slots [ slotid - 1 ] . eps [ epid - 1 ] ;
+ if ( ! epctx ) {
+ DPRINTF ( "xhci: xhci_kick_ep for disabled endpoint %d,%d\n" , epid , slotid ) ;
+ return ;
+ }
+ xhci_kick_epctx ( epctx , streamid ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

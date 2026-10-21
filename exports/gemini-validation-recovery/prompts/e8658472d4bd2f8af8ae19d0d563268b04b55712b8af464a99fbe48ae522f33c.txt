@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+MIMEField * _mime_hdr_field_list_search_by_slotnum ( MIMEHdrImpl * mh , int slotnum ) {
+ unsigned int block_num , block_index ;
+ MIMEFieldBlockImpl * fblock ;
+ if ( slotnum < MIME_FIELD_BLOCK_SLOTS ) {
+ fblock = & ( mh -> m_first_fblock ) ;
+ block_index = slotnum ;
+ if ( block_index >= fblock -> m_freetop ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+ else {
+ block_num = slotnum / MIME_FIELD_BLOCK_SLOTS ;
+ block_index = slotnum % MIME_FIELD_BLOCK_SLOTS ;
+ fblock = & ( mh -> m_first_fblock ) ;
+ while ( block_num -- && fblock ) {
+ fblock = fblock -> m_next ;
+ }
+ if ( ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop ) ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int block_num , block_index ;
+ MIMEFieldBlockImpl * fblock ;
+ if ( slotnum < MIME_FIELD_BLOCK_SLOTS ) {
+ fblock = & ( mh -> m_first_fblock ) ;
+ block_index = slotnum ;
+ if ( block_index >= fblock -> m_freetop ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+ else {
+ block_num = slotnum / MIME_FIELD_BLOCK_SLOTS ;
+ block_index = slotnum % MIME_FIELD_BLOCK_SLOTS ;
+ fblock = & ( mh -> m_first_fblock ) ;
+ while ( block_num -- && fblock ) {
+ fblock = fblock -> m_next ;
+ }
+ if ( ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop ) ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ fblock = & ( mh -> m_first_fblock ) ;
+ block_index = slotnum ;
+ if ( block_index >= fblock -> m_freetop ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+      
+25769803778 | BLOCK | { return nullptr ; }
+25769803779 | BLOCK | { return & ( fblock -> m_field_slots [ block_index ] ) ; }
+25769803780 | BLOCK | 
+        {
+ block_num = slotnum / MIME_FIELD_BLOCK_SLOTS ;
+ block_index = slotnum % MIME_FIELD_BLOCK_SLOTS ;
+ fblock = & ( mh -> m_first_fblock ) ;
+ while ( block_num -- && fblock ) {
+ fblock = fblock -> m_next ;
+ }
+ if ( ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop ) ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+      
+25769803781 | BLOCK | { fblock = fblock -> m_next ; }
+25769803782 | BLOCK | { return nullptr ; }
+25769803783 | BLOCK | { return & ( fblock -> m_field_slots [ block_index ] ) ; }
+30064771072 | CALL | slotnum < MIME_FIELD_BLOCK_SLOTS
+30064771073 | CALL | fblock = & ( mh -> m_first_fblock )
+30064771074 | CALL | & ( mh -> m_first_fblock )
+30064771075 | CALL | mh -> m_first_fblock
+30064771076 | CALL | block_index = slotnum
+30064771077 | CALL | block_index >= fblock -> m_freetop
+30064771078 | CALL | fblock -> m_freetop
+30064771079 | CALL | & ( fblock -> m_field_slots [ block_index ] )
+30064771080 | CALL | fblock -> m_field_slots [ block_index ]
+30064771081 | CALL | fblock -> m_field_slots
+30064771082 | CALL | block_num = slotnum / MIME_FIELD_BLOCK_SLOTS
+30064771083 | CALL | slotnum / MIME_FIELD_BLOCK_SLOTS
+30064771084 | CALL | block_index = slotnum % MIME_FIELD_BLOCK_SLOTS
+30064771085 | CALL | slotnum % MIME_FIELD_BLOCK_SLOTS
+30064771086 | CALL | fblock = & ( mh -> m_first_fblock )
+30064771087 | CALL | & ( mh -> m_first_fblock )
+30064771088 | CALL | mh -> m_first_fblock
+30064771089 | CALL | block_num -- && fblock
+30064771090 | CALL | block_num --
+30064771091 | CALL | fblock = fblock -> m_next
+30064771092 | CALL | fblock -> m_next
+30064771093 | CALL | ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop )
+30064771094 | CALL | fblock == nullptr
+30064771095 | CALL | block_index >= fblock -> m_freetop
+30064771096 | CALL | fblock -> m_freetop
+30064771097 | CALL | & ( fblock -> m_field_slots [ block_index ] )
+30064771098 | CALL | fblock -> m_field_slots [ block_index ]
+30064771099 | CALL | fblock -> m_field_slots
+47244640256 | CONTROL_STRUCTURE | 
+        if ( slotnum < MIME_FIELD_BLOCK_SLOTS ) {
+ fblock = & ( mh -> m_first_fblock ) ;
+ block_index = slotnum ;
+ if ( block_index >= fblock -> m_freetop ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+ else {
+ block_num = slotnum / MIME_FIELD_BLOCK_SLOTS ;
+ block_index = slotnum % MIME_FIELD_BLOCK_SLOTS ;
+ fblock = & ( mh -> m_first_fblock ) ;
+ while ( block_num -- && fblock ) {
+ fblock = fblock -> m_next ;
+ }
+ if ( ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop ) ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( block_index >= fblock -> m_freetop ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | while (block_num -- && fblock)
+47244640259 | CONTROL_STRUCTURE | 
+        if ( ( fblock == nullptr ) || ( block_index >= fblock -> m_freetop ) ) {
+ return nullptr ;
+ }
+ else {
+ return & ( fblock -> m_field_slots [ block_index ] ) ;
+ }
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 47244640257 [AST]
+25769803780 -> 30064771082 [AST]
+25769803780 -> 30064771084 [AST]
+25769803780 -> 30064771086 [AST]
+25769803780 -> 47244640258 [AST]
+25769803780 -> 47244640259 [AST]
+25769803781 -> 30064771091 [AST]
+30064771072 -> 30064771093 [CDG]
+30064771072 -> 30064771094 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,66 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int handleAppendResult ( int result , smart_str * loc_name TSRMLS_DC ) {
+ intl_error_reset ( NULL TSRMLS_CC ) ;
+ if ( result == FAILURE ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_compose: parameter array element is not a string" , 0 TSRMLS_CC ) ;
+ smart_str_free ( loc_name ) ;
+ return 0 ;
+ }
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+PHP_FUNCTION ( locale_compose ) {
+ smart_str loc_name_s = {
+ 0 }
+ ;
+ smart_str * loc_name = & loc_name_s ;
+ zval * arr = NULL ;
+ HashTable * hash_arr = NULL ;
+ int result = 0 ;
+ intl_error_reset ( NULL TSRMLS_CC ) ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "a" , & arr ) == FAILURE ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_compose: unable to parse input params" , 0 TSRMLS_CC ) ;
+ RETURN_FALSE ;
+ }
+ hash_arr = HASH_OF ( arr ) ;
+ if ( ! hash_arr || zend_hash_num_elements ( hash_arr ) == 0 ) RETURN_FALSE ;
+ result = append_key_value ( loc_name , hash_arr , LOC_GRANDFATHERED_LANG_TAG ) ;
+ if ( result == SUCCESS ) {
+ RETURN_SMART_STR ( loc_name ) ;
+ }
+ if ( ! handleAppendResult ( result , loc_name TSRMLS_CC ) ) {
+ RETURN_FALSE ;
+ }
+ result = append_key_value ( loc_name , hash_arr , LOC_LANG_TAG ) ;
+ if ( result == LOC_NOT_FOUND ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_compose: parameter array does not contain 'language' tag." , 0 TSRMLS_CC ) ;
+ smart_str_free ( loc_name ) ;
+ RETURN_FALSE ;
+ }
+ if ( ! handleAppendResult ( result , loc_name TSRMLS_CC ) ) {
+ RETURN_FALSE ;
+ }
+ result = append_multiple_key_values ( loc_name , hash_arr , LOC_EXTLANG_TAG TSRMLS_CC ) ;
+ if ( ! handleAppendResult ( result , loc_name TSRMLS_CC ) ) {
+ RETURN_FALSE ;
+ }
+ result = append_key_value ( loc_name , hash_arr , LOC_SCRIPT_TAG ) ;
+ if ( ! handleAppendResult ( result , loc_name TSRMLS_CC ) ) {
+ RETURN_FALSE ;
+ }
+ result = append_key_value 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+REGRESSION_TEST ( SDK_API_TSUrlParse ) ( RegressionTest * test , int , int * pstatus ) {
+ static const char * const urls [ ] = {
+ "file:///test.dat;
+ab?abc=def#abc" , "http://www.example.com/" , "http://abc:def@www.example.com/" , "http://www.example.com:3426/" , "http://abc:def@www.example.com:3426/" , "http://www.example.com/homepage.cgi" , "http://www.example.com/homepage.cgi;
+ab?abc=def#abc" , "http://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "https://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "ftp://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "file:///c:/test.dat;
+ab?abc=def#abc" , "file:///test.dat;
+ab?abc=def#abc" , "foo://bar.com/baz/" , "http://a.b.com/xx.jpg?newpath=http://b.c.com" }
+ ;
+ static int const num_urls = sizeof ( urls ) / sizeof ( urls [ 0 ] ) ;
+ bool test_passed [ num_urls ] = {
+ false }
+ ;
+ const char * start ;
+ const char * end ;
+ char * temp ;
+ int retval ;
+ TSMBuffer bufp ;
+ TSMLoc url_loc = ( TSMLoc ) nullptr ;
+ int length ;
+ * pstatus = REGRESSION_TEST_INPROGRESS ;
+ int idx ;
+ for ( idx = 0 ;
+ idx < num_urls ;
+ idx ++ ) {
+ const char * url = urls [ idx ] ;
+ bufp = TSMBufferCreate ( ) ;
+ if ( TSUrlCreate ( bufp , & url_loc ) != TS_SUCCESS ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Cannot create Url for parsing the url" ) ;
+ if ( TSMBufferDestroy ( bufp ) == TS_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Error in Destroying MBuffer" ) ;
+ }
+ }
+ else {
+ start = url ;
+ end = url + strlen ( url ) ;
+ if ( ( retval = TSUrlParse ( bufp , url_loc , & start , end ) ) == TS_PARSE_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "TSUrlParse returns TS_PARSE_ERROR" ) ;
+ }
+ else {
+ if ( retval == TS_PARSE_DONE ) {
+ temp = TSUrlStringGet ( bufp , url_loc , & length ) ;
+ if ( strncmp ( url , temp , length ) == 0 ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+ TSfree ( temp ) ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Parsing Error" ) ;
+ }
+ }
+ }
+ TSHandleMLocRelease ( bufp , TS_NULL_MLOC , url_loc ) ;
+ TSMBufferDestroy ( bufp ) ;
+ }
+ for ( idx = 0 ;
+ idx < num_urls ;
+ idx ++ ) {
+ if ( test_passed [ idx ] != true ) {
+ * pstatus = REGRESSION_TEST_FAILED ;
+ break ;
+ }
+ }
+ if ( idx >= num_urls ) {
+ * pstatus = REGRESSION_TEST_PASSED ;
+ }
+ return ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static const char * const urls [ ] = {
+ "file:///test.dat;
+ab?abc=def#abc" , "http://www.example.com/" , "http://abc:def@www.example.com/" , "http://www.example.com:3426/" , "http://abc:def@www.example.com:3426/" , "http://www.example.com/homepage.cgi" , "http://www.example.com/homepage.cgi;
+ab?abc=def#abc" , "http://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "https://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "ftp://abc:def@www.example.com:3426/homepage.cgi;
+ab?abc=def#abc" , "file:///c:/test.dat;
+ab?abc=def#abc" , "file:///test.dat;
+ab?abc=def#abc" , "foo://bar.com/baz/" , "http://a.b.com/xx.jpg?newpath=http://b.c.com" }
+ ;
+ static int const num_urls = sizeof ( urls ) / sizeof ( urls [ 0 ] ) ;
+ bool test_passed [ num_urls ] = {
+ false }
+ ;
+ const char * start ;
+ const char * end ;
+ char * temp ;
+ int retval ;
+ TSMBuffer bufp ;
+ TSMLoc url_loc = ( TSMLoc ) nullptr ;
+ int length ;
+ * pstatus = REGRESSION_TEST_INPROGRESS ;
+ int idx ;
+ for ( idx ...
+      
+25769803777 | BLOCK | 
+        {
+ const char * url = urls [ idx ] ;
+ bufp = TSMBufferCreate ( ) ;
+ if ( TSUrlCreate ( bufp , & url_loc ) != TS_SUCCESS ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Cannot create Url for parsing the url" ) ;
+ if ( TSMBufferDestroy ( bufp ) == TS_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Error in Destroying MBuffer" ) ;
+ }
+ }
+ else {
+ start = url ;
+ end = url + strlen ( url ) ;
+ if ( ( retval = TSUrlParse ( bufp , url_loc , & start , end ) ) == TS_PARSE_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "TSUrlParse returns TS_PARSE_ERROR" ) ;
+ }
+ else {
+ if ( retval == TS_PARSE_DONE ) {
+ temp = TSUrlStringGet ( bufp , url_loc , & length ) ;
+ if ( strncmp ( url , temp , length ) == 0 ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+ TSfree ( temp ) ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAI...
+      
+25769803778 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Cannot create Url for parsing the url" ) ;
+ if ( TSMBufferDestroy ( bufp ) == TS_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Error in Destroying MBuffer" ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Error in Destroying MBuffer" ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ start = url ;
+ end = url + strlen ( url ) ;
+ if ( ( retval = TSUrlParse ( bufp , url_loc , & start , end ) ) == TS_PARSE_ERROR ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "TSUrlParse returns TS_PARSE_ERROR" ) ;
+ }
+ else {
+ if ( retval == TS_PARSE_DONE ) {
+ temp = TSUrlStringGet ( bufp , url_loc , & length ) ;
+ if ( strncmp ( url , temp , length ) == 0 ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+ TSfree ( temp ) ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Parsing Error" ) ;
+ }
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "TSUrlParse returns TS_PARSE_ERROR" ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( retval == TS_PARSE_DONE ) {
+ temp = TSUrlStringGet ( bufp , url_loc , & length ) ;
+ if ( strncmp ( url , temp , length ) == 0 ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+ TSfree ( temp ) ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Parsing Error" ) ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ temp = TSUrlStringGet ( bufp , url_loc , & length ) ;
+ if ( strncmp ( url , temp , length ) == 0 ) {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+ else {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+ TSfree ( temp ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_PASS , "ok" ) ;
+ test_passed [ idx ] = true ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Value's Mismatch" ) ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ SDK_RPRINT ( test , "TSUrlParse" , url , TC_FAIL , "Parsing Error" ) ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ if ( test_passed [ idx ] != true ) {
+ * pstatus = REGRESSION_TEST_FAILED ;
+ break ;
+ }
+ }
+      
+25769803788 | BLOCK | { * pstatus = REGRESSION_TEST_FAILED ; break ; }
+25769803789 | BLOCK | { * pstatus = REGRESSION_TEST_PASSED ; }
+30064771072 | CALL | num_urls = sizeof ( urls ) / sizeof ( urls [ 0 ] )
+30064771073 | CALL | sizeof ( urls ) / sizeof ( urls [ 0 ] )
+30064771074 | CALL | sizeof ( urls 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

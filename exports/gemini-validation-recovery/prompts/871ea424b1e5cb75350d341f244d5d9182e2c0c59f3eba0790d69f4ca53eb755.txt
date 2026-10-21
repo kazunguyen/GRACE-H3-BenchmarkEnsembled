@@ -1,0 +1,291 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+NBDExport *nbd_export_new(BlockDriverState *bs, off_t dev_offset,
+
+                          off_t size, uint32_t nbdflags,
+
+                          void (*close)(NBDExport *))
+
+{
+
+    NBDExport *exp = g_malloc0(sizeof(NBDExport));
+
+    exp->refcount = 1;
+
+    QTAILQ_INIT(&exp->clients);
+
+    exp->bs = bs;
+
+    exp->dev_offset = dev_offset;
+
+    exp->nbdflags = nbdflags;
+
+    exp->size = size == -1 ? bdrv_getlength(bs) : size;
+
+    exp->close = close;
+
+    exp->ctx = bdrv_get_aio_context(bs);
+
+    bdrv_ref(bs);
+
+    bdrv_add_aio_context_notifier(bs, bs_aio_attached, bs_aio_detach, exp);
+
+
+
+
+
+
+
+    return exp;
+
+}
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    NBDExport *exp = g_malloc0(sizeof(NBDExport));
+
+    exp->refcount = 1;
+
+    QTAILQ_INIT(&exp->clients);
+
+    exp->bs = bs;
+
+    exp->dev_offset = dev_offset;
+
+    exp->nbdflags = nbdflags;
+
+    exp->size = size == -1 ? bdrv_getlength(bs) : size;
+
+    exp->close = close;
+
+    exp->ctx = bdrv_get_aio_context(bs);
+
+    bdrv_ref(bs);
+
+    bdrv_add_aio_context_notifier(bs, bs_aio_attached, bs_aio_detach, exp);
+
+
+
+
+
+
+
+    return exp;
+
+}
+      
+30064771072 | CALL | exp = g_malloc0(sizeof(NBDExport))
+30064771073 | CALL | g_malloc0(sizeof(NBDExport))
+30064771074 | CALL | sizeof(NBDExport)
+30064771075 | CALL | exp->refcount = 1
+30064771076 | CALL | exp->refcount
+30064771077 | CALL | QTAILQ_INIT(&exp->clients)
+30064771078 | CALL | &exp->clients
+30064771079 | CALL | exp->clients
+30064771080 | CALL | exp->bs = bs
+30064771081 | CALL | exp->bs
+30064771082 | CALL | exp->dev_offset = dev_offset
+30064771083 | CALL | exp->dev_offset
+30064771084 | CALL | exp->nbdflags = nbdflags
+30064771085 | CALL | exp->nbdflags
+30064771086 | CALL | exp->size = size == -1 ? bdrv_getlength(bs) : size
+30064771087 | CALL | exp->size
+30064771088 | CALL | size == -1 ? bdrv_getlength(bs) : size
+30064771089 | CALL | size == -1
+30064771090 | CALL | -1
+30064771091 | CALL | bdrv_getlength(bs)
+30064771092 | CALL | exp->close = close
+30064771093 | CALL | exp->close
+30064771094 | CALL | exp->ctx = bdrv_get_aio_context(bs)
+30064771095 | CALL | exp->ctx
+30064771096 | CALL | bdrv_get_aio_context(bs)
+30064771097 | CALL | bdrv_ref(bs)
+30064771098 | CALL | bdrv_add_aio_context_notifier(bs, bs_aio_attached, bs_aio_detach, exp)
+55834574848 | FIELD_IDENTIFIER | refcount
+55834574849 | FIELD_IDENTIFIER | clients
+55834574850 | FIELD_IDENTIFIER | bs
+55834574851 | FIELD_IDENTIFIER | dev_offset
+55834574852 | FIELD_IDENTIFIER | nbdflags
+55834574853 | FIELD_IDENTIFIER | size
+55834574854 | FIELD_IDENTIFIER | close
+55834574855 | FIELD_IDENTIFIER | ctx
+68719476736 | IDENTIFIER | exp
+68719476737 | IDENTIFIER | NBDExport
+68719476738 | IDENTIFIER | exp
+68719476739 | IDENTIFIER | exp
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771098 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476739 [ARGUMENT]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 68719476739 [AST]
+30064771079 -> 55834574849 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574849 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 55834574850 [ARGUMENT]
+30064771081 -> 55834574850 [AST]
+30064771081 -> 55834574850 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771083 -> 55834574851 [ARGUMENT]
+30064771083 -> 55834574851 [AST]
+30064771083 -> 55834574851 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 55834574852 [ARGUMENT]
+30064771085 -> 55834574852 [AST]
+30064771085 -> 55834574852 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+NBDExport *nbd_export_new(BlockBackend *blk, off_t dev_offset, off_t size,
+
+                          uint32_t nbdflags, void (*close)(NBDExport *),
+
+                          Error **errp)
+
+{
+
+    NBDExport *exp = g_malloc0(sizeof(NBDExport));
+
+    exp->refcount = 1;
+
+    QTAILQ_INIT(&exp->clients);
+
+    exp->blk = blk;
+
+    exp->dev_offset = dev_offset;
+
+    exp->nbdflags = nbdflags;
+
+    exp->size = size < 0 ? blk_getlength(blk) : size;
+
+    if (exp->size < 0) {
+
+        error_setg_errno(errp, -exp->size,
+
+                         "Failed to determine the NBD export's length");
+
+        goto fail;
+
+    }
+
+    exp->size -= exp->size % BDRV_SECTOR_SIZE;
+
+
+
+    exp->close = close;
+
+    exp->ctx = blk_get_aio_context(blk);
+
+    blk_ref(blk);
+
+    blk_add_aio_context_notifier(blk, blk_aio_attached, blk_aio_detach, exp);
+
+
+
+    exp->eject_notifier.notify = nbd_eject_notifier;
+
+    blk_add_remove_bs_notifier(blk, &exp->eject_notifier);
+
+
+
+    /*
+
+     * NBD exports are used for non-shared storage migration.  Make sure
+
+     * that BDRV_O_INACTIVE is cleared and the image is ready for write
+
+     * access since the export could be available before migration handover.
+
+     */
+
+    aio_context_acquire(exp->ctx);
+
+    blk_invalidate_cache(blk, NULL);
+
+    aio_context_release(exp->ctx);
+
+    return exp;
+
+
+
+fail:
+
+    g_free(exp);
+
+    return NULL;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

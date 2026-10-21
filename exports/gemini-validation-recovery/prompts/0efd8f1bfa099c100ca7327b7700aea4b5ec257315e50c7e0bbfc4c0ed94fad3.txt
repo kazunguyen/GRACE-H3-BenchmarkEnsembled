@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * str_CBaseStorageVariant ( struct CBaseStorageVariant * value , gboolean print_type ) {
+ wmem_strbuf_t * strbuf = wmem_strbuf_new ( wmem_packet_scope ( ) , "" ) ;
+ if ( value == NULL ) {
+ return "<NULL>" ;
+ }
+ if ( value -> type == NULL ) {
+ return "<??" "?>" ;
+ }
+ if ( print_type ) {
+ wmem_strbuf_append ( strbuf , value -> type -> str ) ;
+ if ( value -> vType & 0xFF00 ) {
+ wmem_strbuf_append_printf ( strbuf , "[%d]" , value -> vValue . vt_vector . len ) ;
+ }
+ wmem_strbuf_append ( strbuf , ": " ) ;
+ }
+ switch ( value -> vType & 0xFF00 ) {
+ case 0 : value -> type -> strbuf_append ( strbuf , & value -> vValue ) ;
+ break ;
+ case VT_ARRAY : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_array . vData , value -> type ) ;
+ break ;
+ case VT_VECTOR : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_vector , value -> type ) ;
+ break ;
+ default : wmem_strbuf_append ( strbuf , "Invalid" ) ;
+ }
+ return wmem_strbuf_get_str ( strbuf ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ wmem_strbuf_t * strbuf = wmem_strbuf_new ( wmem_packet_scope ( ) , "" ) ;
+ if ( value == NULL ) {
+ return "<NULL>" ;
+ }
+ if ( value -> type == NULL ) {
+ return "<??" "?>" ;
+ }
+ if ( print_type ) {
+ wmem_strbuf_append ( strbuf , value -> type -> str ) ;
+ if ( value -> vType & 0xFF00 ) {
+ wmem_strbuf_append_printf ( strbuf , "[%d]" , value -> vValue . vt_vector . len ) ;
+ }
+ wmem_strbuf_append ( strbuf , ": " ) ;
+ }
+ switch ( value -> vType & 0xFF00 ) {
+ case 0 : value -> type -> strbuf_append ( strbuf , & value -> vValue ) ;
+ break ;
+ case VT_ARRAY : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_array . vData , value -> type ) ;
+ break ;
+ case VT_VECTOR : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_vector , value -> type ) ;
+ break ;
+ default : wmem_strbuf_append ( strbuf , "Invalid" ) ;
+ }
+ return wmem_strbuf_get_str ( strbuf ) ;
+ }
+      
+25769803777 | BLOCK | { return "<NULL>" ; }
+25769803778 | BLOCK | { return "<??" "?>" ; }
+25769803779 | BLOCK | 
+        {
+ wmem_strbuf_append ( strbuf , value -> type -> str ) ;
+ if ( value -> vType & 0xFF00 ) {
+ wmem_strbuf_append_printf ( strbuf , "[%d]" , value -> vValue . vt_vector . len ) ;
+ }
+ wmem_strbuf_append ( strbuf , ": " ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ wmem_strbuf_append_printf ( strbuf , "[%d]" , value -> vValue . vt_vector . len ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ case 0 : value -> type -> strbuf_append ( strbuf , & value -> vValue ) ;
+ break ;
+ case VT_ARRAY : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_array . vData , value -> type ) ;
+ break ;
+ case VT_VECTOR : vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_vector , value -> type ) ;
+ break ;
+ default : wmem_strbuf_append ( strbuf , "Invalid" ) ;
+ }
+      
+30064771072 | CALL | strbuf = wmem_strbuf_new ( wmem_packet_scope ( ) , "" )
+30064771073 | CALL | wmem_strbuf_new ( wmem_packet_scope ( ) , "" )
+30064771074 | CALL | wmem_packet_scope ( )
+30064771075 | CALL | value == NULL
+30064771076 | CALL | value -> type == NULL
+30064771077 | CALL | value -> type
+30064771078 | CALL | print_type != 0
+30064771079 | CALL | wmem_strbuf_append ( strbuf , value -> type -> str )
+30064771080 | CALL | value -> type -> str
+30064771081 | CALL | value -> type
+30064771082 | CALL | value -> vType & 0xFF00
+30064771083 | CALL | value -> vType
+30064771084 | CALL | 
+        wmem_strbuf_append_printf ( strbuf , "[%d]" , value -> vValue . vt_vector . len )
+      
+30064771085 | CALL | value -> vValue . vt_vector . len
+30064771086 | CALL | value -> vValue . vt_vector
+30064771087 | CALL | value -> vValue
+30064771088 | CALL | wmem_strbuf_append ( strbuf , ": " )
+30064771089 | CALL | value -> vType & 0xFF00
+30064771090 | CALL | value -> vType
+30064771091 | CALL | value -> type -> strbuf_append ( strbuf , & value -> vValue )
+30064771092 | CALL | value -> type -> strbuf_append
+30064771093 | CALL | value -> type
+30064771094 | CALL | & value -> vValue
+30064771095 | CALL | value -> vValue
+30064771096 | CALL | 
+        vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_array . vData , value -> type )
+      
+30064771097 | CALL | value -> vValue . vt_array . vData
+30064771098 | CALL | value -> vValue . vt_array
+30064771099 | CALL | value -> vValue
+30064771100 | CALL | value -> type
+30064771101 | CALL | 
+        vvalue_strbuf_append_vector ( strbuf , value -> vValue . vt_vector , value -> type )
+      
+30064771102 | CALL | value -> vValue . vt_vector
+30064771103 | CALL | value -> vValue
+30064771104 | CALL | value -> type
+30064771105 | CALL | wmem_strbuf_append ( strbuf , "Invalid" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803779 -> 30064771079 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771084 [AST]
+25769803781 -> 30064771091 [AST]
+25769803781 -> 30064771096 [AST]
+25769803781 -> 30064771101 [AST]
+25769803781 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771077 -> 30064771081 [REACHING_DEF]
+30064771077 -> 30064771100 [REACHING_DEF]
+30064771077 -> 30064771104 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771093 [REACHING_DEF]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771100 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771104 [REACHING_DEF]
+30064771080 -> 30064771093 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771083 -> 30064771090 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771102 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771099 [CDG]
+30064771089 -> 30064771098 [CDG]
+30064771089 -> 30064771097 [CDG]
+30064771089 -> 30064771096 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771105 [CDG]
+30064771089 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

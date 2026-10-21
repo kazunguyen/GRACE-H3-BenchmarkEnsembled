@@ -1,0 +1,340 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void virtio_net_receive(void *opaque, const uint8_t *buf, size_t size)
+
+{
+
+    VirtIONet *n = opaque;
+
+    struct virtio_net_hdr_mrg_rxbuf *mhdr = NULL;
+
+    size_t hdr_len, offset, i;
+
+
+
+    if (!do_virtio_net_can_receive(n, size))
+
+        return;
+
+
+
+    if (!receive_filter(n, buf, size))
+
+        return;
+
+
+
+    /* hdr_len refers to the header we supply to the guest */
+
+    hdr_len = n->mergeable_rx_bufs ?
+
+        sizeof(struct virtio_net_hdr_mrg_rxbuf) : sizeof(struct virtio_net_hdr);
+
+
+
+    offset = i = 0;
+
+
+
+    while (offset < size) {
+
+        VirtQueueElement elem;
+
+        int len, total;
+
+        struct iovec sg[VIRTQUEUE_MAX_SIZE];
+
+
+
+        len = total = 0;
+
+
+
+        if ((i != 0 && !n->mergeable_rx_bufs) ||
+
+            virtqueue_pop(n->rx_vq, &elem) == 0) {
+
+            if (i == 0)
+
+                return;
+
+            fprintf(stderr, "virtio-net truncating packet\n");
+
+            exit(1);
+
+        }
+
+
+
+        if (elem.in_num < 1) {
+
+            fprintf(stderr, "virtio-net receive queue contains no in buffers\n");
+
+            exit(1);
+
+        }
+
+
+
+        if (!n->mergeable_rx_bufs && elem.in_sg[0].iov_len != hdr_len) {
+
+            fprintf(stderr, "virtio-net header not in first element\n");
+
+            exit(1);
+
+        }
+
+
+
+        memcpy(&sg, &elem.in_sg[0], sizeof(sg[0]) * elem.in_num);
+
+
+
+        if (i == 0) {
+
+            if (n->mergeable_rx_bufs)
+
+                mhdr = (struct virtio_net_hdr_mrg_rxbuf *)sg[0].iov_base;
+
+
+
+            offset += receive_header(n, sg, elem.in_num,
+
+                                     buf + offset, size - offset, hdr_len);
+
+            total += hdr_len;
+
+        }
+
+
+
+        /* copy in packet.  ugh */
+
+        len = iov_fill(sg, elem.in_num,
+
+                       buf + offset, size - offset);
+
+        total += len;
+
+
+
+        /* signal other side */
+
+        virtqueue_fill(n->rx_vq, &elem, total, i++);
+
+
+
+        offset += len;
+
+    }
+
+
+
+    if (mhdr)
+
+        mhdr->num_buffers = i;
+
+
+
+    virtqueue_flush(n->rx_vq, i);
+
+    virtio_notify(&n->vdev, n->rx_vq);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+19 -> 23 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+19 -> 26 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 41 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+49 -> 54 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 56 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+60 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+60 -> 68 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static ssize_t virtio_net_receive(VLANClientState *vc, const uint8_t *buf, size_t size)
+
+{
+
+    VirtIONet *n = vc->opaque;
+
+    struct virtio_net_hdr_mrg_rxbuf *mhdr = NULL;
+
+    size_t hdr_len, offset, i;
+
+
+
+    if (!do_virtio_net_can_receive(n, size))
+
+        return 0;
+
+
+
+    if (!receive_filter(n, buf, size))
+
+        return size;
+
+
+
+    /* hdr_len refers to the header we supply to the guest */
+
+    hdr_len = n->mergeable_rx_bufs ?
+
+        sizeof(struct virtio_net_hdr_mrg_rxbuf) : sizeof(struct virtio_net_hdr);
+
+
+
+    offset = i = 0;
+
+
+
+    while (offset < size) {
+
+        VirtQueueElement elem;
+
+        int len, total;
+
+        struct iovec sg[VIRTQUEUE_MAX_SIZE];
+
+
+
+        len = total = 0;
+
+
+
+        if ((i != 0 && !n->mergeable_rx_bufs) ||
+
+            virtqueue_pop(n->rx_vq, &elem) == 0) {
+
+            if (i == 0)
+
+                return -1;
+
+            fprintf(stderr, "virtio-net truncating packet\n");
+
+            exit(1);
+
+        }
+
+
+
+        if (elem.in_num < 1) {
+
+            fprintf(stderr, "virtio-net receive queue contains no in buffers\n");
+
+            exit(1);
+
+        }
+
+
+
+        if (!n->mergeable_rx_bufs && elem.in_sg[0].iov_len != hdr_len) {
+
+            fprintf(stderr, "virtio-net header not in first element\n");
+
+            exit(1);
+
+        }
+
+
+
+        memcpy(&sg, &elem.in_sg[0], sizeof(sg[0]) * elem.in_num);
+
+
+
+        if (i == 0) {
+
+            if (n->mergeable_rx_bufs)
+
+                mhdr = (struct virtio_net_hdr_mrg_rxbuf *)sg[0].iov_base
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

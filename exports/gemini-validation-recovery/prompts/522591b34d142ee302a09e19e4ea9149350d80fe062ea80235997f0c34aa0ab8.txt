@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int jpc_pi_nextcprl ( register jpc_pi_t * pi ) {
+ int rlvlno ;
+ jpc_pirlvl_t * pirlvl ;
+ jpc_pchg_t * pchg ;
+ int prchind ;
+ int prcvind ;
+ int * prclyrno ;
+ uint_fast32_t trx0 ;
+ uint_fast32_t try0 ;
+ uint_fast32_t r ;
+ uint_fast32_t rpx ;
+ uint_fast32_t rpy ;
+ pchg = pi -> pchg ;
+ if ( ! pi -> prgvolfirst ) {
+ goto skip ;
+ }
+ else {
+ pi -> prgvolfirst = 0 ;
+ }
+ for ( pi -> compno = pchg -> compnostart , pi -> picomp = & pi -> picomps [ pi -> compno ] ;
+ pi -> compno < JAS_CAST ( int , pchg -> compnoend ) && pi -> compno < pi -> numcomps ;
+ ++ pi -> compno , ++ pi -> picomp ) {
+ pirlvl = pi -> picomp -> pirlvls ;
+ pi -> xstep = pi -> picomp -> hsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcwidthexpn + pi -> picomp -> numrlvls - 1 ) ) ;
+ pi -> ystep = pi -> picomp -> vsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcheightexpn + pi -> picomp -> numrlvls - 1 ) ) ;
+ for ( rlvlno = 1 , pirlvl = & pi -> picomp -> pirlvls [ 1 ] ;
+ rlvlno < pi -> picomp -> numrlvls ;
+ ++ rlvlno , ++ pirlvl ) {
+ pi -> xstep = JAS_MIN ( pi -> xstep , pi -> picomp -> hsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcwidthexpn + pi -> picomp -> numrlvls - rlvlno - 1 ) ) ) ;
+ pi -> ystep = JAS_MIN ( pi -> ystep , pi -> picomp -> vsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcheightexpn + pi -> picomp -> numrlvls - rlvlno - 1 ) ) ) ;
+ }
+ for ( pi -> y = pi -> ystart ;
+ pi -> y < pi -> yend ;
+ pi -> y += pi -> ystep - ( pi -> y % pi -> ystep ) ) {
+ for ( pi -> x = pi -> xstart ;
+ pi -> x < pi -> xend ;
+ pi -> x += pi -> xstep - ( pi -> x % pi -> xstep ) ) {
+ for ( pi -> rlvlno = pchg -> rlvlnostart , pi -> pirlvl = & pi -> picomp -> pirlvls [ pi -> rlvlno ] ;
+ pi -> rlvlno < pi -> picomp -> numrlvls && pi -> rlvlno < pchg -> rlvlnoend ;
+ ++ pi -> rlvlno , ++ pi -> pirlvl ) {
+ if ( pi -> pirlvl -> numprcs == 0 ) {
+ continue ;
+ }
+ r = pi -> picomp -> numrlvls - 1 - pi -> rlvlno ;
+ trx0 = JPC_CEILDIV ( pi -> xstart , pi -> picomp -> hsamp << r ) ;
+ try0 = JPC_CEILDIV ( pi -> ystart , pi -> picomp -> vsamp << r ) ;
+ rpx = r + pi -> pirlvl -> prcwidthexpn ;
+ rpy = r + pi -> pirlvl -> prcheightexpn ;
+ if ( ( ( pi -> x == pi -> xstart && ( ( trx0 << r ) % ( 1 << rpx ) ) ) || ! ( pi -> x % ( pi -> picomp -> hsamp << rpx ) ) ) && ( ( pi -> y == pi -> ystart && ( ( try0 << r ) % ( 1 << rpy ) ) ) || ! ( pi -> y % ( pi -> picomp -> vsamp << rpy ) ) ) ) {
+ prchind = JPC_FLOORDIVPOW2 ( JPC_CEILDIV ( pi -> x , pi -> picomp -> hsamp << r ) , pi -> pirlvl -> prcwidthexpn ) - JPC_FLOORDIVPOW2 ( trx0 , pi -> pirlvl -> prcwidthexpn ) ;
+ prcvind = JPC_FLOORDIVPOW2 ( JPC_CEILDIV ( pi -> y , pi -> picomp -> vsamp << r ) , pi -> pirlvl -> prcheightexpn ) - JPC_FLOORDIVPOW2 ( try0 , pi -> pirlvl -> prcheightexpn ) ;
+ pi -> prcno = prcvind * pi -> pirlvl -> numhprcs + prchind ;
+ assert ( pi -> prcno < pi -> pirlvl -> numprcs ) ;
+ for ( pi -> lyrno = 0 ;
+ pi -> lyrno < pi -> numlyrs && pi -> lyrno < JAS_CAST ( int , pchg -> lyrnoend ) ;
+ ++ pi -> lyrno )
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int rlvlno ;
+ jpc_pirlvl_t * pirlvl ;
+ jpc_pchg_t * pchg ;
+ int prchind ;
+ int prcvind ;
+ int * prclyrno ;
+ uint_fast32_t trx0 ;
+ uint_fast32_t try0 ;
+ uint_fast32_t r ;
+ uint_fast32_t rpx ;
+ uint_fast32_t rpy ;
+ pchg = pi -> pchg ;
+ if ( ! pi -> prgvolfirst ) {
+ goto skip ;
+ }
+ else {
+ pi -> prgvolfirst = 0 ;
+ }
+ for ( pi -> compno = pchg -> compnostart , pi -> picomp = & pi -> picomps [ pi -> compno ] ;
+ pi -> compno < JAS_CAST ( int , pchg -> compnoend ) && pi -> compno < pi -> numcomps ;
+ ++ pi -> compno , ++ pi -> picomp ) {
+ pirlvl = pi -> picomp -> pirlvls ;
+ pi -> xstep = pi -> picomp -> hsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcwidthexpn + pi -> picomp -> numrlvls - 1 ) ) ;
+ pi -> ystep = pi -> picomp -> vsamp * ( JAS_CAST ( uint_fast32_t , 1 ) << ( pirlvl -> prcheightexpn + pi -> picomp -> numrlvls - 1 ) ) ;
+ for ( rlvlno = 1 , pirlvl = & pi -> picomp -> pirlvls [ 1 ] ;
+ rlvlno < pi -> picomp -> numrlvls ;
+ ++ rlvlno , ++ pirlvl ) {
+ pi -> xstep = JAS_M...
+      
+25769803777 | BLOCK | { goto skip ; }
+25769803778 | BLOCK | { pi -> prgvolfirst = 0 ; }
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | pchg = pi -> pchg
+30064771073 | CALL | pi -> pchg
+30064771074 | CALL | ! pi -> prgvolfirst
+30064771075 | CALL | pi -> prgvolfirst
+30064771076 | CALL | pi -> prgvolfirst = 0
+30064771077 | CALL | pi -> prgvolfirst
+30064771078 | CALL | ++ pi -> compno
+30064771079 | CALL | pi -> compno
+30064771080 | CALL | ++ pi -> picomp
+30064771081 | CALL | pi -> picomp
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! pi -> prgvolfirst ) {
+ goto skip ;
+ }
+ else {
+ pi -> prgvolfirst = 0 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | goto skip;
+55834574848 | FIELD_IDENTIFIER | pchg
+55834574849 | FIELD_IDENTIFIER | prgvolfirst
+55834574850 | FIELD_IDENTIFIER | prgvolfirst
+55834574851 | FIELD_IDENTIFIER | compno
+55834574852 | FIELD_IDENTIFIER | picomp
+68719476736 | IDENTIFIER | pchg
+68719476737 | IDENTIFIER | pi
+68719476738 | IDENTIFIER | pi
+68719476739 | IDENTIFIER | pi
+68719476740 | IDENTIFIER | pi
+68719476741 | IDENTIFIER | pi
+77309411328 | JUMP_LABEL | skip
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 1
+94489280512 | LOCAL | int rlvlno
+94489280513 | LOCAL | jpc_pirlvl_t * pirlvl
+94489280514 | LOCAL | jpc_pchg_t * pchg
+94489280515 | LOCAL | int prchind
+94489280516 | LOCAL | int prcvind
+94489280517 | LOCAL | int * prclyrno
+94489280518 | LOCAL | uint_fast32_t trx0
+94489280519 | LOCAL | uint_fast32_t try0
+94489280520 | LOCAL | uint_fast32_t r
+94489280521 | LOCAL | uint_fast32_t rpx
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+25769803776 -> 94489280518 [AST]
+25769803776 -> 94489280519 [AST]
+25769803776 -> 94489280520 [AST]
+25769803776 -> 94489280521 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 25769803779 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771078 [AST]
+25769803779 -> 30064771080 [AST]
+25769803779 -> 90194313217 [CFG]
+25769803779 -> 90194313217 [DOMINATE]
+25769803779 -> 30064771080 [POST_DOMINATE]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476741 [REACHING_DEF]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 68719476738 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 47244640257 [CDG]
+30064771074 -> 47244640257 [CFG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 47244640257 [DOMINATE]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

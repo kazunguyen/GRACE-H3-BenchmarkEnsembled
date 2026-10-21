@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorJSONEjectMedia ( qemuMonitorPtr mon , const char * dev_name , bool force ) {
+ int ret ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "eject" , "s:device" , dev_name , "b:force" , force ? 1 : 0 , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "eject" , "s:device" , dev_name , "b:force" , force ? 1 : 0 , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | 
+        cmd = qemuMonitorJSONMakeCommand ( "eject" , "s:device" , dev_name , "b:force" , force ? 1 : 0 , NULL )
+      
+30064771073 | CALL | 
+        qemuMonitorJSONMakeCommand ( "eject" , "s:device" , dev_name , "b:force" , force ? 1 : 0 , NULL )
+      
+30064771074 | CALL | force ? 1 : 0
+30064771075 | CALL | reply = NULL
+30064771076 | CALL | ! cmd
+30064771077 | CALL | - 1
+30064771078 | CALL | ret = qemuMonitorJSONCommand ( mon , cmd , & reply )
+30064771079 | CALL | qemuMonitorJSONCommand ( mon , cmd , & reply )
+30064771080 | CALL | & reply
+30064771081 | CALL | ret == 0
+30064771082 | CALL | ret = qemuMonitorJSONCheckError ( cmd , reply )
+30064771083 | CALL | qemuMonitorJSONCheckError ( cmd , reply )
+30064771084 | CALL | virJSONValueFree ( cmd )
+30064771085 | CALL | virJSONValueFree ( reply )
+47244640256 | CONTROL_STRUCTURE | if ( ! cmd ) return - 1 ;
+47244640257 | CONTROL_STRUCTURE | if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+68719476736 | IDENTIFIER | cmd
+68719476737 | IDENTIFIER | dev_name
+68719476738 | IDENTIFIER | force
+68719476739 | IDENTIFIER | <unknown> NULL
+68719476740 | IDENTIFIER | reply
+68719476741 | IDENTIFIER | <unknown> NULL
+68719476742 | IDENTIFIER | cmd
+68719476743 | IDENTIFIER | ret
+68719476744 | IDENTIFIER | mon
+68719476745 | IDENTIFIER | cmd
+68719476746 | IDENTIFIER | reply
+68719476747 | IDENTIFIER | ret
+68719476748 | IDENTIFIER | ret
+68719476749 | IDENTIFIER | cmd
+68719476750 | IDENTIFIER | reply
+68719476751 | IDENTIFIER | cmd
+68719476752 | IDENTIFIER | reply
+68719476753 | IDENTIFIER | ret
+90194313216 | LITERAL | "eject"
+90194313217 | LITERAL | "s:device"
+90194313218 | LITERAL | "b:force"
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803778 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476740 [CFG]
+30064771072 -> 68719476740 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 90194313217 [ARGUMENT]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 90194313218 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 90194313217 [AST]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 90194313218 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 68719476751 [CDG]
+30064771076 -> 68719476752 [CDG]
+30064771076 -> 68719476753 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476747 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476747 [CFG]
+30064771078 -> 68719476747 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476744 [AST]
+30064771079 -> 68719476745 [AST]
+30064771079 -> 30064771080 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int qemuMonitorJSONAddHostNetwork ( qemuMonitorPtr mon , const char * netstr ) {
+ int ret ;
+ virJSONValuePtr cmd = qemuMonitorJSONMakeCommand ( "host_net_add" , "s:device" , netstr , NULL ) ;
+ virJSONValuePtr reply = NULL ;
+ if ( ! cmd ) return - 1 ;
+ ret = qemuMonitorJSONCommand ( mon , cmd , & reply ) ;
+ if ( ret == 0 ) ret = qemuMonitorJSONCheckError ( cmd , reply ) ;
+ virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

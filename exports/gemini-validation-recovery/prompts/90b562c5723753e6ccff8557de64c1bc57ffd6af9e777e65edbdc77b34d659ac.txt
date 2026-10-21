@@ -1,0 +1,322 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static ULanguageTag * ultag_parse ( const char * tag , int32_t tagLen , int32_t * parsedLen , UErrorCode * status ) {
+ ULanguageTag * t ;
+ char * tagBuf ;
+ int16_t next ;
+ char * pSubtag , * pNext , * pLastGoodPosition ;
+ int32_t subtagLen ;
+ int32_t extlangIdx ;
+ ExtensionListEntry * pExtension ;
+ char * pExtValueSubtag , * pExtValueSubtagEnd ;
+ int32_t i ;
+ UBool privateuseVar = FALSE ;
+ int32_t grandfatheredLen = 0 ;
+ if ( parsedLen != NULL ) {
+ * parsedLen = 0 ;
+ }
+ if ( U_FAILURE ( * status ) ) {
+ return NULL ;
+ }
+ if ( tagLen < 0 ) {
+ tagLen = ( int32_t ) uprv_strlen ( tag ) ;
+ }
+ tagBuf = ( char * ) uprv_malloc ( tagLen + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ return NULL ;
+ }
+ uprv_memcpy ( tagBuf , tag , tagLen ) ;
+ * ( tagBuf + tagLen ) = 0 ;
+ t = ( ULanguageTag * ) uprv_malloc ( sizeof ( ULanguageTag ) ) ;
+ if ( t == NULL ) {
+ uprv_free ( tagBuf ) ;
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ return NULL ;
+ }
+ _initializeULanguageTag ( t ) ;
+ t -> buf = tagBuf ;
+ if ( tagLen < MINLEN ) {
+ return t ;
+ }
+ for ( i = 0 ;
+ GRANDFATHERED [ i ] != NULL ;
+ i += 2 ) {
+ if ( uprv_stricmp ( GRANDFATHERED [ i ] , tagBuf ) == 0 ) {
+ int32_t newTagLength ;
+ grandfatheredLen = tagLen ;
+ newTagLength = uprv_strlen ( GRANDFATHERED [ i + 1 ] ) ;
+ if ( tagLen < newTagLength ) {
+ uprv_free ( tagBuf ) ;
+ tagBuf = ( char * ) uprv_malloc ( newTagLength + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ ultag_close ( t ) ;
+ return NULL ;
+ }
+ t -> buf = tagBuf ;
+ tagLen = newTagLength ;
+ }
+ uprv_strcpy ( t -> buf , GRANDFATHERED [ i + 1 ] ) ;
+ break ;
+ }
+ }
+ next = LANG | PRIV ;
+ pNext = pLastGoodPosition = tagBuf ;
+ extlangIdx = 0 ;
+ pExtension = NULL ;
+ pExtValueSubtag = NULL ;
+ pExtValueSubtagEnd = NULL ;
+ while ( pNext ) {
+ char * pSep ;
+ pSubtag = pNext ;
+ pSep = pSubtag ;
+ while ( * pSep ) {
+ if ( * pSep == SEP ) {
+ break ;
+ }
+ pSep ++ ;
+ }
+ if ( * pSep == 0 ) {
+ pNext = NULL ;
+ }
+ else {
+ pNext = pSep + 1 ;
+ }
+ subtagLen = ( int32_t ) ( pSep - pSubtag ) ;
+ if ( next & LANG ) {
+ if ( _isLanguageSubtag ( pSubtag , subtagLen ) ) {
+ * pSep = 0 ;
+ t -> language = T_CString_toLowerCase ( pSubtag ) ;
+ pLastGoodPosition = pSep ;
+ next = EXTL | SCRT | REGN | VART | EXTS | PRIV ;
+ continue ;
+ }
+ }
+ if ( next & EXTL ) {
+ if ( _isExtlangSubtag ( pSubtag , subtagLen ) ) {
+ * pSep = 0 ;
+ t -> extlang [ extlangIdx ++ ] = T_CString_toLowerCase ( pSubtag ) ;
+ pLastGoodPosition = pSep ;
+ if ( extlangIdx < 3 ) {
+ next = EXTL | SCRT | REGN | VART | EXTS | PRIV ;
+ }
+ else {
+ next = SCRT | REGN | VART | EXTS | PRIV ;
+ }
+ continue ;
+ }
+ }
+ if ( next & SCRT ) {
+ if ( _isScriptSubtag ( pSubtag , subtagLen ) ) {
+ char * p = pSubtag ;
+ * pSep = 0 ;
+ * p = uprv_toupper ( * p ) ;
+ p ++ ;
+ for ( ;
+ * p ;
+ p ++ ) {
+ * p = uprv_tolower ( * p ) ;
+ }
+ t -> script = pSubtag ;
+ pLastGoodPosition = pSep ;
+ next = REGN | VART | EXTS | PRIV ;
+ continue ;
+ }
+ }
+ if ( next & REGN ) {
+ if ( _isRegionSubtag ( pSubtag , subtagLen ) ) {
+ * pSep 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ULanguageTag * t ;
+ char * tagBuf ;
+ int16_t next ;
+ char * pSubtag , * pNext , * pLastGoodPosition ;
+ int32_t subtagLen ;
+ int32_t extlangIdx ;
+ ExtensionListEntry * pExtension ;
+ char * pExtValueSubtag , * pExtValueSubtagEnd ;
+ int32_t i ;
+ UBool privateuseVar = FALSE ;
+ int32_t grandfatheredLen = 0 ;
+ if ( parsedLen != NULL ) {
+ * parsedLen = 0 ;
+ }
+ if ( U_FAILURE ( * status ) ) {
+ return NULL ;
+ }
+ if ( tagLen < 0 ) {
+ tagLen = ( int32_t ) uprv_strlen ( tag ) ;
+ }
+ tagBuf = ( char * ) uprv_malloc ( tagLen + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ return NULL ;
+ }
+ uprv_memcpy ( tagBuf , tag , tagLen ) ;
+ * ( tagBuf + tagLen ) = 0 ;
+ t = ( ULanguageTag * ) uprv_malloc ( sizeof ( ULanguageTag ) ) ;
+ if ( t == NULL ) {
+ uprv_free ( tagBuf ) ;
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ return NULL ;
+ }
+ _initializeULanguageTag ( t ) ;
+ t -> buf = tagBuf ;
+ if ( tagLen < MINLEN ) {
+ return t ;
+ }
+ for ( i = 0 ;
+ GRANDFATHERED [ i ] != NULL ;
+ i += 2 ...
+      
+25769803777 | BLOCK | { * parsedLen = 0 ; }
+25769803778 | BLOCK | { return NULL ; }
+25769803779 | BLOCK | { tagLen = ( int32_t ) uprv_strlen ( tag ) ; }
+25769803780 | BLOCK | { * status = U_MEMORY_ALLOCATION_ERROR ; return NULL ; }
+25769803781 | BLOCK | { uprv_free ( tagBuf ) ; * status = U_MEMORY_ALLOCATION_ERROR ; return NULL ; }
+25769803782 | BLOCK | { return t ; }
+25769803783 | BLOCK | 
+        {
+ if ( uprv_stricmp ( GRANDFATHERED [ i ] , tagBuf ) == 0 ) {
+ int32_t newTagLength ;
+ grandfatheredLen = tagLen ;
+ newTagLength = uprv_strlen ( GRANDFATHERED [ i + 1 ] ) ;
+ if ( tagLen < newTagLength ) {
+ uprv_free ( tagBuf ) ;
+ tagBuf = ( char * ) uprv_malloc ( newTagLength + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ ultag_close ( t ) ;
+ return NULL ;
+ }
+ t -> buf = tagBuf ;
+ tagLen = newTagLength ;
+ }
+ uprv_strcpy ( t -> buf , GRANDFATHERED [ i + 1 ] ) ;
+ break ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ int32_t newTagLength ;
+ grandfatheredLen = tagLen ;
+ newTagLength = uprv_strlen ( GRANDFATHERED [ i + 1 ] ) ;
+ if ( tagLen < newTagLength ) {
+ uprv_free ( tagBuf ) ;
+ tagBuf = ( char * ) uprv_malloc ( newTagLength + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ ultag_close ( t ) ;
+ return NULL ;
+ }
+ t -> buf = tagBuf ;
+ tagLen = newTagLength ;
+ }
+ uprv_strcpy ( t -> buf , GRANDFATHERED [ i + 1 ] ) ;
+ break ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ uprv_free ( tagBuf ) ;
+ tagBuf = ( char * ) uprv_malloc ( newTagLength + 1 ) ;
+ if ( tagBuf == NULL ) {
+ * status = U_MEMORY_ALLOCATION_ERROR ;
+ ultag_close ( t ) ;
+ return NULL ;
+ }
+ t -> buf = tagBuf ;
+ tagLen = newTagLength ;
+ }
+      
+25769803786 | BLOCK | { * status = U_MEMORY_ALLOCATION_ERROR ; ultag_close ( t ) ; return NULL ; }
+25769803787 | BLOCK | 
+        {
+ char * pSep ;
+ pSubtag = pNext ;
+ pSep = pSubtag ;
+ while ( * pSep ) {
+ if ( * pSep == SEP ) {
+ break ;
+ }
+ pSep ++ ;
+ }
+ if ( * pSep == 0 ) {
+ pNext = NULL ;
+ }
+ else {
+ pNext = pSep + 1 ;
+ }
+ subtagLen = ( int32_t ) ( pSep - pSubtag ) ;
+ if ( next & LANG ) {
+ if ( _isLanguageSubtag ( pSubtag , subtagLen ) ) {
+ * pSep = 0 ;
+ t -> language = T_CString_toLowerCase ( pSubtag ) ;
+ pLastGoodPosition = pSep ;
+ next = EXTL | SCRT | REGN | VART | EXTS | PRIV ;
+ continue ;
+ }
+ }
+ if ( next & EXTL ) {
+ if ( _isExtlangSubtag ( pSubtag , subtagLen ) ) {
+ * pSep = 0 ;
+ t -> extlang [ extlangIdx ++ ] = T_CString_toLowerCase ( pSubtag ) ;
+ pLastGoodPosition = pSep ;
+ if ( extlangIdx < 3 ) {
+ next = EXTL | SCRT | REGN | VART | EXTS | PRIV ;
+ }
+ else {
+ next = SCRT | REGN | VART | EXTS | PRIV ;
+ }
+ continue ;
+ }
+ }
+ if ( next & SCRT ) {
+ if ( _isScriptSubtag ( pSubtag , subtagLen ) ) {
+ char * p = pSubtag ;
+ * pSep = 0 ;
+ * p = uprv_toupper ( * p ) ;
+ p ++ ;
+ for ( ;
+ * p ;
+ p ++ ) {
+ * p = uprv...
+      
+25769803788 | BLOCK | { if ( * pSep == SEP ) { break ; } pSep ++ ; }
+25769803789 | BLOCK | { break ; }
+25769803790 | BLOCK | { pNext = NULL ; }
+25769803791 | BLOCK | { pNext = pSep + 1 ; }
+25769803792 | BLOCK | 
+        {
+ if ( _isLanguageSubtag ( pSubtag , subtagLen ) ) {
+ * pSep = 0 ;
+ t -> language = T_CString_toLowerCase ( pSubtag ) ;
+ pLastGoodPosition = pSep ;
+ next = EXTL | SCRT | REGN | VART | EXTS | PRIV ;
+ continue ;
+ }
+ }
+      
+25769803793 | BLOCK | 
+        {
+ * pSep = 0 ;
+ t -> language = T_CString_toLowerCase ( pSubt
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

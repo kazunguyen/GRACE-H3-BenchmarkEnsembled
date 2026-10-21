@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int unreference_pic ( H264Context * h , Picture * pic , int refmask ) {
+ int i ;
+ if ( pic -> f . reference &= refmask ) {
+ return 0 ;
+ }
+ else {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> f . reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ if ( pic -> f . reference &= refmask ) {
+ return 0 ;
+ }
+ else {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> f . reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+ }
+      
+25769803777 | BLOCK | { return 0 ; }
+25769803778 | BLOCK | 
+        {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> f . reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+      
+25769803779 | BLOCK | { pic -> f . reference = DELAYED_PIC_REF ; break ; }
+30064771072 | CALL | pic -> f . reference &= refmask
+30064771073 | CALL | pic -> f . reference
+30064771074 | CALL | pic -> f
+30064771075 | CALL | i = 0
+30064771076 | CALL | h -> delayed_pic [ i ]
+30064771077 | CALL | h -> delayed_pic
+30064771078 | CALL | i ++
+30064771079 | CALL | pic == h -> delayed_pic [ i ]
+30064771080 | CALL | h -> delayed_pic [ i ]
+30064771081 | CALL | h -> delayed_pic
+30064771082 | CALL | pic -> f . reference = DELAYED_PIC_REF
+30064771083 | CALL | pic -> f . reference
+30064771084 | CALL | pic -> f
+47244640256 | CONTROL_STRUCTURE | 
+        if ( pic -> f . reference &= refmask ) {
+ return 0 ;
+ }
+ else {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> f . reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | for (i = 0 ;h -> delayed_pic [ i ];i ++)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> f . reference = DELAYED_PIC_REF ;
+ break ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | f
+55834574849 | FIELD_IDENTIFIER | reference
+55834574850 | FIELD_IDENTIFIER | delayed_pic
+55834574851 | FIELD_IDENTIFIER | delayed_pic
+55834574852 | FIELD_IDENTIFIER | f
+55834574853 | FIELD_IDENTIFIER | reference
+68719476736 | IDENTIFIER | pic
+68719476737 | IDENTIFIER | refmask
+68719476738 | IDENTIFIER | i
+68719476739 | IDENTIFIER | h
+68719476740 | IDENTIFIER | i
+68719476741 | IDENTIFIER | i
+68719476742 | IDENTIFIER | pic
+68719476743 | IDENTIFIER | h
+68719476744 | IDENTIFIER | i
+68719476745 | IDENTIFIER | pic
+68719476746 | IDENTIFIER | <unknown> DELAYED_PIC_REF
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803778 -> 47244640257 [AST]
+25769803779 -> 30064771082 [AST]
+25769803779 -> 47244640259 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 90194313216 [CDG]
+30064771072 -> 90194313216 [CFG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 90194313216 [DOMINATE]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 55834574849 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 55834574849 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 55834574849 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 55834574849 [CFG]
+30064771074 -> 55834574849 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 55834574851 [CDG]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 55834574850 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 55834574850 [AST]
+30064771077 -> 68719476740 [CFG]
+30064771077 -> 68719476740 [DOMINATE]
+30064771077 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476739 [CFG]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476745 [CDG]
+30064771079 -> 68719476746 [CDG]
+30064771079 -> 68719476740 [CDG]
+30064771079 -> 68719476741 [CDG]
+30064771079 -> 68719476739 [CDG]
+30064771079 -> 30064771077 [CDG]
+30064771079 -> 30064771078 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline int unreference_pic ( H264Context * h , Picture * pic , int refmask ) {
+ int i ;
+ if ( pic -> reference &= refmask ) {
+ return 0 ;
+ }
+ else {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

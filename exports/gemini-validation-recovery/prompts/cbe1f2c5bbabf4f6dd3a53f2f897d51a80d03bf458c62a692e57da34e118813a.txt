@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void rfbClientConnectionGone ( rfbClientPtr cl ) {
+ # if defined ( LIBVNCSERVER_HAVE_LIBZ ) && defined ( LIBVNCSERVER_HAVE_LIBJPEG ) int i ;
+ # endif LOCK ( rfbClientListMutex ) ;
+ if ( cl -> prev ) cl -> prev -> next = cl -> next ;
+ else cl -> screen -> clientHead = cl -> next ;
+ if ( cl -> next ) cl -> next -> prev = cl -> prev ;
+ UNLOCK ( rfbClientListMutex ) ;
+ # ifdef LIBVNCSERVER_HAVE_LIBPTHREAD if ( cl -> screen -> backgroundLoop != FALSE ) {
+ int i ;
+ do {
+ LOCK ( cl -> refCountMutex ) ;
+ i = cl -> refCount ;
+ if ( i > 0 ) WAIT ( cl -> deleteCond , cl -> refCountMutex ) ;
+ UNLOCK ( cl -> refCountMutex ) ;
+ }
+ while ( i > 0 ) ;
+ }
+ # endif if ( cl -> sock >= 0 ) close ( cl -> sock ) ;
+ if ( cl -> scaledScreen != NULL ) cl -> scaledScreen -> scaledScreenRefCount -- ;
+ # ifdef LIBVNCSERVER_HAVE_LIBZ rfbFreeZrleData ( cl ) ;
+ # endif rfbFreeUltraData ( cl ) ;
+ free ( cl -> beforeEncBuf ) ;
+ free ( cl -> afterEncBuf ) ;
+ if ( cl -> sock >= 0 ) FD_CLR ( cl -> sock , & ( cl -> screen -> allFds ) ) ;
+ cl -> clientGoneHook ( cl ) ;
+ rfbLog ( "Client %s gone\n" , cl -> host ) ;
+ free ( cl -> host ) ;
+ # ifdef LIBVNCSERVER_HAVE_LIBZ if ( cl -> compStreamInited ) {
+ deflateEnd ( & ( cl -> compStream ) ) ;
+ }
+ # ifdef LIBVNCSERVER_HAVE_LIBJPEG for ( i = 0 ;
+ i < 4 ;
+ i ++ ) {
+ if ( cl -> zsActive [ i ] ) deflateEnd ( & cl -> zsStruct [ i ] ) ;
+ }
+ # endif # endif if ( cl -> screen -> pointerClient == cl ) cl -> screen -> pointerClient = NULL ;
+ sraRgnDestroy ( cl -> modifiedRegion ) ;
+ sraRgnDestroy ( cl -> requestedRegion ) ;
+ sraRgnDestroy ( cl -> copyRegion ) ;
+ if ( cl -> translateLookupTable ) free ( cl -> translateLookupTable ) ;
+ TINI_COND ( cl -> updateCond ) ;
+ TINI_MUTEX ( cl -> updateMutex ) ;
+ LOCK ( cl -> outputMutex ) ;
+ UNLOCK ( cl -> outputMutex ) ;
+ TINI_MUTEX ( cl -> outputMutex ) ;
+ LOCK ( cl -> sendMutex ) ;
+ UNLOCK ( cl -> sendMutex ) ;
+ TINI_MUTEX ( cl -> sendMutex ) ;
+ rfbPrintStats ( cl ) ;
+ rfbResetStats ( cl ) ;
+ free ( cl ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # if defined ( LIBVNCSERVER_HAVE_LIBZ ) && defined ( LIBVNCSERVER_HAVE_LIBJPEG ) int i ;
+ # endif LOCK ( rfbClientListMutex ) ;
+ if ( cl -> prev ) cl -> prev -> next = cl -> next ;
+ else cl -> screen -> clientHead = cl -> next ;
+ if ( cl -> next ) cl -> next -> prev = cl -> prev ;
+ UNLOCK ( rfbClientListMutex ) ;
+ # ifdef LIBVNCSERVER_HAVE_LIBPTHREAD if ( cl -> screen -> backgroundLoop != FALSE ) {
+ int i ;
+ do {
+ LOCK ( cl -> refCountMutex ) ;
+ i = cl -> refCount ;
+ if ( i > 0 ) WAIT ( cl -> deleteCond , cl -> refCountMutex ) ;
+ UNLOCK ( cl -> refCountMutex ) ;
+ }
+ while ( i > 0 ) ;
+ }
+ # endif if ( cl -> sock >= 0 ) close ( cl -> sock ) ;
+ if ( cl -> scaledScreen != NULL ) cl -> scaledScreen -> scaledScreenRefCount -- ;
+ # ifdef LIBVNCSERVER_HAVE_LIBZ rfbFreeZrleData ( cl ) ;
+ # endif rfbFreeUltraData ( cl ) ;
+ free ( cl -> beforeEncBuf ) ;
+ free ( cl -> afterEncBuf ) ;
+ if ( cl -> sock >= 0 ) FD_CLR ( cl -> sock , & ( cl -> screen -> allFds ) ) ;
+ cl -> clientGoneHook ( cl ) ;...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | cl -> prev
+30064771073 | CALL | cl -> prev -> next = cl -> next
+30064771074 | CALL | cl -> prev -> next
+30064771075 | CALL | cl -> prev
+30064771076 | CALL | cl -> next
+30064771077 | CALL | cl -> screen -> clientHead = cl -> next
+30064771078 | CALL | cl -> screen -> clientHead
+30064771079 | CALL | cl -> screen
+30064771080 | CALL | cl -> next
+30064771081 | CALL | cl -> next
+30064771082 | CALL | cl -> next -> prev = cl -> prev
+30064771083 | CALL | cl -> next -> prev
+30064771084 | CALL | cl -> next
+30064771085 | CALL | cl -> prev
+30064771086 | CALL | UNLOCK ( rfbClientListMutex )
+30064771087 | CALL | cl -> scaledScreen != NULL
+30064771088 | CALL | cl -> scaledScreen
+30064771089 | CALL | cl -> scaledScreen -> scaledScreenRefCount --
+30064771090 | CALL | cl -> scaledScreen -> scaledScreenRefCount
+30064771091 | CALL | cl -> scaledScreen
+30064771092 | CALL | free ( cl -> beforeEncBuf )
+30064771093 | CALL | cl -> beforeEncBuf
+30064771094 | CALL | free ( cl -> afterEncBuf )
+30064771095 | CALL | cl -> afterEncBuf
+30064771096 | CALL | cl -> sock >= 0
+30064771097 | CALL | cl -> sock
+30064771098 | CALL | FD_CLR ( cl -> sock , & ( cl -> screen -> allFds ) )
+30064771099 | CALL | cl -> sock
+30064771100 | CALL | & ( cl -> screen -> allFds )
+30064771101 | CALL | cl -> screen -> allFds
+30064771102 | CALL | cl -> screen
+30064771103 | CALL | cl -> clientGoneHook ( cl )
+30064771104 | CALL | cl -> clientGoneHook
+30064771105 | CALL | rfbLog ( "Client %s gone\n" , cl -> host )
+EDGES:
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771105 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771077 [AST]
+25769803779 -> 30064771082 [AST]
+25769803780 -> 30064771089 [AST]
+25769803781 -> 30064771098 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771085 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771073 [CFG]
+30064771076 -> 30064771073 [DOMINATE]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771084 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771102 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771077 [DOMINATE]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771082 [CFG]
+30064771085 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771091 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

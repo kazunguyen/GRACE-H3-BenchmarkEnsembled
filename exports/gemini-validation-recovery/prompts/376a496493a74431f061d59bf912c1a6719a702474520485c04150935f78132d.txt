@@ -1,0 +1,239 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int sendrequest ( int opcode , associd_t associd , int auth , int qsize , const char * qdata ) {
+ struct ntp_control qpkt ;
+ int pktsize ;
+ u_long key_id ;
+ char * pass ;
+ int maclen ;
+ if ( qsize > CTL_MAX_DATA_LEN ) {
+ fprintf ( stderr , "***Internal error! qsize (%d) too large\n" , qsize ) ;
+ return 1 ;
+ }
+ qpkt . li_vn_mode = PKT_LI_VN_MODE ( 0 , pktversion , MODE_CONTROL ) ;
+ qpkt . r_m_e_op = ( u_char ) ( opcode & CTL_OP_MASK ) ;
+ qpkt . sequence = htons ( sequence ) ;
+ qpkt . status = 0 ;
+ qpkt . associd = htons ( ( u_short ) associd ) ;
+ qpkt . offset = 0 ;
+ qpkt . count = htons ( ( u_short ) qsize ) ;
+ pktsize = CTL_HEADER_LEN ;
+ if ( qsize > 0 ) {
+ memcpy ( & qpkt . u , qdata , ( size_t ) qsize ) ;
+ pktsize += qsize ;
+ while ( pktsize & ( sizeof ( u_int32 ) - 1 ) ) {
+ qpkt . u . data [ qsize ++ ] = 0 ;
+ pktsize ++ ;
+ }
+ }
+ if ( ! auth && ! always_auth ) {
+ return sendpkt ( & qpkt , pktsize ) ;
+ }
+ while ( pktsize & 7 ) {
+ qpkt . u . data [ qsize ++ ] = 0 ;
+ pktsize ++ ;
+ }
+ if ( info_auth_keyid == 0 ) {
+ key_id = getkeyid ( "Keyid: " ) ;
+ if ( key_id == 0 || key_id > NTP_MAXKEY ) {
+ fprintf ( stderr , "Invalid key identifier\n" ) ;
+ return 1 ;
+ }
+ info_auth_keyid = key_id ;
+ }
+ if ( ! authistrusted ( info_auth_keyid ) ) {
+ pass = getpass_keytype ( info_auth_keytype ) ;
+ if ( '\0' == pass [ 0 ] ) {
+ fprintf ( stderr , "Invalid password\n" ) ;
+ return 1 ;
+ }
+ authusekey ( info_auth_keyid , info_auth_keytype , ( u_char * ) pass ) ;
+ authtrust ( info_auth_keyid , 1 ) ;
+ }
+ maclen = authencrypt ( info_auth_keyid , ( void * ) & qpkt , pktsize ) ;
+ if ( ! maclen ) {
+ fprintf ( stderr , "Key not found\n" ) ;
+ return 1 ;
+ }
+ else if ( ( size_t ) maclen != ( info_auth_hashlen + sizeof ( keyid_t ) ) ) {
+ fprintf ( stderr , "%d octet MAC, %zu expected with %zu octet digest\n" , maclen , ( info_auth_hashlen + sizeof ( keyid_t ) ) , info_auth_hashlen ) ;
+ return 1 ;
+ }
+ return sendpkt ( ( char * ) & qpkt , pktsize + maclen ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct ntp_control qpkt ;
+ int pktsize ;
+ u_long key_id ;
+ char * pass ;
+ int maclen ;
+ if ( qsize > CTL_MAX_DATA_LEN ) {
+ fprintf ( stderr , "***Internal error! qsize (%d) too large\n" , qsize ) ;
+ return 1 ;
+ }
+ qpkt . li_vn_mode = PKT_LI_VN_MODE ( 0 , pktversion , MODE_CONTROL ) ;
+ qpkt . r_m_e_op = ( u_char ) ( opcode & CTL_OP_MASK ) ;
+ qpkt . sequence = htons ( sequence ) ;
+ qpkt . status = 0 ;
+ qpkt . associd = htons ( ( u_short ) associd ) ;
+ qpkt . offset = 0 ;
+ qpkt . count = htons ( ( u_short ) qsize ) ;
+ pktsize = CTL_HEADER_LEN ;
+ if ( qsize > 0 ) {
+ memcpy ( & qpkt . u , qdata , ( size_t ) qsize ) ;
+ pktsize += qsize ;
+ while ( pktsize & ( sizeof ( u_int32 ) - 1 ) ) {
+ qpkt . u . data [ qsize ++ ] = 0 ;
+ pktsize ++ ;
+ }
+ }
+ if ( ! auth && ! always_auth ) {
+ return sendpkt ( & qpkt , pktsize ) ;
+ }
+ while ( pktsize & 7 ) {
+ qpkt . u . data [ qsize ++ ] = 0 ;
+ pktsize ++ ;
+ }
+ if ( info_auth_keyid == 0 ) {
+ key_id = getkeyid ( "Keyid: " ) ;
+ if ( key_id == 0 || key_id ...
+      
+25769803777 | BLOCK | 
+        {
+ fprintf ( stderr , "***Internal error! qsize (%d) too large\n" , qsize ) ;
+ return 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ memcpy ( & qpkt . u , qdata , ( size_t ) qsize ) ;
+ pktsize += qsize ;
+ while ( pktsize & ( sizeof ( u_int32 ) - 1 ) ) {
+ qpkt . u . data [ qsize ++ ] = 0 ;
+ pktsize ++ ;
+ }
+ }
+      
+25769803779 | BLOCK | { qpkt . u . data [ qsize ++ ] = 0 ; pktsize ++ ; }
+25769803780 | BLOCK | { return sendpkt ( & qpkt , pktsize ) ; }
+25769803781 | BLOCK | { qpkt . u . data [ qsize ++ ] = 0 ; pktsize ++ ; }
+25769803782 | BLOCK | 
+        {
+ key_id = getkeyid ( "Keyid: " ) ;
+ if ( key_id == 0 || key_id > NTP_MAXKEY ) {
+ fprintf ( stderr , "Invalid key identifier\n" ) ;
+ return 1 ;
+ }
+ info_auth_keyid = key_id ;
+ }
+      
+25769803783 | BLOCK | { fprintf ( stderr , "Invalid key identifier\n" ) ; return 1 ; }
+25769803784 | BLOCK | 
+        {
+ pass = getpass_keytype ( info_auth_keytype ) ;
+ if ( '\0' == pass [ 0 ] ) {
+ fprintf ( stderr , "Invalid password\n" ) ;
+ return 1 ;
+ }
+ authusekey ( info_auth_keyid , info_auth_keytype , ( u_char * ) pass ) ;
+ authtrust ( info_auth_keyid , 1 ) ;
+ }
+      
+25769803785 | BLOCK | { fprintf ( stderr , "Invalid password\n" ) ; return 1 ; }
+25769803786 | BLOCK | { fprintf ( stderr , "Key not found\n" ) ; return 1 ; }
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ fprintf ( stderr , "%d octet MAC, %zu expected with %zu octet digest\n" , maclen , ( info_auth_hashlen + sizeof ( keyid_t ) ) , info_auth_hashlen ) ;
+ return 1 ;
+ }
+      
+30064771072 | CALL | qsize > CTL_MAX_DATA_LEN
+30064771073 | CALL | fprintf ( stderr , "***Internal error! qsize (%d) too large\n" , qsize )
+30064771074 | CALL | qpkt . li_vn_mode = PKT_LI_VN_MODE ( 0 , pktversion , MODE_CONTROL )
+30064771075 | CALL | qpkt . li_vn_mode
+30064771076 | CALL | PKT_LI_VN_MODE ( 0 , pktversion , MODE_CONTROL )
+30064771077 | CALL | qpkt . r_m_e_op = ( u_char ) ( opcode & CTL_OP_MASK )
+30064771078 | CALL | qpkt . r_m_e_op
+30064771079 | CALL | ( u_char ) ( opcode & CTL_OP_MASK )
+30064771080 | CALL | opcode & CTL_OP_MASK
+30064771081 | CALL | qpkt . sequence = htons ( sequence )
+30064771082 | CALL | qpkt . sequence
+30064771083 | CALL | htons ( sequence )
+30064771084 | CALL | qpkt . status = 0
+30064771085 | CALL | qpkt . status
+30064771086 | CALL | qpkt . associd = htons ( ( u_short ) associd )
+30064771087 | CALL | qpkt . associd
+30064771088 | CALL | htons ( ( u_short ) associd )
+30064771089 | CALL | ( u_short ) associd
+30064771090 | CALL | qpkt . offset = 0
+30064771091 | CALL | qpkt . offset
+30064771092 | CALL | qpkt . count = htons ( ( u_short ) qsize )
+30064771093 | CALL | qpkt . count
+30064771094 | CALL | htons ( ( u_short ) qsize )
+30064771095 | CALL | ( u_short ) qsize
+30064771096 | CALL | pktsize = CTL_HEADER_LEN
+30064771097 | CALL | qsize > 0
+30064771098 | CALL | memcpy ( & qpkt . u , qdata , ( size_t ) qsize )
+EDGES:
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771098 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771097 [CDG]
+30064771072 -> 30064771096 [CDG]
+30064771072 -> 30064771095 [CDG]
+30064771072 -> 30064771094 [CDG]
+30064771072 -> 30064771093 [CDG]
+30064771072 -> 30064771092 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

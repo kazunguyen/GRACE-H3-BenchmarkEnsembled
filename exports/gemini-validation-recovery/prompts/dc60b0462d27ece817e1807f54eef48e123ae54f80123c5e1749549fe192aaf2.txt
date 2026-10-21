@@ -1,0 +1,249 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void delete_task_thread_func ( GTask * task , gpointer source_object , gpointer task_data , GCancellable * cancellable ) {
+ DeleteJob * job = task_data ;
+ GList * to_trash_files ;
+ GList * to_delete_files ;
+ GList * l ;
+ GFile * file ;
+ gboolean confirmed ;
+ CommonJob * common ;
+ gboolean must_confirm_delete_in_trash ;
+ gboolean must_confirm_delete ;
+ int files_skipped ;
+ common = ( CommonJob * ) job ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ to_trash_files = NULL ;
+ to_delete_files = NULL ;
+ must_confirm_delete_in_trash = FALSE ;
+ must_confirm_delete = FALSE ;
+ files_skipped = 0 ;
+ for ( l = job -> files ;
+ l != NULL ;
+ l = l -> next ) {
+ file = l -> data ;
+ if ( job -> try_trash && g_file_has_uri_scheme ( file , "trash" ) ) {
+ must_confirm_delete_in_trash = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else if ( can_delete_without_confirm ( file ) ) {
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else {
+ if ( job -> try_trash ) {
+ to_trash_files = g_list_prepend ( to_trash_files , file ) ;
+ }
+ else {
+ must_confirm_delete = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ }
+ }
+ if ( to_delete_files != NULL ) {
+ to_delete_files = g_list_reverse ( to_delete_files ) ;
+ confirmed = TRUE ;
+ if ( must_confirm_delete_in_trash ) {
+ confirmed = confirm_delete_from_trash ( common , to_delete_files ) ;
+ }
+ else if ( must_confirm_delete ) {
+ confirmed = confirm_delete_directly ( common , to_delete_files ) ;
+ }
+ if ( confirmed ) {
+ delete_files ( common , to_delete_files , & files_skipped ) ;
+ }
+ else {
+ job -> user_cancel = TRUE ;
+ }
+ }
+ if ( to_trash_files != NULL ) {
+ to_trash_files = g_list_reverse ( to_trash_files ) ;
+ trash_files ( common , to_trash_files , & files_skipped ) ;
+ }
+ g_list_free ( to_trash_files ) ;
+ g_list_free ( to_delete_files ) ;
+ if ( files_skipped == g_list_length ( job -> files ) ) {
+ job -> user_cancel = TRUE ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DeleteJob * job = task_data ;
+ GList * to_trash_files ;
+ GList * to_delete_files ;
+ GList * l ;
+ GFile * file ;
+ gboolean confirmed ;
+ CommonJob * common ;
+ gboolean must_confirm_delete_in_trash ;
+ gboolean must_confirm_delete ;
+ int files_skipped ;
+ common = ( CommonJob * ) job ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ to_trash_files = NULL ;
+ to_delete_files = NULL ;
+ must_confirm_delete_in_trash = FALSE ;
+ must_confirm_delete = FALSE ;
+ files_skipped = 0 ;
+ for ( l = job -> files ;
+ l != NULL ;
+ l = l -> next ) {
+ file = l -> data ;
+ if ( job -> try_trash && g_file_has_uri_scheme ( file , "trash" ) ) {
+ must_confirm_delete_in_trash = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else if ( can_delete_without_confirm ( file ) ) {
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else {
+ if ( job -> try_trash ) {
+ to_trash_files = g_list_prepend ( to_trash_files , file ) ;
+ }
+ else {
+ must_confirm_delete = TRUE ;
+...
+      
+25769803777 | BLOCK | 
+        {
+ file = l -> data ;
+ if ( job -> try_trash && g_file_has_uri_scheme ( file , "trash" ) ) {
+ must_confirm_delete_in_trash = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else if ( can_delete_without_confirm ( file ) ) {
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ else {
+ if ( job -> try_trash ) {
+ to_trash_files = g_list_prepend ( to_trash_files , file ) ;
+ }
+ else {
+ must_confirm_delete = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ must_confirm_delete_in_trash = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { to_delete_files = g_list_prepend ( to_delete_files , file ) ; }
+25769803781 | BLOCK | 
+        {
+ if ( job -> try_trash ) {
+ to_trash_files = g_list_prepend ( to_trash_files , file ) ;
+ }
+ else {
+ must_confirm_delete = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+ }
+      
+25769803782 | BLOCK | { to_trash_files = g_list_prepend ( to_trash_files , file ) ; }
+25769803783 | BLOCK | 
+        {
+ must_confirm_delete = TRUE ;
+ to_delete_files = g_list_prepend ( to_delete_files , file ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ to_delete_files = g_list_reverse ( to_delete_files ) ;
+ confirmed = TRUE ;
+ if ( must_confirm_delete_in_trash ) {
+ confirmed = confirm_delete_from_trash ( common , to_delete_files ) ;
+ }
+ else if ( must_confirm_delete ) {
+ confirmed = confirm_delete_directly ( common , to_delete_files ) ;
+ }
+ if ( confirmed ) {
+ delete_files ( common , to_delete_files , & files_skipped ) ;
+ }
+ else {
+ job -> user_cancel = TRUE ;
+ }
+ }
+      
+25769803785 | BLOCK | { confirmed = confirm_delete_from_trash ( common , to_delete_files ) ; }
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | { confirmed = confirm_delete_directly ( common , to_delete_files ) ; }
+25769803788 | BLOCK | { delete_files ( common , to_delete_files , & files_skipped ) ; }
+25769803789 | BLOCK | { job -> user_cancel = TRUE ; }
+25769803790 | BLOCK | 
+        {
+ to_trash_files = g_list_reverse ( to_trash_files ) ;
+ trash_files ( common , to_trash_files , & files_skipped ) ;
+ }
+      
+25769803791 | BLOCK | { job -> user_cancel = TRUE ; }
+30064771072 | CALL | job = task_data
+30064771073 | CALL | common = ( CommonJob * ) job
+30064771074 | CALL | ( CommonJob * ) job
+30064771075 | CALL | nautilus_progress_info_start ( job -> common . progress )
+30064771076 | CALL | job -> common . progress
+30064771077 | CALL | job -> common
+30064771078 | CALL | to_trash_files = NULL
+30064771079 | CALL | to_delete_files = NULL
+30064771080 | CALL | must_confirm_delete_in_trash = FALSE
+30064771081 | CALL | must_confirm_delete = FALSE
+30064771082 | CALL | files_skipped = 0
+30064771083 | CALL | l = job -> files
+30064771084 | CALL | job -> files
+30064771085 | CALL | l != NULL
+30064771086 | CALL | l = l -> next
+30064771087 | CALL | l -> next
+30064771088 | CALL | file = l -> data
+30064771089 | CALL | l -> data
+30064771090 | CALL | job -> try_trash && g_file_has_uri_scheme ( file , "trash" )
+30064771091 | CALL | job -> try_trash
+30064771092 | CALL | g_file_has_uri_scheme ( file , "trash" )
+30064771093 | CALL | must_confirm_delete_in_trash = TRUE
+30064771094 | CALL | to_delete_files = g_list_prepend ( to_delete_files , file )
+30064771095 | CALL | g_list_prepend ( to_delete_files , file )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771093 [AST]
+25769803778 -> 30064771094 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771083 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,91 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( TemplateURLTest , ExtractSearchTermsFromURLPath ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://term-in-path.com/begin/{
+searchTerms}
+/end" ) ;
+ TemplateURL url ( data ) ;
+ base : : string16 result ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/begin/something/end" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( ASCIIToUTF16 ( "something" ) , result ) ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/begin/a%20b%20c/end" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( ASCIIToUTF16 ( "a b c" ) , result ) ;
+ EXPECT_TRUE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/begin/1+2+3/end" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( ASCIIToUTF16 ( "1+2+3" ) , result ) ;
+ EXPECT_FALSE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/about" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : string16 ( ) , result ) ;
+ EXPECT_FALSE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/begin" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : string16 ( ) , result ) ;
+ EXPECT_FALSE ( url . ExtractSearchTermsFromURL ( GURL ( "http://term-in-path.com/end" ) , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( base : : string16 ( ) , result ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ TemplateURLData data ;
+ data . SetURL ( "http://term-in-path.com/begin/{
+searchTerms}
+      
+94489280512 | LOCAL | TemplateURLData data
+107374182400 | METHOD | 
+        TEST_F ( TemplateURLTest , ExtractSearchTermsFromURLPath ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://term-in-path.com/begin/{
+searchTerms}
+      
+111669149696 | METHOD_PARAMETER_IN | TemplateURLTest
+111669149697 | METHOD_PARAMETER_IN | ExtractSearchTermsFromURLPath
+115964116992 | METHOD_PARAMETER_OUT | TemplateURLTest
+115964116993 | METHOD_PARAMETER_OUT | ExtractSearchTermsFromURLPath
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 111669149697 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TEST_F ( TemplateURLTest , ReplaceSearchTermsInURLPath ) {
+ TemplateURLData data ;
+ data . SetURL ( "http://term-in-path.com/begin/{
+searchTerms}
+/end" ) ;
+ TemplateURL url ( data ) ;
+ TemplateURLRef : : SearchTermsArgs search_terms ( ASCIIToUTF16 ( "Bob Morane" ) ) ;
+ GURL result ;
+ EXPECT_TRUE ( url . ReplaceSearchTermsInURL ( GURL ( "http://term-in-path.com/begin/something/end" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://term-in-path.com/begin/Bob%20Morane/end" ) , result ) ;
+ EXPECT_TRUE ( url . ReplaceSearchTermsInURL ( GURL ( "http://term-in-path.com/begin/1%202%203/end" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://term-in-path.com/begin/Bob%20Morane/end" ) , result ) ;
+ result = GURL ( "http://should.not.change.com" ) ;
+ EXPECT_FALSE ( url . ReplaceSearchTermsInURL ( GURL ( "http://term-in-path.com/about" ) , search_terms , search_terms_data_ , & result ) ) ;
+ EXPECT_EQ ( GURL ( "http://should.not.change.com" ) , result ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

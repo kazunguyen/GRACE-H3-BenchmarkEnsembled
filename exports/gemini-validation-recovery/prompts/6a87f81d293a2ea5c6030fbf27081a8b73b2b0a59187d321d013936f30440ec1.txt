@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int remoteDispatchClientRequest ( struct qemud_server * server , struct qemud_client * client , struct qemud_client_message * msg ) {
+ int ret ;
+ remote_error rerr ;
+ bool qemu_call ;
+ VIR_DEBUG ( "prog=%d ver=%d type=%d status=%d serial=%d proc=%d" , msg -> hdr . prog , msg -> hdr . vers , msg -> hdr . type , msg -> hdr . status , msg -> hdr . serial , msg -> hdr . proc ) ;
+ memset ( & rerr , 0 , sizeof rerr ) ;
+ if ( msg -> hdr . prog == REMOTE_PROGRAM ) qemu_call = false ;
+ else if ( msg -> hdr . prog == QEMU_PROGRAM ) qemu_call = true ;
+ else {
+ remoteDispatchFormatError ( & rerr , _ ( "program mismatch (actual %x, expected %x or %x)" ) , msg -> hdr . prog , REMOTE_PROGRAM , QEMU_PROGRAM ) ;
+ goto error ;
+ }
+ if ( ! qemu_call && msg -> hdr . vers != REMOTE_PROTOCOL_VERSION ) {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , REMOTE_PROTOCOL_VERSION ) ;
+ goto error ;
+ }
+ else if ( qemu_call && msg -> hdr . vers != QEMU_PROTOCOL_VERSION ) {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , QEMU_PROTOCOL_VERSION ) ;
+ goto error ;
+ }
+ switch ( msg -> hdr . type ) {
+ case REMOTE_CALL : return remoteDispatchClientCall ( server , client , msg , qemu_call ) ;
+ case REMOTE_STREAM : VIR_INFO ( "Ignoring unexpected stream data serial=%d proc=%d status=%d" , msg -> hdr . serial , msg -> hdr . proc , msg -> hdr . status ) ;
+ qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ default : remoteDispatchFormatError ( & rerr , _ ( "type (%d) != REMOTE_CALL" ) , ( int ) msg -> hdr . type ) ;
+ goto error ;
+ }
+ return 0 ;
+ error : ret = remoteSerializeReplyError ( client , & rerr , & msg -> hdr ) ;
+ if ( ret >= 0 ) VIR_FREE ( msg ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret ;
+ remote_error rerr ;
+ bool qemu_call ;
+ VIR_DEBUG ( "prog=%d ver=%d type=%d status=%d serial=%d proc=%d" , msg -> hdr . prog , msg -> hdr . vers , msg -> hdr . type , msg -> hdr . status , msg -> hdr . serial , msg -> hdr . proc ) ;
+ memset ( & rerr , 0 , sizeof rerr ) ;
+ if ( msg -> hdr . prog == REMOTE_PROGRAM ) qemu_call = false ;
+ else if ( msg -> hdr . prog == QEMU_PROGRAM ) qemu_call = true ;
+ else {
+ remoteDispatchFormatError ( & rerr , _ ( "program mismatch (actual %x, expected %x or %x)" ) , msg -> hdr . prog , REMOTE_PROGRAM , QEMU_PROGRAM ) ;
+ goto error ;
+ }
+ if ( ! qemu_call && msg -> hdr . vers != REMOTE_PROTOCOL_VERSION ) {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , REMOTE_PROTOCOL_VERSION ) ;
+ goto error ;
+ }
+ else if ( qemu_call && msg -> hdr . vers != QEMU_PROTOCOL_VERSION ) {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , Q...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ remoteDispatchFormatError ( & rerr , _ ( "program mismatch (actual %x, expected %x or %x)" ) , msg -> hdr . prog , REMOTE_PROGRAM , QEMU_PROGRAM ) ;
+ goto error ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , REMOTE_PROTOCOL_VERSION ) ;
+ goto error ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ remoteDispatchFormatError ( & rerr , _ ( "version mismatch (actual %x, expected %x)" ) , msg -> hdr . vers , QEMU_PROTOCOL_VERSION ) ;
+ goto error ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ case REMOTE_CALL : return remoteDispatchClientCall ( server , client , msg , qemu_call ) ;
+ case REMOTE_STREAM : VIR_INFO ( "Ignoring unexpected stream data serial=%d proc=%d status=%d" , msg -> hdr . serial , msg -> hdr . proc , msg -> hdr . status ) ;
+ qemudClientMessageRelease ( client , msg ) ;
+ break ;
+ default : remoteDispatchFormatError ( & rerr , _ ( "type (%d) != REMOTE_CALL" ) , ( int ) msg -> hdr . type ) ;
+ goto error ;
+ }
+      
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | 
+        VIR_DEBUG ( "prog=%d ver=%d type=%d status=%d serial=%d proc=%d" , msg -> hdr . prog , msg -> hdr . vers , msg -> hdr . type , msg -> hdr . status , msg -> hdr . serial , msg -> hdr . proc )
+      
+30064771073 | CALL | msg -> hdr . prog
+30064771074 | CALL | msg -> hdr
+30064771075 | CALL | msg -> hdr . vers
+30064771076 | CALL | msg -> hdr
+30064771077 | CALL | msg -> hdr . type
+30064771078 | CALL | msg -> hdr
+30064771079 | CALL | msg -> hdr . status
+30064771080 | CALL | msg -> hdr
+30064771081 | CALL | msg -> hdr . serial
+30064771082 | CALL | msg -> hdr
+30064771083 | CALL | msg -> hdr . proc
+30064771084 | CALL | msg -> hdr
+30064771085 | CALL | memset ( & rerr , 0 , sizeof rerr )
+30064771086 | CALL | & rerr
+30064771087 | CALL | sizeof rerr
+30064771088 | CALL | msg -> hdr . prog == REMOTE_PROGRAM
+30064771089 | CALL | msg -> hdr . prog
+30064771090 | CALL | msg -> hdr
+30064771091 | CALL | qemu_call = false
+30064771092 | CALL | msg -> hdr . prog == QEMU_PROGRAM
+30064771093 | CALL | msg -> hdr . prog
+30064771094 | CALL | msg -> hdr
+30064771095 | CALL | qemu_call = true
+30064771096 | CALL | 
+        remoteDispatchFormatError ( & rerr , _ ( "program mismatch (actual %x, expected %x or %x)" ) , msg -> hdr . prog , REMOTE_PROGRAM , QEMU_PROGRAM )
+      
+30064771097 | CALL | & rerr
+30064771098 | CALL | _ ( "program mismatch (actual %x, expected %x or %x)" )
+30064771099 | CALL | msg -> hdr . prog
+30064771100 | CALL | msg -> hdr
+30064771101 | CALL | ! qemu_call && msg -> hdr . vers != REMOTE_PROTOCOL_VERSION
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771085 [AST]
+25769803777 -> 30064771091 [AST]
+25769803779 -> 30064771095 [AST]
+25769803780 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771077 [ARGUMENT]
+30064771072 -> 30064771079 [ARGUMENT]
+30064771072 -> 30064771081 [ARGUMENT]
+30064771072 -> 30064771083 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 30064771077 [AST]
+30064771072 -> 30064771079 [AST]
+30064771072 -> 30064771081 [AST]
+30064771072 -> 30064771083 [AST]
+30064771072 -> 30064771083 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771090 [REACHING_DEF]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771077 [REACHING_DEF]
+30064771073 -> 30064771079 [REACHING_DEF]
+30064771073 -> 30064771081 [REACHING_DEF]
+30064771073 -> 30064771083 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771089 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771090 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771083 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771100 [REACHING_DEF]
+30064771075 -> 30064771094 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771090 [REACHING_DEF]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771081 [REACHING_DEF]
+3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

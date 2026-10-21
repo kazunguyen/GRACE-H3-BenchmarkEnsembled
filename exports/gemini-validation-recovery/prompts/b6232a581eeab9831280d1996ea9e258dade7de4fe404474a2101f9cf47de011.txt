@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+EXCLUSIVE_REGRESSION_TEST ( SDK_API_TSHttpConnectServerIntercept ) ( RegressionTest * test , int , int * pstatus ) {
+ * pstatus = REGRESSION_TEST_INPROGRESS ;
+ TSDebug ( UTDBG_TAG , "Starting test TSHttpConnectServerintercept" ) ;
+ TSCont cont_test = TSContCreate ( cont_test_handler , TSMutexCreate ( ) ) ;
+ ConnectTestData * data = ( ConnectTestData * ) TSmalloc ( sizeof ( ConnectTestData ) ) ;
+ TSContDataSet ( cont_test , data ) ;
+ data -> test = test ;
+ data -> pstatus = pstatus ;
+ data -> magic = MAGIC_ALIVE ;
+ data -> test_case = TEST_CASE_CONNECT_ID2 ;
+ TSHttpHookAdd ( TS_HTTP_READ_REQUEST_HDR_HOOK , cont_test ) ;
+ data -> os = synserver_create ( SYNSERVER_DUMMY_PORT ) ;
+ data -> browser = synclient_txn_create ( ) ;
+ data -> request = generate_request ( 10 ) ;
+ sockaddr_in addr ;
+ ats_ip4_set ( & addr , 2 , 2 ) ;
+ data -> vc = TSHttpConnect ( ats_ip_sa_cast ( & addr ) ) ;
+ synclient_txn_send_request_to_vc ( data -> browser , data -> request , data -> vc ) ;
+ TSContSchedule ( cont_test , 25 , TS_THREAD_POOL_DEFAULT ) ;
+ return ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ * pstatus = REGRESSION_TEST_INPROGRESS ;
+ TSDebug ( UTDBG_TAG , "Starting test TSHttpConnectServerintercept" ) ;
+ TSCont cont_test = TSContCreate ( cont_test_handler , TSMutexCreate ( ) ) ;
+ ConnectTestData * data = ( ConnectTestData * ) TSmalloc ( sizeof ( ConnectTestData ) ) ;
+ TSContDataSet ( cont_test , data ) ;
+ data -> test = test ;
+ data -> pstatus = pstatus ;
+ data -> magic = MAGIC_ALIVE ;
+ data -> test_case = TEST_CASE_CONNECT_ID2 ;
+ TSHttpHookAdd ( TS_HTTP_READ_REQUEST_HDR_HOOK , cont_test ) ;
+ data -> os = synserver_create ( SYNSERVER_DUMMY_PORT ) ;
+ data -> browser = synclient_txn_create ( ) ;
+ data -> request = generate_request ( 10 ) ;
+ sockaddr_in addr ;
+ ats_ip4_set ( & addr , 2 , 2 ) ;
+ data -> vc = TSHttpConnect ( ats_ip_sa_cast ( & addr ) ) ;
+ synclient_txn_send_request_to_vc ( data -> browser , data -> request , data -> vc ) ;
+ TSContSchedule ( cont_test , 25 , TS_THREAD_POOL_DEFAULT ) ;
+ return ;
+ }
+      
+30064771072 | CALL | * pstatus = REGRESSION_TEST_INPROGRESS
+30064771073 | CALL | * pstatus
+30064771074 | CALL | TSDebug ( UTDBG_TAG , "Starting test TSHttpConnectServerintercept" )
+30064771075 | CALL | cont_test = TSContCreate ( cont_test_handler , TSMutexCreate ( ) )
+30064771076 | CALL | TSContCreate ( cont_test_handler , TSMutexCreate ( ) )
+30064771077 | CALL | TSMutexCreate ( )
+30064771078 | CALL | data = ( ConnectTestData * ) TSmalloc ( sizeof ( ConnectTestData ) )
+30064771079 | CALL | ( ConnectTestData * ) TSmalloc ( sizeof ( ConnectTestData ) )
+30064771080 | CALL | TSmalloc ( sizeof ( ConnectTestData ) )
+30064771081 | CALL | sizeof ( ConnectTestData )
+30064771082 | CALL | TSContDataSet ( cont_test , data )
+30064771083 | CALL | data -> test = test
+30064771084 | CALL | data -> test
+30064771085 | CALL | data -> pstatus = pstatus
+30064771086 | CALL | data -> pstatus
+30064771087 | CALL | data -> magic = MAGIC_ALIVE
+30064771088 | CALL | data -> magic
+30064771089 | CALL | data -> test_case = TEST_CASE_CONNECT_ID2
+30064771090 | CALL | data -> test_case
+30064771091 | CALL | TSHttpHookAdd ( TS_HTTP_READ_REQUEST_HDR_HOOK , cont_test )
+30064771092 | CALL | data -> os = synserver_create ( SYNSERVER_DUMMY_PORT )
+30064771093 | CALL | data -> os
+30064771094 | CALL | synserver_create ( SYNSERVER_DUMMY_PORT )
+30064771095 | CALL | data -> browser = synclient_txn_create ( )
+30064771096 | CALL | data -> browser
+30064771097 | CALL | synclient_txn_create ( )
+30064771098 | CALL | data -> request = generate_request ( 10 )
+30064771099 | CALL | data -> request
+30064771100 | CALL | generate_request ( 10 )
+30064771101 | CALL | ats_ip4_set ( & addr , 2 , 2 )
+30064771102 | CALL | & addr
+30064771103 | CALL | data -> vc = TSHttpConnect ( ats_ip_sa_cast ( & addr ) )
+30064771104 | CALL | data -> vc
+30064771105 | CALL | TSHttpConnect ( ats_ip_sa_cast ( & addr ) )
+30064771106 | CALL | ats_ip_sa_cast ( & addr )
+30064771107 | CALL | & addr
+30064771108 | CALL | 
+        synclient_txn_send_request_to_vc ( data -> browser , data -> request , data -> vc )
+      
+30064771109 | CALL | data -> browser
+30064771110 | CALL | data -> request
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771108 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771094 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771094 [AST]
+30064771092 -> 30064771094 [POST_DOMINATE]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 30064771092 [CFG]
+30064771094 -> 30064771092 [DOMINATE]
+30064771094 -> 30064771093 [REACHING_DEF]
+30064771094 -> 30064771092 [REACHING_DEF]
+30064771095 -> 30064771096 [ARGUMENT]
+30064771095 -> 30064771097 [ARGUMENT]
+30064771095 -> 30064771096 [AST]
+30064771095 -> 30064771097 [AST]
+30064771095 -> 30064771097 [POST_DOMINATE]
+30064771096 -> 30064771097 [CFG]
+30064771096 -> 30064771097 [DOMINATE]
+30064771096 -> 30064771109 [REACHING_DEF]
+30064771096 -> 30064771095 [REACHING_DEF]
+30064771097 -> 30064771095 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+EXCLUSIVE_REGRESSION_TEST ( SDK_API_TSHttpConnectIntercept ) ( RegressionTest * test , int , int * pstatus ) {
+ * pstatus = REGRESSION_TEST_INPROGRESS ;
+ TSDebug ( UTDBG_TAG , "Starting test TSHttpConnectIntercept" ) ;
+ TSCont cont_test = TSContCreate ( cont_test_handler ,
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,389 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int zerocodec_decode_frame(AVCodecContext *avctx, void *data,
+
+                                  int *data_size, AVPacket *avpkt)
+
+{
+
+    ZeroCodecContext *zc = avctx->priv_data;
+
+    AVFrame *pic         = avctx->coded_frame;
+
+    AVFrame *prev_pic    = &zc->previous_frame;
+
+    z_stream *zstream    = &zc->zstream;
+
+    uint8_t *prev, *dst;
+
+    int i, j, zret;
+
+
+
+    pic->reference = 3;
+
+
+
+    if (avctx->get_buffer(avctx, pic) < 0) {
+
+        av_log(avctx, AV_LOG_ERROR, "Could not allocate buffer.\n");
+
+        return AVERROR(ENOMEM);
+
+    }
+
+
+
+    zret = inflateReset(zstream);
+
+
+
+    if (zret != Z_OK) {
+
+        av_log(avctx, AV_LOG_ERROR, "Could not reset inflate: %d\n", zret);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    zstream->next_in  = avpkt->data;
+
+    zstream->avail_in = avpkt->size;
+
+
+
+    prev = prev_pic->data[0];
+
+    dst  = pic->data[0];
+
+
+
+    /**
+
+     * ZeroCodec has very simple interframe compression. If a value
+
+     * is the same as the previous frame, set it to 0.
+
+     */
+
+
+
+    if (avpkt->flags & AV_PKT_FLAG_KEY) {
+
+
+
+        pic->key_frame = 1;
+
+        pic->pict_type = AV_PICTURE_TYPE_I;
+
+
+
+        for (i = 0; i < avctx->height; i++) {
+
+
+
+            zstream->next_out  = dst;
+
+            zstream->avail_out = avctx->width << 1;
+
+
+
+            zret = inflate(zstream, Z_SYNC_FLUSH);
+
+
+
+            if (zret != Z_OK && zret != Z_STREAM_END) {
+
+                av_log(avctx, AV_LOG_ERROR,
+
+                       "Inflate failed with return code: %d\n", zret);
+
+                return AVERROR(EINVAL);
+
+            }
+
+
+
+            dst += pic->linesize[0];
+
+        }
+
+    } else {
+
+
+
+        pic->key_frame = 0;
+
+        pic->pict_type = AV_PICTURE_TYPE_P;
+
+
+
+        for (i = 0; i < avctx->height; i++) {
+
+
+
+            zstream->next_out  = dst;
+
+            zstream->avail_out = avctx->width << 1;
+
+
+
+            zret = inflate(zstream, Z_SYNC_FLUSH);
+
+
+
+            if (zret != Z_OK && zret != Z_STREAM_END) {
+
+                av_log(avctx, AV_LOG_ERROR,
+
+                       "Inflate failed with return code: %d\n", zret);
+
+                return AVERROR(EINVAL);
+
+            }
+
+
+
+            for (j = 0; j < avctx->width << 1; j++)
+
+                dst[j] += prev[j] & -!dst[j];
+
+
+
+            prev += prev_pic->linesize[0];
+
+            dst  += pic->linesize[0];
+
+        }
+
+    }
+
+
+
+    /* Release the previous buffer if need be */
+
+    if (prev_pic->data[0])
+
+        avctx->release_buffer(avctx, prev_pic);
+
+
+
+    /* Store the previouse frame for use later */
+
+    *prev_pic = *pic;
+
+
+
+    *data_size       = sizeof(AVFrame);
+
+    *(AVFrame *)data = *pic;
+
+
+
+    return avpkt->size;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+45 -> 49 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+52 -> 59 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+76 -> 79 [IS_AST_PARENT]
+71 -> 76 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 81 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int zerocodec_decode_frame(AVCodecContext *avctx, void *data,
+
+                                  int *data_size, AVPacket *avpkt)
+
+{
+
+    ZeroCodecContext *zc = avctx->priv_data;
+
+    AVFrame *pic         = avctx->coded_frame;
+
+    AVFrame *prev_pic    = &zc->previous_frame;
+
+    z_stream *zstream    = &zc->zstream;
+
+    uint8_t *prev, *dst;
+
+    int i, j, zret;
+
+
+
+    pic->reference = 3;
+
+
+
+    if (avctx->get_buffer(avctx, pic) < 0) {
+
+        av_log(avctx, AV_LOG_ERROR, "Could not allocate buffer.\n");
+
+        return AVERROR(ENOMEM);
+
+
+
+
+    zret = inflateReset(zstream);
+
+
+
+    if (zret != Z_OK) {
+
+        av_log(avctx, AV_LOG_ERROR, "Could not reset inflate: %d\n", zret);
+
+        return AVERROR(EINVAL);
+
+
+
+
+    zstream->next_in   = avpkt->data;
+
+    zstream->avail_in  = avpkt->size;
+
+
+
+    prev = prev_pic->data[0];
+
+    dst  = pic->data[0];
+
+
+
+    /**
+
+     * ZeroCodec has very simple interframe compression. If a value
+
+     * is the same as the previous frame, set it to 0.
+
+     */
+
+
+
+    if (avpkt->flags & AV_PKT_FLAG_KEY) {
+
+        pic->key_frame = 1;
+
+        pic->pict_type = AV_PICTURE_TYPE_I;
+
+    } else {
+
+
+
+
+
+        pic->key_frame = 0;
+
+        pic->pict_type = AV_PICTURE_TYPE_P;
+
+
+
+
+    for (i = 0; i < avctx->height; i++) {
+
+        zstream->next_out  = dst;
+
+        zstream->avail_out = avctx->width << 1;
+
+        zret = inflate(zstream, Z_SYNC_FLUSH);
+
+        if (zret != Z_OK && zret != Z_STREAM_END) {
+
+            av_log(avctx, AV_LOG_ERROR,
+
+      
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

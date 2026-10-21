@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gboolean gst_asf_demux_handle_src_event ( GstPad * pad , GstObject * parent , GstEvent * event ) {
+ GstASFDemux * demux ;
+ gboolean ret ;
+ demux = GST_ASF_DEMUX ( parent ) ;
+ switch ( GST_EVENT_TYPE ( event ) ) {
+ case GST_EVENT_SEEK : GST_LOG_OBJECT ( pad , "seek event" ) ;
+ ret = gst_asf_demux_handle_seek_event ( demux , event ) ;
+ gst_event_unref ( event ) ;
+ break ;
+ case GST_EVENT_QOS : case GST_EVENT_NAVIGATION : gst_event_unref ( event ) ;
+ ret = FALSE ;
+ break ;
+ default : GST_LOG_OBJECT ( pad , "%s event" , GST_EVENT_TYPE_NAME ( event ) ) ;
+ ret = gst_pad_event_default ( pad , parent , event ) ;
+ break ;
+ }
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GstASFDemux * demux ;
+ gboolean ret ;
+ demux = GST_ASF_DEMUX ( parent ) ;
+ switch ( GST_EVENT_TYPE ( event ) ) {
+ case GST_EVENT_SEEK : GST_LOG_OBJECT ( pad , "seek event" ) ;
+ ret = gst_asf_demux_handle_seek_event ( demux , event ) ;
+ gst_event_unref ( event ) ;
+ break ;
+ case GST_EVENT_QOS : case GST_EVENT_NAVIGATION : gst_event_unref ( event ) ;
+ ret = FALSE ;
+ break ;
+ default : GST_LOG_OBJECT ( pad , "%s event" , GST_EVENT_TYPE_NAME ( event ) ) ;
+ ret = gst_pad_event_default ( pad , parent , event ) ;
+ break ;
+ }
+ return ret ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case GST_EVENT_SEEK : GST_LOG_OBJECT ( pad , "seek event" ) ;
+ ret = gst_asf_demux_handle_seek_event ( demux , event ) ;
+ gst_event_unref ( event ) ;
+ break ;
+ case GST_EVENT_QOS : case GST_EVENT_NAVIGATION : gst_event_unref ( event ) ;
+ ret = FALSE ;
+ break ;
+ default : GST_LOG_OBJECT ( pad , "%s event" , GST_EVENT_TYPE_NAME ( event ) ) ;
+ ret = gst_pad_event_default ( pad , parent , event ) ;
+ break ;
+ }
+      
+30064771072 | CALL | demux = GST_ASF_DEMUX ( parent )
+30064771073 | CALL | GST_ASF_DEMUX ( parent )
+30064771074 | CALL | GST_EVENT_TYPE ( event )
+30064771075 | CALL | GST_LOG_OBJECT ( pad , "seek event" )
+30064771076 | CALL | ret = gst_asf_demux_handle_seek_event ( demux , event )
+30064771077 | CALL | gst_asf_demux_handle_seek_event ( demux , event )
+30064771078 | CALL | gst_event_unref ( event )
+30064771079 | CALL | gst_event_unref ( event )
+30064771080 | CALL | ret = FALSE
+30064771081 | CALL | GST_LOG_OBJECT ( pad , "%s event" , GST_EVENT_TYPE_NAME ( event ) )
+30064771082 | CALL | GST_EVENT_TYPE_NAME ( event )
+30064771083 | CALL | ret = gst_pad_event_default ( pad , parent , event )
+30064771084 | CALL | gst_pad_event_default ( pad , parent , event )
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( GST_EVENT_TYPE ( event ) ) {
+ case GST_EVENT_SEEK : GST_LOG_OBJECT ( pad , "seek event" ) ;
+ ret = gst_asf_demux_handle_seek_event ( demux , event ) ;
+ gst_event_unref ( event ) ;
+ break ;
+ case GST_EVENT_QOS : case GST_EVENT_NAVIGATION : gst_event_unref ( event ) ;
+ ret = FALSE ;
+ break ;
+ default : GST_LOG_OBJECT ( pad , "%s event" , GST_EVENT_TYPE_NAME ( event ) ) ;
+ ret = gst_pad_event_default ( pad , parent , event ) ;
+ break ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+68719476736 | IDENTIFIER | demux
+68719476737 | IDENTIFIER | parent
+68719476738 | IDENTIFIER | event
+68719476739 | IDENTIFIER | <unknown> GST_EVENT_SEEK
+68719476740 | IDENTIFIER | pad
+68719476741 | IDENTIFIER | ret
+68719476742 | IDENTIFIER | demux
+68719476743 | IDENTIFIER | event
+68719476744 | IDENTIFIER | event
+68719476745 | IDENTIFIER | <unknown> GST_EVENT_QOS
+68719476746 | IDENTIFIER | <unknown> GST_EVENT_NAVIGATION
+68719476747 | IDENTIFIER | event
+68719476748 | IDENTIFIER | ret
+68719476749 | IDENTIFIER | <unknown> FALSE
+68719476750 | IDENTIFIER | pad
+68719476751 | IDENTIFIER | event
+68719476752 | IDENTIFIER | ret
+68719476753 | IDENTIFIER | pad
+68719476754 | IDENTIFIER | parent
+68719476755 | IDENTIFIER | event
+68719476756 | IDENTIFIER | ret
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 68719476739 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 68719476745 [AST]
+25769803777 -> 68719476746 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 47244640259 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 47244640257 [CDG]
+30064771074 -> 47244640258 [CDG]
+30064771074 -> 47244640259 [CDG]
+30064771074 -> 68719476750 [CDG]
+30064771074 -> 68719476751 [CDG]
+30064771074 -> 68719476752 [CDG]
+30064771074 -> 68719476753 [CDG]
+30064771074 -> 68719476746 [CDG]
+30064771074 -> 68719476747 [CDG]
+30064771074 -> 68719476748 [CDG]
+30064771074 -> 68719476749 [CDG]
+30064771074 -> 68719476754 [CDG]
+30064771074 -> 68719476755 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476745 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476756 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static gboolean gst_asf_demux_activate_mode ( GstPad * sinkpad , GstObject * parent , GstPadMode mode , gboolean active ) {
+ gboolean res ;
+ GstASFDemux * demux ;
+ demux = GST_ASF_DEMUX ( parent ) ;
+ switch ( mode ) {
+ case GST_PAD_MODE_PUSH : demux -> state = GST_ASF_DEMUX_STATE_HEADER ;
+ demux -> streaming = TRUE ;
+ res = TRUE ;
+ break ;
+ case GST_PAD_MODE_PULL : if ( active ) {
+ demux -> state = GST_ASF_DEMUX_STATE_HEADER ;
+ demux -> streaming = FALSE ;
+ res = gst_pad_start_task ( sinkpad , ( GstTaskFunction ) gst_asf_demux_loop , demux , NULL ) ;
+ }
+ else {
+ res = gst_pad_stop_task ( sinkpad ) ;
+ }
+ break ;
+ default : res = FALSE ;
+ break ;
+ }
+ return res ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

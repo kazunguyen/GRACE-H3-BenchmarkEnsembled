@@ -1,0 +1,228 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static CURLFORMcode FormAdd ( struct curl_httppost * * httppost , struct curl_httppost * * last_post , va_list params ) {
+ FormInfo * first_form , * current_form , * form = NULL ;
+ CURLFORMcode return_value = CURL_FORMADD_OK ;
+ const char * prevtype = NULL ;
+ struct curl_httppost * post = NULL ;
+ CURLformoption option ;
+ struct curl_forms * forms = NULL ;
+ char * array_value = NULL ;
+ bool array_state = FALSE ;
+ first_form = calloc ( 1 , sizeof ( struct FormInfo ) ) ;
+ if ( ! first_form ) return CURL_FORMADD_MEMORY ;
+ current_form = first_form ;
+ while ( return_value == CURL_FORMADD_OK ) {
+ if ( array_state && forms ) {
+ option = forms -> option ;
+ array_value = ( char * ) forms -> value ;
+ forms ++ ;
+ if ( CURLFORM_END == option ) {
+ array_state = FALSE ;
+ continue ;
+ }
+ }
+ else {
+ option = va_arg ( params , CURLformoption ) ;
+ if ( CURLFORM_END == option ) break ;
+ }
+ switch ( option ) {
+ case CURLFORM_ARRAY : if ( array_state ) return_value = CURL_FORMADD_ILLEGAL_ARRAY ;
+ else {
+ forms = va_arg ( params , struct curl_forms * ) ;
+ if ( forms ) array_state = TRUE ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_PTRNAME : # ifdef CURL_DOES_CONVERSIONS # else current_form -> flags |= HTTPPOST_PTRNAME ;
+ # endif case CURLFORM_COPYNAME : if ( current_form -> name ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else {
+ char * name = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( name ) current_form -> name = name ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_NAMELENGTH : if ( current_form -> namelength ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else current_form -> namelength = array_state ? ( size_t ) array_value : ( size_t ) va_arg ( params , long ) ;
+ break ;
+ case CURLFORM_PTRCONTENTS : current_form -> flags |= HTTPPOST_PTRCONTENTS ;
+ case CURLFORM_COPYCONTENTS : if ( current_form -> value ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else {
+ char * value = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( value ) current_form -> value = value ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_CONTENTSLENGTH : if ( current_form -> contentslength ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else current_form -> contentslength = array_state ? ( size_t ) array_value : ( size_t ) va_arg ( params , long ) ;
+ break ;
+ case CURLFORM_FILECONTENT : if ( current_form -> flags & ( HTTPPOST_PTRCONTENTS | HTTPPOST_READFILE ) ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else {
+ const char * filename = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( filename ) {
+ current_form -> value = strdup ( filename ) ;
+ if ( ! current_form -> value ) return_value = CURL_FORMADD_MEMORY ;
+ else {
+ current_form -> flags |= HTTPPOST_READFILE ;
+ current_form -> value_alloc = TRUE ;
+ }
+ }
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_FILE : {
+ const char * filename = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( current_form -> va
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ FormInfo * first_form , * current_form , * form = NULL ;
+ CURLFORMcode return_value = CURL_FORMADD_OK ;
+ const char * prevtype = NULL ;
+ struct curl_httppost * post = NULL ;
+ CURLformoption option ;
+ struct curl_forms * forms = NULL ;
+ char * array_value = NULL ;
+ bool array_state = FALSE ;
+ first_form = calloc ( 1 , sizeof ( struct FormInfo ) ) ;
+ if ( ! first_form ) return CURL_FORMADD_MEMORY ;
+ current_form = first_form ;
+ while ( return_value == CURL_FORMADD_OK ) {
+ if ( array_state && forms ) {
+ option = forms -> option ;
+ array_value = ( char * ) forms -> value ;
+ forms ++ ;
+ if ( CURLFORM_END == option ) {
+ array_state = FALSE ;
+ continue ;
+ }
+ }
+ else {
+ option = va_arg ( params , CURLformoption ) ;
+ if ( CURLFORM_END == option ) break ;
+ }
+ switch ( option ) {
+ case CURLFORM_ARRAY : if ( array_state ) return_value = CURL_FORMADD_ILLEGAL_ARRAY ;
+ else {
+ forms = va_arg ( params , struct curl_forms * ) ;
+ if ( forms ) array_state = TRUE ;
+ else return_value = CURL_FORMADD_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( array_state && forms ) {
+ option = forms -> option ;
+ array_value = ( char * ) forms -> value ;
+ forms ++ ;
+ if ( CURLFORM_END == option ) {
+ array_state = FALSE ;
+ continue ;
+ }
+ }
+ else {
+ option = va_arg ( params , CURLformoption ) ;
+ if ( CURLFORM_END == option ) break ;
+ }
+ switch ( option ) {
+ case CURLFORM_ARRAY : if ( array_state ) return_value = CURL_FORMADD_ILLEGAL_ARRAY ;
+ else {
+ forms = va_arg ( params , struct curl_forms * ) ;
+ if ( forms ) array_state = TRUE ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_PTRNAME : # ifdef CURL_DOES_CONVERSIONS # else current_form -> flags |= HTTPPOST_PTRNAME ;
+ # endif case CURLFORM_COPYNAME : if ( current_form -> name ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else {
+ char * name = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( name ) current_form -> name = name ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_NAMELENGTH : if ( current_form -> namelength ) return_...
+      
+25769803779 | BLOCK | 
+        {
+ option = forms -> option ;
+ array_value = ( char * ) forms -> value ;
+ forms ++ ;
+ if ( CURLFORM_END == option ) {
+ array_state = FALSE ;
+ continue ;
+ }
+ }
+      
+25769803780 | BLOCK | { array_state = FALSE ; continue ; }
+25769803781 | BLOCK | 
+        {
+ option = va_arg ( params , CURLformoption ) ;
+ if ( CURLFORM_END == option ) break ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ case CURLFORM_ARRAY : if ( array_state ) return_value = CURL_FORMADD_ILLEGAL_ARRAY ;
+ else {
+ forms = va_arg ( params , struct curl_forms * ) ;
+ if ( forms ) array_state = TRUE ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_PTRNAME : # ifdef CURL_DOES_CONVERSIONS # else current_form -> flags |= HTTPPOST_PTRNAME ;
+ # endif case CURLFORM_COPYNAME : if ( current_form -> name ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else {
+ char * name = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( name ) current_form -> name = name ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+ break ;
+ case CURLFORM_NAMELENGTH : if ( current_form -> namelength ) return_value = CURL_FORMADD_OPTION_TWICE ;
+ else current_form -> namelength = array_state ? ( size_t ) array_value : ( size_t ) va_arg ( params , long ) ;
+ break ;
+ case CURLFORM_PTRCONTENTS : current_form -> flags |= HTTPPOST_PTRCONTENTS ;
+ case CURLFORM_COPYCONTENTS : if ( current_form -> value ) return_value ...
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ forms = va_arg ( params , struct curl_forms * ) ;
+ if ( forms ) array_state = TRUE ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ char * value = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( value ) current_form -> value = value ;
+ else return_value = CURL_FORMADD_NULL ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | 
+        {
+ const char * filename = array_state ? array_value : va_arg ( params , char * ) ;
+ if ( filename ) {
+ current_form -> value = strdup ( filename ) ;
+ if ( ! current_form -> value ) return_value = CURL_FORMADD_
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

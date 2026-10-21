@@ -1,0 +1,326 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_slice(struct AVCodecContext *avctx, void *arg){
+
+    H264Context *h = *(void**)arg;
+
+    MpegEncContext * const s = &h->s;
+
+    const int part_mask= s->partitioned_frame ? (AC_END|AC_ERROR) : 0x7F;
+
+    int lf_x_start = s->mb_x;
+
+
+
+    s->mb_skip_run= -1;
+
+
+
+    h->is_complex = FRAME_MBAFF || s->picture_structure != PICT_FRAME || s->codec_id != CODEC_ID_H264 ||
+
+                    (CONFIG_GRAY && (s->flags&CODEC_FLAG_GRAY));
+
+
+
+    if( h->pps.cabac ) {
+
+        /* realign */
+
+        align_get_bits( &s->gb );
+
+
+
+        /* init cabac */
+
+        ff_init_cabac_states( &h->cabac);
+
+        ff_init_cabac_decoder( &h->cabac,
+
+                               s->gb.buffer + get_bits_count(&s->gb)/8,
+
+                               (get_bits_left(&s->gb) + 7)/8);
+
+
+
+        ff_h264_init_cabac_states(h);
+
+
+
+        for(;;){
+
+//START_TIMER
+
+            int ret = ff_h264_decode_mb_cabac(h);
+
+            int eos;
+
+//STOP_TIMER("decode_mb_cabac")
+
+
+
+            if(ret>=0) ff_h264_hl_decode_mb(h);
+
+
+
+            if( ret >= 0 && FRAME_MBAFF ) { //FIXME optimal? or let mb_decode decode 16x32 ?
+
+                s->mb_y++;
+
+
+
+                ret = ff_h264_decode_mb_cabac(h);
+
+
+
+                if(ret>=0) ff_h264_hl_decode_mb(h);
+
+                s->mb_y--;
+
+            }
+
+            eos = get_cabac_terminate( &h->cabac );
+
+
+
+            if((s->workaround_bugs & FF_BUG_TRUNCATED) && h->cabac.bytestream > h->cabac.bytestream_end + 2){
+
+                ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x-1, s->mb_y, (AC_END|DC_END|MV_END)&part_mask);
+
+                if (s->mb_x >= lf_x_start) loop_filter(h, lf_x_start, s->mb_x + 1);
+
+                return 0;
+
+            }
+
+            if( ret < 0 || h->cabac.bytestream > h->cabac.bytestream_end + 2) {
+
+                av_log(h->s.avctx, AV_LOG_ERROR, "error while decoding MB %d %d, bytestream (%td)\n", s->mb_x, s->mb_y, h->cabac.bytestream_end - h->cabac.bytestream);
+
+                ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x, s->mb_y, (AC_ERROR|DC_ERROR|MV_ERROR)&part_mask);
+
+                return -1;
+
+            }
+
+
+
+            if( ++s->mb_x >= s->mb_width ) {
+
+                loop_filter(h, lf_x_start, s->mb_x);
+
+                s->mb_x = lf_x_start = 0;
+
+                decode_finish_row(h);
+
+                ++s->mb_y;
+
+                if(FIELD_OR_MBAFF_PICTURE) {
+
+                    ++s->mb_y;
+
+                    if(FRAME_MBAFF && s->mb_y < s->mb_height)
+
+                        predict_field_decoding_flag(h);
+
+                }
+
+            }
+
+
+
+            if( eos || s->mb_y >= s->mb_height ) {
+
+                tprintf(s->avctx, "slice end %d %d\n", get_bits_count(&s->gb), s->gb.size_in_bits);
+
+                ff_er_add_slice(s, s->resync_mb_x, s->resync_mb_y, s->mb_x-1, s->mb_y, (AC_END|DC_END|MV_END)&part_mask);
+
+                if (s->mb_x > lf_x_start) loop_filter(h, lf_x_start, s->mb_x);
+
+                return 0;
+
+            }
+
+        }
+
+
+
+    } else {
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+33 -> 38 [IS_AST_PARENT]
+33 -> 41 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 71 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+72 -> 78 [IS_AST_PARENT]
+66 -> 72 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int decode_slice(H264Context *h){
+
+    MpegEncContext * const s = &h->s;
+
+    const int part_mask= s->partitioned_frame ? (AC_END|AC_ERROR) : 0x7F;
+
+
+
+    s->mb_skip_run= -1;
+
+
+
+    if( h->pps.cabac ) {
+
+        int i;
+
+
+
+        /* realign */
+
+        align_get_bits( &s->gb );
+
+
+
+        /* init cabac */
+
+        ff_init_cabac_states( &h->cabac, ff_h264_lps_range, ff_h264_mps_state, ff_h264_lps_state, 64 );
+
+        ff_init_cabac_decoder( &h->cabac,
+
+                               s->gb.buffer + get_bits_count(&s->gb)/8,
+
+                               ( s->gb.size_in_bits - get_bits_count(&s->gb) + 7)/8);
+
+        /* calculate pre-state */
+
+        for( i= 0; i < 460; i++ ) {
+
+            int pre;
+
+            if( h->slice_type == I_TYPE )
+
+                pre = clip( ((cabac_context_init_I[i][0] * s->qscale) >>4 ) + cabac_context_init_I[i][1], 1, 126 );
+
+            else
+
+                pre = clip( ((cabac_context_init_PB[h->cabac_init_idc][i][0] * s->qscale) >>4 ) + cabac_context_init_PB[h->cabac_init_idc][i][1], 1, 126 );
+
+
+
+            if( pre <= 63 )
+
+                h->cabac_state[i] = 2 * ( 63 - pre ) + 0;
+
+            else
+
+                h->cabac_state[i] = 2 * ( pre - 64 ) + 1;
+
+        }
+
+
+
+        for(;;){
+
+            int ret = decode_mb_cabac(h);
+
+            int eos;
+
+
+
+            if(ret>=0) hl_decode_mb(h);
+
+
+
+            /* XXX: useless as decode_mb_cabac it doesn't support that ... */
+
+            if( ret >= 0 && h->mb_aff_frame ) { //FIXME optim
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

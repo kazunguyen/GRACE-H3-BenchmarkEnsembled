@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int user_key_command_allowed2 ( struct ssh * ssh , struct passwd * user_pw , struct sshkey * key , struct sshauthopt * * authoptsp ) {
+ struct passwd * runas_pw = NULL ;
+ FILE * f = NULL ;
+ int r , ok , found_key = 0 ;
+ int i , uid_swapped = 0 , ac = 0 ;
+ pid_t pid ;
+ char * username = NULL , * key_fp = NULL , * keytext = NULL ;
+ char uidstr [ 32 ] , * tmp , * command = NULL , * * av = NULL ;
+ void ( * osigchld ) ( int ) ;
+ if ( authoptsp != NULL ) * authoptsp = NULL ;
+ if ( options . authorized_keys_command == NULL ) return 0 ;
+ if ( options . authorized_keys_command_user == NULL ) {
+ error ( "No user for AuthorizedKeysCommand specified, skipping" ) ;
+ return 0 ;
+ }
+ osigchld = signal ( SIGCHLD , SIG_DFL ) ;
+ username = percent_expand ( options . authorized_keys_command_user , "u" , user_pw -> pw_name , ( char * ) NULL ) ;
+ runas_pw = getpwnam ( username ) ;
+ if ( runas_pw == NULL ) {
+ error ( "AuthorizedKeysCommandUser \"%s\" not found: %s" , username , strerror ( errno ) ) ;
+ goto out ;
+ }
+ if ( ( key_fp = sshkey_fingerprint ( key , options . fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL ) {
+ error ( "%s: sshkey_fingerprint failed" , __func__ ) ;
+ goto out ;
+ }
+ if ( ( r = sshkey_to_base64 ( key , & keytext ) ) != 0 ) {
+ error ( "%s: sshkey_to_base64 failed: %s" , __func__ , ssh_err ( r ) ) ;
+ goto out ;
+ }
+ if ( argv_split ( options . authorized_keys_command , & ac , & av ) != 0 ) {
+ error ( "AuthorizedKeysCommand \"%s\" contains invalid quotes" , command ) ;
+ goto out ;
+ }
+ if ( ac == 0 ) {
+ error ( "AuthorizedKeysCommand \"%s\" yielded no arguments" , command ) ;
+ goto out ;
+ }
+ snprintf ( uidstr , sizeof ( uidstr ) , "%llu" , ( unsigned long long ) user_pw -> pw_uid ) ;
+ for ( i = 1 ;
+ i < ac ;
+ i ++ ) {
+ tmp = percent_expand ( av [ i ] , "U" , uidstr , "u" , user_pw -> pw_name , "h" , user_pw -> pw_dir , "t" , sshkey_ssh_name ( key ) , "f" , key_fp , "k" , keytext , ( char * ) NULL ) ;
+ if ( tmp == NULL ) fatal ( "%s: percent_expand failed" , __func__ ) ;
+ free ( av [ i ] ) ;
+ av [ i ] = tmp ;
+ }
+ command = argv_assemble ( ac , av ) ;
+ if ( ac == 1 ) {
+ av = xreallocarray ( av , ac + 2 , sizeof ( * av ) ) ;
+ av [ 1 ] = xstrdup ( user_pw -> pw_name ) ;
+ av [ 2 ] = NULL ;
+ free ( command ) ;
+ xasprintf ( & command , "%s %s" , av [ 0 ] , av [ 1 ] ) ;
+ }
+ if ( ( pid = subprocess ( "AuthorizedKeysCommand" , runas_pw , command , ac , av , & f , SSH_SUBPROCESS_STDOUT_CAPTURE | SSH_SUBPROCESS_STDERR_DISCARD ) ) == 0 ) goto out ;
+ uid_swapped = 1 ;
+ temporarily_use_uid ( runas_pw ) ;
+ ok = check_authkeys_file ( ssh , user_pw , f , options . authorized_keys_command , key , authoptsp ) ;
+ fclose ( f ) ;
+ f = NULL ;
+ if ( exited_cleanly ( pid , "AuthorizedKeysCommand" , command , 0 ) != 0 ) goto out ;
+ found_key = ok ;
+ out : if ( f != NULL ) fclose ( f ) ;
+ signal ( SIGCHLD , osigchld ) ;
+ for ( i = 0 ;
+ i < ac ;
+ i ++ ) free ( av [ i ] ) ;
+ free ( av ) ;
+ if ( uid_swapped ) restore_uid ( ) ;
+ free ( command ) ;
+ free ( username ) ;
+ free ( k
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct passwd * runas_pw = NULL ;
+ FILE * f = NULL ;
+ int r , ok , found_key = 0 ;
+ int i , uid_swapped = 0 , ac = 0 ;
+ pid_t pid ;
+ char * username = NULL , * key_fp = NULL , * keytext = NULL ;
+ char uidstr [ 32 ] , * tmp , * command = NULL , * * av = NULL ;
+ void ( * osigchld ) ( int ) ;
+ if ( authoptsp != NULL ) * authoptsp = NULL ;
+ if ( options . authorized_keys_command == NULL ) return 0 ;
+ if ( options . authorized_keys_command_user == NULL ) {
+ error ( "No user for AuthorizedKeysCommand specified, skipping" ) ;
+ return 0 ;
+ }
+ osigchld = signal ( SIGCHLD , SIG_DFL ) ;
+ username = percent_expand ( options . authorized_keys_command_user , "u" , user_pw -> pw_name , ( char * ) NULL ) ;
+ runas_pw = getpwnam ( username ) ;
+ if ( runas_pw == NULL ) {
+ error ( "AuthorizedKeysCommandUser \"%s\" not found: %s" , username , strerror ( errno ) ) ;
+ goto out ;
+ }
+ if ( ( key_fp = sshkey_fingerprint ( key , options . fingerprint_hash , SSH_FP_DEFAULT ) ) == NULL ) {
+ error ( "%s: sshk...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ error ( "No user for AuthorizedKeysCommand specified, skipping" ) ;
+ return 0 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ error ( "AuthorizedKeysCommandUser \"%s\" not found: %s" , username , strerror ( errno ) ) ;
+ goto out ;
+ }
+      
+25769803781 | BLOCK | { error ( "%s: sshkey_fingerprint failed" , __func__ ) ; goto out ; }
+25769803782 | BLOCK | 
+        {
+ error ( "%s: sshkey_to_base64 failed: %s" , __func__ , ssh_err ( r ) ) ;
+ goto out ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ error ( "AuthorizedKeysCommand \"%s\" contains invalid quotes" , command ) ;
+ goto out ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ error ( "AuthorizedKeysCommand \"%s\" yielded no arguments" , command ) ;
+ goto out ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ tmp = percent_expand ( av [ i ] , "U" , uidstr , "u" , user_pw -> pw_name , "h" , user_pw -> pw_dir , "t" , sshkey_ssh_name ( key ) , "f" , key_fp , "k" , keytext , ( char * ) NULL ) ;
+ if ( tmp == NULL ) fatal ( "%s: percent_expand failed" , __func__ ) ;
+ free ( av [ i ] ) ;
+ av [ i ] = tmp ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ av = xreallocarray ( av , ac + 2 , sizeof ( * av ) ) ;
+ av [ 1 ] = xstrdup ( user_pw -> pw_name ) ;
+ av [ 2 ] = NULL ;
+ free ( command ) ;
+ xasprintf ( & command , "%s %s" , av [ 0 ] , av [ 1 ] ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+30064771072 | CALL | runas_pw = NULL
+30064771073 | CALL | f = NULL
+30064771074 | CALL | found_key = 0
+30064771075 | CALL | uid_swapped = 0
+30064771076 | CALL | ac = 0
+30064771077 | CALL | username = NULL
+30064771078 | CALL | key_fp = NULL
+30064771079 | CALL | keytext = NULL
+30064771080 | CALL | uidstr [ 32 ]
+30064771081 | CALL | uidstr [ 32 ]
+30064771082 | CALL | command = NULL
+30064771083 | CALL | * av = NULL
+30064771084 | CALL | authoptsp != NULL
+30064771085 | CALL | * authoptsp = NULL
+30064771086 | CALL | * authoptsp
+30064771087 | CALL | options . authorized_keys_command == NULL
+30064771088 | CALL | options . authorized_keys_command
+30064771089 | CALL | options . authorized_keys_command_user == NULL
+30064771090 | CALL | options . authorized_keys_command_user
+30064771091 | CALL | error ( "No user for AuthorizedKeysCommand specified, skipping" )
+30064771092 | CALL | osigchld = signal ( SIGCHLD , SIG_DFL )
+30064771093 | CALL | signal ( SIGCHLD , SIG_DFL )
+30064771094 | CALL | 
+        username = percent_expand ( options . authorized_keys_command_user , "u" , user_pw -> pw_name , ( char * ) NULL )
+      
+30064771095 | CALL | 
+        percent_expand ( options . authorized_keys_command_user , "u" , user_pw -> pw_name , ( char * ) NULL )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771085 [AST]
+25769803779 -> 30064771091 [AST]
+30064771080 -> 30064771081 [ARGU
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

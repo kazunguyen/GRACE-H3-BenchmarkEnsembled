@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ScoredHistoryMatchTest , ScoringTLD ) {
+ base : : Time now = base : : Time : : NowFromSystemTime ( ) ;
+ std : : string url_string ( "http://fedcba.com/" ) ;
+ const GURL url ( url_string ) ;
+ history : : URLRow row ( MakeURLRow ( url_string . c_str ( ) , "" , 8 , 3 , 1 ) ) ;
+ RowWordStarts word_starts ;
+ PopulateWordStarts ( row , & word_starts ) ;
+ WordStarts two_words_no_offsets ( 2 , 0u ) ;
+ VisitInfoVector visits = CreateVisitInfoVector ( 8 , 3 , now ) ;
+ ScoredHistoryMatch scored ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now ) ;
+ EXPECT_EQ ( 0 , scored . raw_score ) ;
+ base : : AutoReset < bool > reset ( & ScoredHistoryMatch : : allow_tld_matches_ , true ) ;
+ ScoredHistoryMatch scored_with_tld ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now ) ;
+ EXPECT_GT ( scored_with_tld . raw_score , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ base : : Time now = base : : Time : : NowFromSystemTime ( ) ;
+ std : : string url_string ( "http://fedcba.com/" ) ;
+ const GURL url ( url_string ) ;
+ history : : URLRow row ( MakeURLRow ( url_string . c_str ( ) , "" , 8 , 3 , 1 ) ) ;
+ RowWordStarts word_starts ;
+ PopulateWordStarts ( row , & word_starts ) ;
+ WordStarts two_words_no_offsets ( 2 , 0u ) ;
+ VisitInfoVector visits = CreateVisitInfoVector ( 8 , 3 , now ) ;
+ ScoredHistoryMatch scored ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now ) ;
+ EXPECT_EQ ( 0 , scored . raw_score ) ;
+ base : : AutoReset < bool > reset ( & ScoredHistoryMatch : : allow_tld_matches_ , true ) ;
+ ScoredHistoryMatch scored_with_tld ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now ) ;
+ EXPECT_GT ( scored_with_tld . raw_score , 0 ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | PopulateWordStarts ( row , & word_starts )
+30064771073 | CALL | & word_starts
+30064771074 | CALL | two_words_no_offsets ( 2 , 0u )
+30064771075 | CALL | visits = CreateVisitInfoVector ( 8 , 3 , now )
+30064771076 | CALL | CreateVisitInfoVector ( 8 , 3 , now )
+30064771077 | CALL | 
+        scored ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now )
+      
+30064771078 | CALL | ASCIIToUTF16 ( "fed com" )
+30064771079 | CALL | Make2Terms ( "fed" , "com" )
+30064771080 | CALL | EXPECT_EQ ( 0 , scored . raw_score )
+30064771081 | CALL | scored . raw_score
+30064771082 | CALL | 
+        scored_with_tld ( row , visits , ASCIIToUTF16 ( "fed com" ) , Make2Terms ( "fed" , "com" ) , two_words_no_offsets , word_starts , false , nullptr , now )
+      
+30064771083 | CALL | ASCIIToUTF16 ( "fed com" )
+30064771084 | CALL | Make2Terms ( "fed" , "com" )
+30064771085 | CALL | EXPECT_GT ( scored_with_tld . raw_score , 0 )
+30064771086 | CALL | scored_with_tld . raw_score
+55834574848 | FIELD_IDENTIFIER | raw_score
+55834574849 | FIELD_IDENTIFIER | raw_score
+68719476736 | IDENTIFIER | <unknown> row
+68719476737 | IDENTIFIER | word_starts
+68719476738 | IDENTIFIER | <unknown> WordStarts
+68719476739 | IDENTIFIER | visits
+68719476740 | IDENTIFIER | <unknown> now
+68719476741 | IDENTIFIER | <unknown> ScoredHistoryMatch
+68719476742 | IDENTIFIER | <unknown> row
+68719476743 | IDENTIFIER | visits
+68719476744 | IDENTIFIER | two_words_no_offsets
+68719476745 | IDENTIFIER | word_starts
+68719476746 | IDENTIFIER | <unknown> false
+68719476747 | IDENTIFIER | <unknown> nullptr
+68719476748 | IDENTIFIER | <unknown> now
+68719476749 | IDENTIFIER | scored
+68719476750 | IDENTIFIER | <unknown> ScoredHistoryMatch
+68719476751 | IDENTIFIER | <unknown> row
+68719476752 | IDENTIFIER | visits
+68719476753 | IDENTIFIER | two_words_no_offsets
+68719476754 | IDENTIFIER | word_starts
+68719476755 | IDENTIFIER | <unknown> false
+68719476756 | IDENTIFIER | <unknown> nullptr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 68719476738 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 68719476741 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 68719476750 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771085 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476754 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476745 [REACHING_DEF]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 68719476745 [ARGUMENT]
+30064771077 -> 68719476746 [ARGUMENT]
+30064771077 -> 68719476747 [ARGUMENT]
+30064771077 -> 68719476748 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 68719476744 [AST]
+30064771077 -> 68719476745 [AST]
+30064771077 -> 68719476746 [AST]
+30064771077 -> 68719476747 [AST]
+30064771077 -> 68719476748 [AST]
+30064771077 -> 68719476748 [POST_DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 68719476744 [REACHING_DEF]
+30064771078 -> 68719476745 [REACHING_DEF]
+30064771078 -> 68719476746 [REACHING_DEF]
+30064771078 -> 68719476747 [REACHING_DEF]
+30064771078 -> 68719476748 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 68719476742 [REACHING_DEF]
+30064771079 -> 68719476743 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 68719476744 [REACHING_DEF]
+30064771079 -> 68719476745 [REACHING_DEF]
+30064771079 -> 68719476746 [REACHING_DEF]
+30064771079 -> 68719476747 [REACHING_DEF]
+30064771079 -> 68719476748 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+TEST_F ( ScoredHistoryMatchTest , ScoringTLD ) {
+ base : : Time now = base : : Time : : NowFromSystemTime ( ) ;
+ std : : string url_string ( "http://fedcba.com/" ) ;
+ const GURL url ( url_string ) ;
+ history : : URLRow row ( MakeURLRow ( url_string . c_str ( ) , "" , 8 , 3 , 1 ) ) ;
+ RowWordStarts word_starts ;
+ PopulateWo
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

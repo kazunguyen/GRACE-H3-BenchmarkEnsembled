@@ -1,0 +1,275 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static BusState * qbus_find ( const char * path ) {
+ DeviceState * dev ;
+ BusState * bus ;
+ char elem [ 128 ] , msg [ 256 ] ;
+ int pos , len ;
+ if ( path [ 0 ] == '/' ) {
+ bus = main_system_bus ;
+ pos = 0 ;
+ }
+ else {
+ if ( sscanf ( path , "%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\")\n" , path ) ;
+ return NULL ;
+ }
+ bus = qbus_find_recursive ( main_system_bus , elem , NULL ) ;
+ if ( ! bus ) {
+ qemu_error ( "bus \"%s\" not found\n" , elem ) ;
+ return NULL ;
+ }
+ pos = len ;
+ }
+ for ( ;
+ ;
+ ) {
+ if ( path [ pos ] == '\0' ) {
+ return bus ;
+ }
+ if ( sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+ pos += len ;
+ dev = qbus_find_dev ( bus , elem ) ;
+ if ( ! dev ) {
+ qbus_list_dev ( bus , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+ if ( path [ pos ] == '\0' ) {
+ switch ( dev -> num_child_bus ) {
+ case 0 : qemu_error ( "device has no child bus (%s)\n" , path ) ;
+ return NULL ;
+ case 1 : return QLIST_FIRST ( & dev -> child_bus ) ;
+ default : qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device has multiple child busses (%s)\n%s\n" , path , msg ) ;
+ return NULL ;
+ }
+ }
+ if ( sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+ pos += len ;
+ bus = qbus_find_bus ( dev , elem ) ;
+ if ( ! bus ) {
+ qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "child bus \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DeviceState * dev ;
+ BusState * bus ;
+ char elem [ 128 ] , msg [ 256 ] ;
+ int pos , len ;
+ if ( path [ 0 ] == '/' ) {
+ bus = main_system_bus ;
+ pos = 0 ;
+ }
+ else {
+ if ( sscanf ( path , "%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\")\n" , path ) ;
+ return NULL ;
+ }
+ bus = qbus_find_recursive ( main_system_bus , elem , NULL ) ;
+ if ( ! bus ) {
+ qemu_error ( "bus \"%s\" not found\n" , elem ) ;
+ return NULL ;
+ }
+ pos = len ;
+ }
+ for ( ;
+ ;
+ ) {
+ if ( path [ pos ] == '\0' ) {
+ return bus ;
+ }
+ if ( sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+ pos += len ;
+ dev = qbus_find_dev ( bus , elem ) ;
+ if ( ! dev ) {
+ qbus_list_dev ( bus , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+ if ( path [ pos ] == '\0' ) {
+ switch ( dev -> num_child_bus ) {
+ case 0 : qemu_error ( "device has no child bus (%...
+      
+25769803777 | BLOCK | { bus = main_system_bus ; pos = 0 ; }
+25769803778 | BLOCK | 
+        {
+ if ( sscanf ( path , "%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\")\n" , path ) ;
+ return NULL ;
+ }
+ bus = qbus_find_recursive ( main_system_bus , elem , NULL ) ;
+ if ( ! bus ) {
+ qemu_error ( "bus \"%s\" not found\n" , elem ) ;
+ return NULL ;
+ }
+ pos = len ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ qemu_error ( "path parse error (\"%s\")\n" , path ) ;
+ return NULL ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ qemu_error ( "bus \"%s\" not found\n" , elem ) ;
+ return NULL ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ if ( path [ pos ] == '\0' ) {
+ return bus ;
+ }
+ if ( sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+ pos += len ;
+ dev = qbus_find_dev ( bus , elem ) ;
+ if ( ! dev ) {
+ qbus_list_dev ( bus , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+ if ( path [ pos ] == '\0' ) {
+ switch ( dev -> num_child_bus ) {
+ case 0 : qemu_error ( "device has no child bus (%s)\n" , path ) ;
+ return NULL ;
+ case 1 : return QLIST_FIRST ( & dev -> child_bus ) ;
+ default : qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device has multiple child busses (%s)\n%s\n" , path , msg ) ;
+ return NULL ;
+ }
+ }
+ if ( sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1 ) {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+ pos += len ;
+ bus = qbus_find_bus ( dev , elem ) ;
+ if ( ! bus ) {
+ qbus_list_bus (...
+      
+25769803783 | BLOCK | { return bus ; }
+25769803784 | BLOCK | 
+        {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ qbus_list_dev ( bus , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ switch ( dev -> num_child_bus ) {
+ case 0 : qemu_error ( "device has no child bus (%s)\n" , path ) ;
+ return NULL ;
+ case 1 : return QLIST_FIRST ( & dev -> child_bus ) ;
+ default : qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device has multiple child busses (%s)\n%s\n" , path , msg ) ;
+ return NULL ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ case 0 : qemu_error ( "device has no child bus (%s)\n" , path ) ;
+ return NULL ;
+ case 1 : return QLIST_FIRST ( & dev -> child_bus ) ;
+ default : qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "device has multiple child busses (%s)\n%s\n" , path , msg ) ;
+ return NULL ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos ) ;
+ return NULL ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ qbus_list_bus ( dev , msg , sizeof ( msg ) ) ;
+ qemu_error ( "child bus \"%s\" not found\n%s\n" , elem , msg ) ;
+ return NULL ;
+ }
+      
+30064771072 | CALL | elem [ 128 ]
+30064771073 | CALL | elem [ 128 ]
+30064771074 | CALL | msg [ 256 ]
+30064771075 | CALL | msg [ 256 ]
+30064771076 | CALL | path [ 0 ] == '/'
+30064771077 | CALL | path [ 0 ]
+30064771078 | CALL | bus = main_system_bus
+30064771079 | CALL | pos = 0
+30064771080 | CALL | sscanf ( path , "%127[^/]%n" , elem , & len ) != 1
+30064771081 | CALL | sscanf ( path , "%127[^/]%n" , elem , & len )
+30064771082 | CALL | & len
+30064771083 | CALL | qemu_error ( "path parse error (\"%s\")\n" , path )
+30064771084 | CALL | bus = qbus_find_recursive ( main_system_bus , elem , NULL )
+30064771085 | CALL | qbus_find_recursive ( main_system_bus , elem , NULL )
+30064771086 | CALL | ! bus
+30064771087 | CALL | qemu_error ( "bus \"%s\" not found\n" , elem )
+30064771088 | CALL | pos = len
+30064771089 | CALL | path [ pos ] == '\0'
+30064771090 | CALL | path [ pos ]
+30064771091 | CALL | sscanf ( path + pos , "/%127[^/]%n" , elem , & len ) != 1
+30064771092 | CALL | sscanf ( path + pos , "/%127[^/]%n" , elem , & len )
+30064771093 | CALL | path + pos
+30064771094 | CALL | & len
+30064771095 | CALL | 
+        qemu_error ( "path parse error (\"%s\" pos %d)\n" , path , pos )
+      
+30064771096 | CALL | pos += len
+30064771097 | CALL | dev = qbus_find_dev ( bus , elem )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771088 [AST]
+25769803779 -> 30064771083 [AST]
+25769803780 -> 30064771087 [AST]
+25769803782 -> 30064771096 [AST]
+25769803782 -> 30064771097 [AST]
+25769803784 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUME
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

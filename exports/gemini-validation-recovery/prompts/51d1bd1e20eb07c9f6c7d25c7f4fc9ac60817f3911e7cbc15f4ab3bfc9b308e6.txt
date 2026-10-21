@@ -1,0 +1,265 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static av_cold int join_init(AVFilterContext *ctx)
+
+{
+
+    JoinContext *s = ctx->priv;
+
+    int ret, i;
+
+
+
+    if (!(s->channel_layout = av_get_channel_layout(s->channel_layout_str))) {
+
+        av_log(ctx, AV_LOG_ERROR, "Error parsing channel layout '%s'.\n",
+
+               s->channel_layout_str);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    s->nb_channels  = av_get_channel_layout_nb_channels(s->channel_layout);
+
+    s->channels     = av_mallocz_array(s->nb_channels, sizeof(*s->channels));
+
+    s->buffers      = av_mallocz_array(s->nb_channels, sizeof(*s->buffers));
+
+    s->input_frames = av_mallocz_array(s->inputs, sizeof(*s->input_frames));
+
+    if (!s->channels || !s->buffers|| !s->input_frames)
+
+        return AVERROR(ENOMEM);
+
+
+
+    for (i = 0; i < s->nb_channels; i++) {
+
+        s->channels[i].out_channel = av_channel_layout_extract_channel(s->channel_layout, i);
+
+        s->channels[i].input       = -1;
+
+    }
+
+
+
+    if ((ret = parse_maps(ctx)) < 0)
+
+        return ret;
+
+
+
+    for (i = 0; i < s->inputs; i++) {
+
+        char name[32];
+
+        AVFilterPad pad = { 0 };
+
+
+
+        snprintf(name, sizeof(name), "input%d", i);
+
+        pad.type           = AVMEDIA_TYPE_AUDIO;
+
+        pad.name           = av_strdup(name);
+
+        if (!pad.name)
+
+            return AVERROR(ENOMEM);
+
+        pad.filter_frame   = filter_frame;
+
+
+
+        pad.needs_fifo = 1;
+
+
+
+        ff_insert_inpad(ctx, i, &pad);
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+14 -> 18 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+25 -> 29 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+42 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+54 -> 57 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+37 -> 53 [IS_AST_PARENT]
+21 -> 37 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+91 -> 92 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int filter_query_formats(AVFilterContext *ctx)
+
+{
+
+    int ret, i;
+
+    AVFilterFormats *formats;
+
+    AVFilterChannelLayouts *chlayouts;
+
+    AVFilterFormats *samplerates;
+
+    enum AVMediaType type = ctx->inputs  && ctx->inputs [0] ? ctx->inputs [0]->type :
+
+                            ctx->outputs && ctx->outputs[0] ? ctx->outputs[0]->type :
+
+                            AVMEDIA_TYPE_VIDEO;
+
+
+
+    if ((ret = ctx->filter->query_formats(ctx)) < 0) {
+
+        av_log(ctx, AV_LOG_ERROR, "Query format failed for '%s': %s\n",
+
+               ctx->name, av_err2str(ret));
+
+        return ret;
+
+    }
+
+
+
+    for (i = 0; i < ctx->nb_inputs; i++)
+
+        sanitize_channel_layouts(ctx, ctx->inputs[i]->out_channel_layouts);
+
+    for (i = 0; i < ctx->nb_outputs; i++)
+
+        sanitize_channel_layouts(ctx, ctx->outputs[i]->in_channel_layouts);
+
+
+
+    formats = ff_all_formats(type);
+
+    if (!formats)
+
+        return AVERROR(ENOMEM);
+
+    ff_set_common_formats(ctx, formats);
+
+    if (type == AVMEDIA_TYPE_AUDIO) {
+
+        samplerates = ff_all_samplerates();
+
+        if (!samplerates)
+
+            return AVERROR(ENOMEM);
+
+        ff_set_common_samplerates(ctx, samplerates);
+
+        chlayouts = ff_all_channel_layouts();
+
+        if (!chlayouts)
+
+            return AVERROR(ENOMEM);
+
+        ff_set_common_channel_layouts(ctx, chlayouts);
+
+    }
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

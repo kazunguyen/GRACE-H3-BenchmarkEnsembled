@@ -1,0 +1,208 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuAgentGetVCPUs ( qemuAgentPtr mon , qemuAgentCPUInfoPtr * info ) {
+ int ret = - 1 ;
+ size_t i ;
+ virJSONValuePtr cmd ;
+ virJSONValuePtr reply = NULL ;
+ virJSONValuePtr data = NULL ;
+ ssize_t ndata ;
+ if ( ! ( cmd = qemuAgentMakeCommand ( "guest-get-vcpus" , NULL ) ) ) return - 1 ;
+ if ( qemuAgentCommand ( mon , cmd , & reply , true , VIR_DOMAIN_QEMU_AGENT_COMMAND_BLOCK ) < 0 ) goto cleanup ;
+ if ( ! ( data = virJSONValueObjectGet ( reply , "return" ) ) ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus reply was missing return data" ) ) ;
+ goto cleanup ;
+ }
+ if ( data -> type != VIR_JSON_TYPE_ARRAY ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus return information was not an array" ) ) ;
+ goto cleanup ;
+ }
+ ndata = virJSONValueArraySize ( data ) ;
+ if ( VIR_ALLOC_N ( * info , ndata ) < 0 ) goto cleanup ;
+ for ( i = 0 ;
+ i < ndata ;
+ i ++ ) {
+ virJSONValuePtr entry = virJSONValueArrayGet ( data , i ) ;
+ qemuAgentCPUInfoPtr in = * info + i ;
+ if ( ! entry ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "array element missing in guest-get-vcpus return " "value" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetNumberUint ( entry , "logical-id" , & in -> id ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'logical-id' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetBoolean ( entry , "online" , & in -> online ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'online' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetBoolean ( entry , "can-offline" , & in -> offlinable ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'can-offline' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ }
+ ret = ndata ;
+ cleanup : virJSONValueFree ( cmd ) ;
+ virJSONValueFree ( reply ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret = - 1 ;
+ size_t i ;
+ virJSONValuePtr cmd ;
+ virJSONValuePtr reply = NULL ;
+ virJSONValuePtr data = NULL ;
+ ssize_t ndata ;
+ if ( ! ( cmd = qemuAgentMakeCommand ( "guest-get-vcpus" , NULL ) ) ) return - 1 ;
+ if ( qemuAgentCommand ( mon , cmd , & reply , true , VIR_DOMAIN_QEMU_AGENT_COMMAND_BLOCK ) < 0 ) goto cleanup ;
+ if ( ! ( data = virJSONValueObjectGet ( reply , "return" ) ) ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus reply was missing return data" ) ) ;
+ goto cleanup ;
+ }
+ if ( data -> type != VIR_JSON_TYPE_ARRAY ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus return information was not an array" ) ) ;
+ goto cleanup ;
+ }
+ ndata = virJSONValueArraySize ( data ) ;
+ if ( VIR_ALLOC_N ( * info , ndata ) < 0 ) goto cleanup ;
+ for ( i = 0 ;
+ i < ndata ;
+ i ++ ) {
+ virJSONValuePtr entry = virJSONValueArrayGet ( data , i ) ;
+ qemuAgentCPUInfoPtr in = * info + i ;
+ if ( ! entry ) {
+ virReportError ( VIR_ERR_INTERNAL_ERRO...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus reply was missing return data" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus return information was not an array" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ virJSONValuePtr entry = virJSONValueArrayGet ( data , i ) ;
+ qemuAgentCPUInfoPtr in = * info + i ;
+ if ( ! entry ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "array element missing in guest-get-vcpus return " "value" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetNumberUint ( entry , "logical-id" , & in -> id ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'logical-id' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetBoolean ( entry , "online" , & in -> online ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'online' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ if ( virJSONValueObjectGetBoolean ( entry , "can-offline" , & in -> offlinable ) < 0 ) {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'can-offline' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "array element missing in guest-get-vcpus return " "value" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'logical-id' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'online' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "'can-offline' missing in reply of guest-get-vcpus" ) ) ;
+ goto cleanup ;
+ }
+      
+30064771072 | CALL | ret = - 1
+30064771073 | CALL | - 1
+30064771074 | CALL | reply = NULL
+30064771075 | CALL | data = NULL
+30064771076 | CALL | ! ( cmd = qemuAgentMakeCommand ( "guest-get-vcpus" , NULL ) )
+30064771077 | CALL | cmd = qemuAgentMakeCommand ( "guest-get-vcpus" , NULL )
+30064771078 | CALL | qemuAgentMakeCommand ( "guest-get-vcpus" , NULL )
+30064771079 | CALL | - 1
+30064771080 | CALL | 
+        qemuAgentCommand ( mon , cmd , & reply , true , VIR_DOMAIN_QEMU_AGENT_COMMAND_BLOCK ) < 0
+      
+30064771081 | CALL | 
+        qemuAgentCommand ( mon , cmd , & reply , true , VIR_DOMAIN_QEMU_AGENT_COMMAND_BLOCK )
+      
+30064771082 | CALL | & reply
+30064771083 | CALL | ! ( data = virJSONValueObjectGet ( reply , "return" ) )
+30064771084 | CALL | data = virJSONValueObjectGet ( reply , "return" )
+30064771085 | CALL | virJSONValueObjectGet ( reply , "return" )
+30064771086 | CALL | 
+        virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus reply was missing return data" ) )
+      
+30064771087 | CALL | _ ( "guest-get-vcpus reply was missing return data" )
+30064771088 | CALL | data -> type != VIR_JSON_TYPE_ARRAY
+30064771089 | CALL | data -> type
+30064771090 | CALL | 
+        virReportError ( VIR_ERR_INTERNAL_ERROR , "%s" , _ ( "guest-get-vcpus return information was not an array" ) )
+      
+30064771091 | CALL | _ ( "guest-get-vcpus return information was not an array" )
+30064771092 | CALL | ndata = virJSONValueArraySize ( data )
+30064771093 | CALL | virJSONValueArraySize ( data )
+30064771094 | CALL | VIR_ALLOC_N ( * info , ndata ) < 0
+30064771095 | CALL | VIR_ALLOC_N ( * info , ndata )
+30064771096 | CALL | * info
+30064771097 | CALL | i = 0
+30064771098 | CALL | i < ndata
+30064771099 | CALL | i ++
+30064771100 | CALL | entry = virJSONValueArrayGet ( data , i )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771092 [AST]
+25769803779 -> 30064771086 [AST]
+25769803780 -> 30064771090 [AST]
+25769803782 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [CDG]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

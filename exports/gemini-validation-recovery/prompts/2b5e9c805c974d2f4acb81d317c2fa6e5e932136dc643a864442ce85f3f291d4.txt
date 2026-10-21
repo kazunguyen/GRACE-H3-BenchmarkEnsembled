@@ -1,0 +1,293 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static UChar32 _UTF16BEGetNextUChar ( UConverterToUnicodeArgs * pArgs , UErrorCode * err ) {
+ const uint8_t * s , * sourceLimit ;
+ UChar32 c ;
+ if ( pArgs -> converter -> mode < 8 ) {
+ return UCNV_GET_NEXT_UCHAR_USE_TO_U ;
+ }
+ s = ( const uint8_t * ) pArgs -> source ;
+ sourceLimit = ( const uint8_t * ) pArgs -> sourceLimit ;
+ if ( s >= sourceLimit ) {
+ * err = U_INDEX_OUTOFBOUNDS_ERROR ;
+ return 0xffff ;
+ }
+ if ( s + 2 > sourceLimit ) {
+ pArgs -> converter -> toUBytes [ 0 ] = * s ++ ;
+ pArgs -> converter -> toULength = 1 ;
+ pArgs -> source = ( const char * ) s ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ return 0xffff ;
+ }
+ c = ( ( UChar32 ) * s << 8 ) | s [ 1 ] ;
+ s += 2 ;
+ if ( U_IS_SURROGATE ( c ) ) {
+ if ( U16_IS_SURROGATE_LEAD ( c ) ) {
+ if ( s + 2 <= sourceLimit ) {
+ UChar trail ;
+ trail = ( ( UChar ) * s << 8 ) | s [ 1 ] ;
+ if ( U16_IS_TRAIL ( trail ) ) {
+ c = U16_GET_SUPPLEMENTARY ( c , trail ) ;
+ s += 2 ;
+ }
+ else {
+ c = - 2 ;
+ }
+ }
+ else {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ s -= 2 ;
+ pArgs -> converter -> toULength = ( int8_t ) ( sourceLimit - s ) ;
+ do {
+ * bytes ++ = * s ++ ;
+ }
+ while ( s < sourceLimit ) ;
+ c = 0xffff ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ }
+ }
+ else {
+ c = - 2 ;
+ }
+ if ( c < 0 ) {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ pArgs -> converter -> toULength = 2 ;
+ * bytes = * ( s - 2 ) ;
+ bytes [ 1 ] = * ( s - 1 ) ;
+ c = 0xffff ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ }
+ pArgs -> source = ( const char * ) s ;
+ return c ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint8_t * s , * sourceLimit ;
+ UChar32 c ;
+ if ( pArgs -> converter -> mode < 8 ) {
+ return UCNV_GET_NEXT_UCHAR_USE_TO_U ;
+ }
+ s = ( const uint8_t * ) pArgs -> source ;
+ sourceLimit = ( const uint8_t * ) pArgs -> sourceLimit ;
+ if ( s >= sourceLimit ) {
+ * err = U_INDEX_OUTOFBOUNDS_ERROR ;
+ return 0xffff ;
+ }
+ if ( s + 2 > sourceLimit ) {
+ pArgs -> converter -> toUBytes [ 0 ] = * s ++ ;
+ pArgs -> converter -> toULength = 1 ;
+ pArgs -> source = ( const char * ) s ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ return 0xffff ;
+ }
+ c = ( ( UChar32 ) * s << 8 ) | s [ 1 ] ;
+ s += 2 ;
+ if ( U_IS_SURROGATE ( c ) ) {
+ if ( U16_IS_SURROGATE_LEAD ( c ) ) {
+ if ( s + 2 <= sourceLimit ) {
+ UChar trail ;
+ trail = ( ( UChar ) * s << 8 ) | s [ 1 ] ;
+ if ( U16_IS_TRAIL ( trail ) ) {
+ c = U16_GET_SUPPLEMENTARY ( c , trail ) ;
+ s += 2 ;
+ }
+ else {
+ c = - 2 ;
+ }
+ }
+ else {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ s -= 2 ;
+ pArgs -> converter -> toULength = ( int8_t ) ( sourceLimit - s ) ;
+ d...
+      
+25769803777 | BLOCK | { return UCNV_GET_NEXT_UCHAR_USE_TO_U ; }
+25769803778 | BLOCK | { * err = U_INDEX_OUTOFBOUNDS_ERROR ; return 0xffff ; }
+25769803779 | BLOCK | 
+        {
+ pArgs -> converter -> toUBytes [ 0 ] = * s ++ ;
+ pArgs -> converter -> toULength = 1 ;
+ pArgs -> source = ( const char * ) s ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ return 0xffff ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ if ( U16_IS_SURROGATE_LEAD ( c ) ) {
+ if ( s + 2 <= sourceLimit ) {
+ UChar trail ;
+ trail = ( ( UChar ) * s << 8 ) | s [ 1 ] ;
+ if ( U16_IS_TRAIL ( trail ) ) {
+ c = U16_GET_SUPPLEMENTARY ( c , trail ) ;
+ s += 2 ;
+ }
+ else {
+ c = - 2 ;
+ }
+ }
+ else {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ s -= 2 ;
+ pArgs -> converter -> toULength = ( int8_t ) ( sourceLimit - s ) ;
+ do {
+ * bytes ++ = * s ++ ;
+ }
+ while ( s < sourceLimit ) ;
+ c = 0xffff ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ }
+ }
+ else {
+ c = - 2 ;
+ }
+ if ( c < 0 ) {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ pArgs -> converter -> toULength = 2 ;
+ * bytes = * ( s - 2 ) ;
+ bytes [ 1 ] = * ( s - 1 ) ;
+ c = 0xffff ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( s + 2 <= sourceLimit ) {
+ UChar trail ;
+ trail = ( ( UChar ) * s << 8 ) | s [ 1 ] ;
+ if ( U16_IS_TRAIL ( trail ) ) {
+ c = U16_GET_SUPPLEMENTARY ( c , trail ) ;
+ s += 2 ;
+ }
+ else {
+ c = - 2 ;
+ }
+ }
+ else {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ s -= 2 ;
+ pArgs -> converter -> toULength = ( int8_t ) ( sourceLimit - s ) ;
+ do {
+ * bytes ++ = * s ++ ;
+ }
+ while ( s < sourceLimit ) ;
+ c = 0xffff ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ UChar trail ;
+ trail = ( ( UChar ) * s << 8 ) | s [ 1 ] ;
+ if ( U16_IS_TRAIL ( trail ) ) {
+ c = U16_GET_SUPPLEMENTARY ( c , trail ) ;
+ s += 2 ;
+ }
+ else {
+ c = - 2 ;
+ }
+ }
+      
+25769803783 | BLOCK | { c = U16_GET_SUPPLEMENTARY ( c , trail ) ; s += 2 ; }
+25769803784 | BLOCK | { c = - 2 ; }
+25769803785 | BLOCK | 
+        {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ s -= 2 ;
+ pArgs -> converter -> toULength = ( int8_t ) ( sourceLimit - s ) ;
+ do {
+ * bytes ++ = * s ++ ;
+ }
+ while ( s < sourceLimit ) ;
+ c = 0xffff ;
+ * err = U_TRUNCATED_CHAR_FOUND ;
+ }
+      
+25769803786 | BLOCK | { * bytes ++ = * s ++ ; }
+25769803787 | BLOCK | { c = - 2 ; }
+25769803788 | BLOCK | 
+        {
+ uint8_t * bytes = pArgs -> converter -> toUBytes ;
+ pArgs -> converter -> toULength = 2 ;
+ * bytes = * ( s - 2 ) ;
+ bytes [ 1 ] = * ( s - 1 ) ;
+ c = 0xffff ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+      
+30064771072 | CALL | pArgs -> converter -> mode < 8
+30064771073 | CALL | pArgs -> converter -> mode
+30064771074 | CALL | pArgs -> converter
+30064771075 | CALL | s = ( const uint8_t * ) pArgs -> source
+30064771076 | CALL | ( const uint8_t * ) pArgs -> source
+30064771077 | CALL | pArgs -> source
+30064771078 | CALL | sourceLimit = ( const uint8_t * ) pArgs -> sourceLimit
+30064771079 | CALL | ( const uint8_t * ) pArgs -> sourceLimit
+30064771080 | CALL | pArgs -> sourceLimit
+30064771081 | CALL | s >= sourceLimit
+30064771082 | CALL | * err = U_INDEX_OUTOFBOUNDS_ERROR
+30064771083 | CALL | * err
+30064771084 | CALL | s + 2 > sourceLimit
+30064771085 | CALL | s + 2
+30064771086 | CALL | pArgs -> converter -> toUBytes [ 0 ] = * s ++
+30064771087 | CALL | pArgs -> converter -> toUBytes [ 0 ]
+30064771088 | CALL | pArgs -> converter -> toUBytes
+30064771089 | CALL | pArgs -> converter
+30064771090 | CALL | * s ++
+30064771091 | CALL | s ++
+30064771092 | CALL | pArgs -> converter -> toULength = 1
+30064771093 | CALL | pArgs -> converter -> toULength
+30064771094 | CALL | pArgs -> converter
+30064771095 | CALL | pArgs -> source = ( const char * ) s
+30064771096 | CALL | pArgs -> source
+30064771097 | CALL | ( const char * ) s
+30064771098 | CALL | * err = U_TRUNCATED_CHAR_FOUND
+EDGES:
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771092 [AST]
+25769803779 -> 30064771095 [AST]
+25769803779 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771094 [REACHING_DEF]
+30064771073 -> 30064771089 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOM
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

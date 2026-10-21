@@ -1,0 +1,49 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool HasPendingUncleanExit ( Profile * profile ) {
+ return profile -> GetLastSessionExitType ( ) == Profile : : EXIT_CRASHED && ! profile_launch_observer . Get ( ) . HasBeenLaunched ( profile ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ return profile -> GetLastSessionExitType ( ) == Profile : : EXIT_CRASHED && ! profile_launch_observer . Get ( ) . HasBeenLaunched ( profile ) ;
+ }
+      
+107374182400 | METHOD | 
+        bool HasPendingUncleanExit ( Profile * profile ) {
+ return profile -> GetLastSessionExitType ( ) == Profile : : EXIT_CRASHED && ! profile_launch_observer . Get ( ) . HasBeenLaunched ( profile ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | Profile * profile
+115964116992 | METHOD_PARAMETER_OUT | Profile * profile
+124554051584 | METHOD_RETURN | RET
+EDGES:
+107374182400 -> 111669149696 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool qemu_cpu_has_work ( CPUState * cpu ) {
+ return cpu_has_work ( cpu ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

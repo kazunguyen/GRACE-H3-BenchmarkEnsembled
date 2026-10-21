@@ -1,0 +1,141 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( AutocompleteResultTest , SortAndCullWithMatchDups ) {
+ TemplateURLData url_data ;
+ url_data . SetShortName ( base : : ASCIIToUTF16 ( "unittest" ) ) ;
+ url_data . SetKeyword ( base : : ASCIIToUTF16 ( "foo" ) ) ;
+ url_data . SetURL ( "http://www.foo.com/s?q={
+searchTerms}
+" ) ;
+ template_url_service_ . get ( ) -> Add ( new TemplateURL ( url_data ) ) ;
+ AutocompleteMatch dup_match ;
+ dup_match . destination_url = GURL ( "http://www.foo.com/s?q=foo&oq=dup" ) ;
+ std : : vector < AutocompleteMatch > dups ;
+ dups . push_back ( dup_match ) ;
+ TestData data [ ] = {
+ {
+ 0 , 1 , 1300 , true , dups }
+ , {
+ 1 , 1 , 1200 , true }
+ , {
+ 2 , 1 , 1100 , true }
+ , {
+ 3 , 1 , 1000 , true , dups }
+ , {
+ 4 , 2 , 900 , true }
+ , {
+ 5 , 1 , 800 , true }
+ , }
+ ;
+ ACMatches matches ;
+ PopulateAutocompleteMatches ( data , arraysize ( data ) , & matches ) ;
+ matches [ 0 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo" ) ;
+ matches [ 1 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo2" ) ;
+ matches [ 2 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo&oq=f" ) ;
+ matches [ 3 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo&aqs=0" ) ;
+ matches [ 4 ] . destination_url = GURL ( "http://www.foo.com/" ) ;
+ matches [ 5 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo2&oq=f" ) ;
+ AutocompleteInput input ( base : : string16 ( ) , base : : string16 : : npos , std : : string ( ) , GURL ( ) , OmniboxEventProto : : INVALID_SPEC , false , false , false , true , false , TestSchemeClassifier ( ) ) ;
+ AutocompleteResult result ;
+ result . AppendMatches ( input , matches ) ;
+ result . SortAndCull ( input , std : : string ( ) , template_url_service_ . get ( ) ) ;
+ ASSERT_EQ ( 3U , result . size ( ) ) ;
+ ASSERT_EQ ( 4U , result . match_at ( 0 ) -> duplicate_matches . size ( ) ) ;
+ const AutocompleteMatch * first_match = result . match_at ( 0 ) ;
+ EXPECT_EQ ( matches [ 2 ] . destination_url , first_match -> duplicate_matches . at ( 1 ) . destination_url ) ;
+ EXPECT_EQ ( dup_match . destination_url , first_match -> duplicate_matches . at ( 2 ) . destination_url ) ;
+ EXPECT_EQ ( matches [ 3 ] . destination_url , first_match -> duplicate_matches . at ( 3 ) . destination_url ) ;
+ ASSERT_EQ ( 1U , result . match_at ( 1 ) -> duplicate_matches . size ( ) ) ;
+ EXPECT_EQ ( matches [ 5 ] . destination_url , result . match_at ( 1 ) -> duplicate_matches . at ( 0 ) . destination_url ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ TemplateURLData url_data ;
+ url_data . SetShortName ( base : : ASCIIToUTF16 ( "unittest" ) ) ;
+ url_data . SetKeyword ( base : : ASCIIToUTF16 ( "foo" ) ) ;
+ url_data . SetURL ( "http://www.foo.com/s?q={
+searchTerms}
+      
+94489280512 | LOCAL | TemplateURLData url_data
+107374182400 | METHOD | 
+        TEST_F ( AutocompleteResultTest , SortAndCullWithMatchDups ) {
+ TemplateURLData url_data ;
+ url_data . SetShortName ( base : : ASCIIToUTF16 ( "unittest" ) ) ;
+ url_data . SetKeyword ( base : : ASCIIToUTF16 ( "foo" ) ) ;
+ url_data . SetURL ( "http://www.foo.com/s?q={
+searchTerms}
+      
+111669149696 | METHOD_PARAMETER_IN | AutocompleteResultTest
+111669149697 | METHOD_PARAMETER_IN | SortAndCullWithMatchDups
+115964116992 | METHOD_PARAMETER_OUT | AutocompleteResultTest
+115964116993 | METHOD_PARAMETER_OUT | SortAndCullWithMatchDups
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+TEST_F ( AutocompleteResultTest , SortAndCullDuplicateSearchURLs ) {
+ TemplateURLData url_data ;
+ url_data . SetShortName ( base : : ASCIIToUTF16 ( "unittest" ) ) ;
+ url_data . SetKeyword ( base : : ASCIIToUTF16 ( "foo" ) ) ;
+ url_data . SetURL ( "http://www.foo.com/s?q={
+searchTerms}
+" ) ;
+ template_url_service_ . get ( ) -> Add ( new TemplateURL ( url_data ) ) ;
+ TestData data [ ] = {
+ {
+ 0 , 1 , 1300 , true }
+ , {
+ 1 , 1 , 1200 , true }
+ , {
+ 2 , 1 , 1100 , true }
+ , {
+ 3 , 1 , 1000 , true }
+ , {
+ 4 , 2 , 900 , true }
+ , }
+ ;
+ ACMatches matches ;
+ PopulateAutocompleteMatches ( data , arraysize ( data ) , & matches ) ;
+ matches [ 0 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo" ) ;
+ matches [ 1 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo2" ) ;
+ matches [ 2 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo&oq=f" ) ;
+ matches [ 3 ] . destination_url = GURL ( "http://www.foo.com/s?q=foo&aqs=0" ) ;
+ matches [ 4 ] . destination_url = GURL ( "http://www.foo.com/" ) ;
+ AutocompleteInput input ( base : : string16 ( ) , base : : string16 : : npos , std : : string ( ) , GURL ( ) , OmniboxEventProto : : INVALID_SPEC , false , false , false , true , false , TestSchemeClassifier ( ) ) ;
+ AutocompleteResult result ;
+ result . AppendMatches ( input , matches ) ;
+ result . SortAndCull ( input , std : : string ( ) , template_url_service_ . get ( ) ) ;
+ ASSERT_EQ ( 3U , result . size ( ) ) ;
+ EXPECT_EQ ( "http://www.foo.com/s?q=foo" , result . match_at ( 0 ) ->
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

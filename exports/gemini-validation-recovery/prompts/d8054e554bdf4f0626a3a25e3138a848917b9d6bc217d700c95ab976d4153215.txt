@@ -1,0 +1,154 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int tipc_nl_compat_link_stat_dump ( struct tipc_nl_compat_msg * msg , struct nlattr * * attrs ) {
+ char * name ;
+ struct nlattr * link [ TIPC_NLA_LINK_MAX + 1 ] ;
+ struct nlattr * prop [ TIPC_NLA_PROP_MAX + 1 ] ;
+ struct nlattr * stats [ TIPC_NLA_STATS_MAX + 1 ] ;
+ int err ;
+ if ( ! attrs [ TIPC_NLA_LINK ] ) return - EINVAL ;
+ err = nla_parse_nested ( link , TIPC_NLA_LINK_MAX , attrs [ TIPC_NLA_LINK ] , NULL ) ;
+ if ( err ) return err ;
+ if ( ! link [ TIPC_NLA_LINK_PROP ] ) return - EINVAL ;
+ err = nla_parse_nested ( prop , TIPC_NLA_PROP_MAX , link [ TIPC_NLA_LINK_PROP ] , NULL ) ;
+ if ( err ) return err ;
+ if ( ! link [ TIPC_NLA_LINK_STATS ] ) return - EINVAL ;
+ err = nla_parse_nested ( stats , TIPC_NLA_STATS_MAX , link [ TIPC_NLA_LINK_STATS ] , NULL ) ;
+ if ( err ) return err ;
+ name = ( char * ) TLV_DATA ( msg -> req ) ;
+ if ( strcmp ( name , nla_data ( link [ TIPC_NLA_LINK_NAME ] ) ) != 0 ) return 0 ;
+ tipc_tlv_sprintf ( msg -> rep , "\nLink <%s>\n" , nla_data ( link [ TIPC_NLA_LINK_NAME ] ) ) ;
+ if ( link [ TIPC_NLA_LINK_BROADCAST ] ) {
+ __fill_bc_link_stat ( msg , prop , stats ) ;
+ return 0 ;
+ }
+ if ( link [ TIPC_NLA_LINK_ACTIVE ] ) tipc_tlv_sprintf ( msg -> rep , " ACTIVE" ) ;
+ else if ( link [ TIPC_NLA_LINK_UP ] ) tipc_tlv_sprintf ( msg -> rep , " STANDBY" ) ;
+ else tipc_tlv_sprintf ( msg -> rep , " DEFUNCT" ) ;
+ tipc_tlv_sprintf ( msg -> rep , " MTU:%u Priority:%u" , nla_get_u32 ( link [ TIPC_NLA_LINK_MTU ] ) , nla_get_u32 ( prop [ TIPC_NLA_PROP_PRIO ] ) ) ;
+ tipc_tlv_sprintf ( msg -> rep , " Tolerance:%u ms Window:%u packets\n" , nla_get_u32 ( prop [ TIPC_NLA_PROP_TOL ] ) , nla_get_u32 ( prop [ TIPC_NLA_PROP_WIN ] ) ) ;
+ tipc_tlv_sprintf ( msg -> rep , " RX packets:%u fragments:%u/%u bundles:%u/%u\n" , nla_get_u32 ( link [ TIPC_NLA_LINK_RX ] ) - nla_get_u32 ( stats [ TIPC_NLA_STATS_RX_INFO ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_RX_FRAGMENTS ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_RX_FRAGMENTED ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_RX_BUNDLES ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_RX_BUNDLED ] ) ) ;
+ tipc_tlv_sprintf ( msg -> rep , " TX packets:%u fragments:%u/%u bundles:%u/%u\n" , nla_get_u32 ( link [ TIPC_NLA_LINK_TX ] ) - nla_get_u32 ( stats [ TIPC_NLA_STATS_TX_INFO ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_TX_FRAGMENTS ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_TX_FRAGMENTED ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_TX_BUNDLES ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_TX_BUNDLED ] ) ) ;
+ tipc_tlv_sprintf ( msg -> rep , " TX profile sample:%u packets average:%u octets\n" , nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_LEN_CNT ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_LEN_TOT ] ) / nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_PROF_TOT ] ) ) ;
+ tipc_tlv_sprintf ( msg -> rep , " 0-64:%u%% -256:%u%% -1024:%u%% -4096:%u%% " , perc ( nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_LEN_P0 ] ) , nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_PROF_TOT ] ) ) , perc ( nla_get_u32 ( stats [ TIPC_NLA_STATS_MSG_LEN_P1 ] ) , nla_get_u32 ( s
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * name ;
+ struct nlattr * link [ TIPC_NLA_LINK_MAX + 1 ] ;
+ struct nlattr * prop [ TIPC_NLA_PROP_MAX + 1 ] ;
+ struct nlattr * stats [ TIPC_NLA_STATS_MAX + 1 ] ;
+ int err ;
+ if ( ! attrs [ TIPC_NLA_LINK ] ) return - EINVAL ;
+ err = nla_parse_nested ( link , TIPC_NLA_LINK_MAX , attrs [ TIPC_NLA_LINK ] , NULL ) ;
+ if ( err ) return err ;
+ if ( ! link [ TIPC_NLA_LINK_PROP ] ) return - EINVAL ;
+ err = nla_parse_nested ( prop , TIPC_NLA_PROP_MAX , link [ TIPC_NLA_LINK_PROP ] , NULL ) ;
+ if ( err ) return err ;
+ if ( ! link [ TIPC_NLA_LINK_STATS ] ) return - EINVAL ;
+ err = nla_parse_nested ( stats , TIPC_NLA_STATS_MAX , link [ TIPC_NLA_LINK_STATS ] , NULL ) ;
+ if ( err ) return err ;
+ name = ( char * ) TLV_DATA ( msg -> req ) ;
+ if ( strcmp ( name , nla_data ( link [ TIPC_NLA_LINK_NAME ] ) ) != 0 ) return 0 ;
+ tipc_tlv_sprintf ( msg -> rep , "\nLink <%s>\n" , nla_data ( link [ TIPC_NLA_LINK_NAME ] ) ) ;
+ if ( link [ TIPC_NLA_LINK_BROADCAST ] ) {
+ __fill_bc_link_stat ( msg , prop ,...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { __fill_bc_link_stat ( msg , prop , stats ) ; return 0 ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | * link [ TIPC_NLA_LINK_MAX + 1 ]
+30064771073 | CALL | * link [ TIPC_NLA_LINK_MAX + 1 ]
+30064771074 | CALL | TIPC_NLA_LINK_MAX + 1
+30064771075 | CALL | * prop [ TIPC_NLA_PROP_MAX + 1 ]
+30064771076 | CALL | * prop [ TIPC_NLA_PROP_MAX + 1 ]
+30064771077 | CALL | TIPC_NLA_PROP_MAX + 1
+30064771078 | CALL | * stats [ TIPC_NLA_STATS_MAX + 1 ]
+30064771079 | CALL | * stats [ TIPC_NLA_STATS_MAX + 1 ]
+30064771080 | CALL | TIPC_NLA_STATS_MAX + 1
+30064771081 | CALL | ! attrs [ TIPC_NLA_LINK ]
+30064771082 | CALL | attrs [ TIPC_NLA_LINK ]
+30064771083 | CALL | - EINVAL
+30064771084 | CALL | 
+        err = nla_parse_nested ( link , TIPC_NLA_LINK_MAX , attrs [ TIPC_NLA_LINK ] , NULL )
+      
+30064771085 | CALL | nla_parse_nested ( link , TIPC_NLA_LINK_MAX , attrs [ TIPC_NLA_LINK ] , NULL )
+30064771086 | CALL | attrs [ TIPC_NLA_LINK ]
+30064771087 | CALL | err != 0
+30064771088 | CALL | ! link [ TIPC_NLA_LINK_PROP ]
+30064771089 | CALL | link [ TIPC_NLA_LINK_PROP ]
+30064771090 | CALL | - EINVAL
+30064771091 | CALL | 
+        err = nla_parse_nested ( prop , TIPC_NLA_PROP_MAX , link [ TIPC_NLA_LINK_PROP ] , NULL )
+      
+30064771092 | CALL | nla_parse_nested ( prop , TIPC_NLA_PROP_MAX , link [ TIPC_NLA_LINK_PROP ] , NULL )
+30064771093 | CALL | link [ TIPC_NLA_LINK_PROP ]
+30064771094 | CALL | err != 0
+30064771095 | CALL | ! link [ TIPC_NLA_LINK_STATS ]
+30064771096 | CALL | link [ TIPC_NLA_LINK_STATS ]
+30064771097 | CALL | - EINVAL
+30064771098 | CALL | 
+        err = nla_parse_nested ( stats , TIPC_NLA_STATS_MAX , link [ TIPC_NLA_LINK_STATS ] , NULL )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

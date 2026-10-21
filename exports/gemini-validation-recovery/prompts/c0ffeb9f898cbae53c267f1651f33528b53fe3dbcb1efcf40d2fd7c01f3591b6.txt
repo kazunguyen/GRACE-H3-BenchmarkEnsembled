@@ -1,0 +1,376 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+inline static void RENAME(hcscale)(uint16_t *dst, long dstWidth, uint8_t *src1, uint8_t *src2,
+
+				   int srcW, int xInc, int flags, int canMMX2BeUsed, int16_t *hChrFilter,
+
+				   int16_t *hChrFilterPos, int hChrFilterSize, void *funnyUVCode,
+
+				   int srcFormat, uint8_t *formatConvBuffer, int16_t *mmx2Filter,
+
+				   int32_t *mmx2FilterPos)
+
+{
+
+    if(srcFormat==IMGFMT_YUY2)
+
+    {
+
+	RENAME(yuy2ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_UYVY)
+
+    {
+
+	RENAME(uyvyToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR32)
+
+    {
+
+	RENAME(bgr32ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR24)
+
+    {
+
+	RENAME(bgr24ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR16)
+
+    {
+
+	RENAME(bgr16ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR15)
+
+    {
+
+	RENAME(bgr15ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_RGB32)
+
+    {
+
+	RENAME(rgb32ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_RGB24)
+
+    {
+
+	RENAME(rgb24ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(isGray(srcFormat))
+
+    {
+
+    	return;
+
+    }
+
+
+
+#ifdef HAVE_MMX
+
+	// use the new MMX scaler if the mmx2 can't be used (its faster than the x86asm one)
+
+    if(!(flags&SWS_FAST_BILINEAR) || (!canMMX2BeUsed))
+
+#else
+
+    if(!(flags&SWS_FAST_BILINEAR))
+
+#endif
+
+    {
+
+    	RENAME(hScale)(dst     , dstWidth, src1, srcW, xInc, hChrFilter, hChrFilterPos, hChrFilterSize);
+
+    	RENAME(hScale)(dst+2048, dstWidth, src2, srcW, xInc, hChrFilter, hChrFilterPos, hChrFilterSize);
+
+    }
+
+    else // Fast Bilinear upscale / crap downscale
+
+    {
+
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+
+#ifdef HAVE_MMX2
+
+	int i;
+
+	if(canMMX2BeUsed)
+
+	{
+
+		asm volatile(
+
+			"pxor %%mm7, %%mm7		\n\t"
+
+			"mov %0, %%"REG_c"		\n\t"
+
+			"mov %1, %%"REG_D"		\n\t"
+
+			"mov %2, %%"REG_d"		\n\t"
+
+			"mov %3, %%"REG_b"		\n\t"
+
+			"xor %%"REG_a", %%"REG_a"	\n\t" // i
+
+			PREFETCH" (%%"REG_c")		\n\t"
+
+			PREFETCH" 32(%%"REG_c")		\n\t"
+
+			PREFETCH" 64(%%"REG_c")		\n\t"
+
+
+
+#ifdef ARCH_X86_64
+
+
+
+#define FUNNY_UV_CODE \
+
+			"movl (%%"REG_b"), %%esi	\n\t"\
+
+			"call *%4			\n\t"\
+
+			"movl (%%"REG_b", %%"REG_a"), %%esi\n\t"\
+
+			"add %%"REG_S", %%"REG_c"	\
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | EqualityExpression
+AST 3 | Condition
+AST 4 | IfStatement
+AST 5 | CompoundStatement
+AST 6 | FunctionDef
+EDGES (original Joern endpoint IDs):
+7 -> 8 [IS_AST_PARENT]
+7 -> 9 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+20 -> 27 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+20 -> 29 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+20 -> 31 [IS_AST_PARENT]
+12 -> 20 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+10 -> 33 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+10 -> 37 [IS_AST_PARENT]
+5 -> 10 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+59 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+59 -> 70 [IS_AST_PARENT]
+51 -> 59 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+49 -> 72 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+49 -> 76 [IS_AST_PARENT]
+44 -> 49 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+93 -> 94 [IS_AST_PARENT]
+92 -> 93 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+inline static void RENAME(hcscale)(uint16_t *dst, long dstWidth, uint8_t *src1, uint8_t *src2,
+
+				   int srcW, int xInc, int flags, int canMMX2BeUsed, int16_t *hChrFilter,
+
+				   int16_t *hChrFilterPos, int hChrFilterSize, void *funnyUVCode,
+
+				   int srcFormat, uint8_t *formatConvBuffer, int16_t *mmx2Filter,
+
+				   int32_t *mmx2FilterPos)
+
+{
+
+    if(srcFormat==IMGFMT_YUY2)
+
+    {
+
+	RENAME(yuy2ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_UYVY)
+
+    {
+
+	RENAME(uyvyToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR32)
+
+    {
+
+	RENAME(bgr32ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR24)
+
+    {
+
+	RENAME(bgr24ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR16)
+
+    {
+
+	RENAME(bgr16ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==IMGFMT_BGR15)
+
+    {
+
+	RENAME(bgr15ToUV)(formatConvBuffer, formatConvBuffer+2048, src1, src2, srcW);
+
+	src1= formatConvBuffer;
+
+	src2= formatConvBuffer+2048;
+
+    }
+
+    else if(srcFormat==
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

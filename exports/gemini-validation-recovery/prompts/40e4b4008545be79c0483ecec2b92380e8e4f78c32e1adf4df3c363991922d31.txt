@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * json_escape_str ( AVBPrint * dst , const char * src , void * log_ctx ) {
+ static const char json_escape [ ] = {
+ '"' , '\\' , '\b' , '\f' , '\n' , '\r' , '\t' , 0 }
+ ;
+ static const char json_subst [ ] = {
+ '"' , '\\' , 'b' , 'f' , 'n' , 'r' , 't' , 0 }
+ ;
+ const char * p ;
+ for ( p = src ;
+ * p ;
+ p ++ ) {
+ char * s = strchr ( json_escape , * p ) ;
+ if ( s ) {
+ av_bprint_chars ( dst , '\\' , 1 ) ;
+ av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 ) ;
+ }
+ else if ( ( unsigned char ) * p < 32 ) {
+ av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ;
+ }
+ else {
+ av_bprint_chars ( dst , * p , 1 ) ;
+ }
+ }
+ return dst -> str ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static const char json_escape [ ] = {
+ '"' , '\\' , '\b' , '\f' , '\n' , '\r' , '\t' , 0 }
+ ;
+ static const char json_subst [ ] = {
+ '"' , '\\' , 'b' , 'f' , 'n' , 'r' , 't' , 0 }
+ ;
+ const char * p ;
+ for ( p = src ;
+ * p ;
+ p ++ ) {
+ char * s = strchr ( json_escape , * p ) ;
+ if ( s ) {
+ av_bprint_chars ( dst , '\\' , 1 ) ;
+ av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 ) ;
+ }
+ else if ( ( unsigned char ) * p < 32 ) {
+ av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ;
+ }
+ else {
+ av_bprint_chars ( dst , * p , 1 ) ;
+ }
+ }
+ return dst -> str ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ char * s = strchr ( json_escape , * p ) ;
+ if ( s ) {
+ av_bprint_chars ( dst , '\\' , 1 ) ;
+ av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 ) ;
+ }
+ else if ( ( unsigned char ) * p < 32 ) {
+ av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ;
+ }
+ else {
+ av_bprint_chars ( dst , * p , 1 ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_bprint_chars ( dst , '\\' , 1 ) ;
+ av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ; }
+25769803781 | BLOCK | { av_bprint_chars ( dst , * p , 1 ) ; }
+30064771072 | CALL | json_escape [ ] = { '"' , '\\' , '\b' , '\f' , '\n' , '\r' , '\t' , 0 }
+30064771073 | CALL | { '"' , '\\' , '\b' , '\f' , '\n' , '\r' , '\t' , 0 }
+30064771074 | CALL | json_subst [ ] = { '"' , '\\' , 'b' , 'f' , 'n' , 'r' , 't' , 0 }
+30064771075 | CALL | { '"' , '\\' , 'b' , 'f' , 'n' , 'r' , 't' , 0 }
+30064771076 | CALL | p = src
+30064771077 | CALL | * p
+30064771078 | CALL | p ++
+30064771079 | CALL | s = strchr ( json_escape , * p )
+30064771080 | CALL | strchr ( json_escape , * p )
+30064771081 | CALL | * p
+30064771082 | CALL | s != NULL
+30064771083 | CALL | av_bprint_chars ( dst , '\\' , 1 )
+30064771084 | CALL | av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 )
+30064771085 | CALL | json_subst [ s - json_escape ]
+30064771086 | CALL | s - json_escape
+30064771087 | CALL | ( unsigned char ) * p < 32
+30064771088 | CALL | ( unsigned char ) * p
+30064771089 | CALL | * p
+30064771090 | CALL | av_bprintf ( dst , "\\u00%02x" , * p & 0xff )
+30064771091 | CALL | * p & 0xff
+30064771092 | CALL | * p
+30064771093 | CALL | av_bprint_chars ( dst , * p , 1 )
+30064771094 | CALL | * p
+30064771095 | CALL | dst -> str
+47244640256 | CONTROL_STRUCTURE | for (p = src ;* p;p ++)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( s ) {
+ av_bprint_chars ( dst , '\\' , 1 ) ;
+ av_bprint_chars ( dst , json_subst [ s - json_escape ] , 1 ) ;
+ }
+ else if ( ( unsigned char ) * p < 32 ) {
+ av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ;
+ }
+ else {
+ av_bprint_chars ( dst , * p , 1 ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ( unsigned char ) * p < 32 ) {
+ av_bprintf ( dst , "\\u00%02x" , * p & 0xff ) ;
+ }
+ else {
+ av_bprint_chars ( dst , * p , 1 ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | str
+68719476736 | IDENTIFIER | json_escape
+68719476737 | IDENTIFIER | json_subst
+68719476738 | IDENTIFIER | p
+68719476739 | IDENTIFIER | src
+68719476740 | IDENTIFIER | p
+68719476741 | IDENTIFIER | p
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 47244640258 [AST]
+25769803780 -> 30064771090 [AST]
+25769803781 -> 30064771093 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 68719476741 [CDG]
+30064771077 -> 68719476740 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476740 [CFG]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771089 [REACHING_DEF]
+30064771081 -> 68719476741 [REACHING_DEF]
+30064771081 -> 68719476740 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 68719476741 [DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 68719476741 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static const char * csv_escape_str ( AVBPrint * dst , const char * src , const char sep , void * log_ctx ) {
+ char meta_chars [ ] = {
+ sep , '"' , '\n' , '\r' , '\0' }
+ ;
+ int needs_quoting = ! ! src [ strcspn ( src , meta_chars ) ] ;
+ if ( needs_quoting ) av_bprint_chars ( dst , '"' , 1 ) ;
+ for ( ;
+ * src ;
+ src ++ ) {
+ if ( * src == '"' ) av_bprint_chars ( dst , '"' , 1 ) ;
+ av_bprint_chars ( dst , * src , 1 ) ;
+ }
+ if ( needs_quoting ) av_bprint_chars ( dst , '"' , 1 ) ;
+ return dst -> str ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

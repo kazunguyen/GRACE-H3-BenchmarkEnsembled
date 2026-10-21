@@ -1,0 +1,294 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void write_audio_frame(AVFormatContext *oc, AVStream *st)
+
+{
+
+    AVCodecContext *c;
+
+    AVPacket pkt = { 0 }; // data and size must be 0;
+
+    int got_packet, ret, dst_nb_samples;
+
+
+
+    av_init_packet(&pkt);
+
+    c = st->codec;
+
+
+
+    get_audio_frame((int16_t *)src_samples_data[0], src_nb_samples, c->channels);
+
+
+
+    /* convert samples from native format to destination codec format, using the resampler */
+
+    if (swr_ctx) {
+
+        /* compute destination number of samples */
+
+        dst_nb_samples = av_rescale_rnd(swr_get_delay(swr_ctx, c->sample_rate) + src_nb_samples,
+
+                                        c->sample_rate, c->sample_rate, AV_ROUND_UP);
+
+        if (dst_nb_samples > max_dst_nb_samples) {
+
+            av_free(dst_samples_data[0]);
+
+            ret = av_samples_alloc(dst_samples_data, &dst_samples_linesize, c->channels,
+
+                                   dst_nb_samples, c->sample_fmt, 0);
+
+            if (ret < 0)
+
+                exit(1);
+
+            max_dst_nb_samples = dst_nb_samples;
+
+            dst_samples_size = av_samples_get_buffer_size(NULL, c->channels, dst_nb_samples,
+
+                                                          c->sample_fmt, 0);
+
+        }
+
+
+
+        /* convert to destination format */
+
+        ret = swr_convert(swr_ctx,
+
+                          dst_samples_data, dst_nb_samples,
+
+                          (const uint8_t **)src_samples_data, src_nb_samples);
+
+        if (ret < 0) {
+
+            fprintf(stderr, "Error while converting\n");
+
+            exit(1);
+
+        }
+
+    } else {
+
+        dst_nb_samples = src_nb_samples;
+
+    }
+
+
+
+    audio_frame->nb_samples = dst_nb_samples;
+
+    audio_frame->pts = av_rescale_q(samples_count, (AVRational){1, c->sample_rate}, c->time_base);
+
+    avcodec_fill_audio_frame(audio_frame, c->channels, c->sample_fmt,
+
+                             dst_samples_data[0], dst_samples_size, 0);
+
+    samples_count += dst_nb_samples;
+
+
+
+    ret = avcodec_encode_audio2(c, &pkt, audio_frame, &got_packet);
+
+    if (ret < 0) {
+
+        fprintf(stderr, "Error encoding audio frame: %s\n", av_err2str(ret));
+
+        exit(1);
+
+    }
+
+
+
+    if (!got_packet)
+
+        return;
+
+
+
+    ret = write_frame(oc, &c->time_base, st, &pkt);
+
+    if (ret != 0) {
+
+        fprintf(stderr, "Error while writing audio frame: %s\n",
+
+                av_err2str(ret));
+
+        exit(1);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+17 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+17 -> 24 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+46 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+46 -> 55 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 82 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+69 -> 83 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+88 -> 90 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+69 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void write_video_frame(AVFormatContext *oc, AVStream *st)
+
+{
+
+    int ret;
+
+    static struct SwsContext *sws_ctx;
+
+    AVCodecContext *c = st->codec;
+
+
+
+    if (frame_count >= STREAM_NB_FRAMES) {
+
+        /* No more frames to compress. The codec has a latency of a few
+
+         * frames if using B-frames, so we get the last frames by
+
+         * passing the same picture again. */
+
+    } else {
+
+        if (c->pix_fmt != AV_PIX_FMT_YUV420P) {
+
+            /* as we only generate a YUV420P picture, we must convert it
+
+             * to the codec pixel format if needed */
+
+            if (!sws_ctx) {
+
+                sws_ctx = sws_getContext(c->width, c->height, AV_PIX_FMT_YUV420P,
+
+                                         c->width, c->height, c->pix_fmt,
+
+                                         sws_flags, NULL, NULL, NULL);
+
+                if (!sws_ctx) {
+
+                    fprintf(stderr,
+
+                            "Could not initialize the conversion context\n");
+
+                    exit(1);
+
+                }
+
+            }
+
+            fill_yuv_image(&src_picture, frame_count, c->width, c->height);
+
+            sws_scale(sws_ctx,
+
+                      (const uint8_t * const *)src_picture.data, src_picture.linesize,
+
+                      0, c->height, dst_picture.data, dst_picture.linesize);
+
+        } else {
+
+            fill_yuv_image(&dst_picture, frame_count, c->width, c->height);
+
+        }
+
+    }
+
+
+
+    if (oc->oformat->flags & AVFMT_RAWPICTURE) {
+
+    
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

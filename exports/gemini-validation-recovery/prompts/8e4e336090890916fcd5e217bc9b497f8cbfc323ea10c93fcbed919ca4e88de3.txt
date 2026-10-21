@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int amrnb_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ AMRContext * p = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ float * buf_out ;
+ int i , subframe , ret ;
+ float fixed_gain_factor ;
+ AMRFixed fixed_sparse = {
+ 0 }
+ ;
+ float spare_vector [ AMR_SUBFRAME_SIZE ] ;
+ float synth_fixed_gain ;
+ const float * synth_fixed_vector ;
+ frame -> nb_samples = AMR_BLOCK_SIZE ;
+ if ( ( ret = ff_get_buffer ( avctx , frame ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ buf_out = ( float * ) frame -> data [ 0 ] ;
+ p -> cur_frame_mode = unpack_bitstream ( p , buf , buf_size ) ;
+ if ( p -> cur_frame_mode == NO_DATA ) {
+ av_log ( avctx , AV_LOG_ERROR , "Corrupt bitstream\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( p -> cur_frame_mode == MODE_DTX ) {
+ av_log_missing_feature ( avctx , "dtx mode" , 1 ) ;
+ return AVERROR_PATCHWELCOME ;
+ }
+ if ( p -> cur_frame_mode == MODE_12k2 ) {
+ lsf2lsp_5 ( p ) ;
+ }
+ else lsf2lsp_3 ( p ) ;
+ for ( i = 0 ;
+ i < 4 ;
+ i ++ ) ff_acelp_lspd2lpc ( p -> lsp [ i ] , p -> lpc [ i ] , 5 ) ;
+ for ( subframe = 0 ;
+ subframe < 4 ;
+ subframe ++ ) {
+ const AMRNBSubframe * amr_subframe = & p -> frame . subframe [ subframe ] ;
+ decode_pitch_vector ( p , amr_subframe , subframe ) ;
+ decode_fixed_sparse ( & fixed_sparse , amr_subframe -> pulses , p -> cur_frame_mode , subframe ) ;
+ decode_gains ( p , amr_subframe , p -> cur_frame_mode , subframe , & fixed_gain_factor ) ;
+ pitch_sharpening ( p , subframe , p -> cur_frame_mode , & fixed_sparse ) ;
+ if ( fixed_sparse . pitch_lag == 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "The file is corrupted, pitch_lag = 0 is not allowed\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ ff_set_fixed_vector ( p -> fixed_vector , & fixed_sparse , 1.0 , AMR_SUBFRAME_SIZE ) ;
+ p -> fixed_gain [ 4 ] = ff_amr_set_fixed_gain ( fixed_gain_factor , avpriv_scalarproduct_float_c ( p -> fixed_vector , p -> fixed_vector , AMR_SUBFRAME_SIZE ) / AMR_SUBFRAME_SIZE , p -> prediction_error , energy_mean [ p -> cur_frame_mode ] , energy_pred_fac ) ;
+ for ( i = 0 ;
+ i < AMR_SUBFRAME_SIZE ;
+ i ++ ) p -> excitation [ i ] *= p -> pitch_gain [ 4 ] ;
+ ff_set_fixed_vector ( p -> excitation , & fixed_sparse , p -> fixed_gain [ 4 ] , AMR_SUBFRAME_SIZE ) ;
+ for ( i = 0 ;
+ i < AMR_SUBFRAME_SIZE ;
+ i ++ ) p -> excitation [ i ] = truncf ( p -> excitation [ i ] ) ;
+ synth_fixed_gain = fixed_gain_smooth ( p , p -> lsf_q [ subframe ] , p -> lsf_avg , p -> cur_frame_mode ) ;
+ synth_fixed_vector = anti_sparseness ( p , & fixed_sparse , p -> fixed_vector , synth_fixed_gain , spare_vector ) ;
+ if ( synthesis ( p , p -> lpc [ subframe ] , synth_fixed_gain , synth_fixed_vector , & p -> samples_in [ LP_FILTER_ORDER ] , 0 ) ) synthesis ( p , p -> lpc [ subframe ] , synth_fixed_gain , synth_fixed_vector , & p -> samples_in [ LP_FILTER_ORDER ] , 1 ) ;
+ postfilter ( p , p -> lpc [ subframe ] , buf
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AMRContext * p = avctx -> priv_data ;
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ float * buf_out ;
+ int i , subframe , ret ;
+ float fixed_gain_factor ;
+ AMRFixed fixed_sparse = {
+ 0 }
+ ;
+ float spare_vector [ AMR_SUBFRAME_SIZE ] ;
+ float synth_fixed_gain ;
+ const float * synth_fixed_vector ;
+ frame -> nb_samples = AMR_BLOCK_SIZE ;
+ if ( ( ret = ff_get_buffer ( avctx , frame ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ buf_out = ( float * ) frame -> data [ 0 ] ;
+ p -> cur_frame_mode = unpack_bitstream ( p , buf , buf_size ) ;
+ if ( p -> cur_frame_mode == NO_DATA ) {
+ av_log ( avctx , AV_LOG_ERROR , "Corrupt bitstream\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( p -> cur_frame_mode == MODE_DTX ) {
+ av_log_missing_feature ( avctx , "dtx mode" , 1 ) ;
+ return AVERROR_PATCHWELCOME ;
+ }
+ if ( p -> cur_frame_mode == MODE_12k2 ) {
+ lsf2lsp_5 ( p ) ;
+ }
+ else lsf2lsp_3 ( p ) ;
+ for ( i = ...
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Corrupt bitstream\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ av_log_missing_feature ( avctx , "dtx mode" , 1 ) ;
+ return AVERROR_PATCHWELCOME ;
+ }
+      
+25769803780 | BLOCK | { lsf2lsp_5 ( p ) ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ const AMRNBSubframe * amr_subframe = & p -> frame . subframe [ subframe ] ;
+ decode_pitch_vector ( p , amr_subframe , subframe ) ;
+ decode_fixed_sparse ( & fixed_sparse , amr_subframe -> pulses , p -> cur_frame_mode , subframe ) ;
+ decode_gains ( p , amr_subframe , p -> cur_frame_mode , subframe , & fixed_gain_factor ) ;
+ pitch_sharpening ( p , subframe , p -> cur_frame_mode , & fixed_sparse ) ;
+ if ( fixed_sparse . pitch_lag == 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "The file is corrupted, pitch_lag = 0 is not allowed\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ ff_set_fixed_vector ( p -> fixed_vector , & fixed_sparse , 1.0 , AMR_SUBFRAME_SIZE ) ;
+ p -> fixed_gain [ 4 ] = ff_amr_set_fixed_gain ( fixed_gain_factor , avpriv_scalarproduct_float_c ( p -> fixed_vector , p -> fixed_vector , AMR_SUBFRAME_SIZE ) / AMR_SUBFRAME_SIZE , p -> prediction_error , energy_mean [ p -> cur_frame_mode ] , energy_pred_fac ) ;
+ for ( i = 0 ;
+ i < AMR_SUBFRAME_SIZE ;
+ i ++ ) p -> excitation [ i ] *= p ->...
+      
+25769803783 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "The file is corrupted, pitch_lag = 0 is not allowed\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | p = avctx -> priv_data
+30064771073 | CALL | avctx -> priv_data
+30064771074 | CALL | frame = data
+30064771075 | CALL | buf = avpkt -> data
+30064771076 | CALL | avpkt -> data
+30064771077 | CALL | buf_size = avpkt -> size
+30064771078 | CALL | avpkt -> size
+30064771079 | CALL | fixed_sparse = { 0 }
+30064771080 | CALL | { 0 }
+30064771081 | CALL | spare_vector [ AMR_SUBFRAME_SIZE ]
+30064771082 | CALL | spare_vector [ AMR_SUBFRAME_SIZE ]
+30064771083 | CALL | frame -> nb_samples = AMR_BLOCK_SIZE
+30064771084 | CALL | frame -> nb_samples
+30064771085 | CALL | ( ret = ff_get_buffer ( avctx , frame ) ) < 0
+30064771086 | CALL | ret = ff_get_buffer ( avctx , frame )
+30064771087 | CALL | ff_get_buffer ( avctx , frame )
+30064771088 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771089 | CALL | buf_out = ( float * ) frame -> data [ 0 ]
+30064771090 | CALL | ( float * ) frame -> data [ 0 ]
+30064771091 | CALL | frame -> data [ 0 ]
+30064771092 | CALL | frame -> data
+30064771093 | CALL | p -> cur_frame_mode = unpack_bitstream ( p , buf , buf_size )
+30064771094 | CALL | p -> cur_frame_mode
+30064771095 | CALL | unpack_bitstream ( p , buf , buf_size )
+30064771096 | CALL | p -> cur_frame_mode == NO_DATA
+30064771097 | CALL | p -> cur_frame_mode
+30064771098 | CALL | av_log ( avctx , AV_LOG_ERROR , "Corrupt bitstream\n" )
+30064771099 | CALL | p -> cur_frame_mode == MODE_DTX
+30064771100 | CALL | p -> cur_frame_mode
+30064771101 | CALL | av_log_missing_feature ( avctx , "dtx mode" , 1 )
+30064771102 | CALL | p -> cur_frame_mode == MODE_12k2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

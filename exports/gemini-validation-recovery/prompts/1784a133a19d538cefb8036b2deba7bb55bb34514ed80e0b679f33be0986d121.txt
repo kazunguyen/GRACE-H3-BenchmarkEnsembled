@@ -1,0 +1,237 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decFinalize ( decNumber * dn , decContext * set , Int * residue , uInt * status ) {
+ Int shift ;
+ Int tinyexp = set -> emin - dn -> digits + 1 ;
+ if ( dn -> exponent <= tinyexp ) {
+ Int comp ;
+ decNumber nmin ;
+ if ( dn -> exponent < tinyexp ) {
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ uprv_decNumberZero ( & nmin ) ;
+ nmin . lsu [ 0 ] = 1 ;
+ nmin . exponent = set -> emin ;
+ comp = decCompare ( dn , & nmin , 1 ) ;
+ if ( comp == BADINT ) {
+ * status |= DEC_Insufficient_storage ;
+ return ;
+ }
+ if ( * residue < 0 && comp == 0 ) {
+ decApplyRound ( dn , set , * residue , status ) ;
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ }
+ if ( * residue != 0 ) decApplyRound ( dn , set , * residue , status ) ;
+ if ( dn -> exponent <= set -> emax - set -> digits + 1 ) return ;
+ if ( dn -> exponent > set -> emax - dn -> digits + 1 ) {
+ decSetOverflow ( dn , set , status ) ;
+ return ;
+ }
+ if ( ! set -> clamp ) return ;
+ shift = dn -> exponent - ( set -> emax - set -> digits + 1 ) ;
+ if ( ! ISZERO ( dn ) ) {
+ dn -> digits = decShiftToMost ( dn -> lsu , dn -> digits , shift ) ;
+ }
+ dn -> exponent -= shift ;
+ * status |= DEC_Clamped ;
+ return ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Int shift ;
+ Int tinyexp = set -> emin - dn -> digits + 1 ;
+ if ( dn -> exponent <= tinyexp ) {
+ Int comp ;
+ decNumber nmin ;
+ if ( dn -> exponent < tinyexp ) {
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ uprv_decNumberZero ( & nmin ) ;
+ nmin . lsu [ 0 ] = 1 ;
+ nmin . exponent = set -> emin ;
+ comp = decCompare ( dn , & nmin , 1 ) ;
+ if ( comp == BADINT ) {
+ * status |= DEC_Insufficient_storage ;
+ return ;
+ }
+ if ( * residue < 0 && comp == 0 ) {
+ decApplyRound ( dn , set , * residue , status ) ;
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ }
+ if ( * residue != 0 ) decApplyRound ( dn , set , * residue , status ) ;
+ if ( dn -> exponent <= set -> emax - set -> digits + 1 ) return ;
+ if ( dn -> exponent > set -> emax - dn -> digits + 1 ) {
+ decSetOverflow ( dn , set , status ) ;
+ return ;
+ }
+ if ( ! set -> clamp ) return ;
+ shift = dn -> exponent - ( set -> emax - set -> digits + 1 ) ;
+ if ( ! ISZERO ( dn ) ) {
+ dn -> digits = decShiftToMost (...
+      
+25769803777 | BLOCK | 
+        {
+ Int comp ;
+ decNumber nmin ;
+ if ( dn -> exponent < tinyexp ) {
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ uprv_decNumberZero ( & nmin ) ;
+ nmin . lsu [ 0 ] = 1 ;
+ nmin . exponent = set -> emin ;
+ comp = decCompare ( dn , & nmin , 1 ) ;
+ if ( comp == BADINT ) {
+ * status |= DEC_Insufficient_storage ;
+ return ;
+ }
+ if ( * residue < 0 && comp == 0 ) {
+ decApplyRound ( dn , set , * residue , status ) ;
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+ }
+      
+25769803778 | BLOCK | { decSetSubnormal ( dn , set , residue , status ) ; return ; }
+25769803779 | BLOCK | { * status |= DEC_Insufficient_storage ; return ; }
+25769803780 | BLOCK | 
+        {
+ decApplyRound ( dn , set , * residue , status ) ;
+ decSetSubnormal ( dn , set , residue , status ) ;
+ return ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { decSetOverflow ( dn , set , status ) ; return ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { dn -> digits = decShiftToMost ( dn -> lsu , dn -> digits , shift ) ; }
+30064771072 | CALL | tinyexp = set -> emin - dn -> digits + 1
+30064771073 | CALL | set -> emin - dn -> digits + 1
+30064771074 | CALL | set -> emin - dn -> digits
+30064771075 | CALL | set -> emin
+30064771076 | CALL | dn -> digits
+30064771077 | CALL | dn -> exponent <= tinyexp
+30064771078 | CALL | dn -> exponent
+30064771079 | CALL | dn -> exponent < tinyexp
+30064771080 | CALL | dn -> exponent
+30064771081 | CALL | decSetSubnormal ( dn , set , residue , status )
+30064771082 | CALL | uprv_decNumberZero ( & nmin )
+30064771083 | CALL | & nmin
+30064771084 | CALL | nmin . lsu [ 0 ] = 1
+30064771085 | CALL | nmin . lsu [ 0 ]
+30064771086 | CALL | nmin . lsu
+30064771087 | CALL | nmin . exponent = set -> emin
+30064771088 | CALL | nmin . exponent
+30064771089 | CALL | set -> emin
+30064771090 | CALL | comp = decCompare ( dn , & nmin , 1 )
+30064771091 | CALL | decCompare ( dn , & nmin , 1 )
+30064771092 | CALL | & nmin
+30064771093 | CALL | comp == BADINT
+30064771094 | CALL | * status |= DEC_Insufficient_storage
+30064771095 | CALL | * status
+30064771096 | CALL | * residue < 0 && comp == 0
+30064771097 | CALL | * residue < 0
+30064771098 | CALL | * residue
+30064771099 | CALL | comp == 0
+30064771100 | CALL | decApplyRound ( dn , set , * residue , status )
+30064771101 | CALL | * residue
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771090 [AST]
+25769803778 -> 30064771081 [AST]
+25769803779 -> 30064771094 [AST]
+25769803780 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771089 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771092 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771087 [CFG]
+30064771089 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+3006477109
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

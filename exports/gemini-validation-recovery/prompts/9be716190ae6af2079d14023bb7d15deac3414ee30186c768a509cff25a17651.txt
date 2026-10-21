@@ -1,0 +1,262 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static struct server * get_server ( char * buf , int len ) {
+ char * data = get_data ( buf , len ) ;
+ char error_buf [ 512 ] ;
+ if ( data == NULL ) {
+ LOGE ( "No data found" ) ;
+ return NULL ;
+ }
+ json_settings settings = {
+ 0 }
+ ;
+ json_value * obj = json_parse_ex ( & settings , data , strlen ( data ) , error_buf ) ;
+ if ( obj == NULL ) {
+ LOGE ( "%s" , error_buf ) ;
+ return NULL ;
+ }
+ struct server * server = ss_malloc ( sizeof ( struct server ) ) ;
+ memset ( server , 0 , sizeof ( struct server ) ) ;
+ if ( obj -> type == json_object ) {
+ int i = 0 ;
+ for ( i = 0 ;
+ i < obj -> u . object . length ;
+ i ++ ) {
+ char * name = obj -> u . object . values [ i ] . name ;
+ json_value * value = obj -> u . object . values [ i ] . value ;
+ if ( strcmp ( name , "server_port" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> port , value -> u . string . ptr , 8 ) ;
+ }
+ else if ( value -> type == json_integer ) {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+ }
+ else if ( strcmp ( name , "password" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> password , value -> u . string . ptr , 128 ) ;
+ }
+ }
+ else if ( strcmp ( name , "method" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> method = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else if ( strcmp ( name , "fast_open" ) == 0 ) {
+ if ( value -> type == json_boolean ) {
+ strncpy ( server -> fast_open , ( value -> u . boolean ? "true" : "false" ) , 8 ) ;
+ }
+ }
+ else if ( strcmp ( name , "plugin" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> plugin = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else if ( strcmp ( name , "plugin_opts" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> plugin_opts = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else if ( strcmp ( name , "mode" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> mode = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else {
+ LOGE ( "invalid data: %s" , data ) ;
+ break ;
+ }
+ }
+ }
+ json_value_free ( obj ) ;
+ return server ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * data = get_data ( buf , len ) ;
+ char error_buf [ 512 ] ;
+ if ( data == NULL ) {
+ LOGE ( "No data found" ) ;
+ return NULL ;
+ }
+ json_settings settings = {
+ 0 }
+ ;
+ json_value * obj = json_parse_ex ( & settings , data , strlen ( data ) , error_buf ) ;
+ if ( obj == NULL ) {
+ LOGE ( "%s" , error_buf ) ;
+ return NULL ;
+ }
+ struct server * server = ss_malloc ( sizeof ( struct server ) ) ;
+ memset ( server , 0 , sizeof ( struct server ) ) ;
+ if ( obj -> type == json_object ) {
+ int i = 0 ;
+ for ( i = 0 ;
+ i < obj -> u . object . length ;
+ i ++ ) {
+ char * name = obj -> u . object . values [ i ] . name ;
+ json_value * value = obj -> u . object . values [ i ] . value ;
+ if ( strcmp ( name , "server_port" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> port , value -> u . string . ptr , 8 ) ;
+ }
+ else if ( value -> type == json_integer ) {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+ }
+ else if ( strcmp ( name , "password" ) =...
+      
+25769803777 | BLOCK | { LOGE ( "No data found" ) ; return NULL ; }
+25769803778 | BLOCK | { LOGE ( "%s" , error_buf ) ; return NULL ; }
+25769803779 | BLOCK | 
+        {
+ int i = 0 ;
+ for ( i = 0 ;
+ i < obj -> u . object . length ;
+ i ++ ) {
+ char * name = obj -> u . object . values [ i ] . name ;
+ json_value * value = obj -> u . object . values [ i ] . value ;
+ if ( strcmp ( name , "server_port" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> port , value -> u . string . ptr , 8 ) ;
+ }
+ else if ( value -> type == json_integer ) {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+ }
+ else if ( strcmp ( name , "password" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> password , value -> u . string . ptr , 128 ) ;
+ }
+ }
+ else if ( strcmp ( name , "method" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> method = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else if ( strcmp ( name , "fast_open" ) == 0 ) {
+ if ( value -> type == json_boolean ) {
+ strncpy ( server -> fast_open , ( value -> u . boolean ? "true" : "false" ) , 8 ) ;
+ }
+ }
+ else if ( strcmp ( name , "plu...
+      
+25769803780 | BLOCK | 
+        {
+ char * name = obj -> u . object . values [ i ] . name ;
+ json_value * value = obj -> u . object . values [ i ] . value ;
+ if ( strcmp ( name , "server_port" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> port , value -> u . string . ptr , 8 ) ;
+ }
+ else if ( value -> type == json_integer ) {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+ }
+ else if ( strcmp ( name , "password" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> password , value -> u . string . ptr , 128 ) ;
+ }
+ }
+ else if ( strcmp ( name , "method" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> method = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+ else if ( strcmp ( name , "fast_open" ) == 0 ) {
+ if ( value -> type == json_boolean ) {
+ strncpy ( server -> fast_open , ( value -> u . boolean ? "true" : "false" ) , 8 ) ;
+ }
+ }
+ else if ( strcmp ( name , "plugin" ) == 0 ) {
+ if ( value -> type == json_string ) {
+ server -> plugin...
+      
+25769803781 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> port , value -> u . string . ptr , 8 ) ;
+ }
+ else if ( value -> type == json_integer ) {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+ }
+      
+25769803782 | BLOCK | { strncpy ( server -> port , value -> u . string . ptr , 8 ) ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ snprintf ( server -> port , 8 , "%" PRIu64 "" , value -> u . integer ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ strncpy ( server -> password , value -> u . string . ptr , 128 ) ;
+ }
+ }
+      
+25769803787 | BLOCK | { strncpy ( server -> password , value -> u . string . ptr , 128 ) ; }
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ server -> method = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+      
+25769803790 | BLOCK | { server -> method = strdup ( value -> u . string . ptr ) ; }
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ if ( value -> type == json_boolean ) {
+ strncpy ( server -> fast_open , ( value -> u . boolean ? "true" : "false" ) , 8 ) ;
+ }
+ }
+      
+25769803793 | BLOCK | 
+        {
+ strncpy ( server -> fast_open , ( value -> u . boolean ? "true" : "false" ) , 8 ) ;
+ }
+      
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ server -> plugin = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+      
+25769803796 | BLOCK | { server -> plugin = strdup ( value -> u . string . ptr ) ; }
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ server -> plugin_opts = strdup ( value -> u . string . ptr ) ;
+ }
+ }
+      
+25769803799 | BLOCK | { server -> plugin_opts = strdup ( value -> u . string . ptr ) ; }
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | 
+        {
+ if ( value -> type == json_string ) {
+ server -> mode = strdup ( value -> u . string . ptr ) ;
+ 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

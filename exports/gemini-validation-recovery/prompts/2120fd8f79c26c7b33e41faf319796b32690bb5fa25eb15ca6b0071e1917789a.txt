@@ -1,0 +1,289 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void init_mv_penalty_and_fcode ( MpegEncContext * s ) {
+ int f_code ;
+ int mv ;
+ for ( f_code = 1 ;
+ f_code <= MAX_FCODE ;
+ f_code ++ ) {
+ for ( mv = - MAX_MV ;
+ mv <= MAX_MV ;
+ mv ++ ) {
+ int len ;
+ if ( mv == 0 ) len = ff_mvtab [ 0 ] [ 1 ] ;
+ else {
+ int val , bit_size , code ;
+ bit_size = f_code - 1 ;
+ val = mv ;
+ if ( val < 0 ) val = - val ;
+ val -- ;
+ code = ( val >> bit_size ) + 1 ;
+ if ( code < 33 ) {
+ len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ;
+ }
+ else {
+ len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ;
+ }
+ }
+ mv_penalty [ f_code ] [ mv + MAX_MV ] = len ;
+ }
+ }
+ for ( f_code = MAX_FCODE ;
+ f_code > 0 ;
+ f_code -- ) {
+ for ( mv = - ( 16 << f_code ) ;
+ mv < ( 16 << f_code ) ;
+ mv ++ ) {
+ fcode_tab [ mv + MAX_MV ] = f_code ;
+ }
+ }
+ for ( mv = 0 ;
+ mv < MAX_MV * 2 + 1 ;
+ mv ++ ) {
+ umv_fcode_tab [ mv ] = 1 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int f_code ;
+ int mv ;
+ for ( f_code = 1 ;
+ f_code <= MAX_FCODE ;
+ f_code ++ ) {
+ for ( mv = - MAX_MV ;
+ mv <= MAX_MV ;
+ mv ++ ) {
+ int len ;
+ if ( mv == 0 ) len = ff_mvtab [ 0 ] [ 1 ] ;
+ else {
+ int val , bit_size , code ;
+ bit_size = f_code - 1 ;
+ val = mv ;
+ if ( val < 0 ) val = - val ;
+ val -- ;
+ code = ( val >> bit_size ) + 1 ;
+ if ( code < 33 ) {
+ len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ;
+ }
+ else {
+ len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ;
+ }
+ }
+ mv_penalty [ f_code ] [ mv + MAX_MV ] = len ;
+ }
+ }
+ for ( f_code = MAX_FCODE ;
+ f_code > 0 ;
+ f_code -- ) {
+ for ( mv = - ( 16 << f_code ) ;
+ mv < ( 16 << f_code ) ;
+ mv ++ ) {
+ fcode_tab [ mv + MAX_MV ] = f_code ;
+ }
+ }
+ for ( mv = 0 ;
+ mv < MAX_MV * 2 + 1 ;
+ mv ++ ) {
+ umv_fcode_tab [ mv ] = 1 ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( mv = - MAX_MV ;
+ mv <= MAX_MV ;
+ mv ++ ) {
+ int len ;
+ if ( mv == 0 ) len = ff_mvtab [ 0 ] [ 1 ] ;
+ else {
+ int val , bit_size , code ;
+ bit_size = f_code - 1 ;
+ val = mv ;
+ if ( val < 0 ) val = - val ;
+ val -- ;
+ code = ( val >> bit_size ) + 1 ;
+ if ( code < 33 ) {
+ len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ;
+ }
+ else {
+ len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ;
+ }
+ }
+ mv_penalty [ f_code ] [ mv + MAX_MV ] = len ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ int len ;
+ if ( mv == 0 ) len = ff_mvtab [ 0 ] [ 1 ] ;
+ else {
+ int val , bit_size , code ;
+ bit_size = f_code - 1 ;
+ val = mv ;
+ if ( val < 0 ) val = - val ;
+ val -- ;
+ code = ( val >> bit_size ) + 1 ;
+ if ( code < 33 ) {
+ len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ;
+ }
+ else {
+ len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ;
+ }
+ }
+ mv_penalty [ f_code ] [ mv + MAX_MV ] = len ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ int val , bit_size , code ;
+ bit_size = f_code - 1 ;
+ val = mv ;
+ if ( val < 0 ) val = - val ;
+ val -- ;
+ code = ( val >> bit_size ) + 1 ;
+ if ( code < 33 ) {
+ len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ;
+ }
+ else {
+ len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ;
+ }
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size ; }
+25769803783 | BLOCK | { len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size ; }
+25769803784 | BLOCK | 
+        {
+ for ( mv = - ( 16 << f_code ) ;
+ mv < ( 16 << f_code ) ;
+ mv ++ ) {
+ fcode_tab [ mv + MAX_MV ] = f_code ;
+ }
+ }
+      
+25769803785 | BLOCK | { fcode_tab [ mv + MAX_MV ] = f_code ; }
+25769803786 | BLOCK | { umv_fcode_tab [ mv ] = 1 ; }
+30064771072 | CALL | f_code = 1
+30064771073 | CALL | f_code <= MAX_FCODE
+30064771074 | CALL | f_code ++
+30064771075 | CALL | mv = - MAX_MV
+30064771076 | CALL | - MAX_MV
+30064771077 | CALL | mv <= MAX_MV
+30064771078 | CALL | mv ++
+30064771079 | CALL | mv == 0
+30064771080 | CALL | len = ff_mvtab [ 0 ] [ 1 ]
+30064771081 | CALL | ff_mvtab [ 0 ] [ 1 ]
+30064771082 | CALL | ff_mvtab [ 0 ]
+30064771083 | CALL | bit_size = f_code - 1
+30064771084 | CALL | f_code - 1
+30064771085 | CALL | val = mv
+30064771086 | CALL | val < 0
+30064771087 | CALL | val = - val
+30064771088 | CALL | - val
+30064771089 | CALL | val --
+30064771090 | CALL | code = ( val >> bit_size ) + 1
+30064771091 | CALL | ( val >> bit_size ) + 1
+30064771092 | CALL | val >> bit_size
+30064771093 | CALL | code < 33
+30064771094 | CALL | len = ff_mvtab [ code ] [ 1 ] + 1 + bit_size
+30064771095 | CALL | ff_mvtab [ code ] [ 1 ] + 1 + bit_size
+30064771096 | CALL | ff_mvtab [ code ] [ 1 ] + 1
+30064771097 | CALL | ff_mvtab [ code ] [ 1 ]
+30064771098 | CALL | ff_mvtab [ code ]
+30064771099 | CALL | len = ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size
+30064771100 | CALL | ff_mvtab [ 32 ] [ 1 ] + av_log2 ( code >> 5 ) + 2 + bit_size
+EDGES:
+25769803779 -> 30064771080 [AST]
+25769803780 -> 30064771083 [AST]
+25769803780 -> 30064771085 [AST]
+25769803780 -> 30064771089 [AST]
+25769803780 -> 30064771090 [AST]
+25769803781 -> 30064771087 [AST]
+25769803782 -> 30064771094 [AST]
+25769803783 -> 30064771099 [AST]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771073 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771100 [CDG]
+30064771093 -> 30064771099 [CDG]
+30064771093 -> 30064771098 [CDG]
+30064771093 -> 30064771097 [CDG]
+30064771093 -> 30064771096 [CDG]
+30064771093 -> 30064771095 [CDG]
+30064771093 -> 30064771094 [CDG]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771095 [POST_DOMINAT
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

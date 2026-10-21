@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rtp_packetize_swab ( sout_stream_id_sys_t * id , block_t * in ) {
+ unsigned max = rtp_mtu ( id ) ;
+ while ( in -> i_buffer > 0 ) {
+ unsigned payload = ( max < in -> i_buffer ) ? max : in -> i_buffer ;
+ unsigned duration = ( in -> i_length * payload ) / in -> i_buffer ;
+ bool marker = ( in -> i_flags & BLOCK_FLAG_DISCONTINUITY ) != 0 ;
+ block_t * out = block_Alloc ( 12 + payload ) ;
+ if ( unlikely ( out == NULL ) ) {
+ block_Release ( in ) ;
+ return VLC_ENOMEM ;
+ }
+ rtp_packetize_common ( id , out , marker , in -> i_pts ) ;
+ swab ( in -> p_buffer , out -> p_buffer + 12 , payload ) ;
+ rtp_packetize_send ( id , out ) ;
+ in -> p_buffer += payload ;
+ in -> i_buffer -= payload ;
+ in -> i_pts += duration ;
+ in -> i_length -= duration ;
+ in -> i_flags &= ~ BLOCK_FLAG_DISCONTINUITY ;
+ }
+ block_Release ( in ) ;
+ return VLC_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned max = rtp_mtu ( id ) ;
+ while ( in -> i_buffer > 0 ) {
+ unsigned payload = ( max < in -> i_buffer ) ? max : in -> i_buffer ;
+ unsigned duration = ( in -> i_length * payload ) / in -> i_buffer ;
+ bool marker = ( in -> i_flags & BLOCK_FLAG_DISCONTINUITY ) != 0 ;
+ block_t * out = block_Alloc ( 12 + payload ) ;
+ if ( unlikely ( out == NULL ) ) {
+ block_Release ( in ) ;
+ return VLC_ENOMEM ;
+ }
+ rtp_packetize_common ( id , out , marker , in -> i_pts ) ;
+ swab ( in -> p_buffer , out -> p_buffer + 12 , payload ) ;
+ rtp_packetize_send ( id , out ) ;
+ in -> p_buffer += payload ;
+ in -> i_buffer -= payload ;
+ in -> i_pts += duration ;
+ in -> i_length -= duration ;
+ in -> i_flags &= ~ BLOCK_FLAG_DISCONTINUITY ;
+ }
+ block_Release ( in ) ;
+ return VLC_SUCCESS ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ unsigned payload = ( max < in -> i_buffer ) ? max : in -> i_buffer ;
+ unsigned duration = ( in -> i_length * payload ) / in -> i_buffer ;
+ bool marker = ( in -> i_flags & BLOCK_FLAG_DISCONTINUITY ) != 0 ;
+ block_t * out = block_Alloc ( 12 + payload ) ;
+ if ( unlikely ( out == NULL ) ) {
+ block_Release ( in ) ;
+ return VLC_ENOMEM ;
+ }
+ rtp_packetize_common ( id , out , marker , in -> i_pts ) ;
+ swab ( in -> p_buffer , out -> p_buffer + 12 , payload ) ;
+ rtp_packetize_send ( id , out ) ;
+ in -> p_buffer += payload ;
+ in -> i_buffer -= payload ;
+ in -> i_pts += duration ;
+ in -> i_length -= duration ;
+ in -> i_flags &= ~ BLOCK_FLAG_DISCONTINUITY ;
+ }
+      
+25769803778 | BLOCK | { block_Release ( in ) ; return VLC_ENOMEM ; }
+30064771072 | CALL | max = rtp_mtu ( id )
+30064771073 | CALL | rtp_mtu ( id )
+30064771074 | CALL | in -> i_buffer > 0
+30064771075 | CALL | in -> i_buffer
+30064771076 | CALL | payload = ( max < in -> i_buffer ) ? max : in -> i_buffer
+30064771077 | CALL | ( max < in -> i_buffer ) ? max : in -> i_buffer
+30064771078 | CALL | max < in -> i_buffer
+30064771079 | CALL | in -> i_buffer
+30064771080 | CALL | in -> i_buffer
+30064771081 | CALL | duration = ( in -> i_length * payload ) / in -> i_buffer
+30064771082 | CALL | ( in -> i_length * payload ) / in -> i_buffer
+30064771083 | CALL | in -> i_length * payload
+30064771084 | CALL | in -> i_length
+30064771085 | CALL | in -> i_buffer
+30064771086 | CALL | marker = ( in -> i_flags & BLOCK_FLAG_DISCONTINUITY ) != 0
+30064771087 | CALL | ( in -> i_flags & BLOCK_FLAG_DISCONTINUITY ) != 0
+30064771088 | CALL | in -> i_flags & BLOCK_FLAG_DISCONTINUITY
+30064771089 | CALL | in -> i_flags
+30064771090 | CALL | out = block_Alloc ( 12 + payload )
+30064771091 | CALL | block_Alloc ( 12 + payload )
+30064771092 | CALL | 12 + payload
+30064771093 | CALL | unlikely ( out == NULL )
+30064771094 | CALL | out == NULL
+30064771095 | CALL | block_Release ( in )
+30064771096 | CALL | rtp_packetize_common ( id , out , marker , in -> i_pts )
+30064771097 | CALL | in -> i_pts
+30064771098 | CALL | swab ( in -> p_buffer , out -> p_buffer + 12 , payload )
+30064771099 | CALL | in -> p_buffer
+30064771100 | CALL | out -> p_buffer + 12
+30064771101 | CALL | out -> p_buffer
+30064771102 | CALL | rtp_packetize_send ( id , out )
+30064771103 | CALL | in -> p_buffer += payload
+30064771104 | CALL | in -> p_buffer
+30064771105 | CALL | in -> i_buffer -= payload
+30064771106 | CALL | in -> i_buffer
+30064771107 | CALL | in -> i_pts += duration
+30064771108 | CALL | in -> i_pts
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771096 [AST]
+25769803777 -> 30064771098 [AST]
+25769803777 -> 30064771102 [AST]
+25769803777 -> 30064771103 [AST]
+25769803777 -> 30064771105 [AST]
+25769803777 -> 30064771107 [AST]
+25769803778 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771094 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771075 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int rtp_packetize_split ( sout_stream_id_sys_t * id , block_t * in ) {
+ int i_max = rtp_mtu ( id ) ;
+ int i_count = ( in -> i_buffer + i_max - 1 ) / i_max ;
+ uint8_t * p_data = in -> p_buffer ;
+ int i_data = in -> i_buffer ;
+ int i ;
+ for ( i = 0 ;
+ i < i_count ;
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

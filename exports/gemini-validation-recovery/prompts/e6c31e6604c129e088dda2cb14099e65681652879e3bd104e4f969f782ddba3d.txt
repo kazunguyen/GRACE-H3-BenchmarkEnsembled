@@ -1,0 +1,167 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_zbee_zcl_ota ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ proto_tree * payload_tree ;
+ zbee_zcl_packet * zcl ;
+ guint offset = 0 ;
+ guint8 cmd_id ;
+ gint rem_len ;
+ if ( data == NULL ) return 0 ;
+ zcl = ( zbee_zcl_packet * ) data ;
+ cmd_id = zcl -> cmd_id ;
+ if ( zcl -> direction == ZBEE_ZCL_FCF_TO_SERVER ) {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "%s, Seq: %u" , val_to_str_const ( cmd_id , zbee_zcl_ota_srv_rx_cmd_names , "Unknown Command" ) , zcl -> tran_seqno ) ;
+ proto_tree_add_item ( tree , hf_zbee_zcl_ota_srv_rx_cmd_id , tvb , offset , 1 , cmd_id ) ;
+ rem_len = tvb_reported_length_remaining ( tvb , ++ offset ) ;
+ if ( rem_len > 0 ) {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_REQ : dissect_zcl_ota_querynextimagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_REQ : dissect_zcl_ota_imageblockreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_PAGE_REQ : dissect_zcl_ota_imagepagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_REQ : dissect_zcl_ota_upgradeendreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SPEC_FILE_REQ : dissect_zcl_ota_queryspecfilereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ default : break ;
+ }
+ }
+ }
+ else {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "%s, Seq: %u" , val_to_str_const ( cmd_id , zbee_zcl_ota_srv_tx_cmd_names , "Unknown Command" ) , zcl -> tran_seqno ) ;
+ proto_tree_add_item ( tree , hf_zbee_zcl_ota_srv_tx_cmd_id , tvb , offset , 1 , cmd_id ) ;
+ rem_len = tvb_reported_length_remaining ( tvb , ++ offset ) ;
+ if ( rem_len > 0 ) {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_NOTIFY : dissect_zcl_ota_imagenotify ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_RSP : dissect_zcl_ota_querynextimagersp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_RSP : dissect_zcl_ota_imageblockrsp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_RSP : dissect_zcl_ota_upgradeendrsp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SPEC_FILE_RSP : dissect_zcl_ota_queryspecfilersp ( tvb , payload_tree , & offset ) ;
+ break ;
+ default : break ;
+ }
+ }
+ }
+ return tvb_captured_length ( tvb ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_tree * payload_tree ;
+ zbee_zcl_packet * zcl ;
+ guint offset = 0 ;
+ guint8 cmd_id ;
+ gint rem_len ;
+ if ( data == NULL ) return 0 ;
+ zcl = ( zbee_zcl_packet * ) data ;
+ cmd_id = zcl -> cmd_id ;
+ if ( zcl -> direction == ZBEE_ZCL_FCF_TO_SERVER ) {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "%s, Seq: %u" , val_to_str_const ( cmd_id , zbee_zcl_ota_srv_rx_cmd_names , "Unknown Command" ) , zcl -> tran_seqno ) ;
+ proto_tree_add_item ( tree , hf_zbee_zcl_ota_srv_rx_cmd_id , tvb , offset , 1 , cmd_id ) ;
+ rem_len = tvb_reported_length_remaining ( tvb , ++ offset ) ;
+ if ( rem_len > 0 ) {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_REQ : dissect_zcl_ota_querynextimagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_REQ : dissect_zcl_ota_imageblockreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_C...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "%s, Seq: %u" , val_to_str_const ( cmd_id , zbee_zcl_ota_srv_rx_cmd_names , "Unknown Command" ) , zcl -> tran_seqno ) ;
+ proto_tree_add_item ( tree , hf_zbee_zcl_ota_srv_rx_cmd_id , tvb , offset , 1 , cmd_id ) ;
+ rem_len = tvb_reported_length_remaining ( tvb , ++ offset ) ;
+ if ( rem_len > 0 ) {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_REQ : dissect_zcl_ota_querynextimagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_REQ : dissect_zcl_ota_imageblockreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_PAGE_REQ : dissect_zcl_ota_imagepagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_REQ : dissect_zcl_ota_upgradeendreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SP...
+      
+25769803779 | BLOCK | 
+        {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_REQ : dissect_zcl_ota_querynextimagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_REQ : dissect_zcl_ota_imageblockreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_PAGE_REQ : dissect_zcl_ota_imagepagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_REQ : dissect_zcl_ota_upgradeendreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SPEC_FILE_REQ : dissect_zcl_ota_queryspecfilereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ default : break ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_REQ : dissect_zcl_ota_querynextimagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_REQ : dissect_zcl_ota_imageblockreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_PAGE_REQ : dissect_zcl_ota_imagepagereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_REQ : dissect_zcl_ota_upgradeendreq ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SPEC_FILE_REQ : dissect_zcl_ota_queryspecfilereq ( tvb , payload_tree , & offset ) ;
+ break ;
+ default : break ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , "%s, Seq: %u" , val_to_str_const ( cmd_id , zbee_zcl_ota_srv_tx_cmd_names , "Unknown Command" ) , zcl -> tran_seqno ) ;
+ proto_tree_add_item ( tree , hf_zbee_zcl_ota_srv_tx_cmd_id , tvb , offset , 1 , cmd_id ) ;
+ rem_len = tvb_reported_length_remaining ( tvb , ++ offset ) ;
+ if ( rem_len > 0 ) {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl_ota , NULL , "Payload" ) ;
+ switch ( cmd_id ) {
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_NOTIFY : dissect_zcl_ota_imagenotify ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_NEXT_IMAGE_RSP : dissect_zcl_ota_querynextimagersp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_IMAGE_BLOCK_RSP : dissect_zcl_ota_imageblockrsp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_UPGRADE_END_RSP : dissect_zcl_ota_upgradeendrsp ( tvb , payload_tree , & offset ) ;
+ break ;
+ case ZBEE_ZCL_CMD_ID_OTA_QUERY_SPEC_...
+      
+25769803782 | BLOCK | 
+        {
+ payload_tree = proto_tree_add_subtree ( tree , tvb , offset , rem_len , ett_zbee_zcl
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

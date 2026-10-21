@@ -1,0 +1,37 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint32 dissect_netb_data_first_middle ( tvbuff_t * tvb , packet_info * pinfo _U_ , int offset , proto_tree * tree ) {
+ guint8 remote_session , local_session ;
+ netbios_data_first_middle_flags ( tvb , tree , offset + NB_FLAGS ) ;
+ nb_resync_indicator ( tvb , offset , tree , "DATA FIRST MIDDLE" ) ;
+ nb_xmit_corrl ( tvb , offset , tree ) ;
+ nb_resp_corrl ( tvb , offset , tree ) ;
+ remote_session = nb_remote_session ( tvb , offset , tree ) ;
+ local_session = nb_local_session ( tvb , offset , tree ) ;
+ return ( remote_session << 8 ) + local_session ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static guint32 dissect_netb_data_only_last ( tvbuff_t * tvb , packet_info * pinfo _U_ , int offset , proto_tree * tree ) {
+ guint8 remote_session , local_session ;
+ netbios_data_only_flags ( tvb , tree , offset + NB_FLAGS ) ;
+ nb_resync_indicator ( tvb , offset , tree , "DATA ONLY LAST" ) ;
+ nb_xmit_corrl ( tvb , offset , tree ) ;
+ nb_resp_corrl ( tvb , offset , tree ) ;
+ remote_session = nb_remote_session ( tvb , offset , tree ) ;
+ local_session = nb_local_session ( tvb , offset , tree ) ;
+ return ( remote_session << 8 ) + local_session ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

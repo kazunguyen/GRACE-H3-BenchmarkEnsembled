@@ -1,0 +1,293 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void create_task_thread_func ( GTask * task , gpointer source_object , gpointer task_data , GCancellable * cancellable ) {
+ CreateJob * job ;
+ CommonJob * common ;
+ int count ;
+ GFile * dest ;
+ g_autofree gchar * dest_uri = NULL ;
+ char * basename ;
+ char * filename , * filename2 , * new_filename ;
+ char * filename_base , * suffix ;
+ char * dest_fs_type ;
+ GError * error ;
+ gboolean res ;
+ gboolean filename_is_utf8 ;
+ char * primary , * secondary , * details ;
+ int response ;
+ char * data ;
+ int length ;
+ GFileOutputStream * out ;
+ gboolean handled_invalid_filename ;
+ int max_length , offset ;
+ job = task_data ;
+ common = & job -> common ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ handled_invalid_filename = FALSE ;
+ dest_fs_type = NULL ;
+ filename = NULL ;
+ dest = NULL ;
+ max_length = get_max_name_length ( job -> dest_dir ) ;
+ verify_destination ( common , job -> dest_dir , NULL , - 1 ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ filename = g_strdup ( job -> filename ) ;
+ filename_is_utf8 = FALSE ;
+ if ( filename ) {
+ filename_is_utf8 = g_utf8_validate ( filename , - 1 , NULL ) ;
+ }
+ if ( filename == NULL ) {
+ if ( job -> make_dir ) {
+ filename = g_strdup ( _ ( "Untitled Folder" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+ else {
+ if ( job -> src != NULL ) {
+ basename = g_file_get_basename ( job -> src ) ;
+ filename = g_strdup_printf ( "%s" , basename ) ;
+ g_free ( basename ) ;
+ }
+ if ( filename == NULL ) {
+ filename = g_strdup ( _ ( "Untitled Document" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+ }
+ }
+ make_file_name_valid_for_dest_fs ( filename , dest_fs_type ) ;
+ if ( filename_is_utf8 ) {
+ dest = g_file_get_child_for_display_name ( job -> dest_dir , filename , NULL ) ;
+ }
+ if ( dest == NULL ) {
+ dest = g_file_get_child ( job -> dest_dir , filename ) ;
+ }
+ count = 1 ;
+ retry : error = NULL ;
+ if ( job -> make_dir ) {
+ res = g_file_make_directory ( dest , common -> cancellable , & error ) ;
+ if ( res ) {
+ GFile * real ;
+ real = map_possibly_volatile_file_to_real ( dest , common -> cancellable , & error ) ;
+ if ( real == NULL ) {
+ res = FALSE ;
+ }
+ else {
+ g_object_unref ( dest ) ;
+ dest = real ;
+ }
+ }
+ if ( res && common -> undo_info != NULL ) {
+ nautilus_file_undo_info_create_set_data ( NAUTILUS_FILE_UNDO_INFO_CREATE ( common -> undo_info ) , dest , NULL , 0 ) ;
+ }
+ }
+ else {
+ if ( job -> src ) {
+ res = g_file_copy ( job -> src , dest , G_FILE_COPY_NONE , common -> cancellable , NULL , NULL , & error ) ;
+ if ( res ) {
+ GFile * real ;
+ real = map_possibly_volatile_file_to_real ( dest , common -> cancellable , & error ) ;
+ if ( real == NULL ) {
+ res = FALSE ;
+ }
+ else {
+ g_object_unref ( dest ) ;
+ dest = real ;
+ }
+ }
+ if ( res && common -> undo_info != NULL ) {
+ gchar * uri ;
+ uri = g_file_get_uri ( job -> src ) ;
+ nautilus_file_undo_info_create_set_data ( NAUTILUS_FILE_UNDO_INFO_CREATE ( common -> undo_info ) , dest , uri , 0 ) ;
+ g_free ( uri ) ;
+ }
+ }
+ else {
+ data = "" ;
+ length = 0 ;
+ if ( job -> src_data ) {
+ data = jo
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CreateJob * job ;
+ CommonJob * common ;
+ int count ;
+ GFile * dest ;
+ g_autofree gchar * dest_uri = NULL ;
+ char * basename ;
+ char * filename , * filename2 , * new_filename ;
+ char * filename_base , * suffix ;
+ char * dest_fs_type ;
+ GError * error ;
+ gboolean res ;
+ gboolean filename_is_utf8 ;
+ char * primary , * secondary , * details ;
+ int response ;
+ char * data ;
+ int length ;
+ GFileOutputStream * out ;
+ gboolean handled_invalid_filename ;
+ int max_length , offset ;
+ job = task_data ;
+ common = & job -> common ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ handled_invalid_filename = FALSE ;
+ dest_fs_type = NULL ;
+ filename = NULL ;
+ dest = NULL ;
+ max_length = get_max_name_length ( job -> dest_dir ) ;
+ verify_destination ( common , job -> dest_dir , NULL , - 1 ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ filename = g_strdup ( job -> filename ) ;
+ filename_is_utf8 = FALSE ;
+ if ( filename ) {
+ filename_is_utf8 = g_utf8_validate ( filename , - 1 ,...
+      
+25769803777 | BLOCK | { goto aborted ; }
+25769803778 | BLOCK | { filename_is_utf8 = g_utf8_validate ( filename , - 1 , NULL ) ; }
+25769803779 | BLOCK | 
+        {
+ if ( job -> make_dir ) {
+ filename = g_strdup ( _ ( "Untitled Folder" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+ else {
+ if ( job -> src != NULL ) {
+ basename = g_file_get_basename ( job -> src ) ;
+ filename = g_strdup_printf ( "%s" , basename ) ;
+ g_free ( basename ) ;
+ }
+ if ( filename == NULL ) {
+ filename = g_strdup ( _ ( "Untitled Document" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ filename = g_strdup ( _ ( "Untitled Folder" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( job -> src != NULL ) {
+ basename = g_file_get_basename ( job -> src ) ;
+ filename = g_strdup_printf ( "%s" , basename ) ;
+ g_free ( basename ) ;
+ }
+ if ( filename == NULL ) {
+ filename = g_strdup ( _ ( "Untitled Document" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ basename = g_file_get_basename ( job -> src ) ;
+ filename = g_strdup_printf ( "%s" , basename ) ;
+ g_free ( basename ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ filename = g_strdup ( _ ( "Untitled Document" ) ) ;
+ filename_is_utf8 = TRUE ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ dest = g_file_get_child_for_display_name ( job -> dest_dir , filename , NULL ) ;
+ }
+      
+25769803785 | BLOCK | { dest = g_file_get_child ( job -> dest_dir , filename ) ; }
+25769803786 | BLOCK | 
+        {
+ res = g_file_make_directory ( dest , common -> cancellable , & error ) ;
+ if ( res ) {
+ GFile * real ;
+ real = map_possibly_volatile_file_to_real ( dest , common -> cancellable , & error ) ;
+ if ( real == NULL ) {
+ res = FALSE ;
+ }
+ else {
+ g_object_unref ( dest ) ;
+ dest = real ;
+ }
+ }
+ if ( res && common -> undo_info != NULL ) {
+ nautilus_file_undo_info_create_set_data ( NAUTILUS_FILE_UNDO_INFO_CREATE ( common -> undo_info ) , dest , NULL , 0 ) ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ GFile * real ;
+ real = map_possibly_volatile_file_to_real ( dest , common -> cancellable , & error ) ;
+ if ( real == NULL ) {
+ res = FALSE ;
+ }
+ else {
+ g_object_unref ( dest ) ;
+ dest = real ;
+ }
+ }
+      
+25769803788 | BLOCK | { res = FALSE ; }
+25769803789 | BLOCK | { g_object_unref ( dest ) ; dest = real ; }
+25769803790 | BLOCK | 
+        {
+ nautilus_file_undo_info_create_set_data ( NAUTILUS_FILE_UNDO_INFO_CREATE ( common -> undo_info ) , dest , NULL , 0 ) ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ if ( job -> src ) {
+ res = g_file_copy ( job -> src , dest , G_FILE_COPY_NONE , common -> cancellable , NULL , NULL , & error ) ;
+ if ( res ) {
+ GFile * real ;
+ real = map_possibly_volatile_file_to_real ( dest , common -> cancellable , & error ) ;
+ if ( real == NULL ) {
+ res = FALSE ;
+ }
+ else {
+ g_object_unref ( dest ) ;
+ dest = real ;
+ }
+ }
+ if ( res && common -> undo_info != NULL ) {
+ gchar * uri ;
+ uri = g_file_get_uri ( job -> src ) ;
+ nautilus_file_undo_info_create_set_data ( NAUTILUS_FILE_UNDO_INFO_CREATE ( common -> undo_info ) , dest , uri , 0 ) ;
+ g_free ( uri ) ;
+ }
+ }
+ else {
+ data = "" ;
+ length = 0 ;
+ if ( job -> src_data ) {
+ data = job -> src_data ;
+ length = job -> length ;
+ }
+ out = g_file_create ( dest , G_FILE_CREATE_NONE , common -> cancellable , & error ) ;
+ if ( out ) {
+ GFile * real ;
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

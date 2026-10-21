@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void rds_clear_recv_queue ( struct rds_sock * rs ) {
+ struct sock * sk = rds_rs_to_sk ( rs ) ;
+ struct rds_incoming * inc , * tmp ;
+ unsigned long flags ;
+ write_lock_irqsave ( & rs -> rs_recv_lock , flags ) ;
+ list_for_each_entry_safe ( inc , tmp , & rs -> rs_recv_queue , i_item ) {
+ rds_recv_rcvbuf_delta ( rs , sk , inc -> i_conn -> c_lcong , - be32_to_cpu ( inc -> i_hdr . h_len ) , inc -> i_hdr . h_dport ) ;
+ list_del_init ( & inc -> i_item ) ;
+ rds_inc_put ( inc ) ;
+ }
+ write_unlock_irqrestore ( & rs -> rs_recv_lock , flags ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct sock * sk = rds_rs_to_sk ( rs ) ;
+ struct rds_incoming * inc , * tmp ;
+ unsigned long flags ;
+ write_lock_irqsave ( & rs -> rs_recv_lock , flags ) ;
+ list_for_each_entry_safe ( inc , tmp , & rs -> rs_recv_queue , i_item ) {
+ rds_recv_rcvbuf_delta ( rs , sk , inc -> i_conn -> c_lcong , - be32_to_cpu ( inc -> i_hdr . h_len ) , inc -> i_hdr . h_dport ) ;
+ list_del_init ( & inc -> i_item ) ;
+ rds_inc_put ( inc ) ;
+ }
+ write_unlock_irqrestore ( & rs -> rs_recv_lock , flags ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ rds_recv_rcvbuf_delta ( rs , sk , inc -> i_conn -> c_lcong , - be32_to_cpu ( inc -> i_hdr . h_len ) , inc -> i_hdr . h_dport ) ;
+ list_del_init ( & inc -> i_item ) ;
+ rds_inc_put ( inc ) ;
+ }
+      
+30064771072 | CALL | sk = rds_rs_to_sk ( rs )
+30064771073 | CALL | rds_rs_to_sk ( rs )
+30064771074 | CALL | write_lock_irqsave ( & rs -> rs_recv_lock , flags )
+30064771075 | CALL | & rs -> rs_recv_lock
+30064771076 | CALL | rs -> rs_recv_lock
+30064771077 | CALL | list_for_each_entry_safe ( inc , tmp , & rs -> rs_recv_queue , i_item )
+30064771078 | CALL | & rs -> rs_recv_queue
+30064771079 | CALL | rs -> rs_recv_queue
+30064771080 | CALL | 
+        rds_recv_rcvbuf_delta ( rs , sk , inc -> i_conn -> c_lcong , - be32_to_cpu ( inc -> i_hdr . h_len ) , inc -> i_hdr . h_dport )
+      
+30064771081 | CALL | inc -> i_conn -> c_lcong
+30064771082 | CALL | inc -> i_conn
+30064771083 | CALL | - be32_to_cpu ( inc -> i_hdr . h_len )
+30064771084 | CALL | be32_to_cpu ( inc -> i_hdr . h_len )
+30064771085 | CALL | inc -> i_hdr . h_len
+30064771086 | CALL | inc -> i_hdr
+30064771087 | CALL | inc -> i_hdr . h_dport
+30064771088 | CALL | inc -> i_hdr
+30064771089 | CALL | list_del_init ( & inc -> i_item )
+30064771090 | CALL | & inc -> i_item
+30064771091 | CALL | inc -> i_item
+30064771092 | CALL | rds_inc_put ( inc )
+30064771093 | CALL | write_unlock_irqrestore ( & rs -> rs_recv_lock , flags )
+30064771094 | CALL | & rs -> rs_recv_lock
+30064771095 | CALL | rs -> rs_recv_lock
+55834574848 | FIELD_IDENTIFIER | rs_recv_lock
+55834574849 | FIELD_IDENTIFIER | rs_recv_queue
+55834574850 | FIELD_IDENTIFIER | i_conn
+55834574851 | FIELD_IDENTIFIER | c_lcong
+55834574852 | FIELD_IDENTIFIER | i_hdr
+55834574853 | FIELD_IDENTIFIER | h_len
+55834574854 | FIELD_IDENTIFIER | i_hdr
+55834574855 | FIELD_IDENTIFIER | h_dport
+55834574856 | FIELD_IDENTIFIER | i_item
+55834574857 | FIELD_IDENTIFIER | rs_recv_lock
+68719476736 | IDENTIFIER | sk
+68719476737 | IDENTIFIER | rs
+68719476738 | IDENTIFIER | rs
+68719476739 | IDENTIFIER | flags
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771092 [POST_DOMINATE]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771095 [REACHING_DEF]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771094 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771095 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771094 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 55834574849 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574849 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771087 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771087 [AST]
+30064771080 -> 30064771087 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 55834574851 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 55834574851 [AST]
+30064771081 -> 55834574851 [POST_DOMINATE]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771087 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 55834574850 [ARGUMENT]
+30064771082 -> 55834574850 [AST]
+30064771082 -> 55834574851 [CFG]
+30064771082 -> 55834574851 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int rds_still_queued ( struct rds_sock * rs , struct rds_incoming * inc , int drop ) {
+ struct sock * sk = rds_rs_to_sk ( rs ) ;
+ int ret = 0 ;
+ unsigned long flags ;
+ write_lock_irqsave ( & rs -> rs_recv_lock , flags ) ;
+ if ( ! list_empty ( & inc -> i_item ) ) {
+ ret = 1 ;
+ if ( drop ) {
+ rds_recv_rcvbuf_delta ( rs , sk , inc -> i_conn -> c_lcong , - be32_to_cpu ( inc -> i_hdr . h_len ) , inc -> i_hdr . h_dport ) ;
+ list_del_init ( & inc -> i_item ) ;
+ rds_inc_put ( inc ) ;
+ }
+ }
+ write_unlock_irqrestore ( & rs -> rs_recv_lock , flags ) ;
+ rdsdebug ( "inc %p rs %p still %d dropped %d\n" , inc , rs , ret , drop ) ;
+ return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

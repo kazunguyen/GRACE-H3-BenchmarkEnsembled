@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int com_help ( String * buffer __attribute__ ( ( unused ) ) , char * line __attribute__ ( ( unused ) ) ) {
+ reg1 int i , j ;
+ char * help_arg = strchr ( line , ' ' ) , buff [ 32 ] , * end ;
+ if ( help_arg ) {
+ while ( my_isspace ( charset_info , * help_arg ) ) help_arg ++ ;
+ if ( * help_arg ) return com_server_help ( buffer , line , help_arg ) ;
+ }
+ put_info ( "\nGeneral information about MariaDB can be found at\n" "http://mariadb.org\n" , INFO_INFO ) ;
+ put_info ( "List of all MySQL commands:" , INFO_INFO ) ;
+ if ( ! named_cmds ) put_info ( "Note that all text commands must be first on line and end with ';
+'" , INFO_INFO ) ;
+ for ( i = 0 ;
+ commands [ i ] . name ;
+ i ++ ) {
+ end = strmov ( buff , commands [ i ] . name ) ;
+ for ( j = ( int ) strlen ( commands [ i ] . name ) ;
+ j < 10 ;
+ j ++ ) end = strmov ( end , " " ) ;
+ if ( commands [ i ] . func ) tee_fprintf ( stdout , "%s(\\%c) %s\n" , buff , commands [ i ] . cmd_char , commands [ i ] . doc ) ;
+ }
+ if ( connected && mysql_get_server_version ( & mysql ) >= 40100 ) put_info ( "\nFor server side help, type 'help contents'\n" , INFO_INFO ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ reg1 int i , j ;
+ char * help_arg = strchr ( line , ' ' ) , buff [ 32 ] , * end ;
+ if ( help_arg ) {
+ while ( my_isspace ( charset_info , * help_arg ) ) help_arg ++ ;
+ if ( * help_arg ) return com_server_help ( buffer , line , help_arg ) ;
+ }
+ put_info ( "\nGeneral information about MariaDB can be found at\n" "http://mariadb.org\n" , INFO_INFO ) ;
+ put_info ( "List of all MySQL commands:" , INFO_INFO ) ;
+ if ( ! named_cmds ) put_info ( "Note that all text commands must be first on line and end with ';
+'" , INFO_INFO ) ;
+ for ( i = 0 ;
+ commands [ i ] . name ;
+ i ++ ) {
+ end = strmov ( buff , commands [ i ] . name ) ;
+ for ( j = ( int ) strlen ( commands [ i ] . name ) ;
+ j < 10 ;
+ j ++ ) end = strmov ( end , " " ) ;
+ if ( commands [ i ] . func ) tee_fprintf ( stdout , "%s(\\%c) %s\n" , buff , commands [ i ] . cmd_char , commands [ i ] . doc ) ;
+ }
+ if ( connected && mysql_get_server_version ( & mysql ) >= 40100 ) put_info ( "\nFor server side help, type 'help contents'\n" , INFO_...
+      
+25769803777 | BLOCK | 
+        {
+ while ( my_isspace ( charset_info , * help_arg ) ) help_arg ++ ;
+ if ( * help_arg ) return com_server_help ( buffer , line , help_arg ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | buff [ 32 ]
+30064771073 | CALL | buff [ 32 ]
+30064771074 | CALL | help_arg = strchr ( line , ' ' )
+30064771075 | CALL | strchr ( line , ' ' )
+30064771076 | CALL | help_arg != NULL
+30064771077 | CALL | my_isspace ( charset_info , * help_arg )
+30064771078 | CALL | * help_arg
+30064771079 | CALL | help_arg ++
+30064771080 | CALL | * help_arg
+30064771081 | CALL | com_server_help ( buffer , line , help_arg )
+30064771082 | CALL | 
+        put_info ( "\nGeneral information about MariaDB can be found at\n" "http://mariadb.org\n" , INFO_INFO )
+      
+30064771083 | CALL | put_info ( "List of all MySQL commands:" , INFO_INFO )
+30064771084 | CALL | commands [ i ] . name
+30064771085 | CALL | commands [ i ]
+30064771086 | CALL | i ++
+30064771087 | CALL | connected && mysql_get_server_version ( & mysql ) >= 40100
+30064771088 | CALL | mysql_get_server_version ( & mysql ) >= 40100
+30064771089 | CALL | mysql_get_server_version ( & mysql )
+30064771090 | CALL | & mysql
+30064771091 | CALL | put_info ( "\nFor server side help, type 'help contents'\n" , INFO_INFO )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( help_arg ) {
+ while ( my_isspace ( charset_info , * help_arg ) ) help_arg ++ ;
+ if ( * help_arg ) return com_server_help ( buffer , line , help_arg ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | while (my_isspace ( charset_info , * help_arg ))
+47244640258 | CONTROL_STRUCTURE | 
+        if ( * help_arg ) return com_server_help ( buffer , line , help_arg ) ;
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( connected && mysql_get_server_version ( & mysql ) >= 40100 ) put_info ( "\nFor server side help, type 'help contents'\n" , INFO_INFO ) ;
+      
+55834574848 | FIELD_IDENTIFIER | name
+68719476736 | IDENTIFIER | <unknown> reg1
+68719476737 | IDENTIFIER | buff
+68719476738 | IDENTIFIER | char[32]
+68719476739 | IDENTIFIER | help_arg
+68719476740 | IDENTIFIER | line
+68719476741 | IDENTIFIER | help_arg
+68719476742 | IDENTIFIER | <unknown> charset_info
+68719476743 | IDENTIFIER | help_arg
+68719476744 | IDENTIFIER | help_arg
+68719476745 | IDENTIFIER | help_arg
+68719476746 | IDENTIFIER | buffer
+EDGES:
+25769803776 -> 68719476736 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640259 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640258 [AST]
+25769803779 -> 30064771091 [AST]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 55834574848 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476742 [CDG]
+30064771077 -> 68719476744 [CFG]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476744 [DOMINATE]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476743 [POST_DOMINATE]
+30064771078 -> 68719476745 [REACHING_DEF]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 68719476744 [REACHING_DEF]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 3006477107
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

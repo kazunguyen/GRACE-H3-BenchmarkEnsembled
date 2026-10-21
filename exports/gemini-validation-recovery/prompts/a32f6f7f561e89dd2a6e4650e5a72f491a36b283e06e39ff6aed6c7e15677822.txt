@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int archive_write_set_format_iso9660 ( struct archive * _a ) {
+ struct archive_write * a = ( struct archive_write * ) _a ;
+ struct iso9660 * iso9660 ;
+ archive_check_magic ( _a , ARCHIVE_WRITE_MAGIC , ARCHIVE_STATE_NEW , "archive_write_set_format_iso9660" ) ;
+ if ( a -> format_free != NULL ) ( a -> format_free ) ( a ) ;
+ iso9660 = calloc ( 1 , sizeof ( * iso9660 ) ) ;
+ if ( iso9660 == NULL ) {
+ archive_set_error ( & a -> archive , ENOMEM , "Can't allocate iso9660 data" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ iso9660 -> birth_time = 0 ;
+ iso9660 -> temp_fd = - 1 ;
+ iso9660 -> cur_file = NULL ;
+ iso9660 -> primary . max_depth = 0 ;
+ iso9660 -> primary . vdd_type = VDD_PRIMARY ;
+ iso9660 -> primary . pathtbl = NULL ;
+ iso9660 -> joliet . rootent = NULL ;
+ iso9660 -> joliet . max_depth = 0 ;
+ iso9660 -> joliet . vdd_type = VDD_JOLIET ;
+ iso9660 -> joliet . pathtbl = NULL ;
+ isofile_init_entry_list ( iso9660 ) ;
+ isofile_init_entry_data_file_list ( iso9660 ) ;
+ isofile_init_hardlinks ( iso9660 ) ;
+ iso9660 -> directories_too_deep = NULL ;
+ iso9660 -> dircnt_max = 1 ;
+ iso9660 -> wbuff_remaining = wb_buffmax ( ) ;
+ iso9660 -> wbuff_type = WB_TO_TEMP ;
+ iso9660 -> wbuff_offset = 0 ;
+ iso9660 -> wbuff_written = 0 ;
+ iso9660 -> wbuff_tail = 0 ;
+ archive_string_init ( & ( iso9660 -> utf16be ) ) ;
+ archive_string_init ( & ( iso9660 -> mbs ) ) ;
+ archive_string_init ( & ( iso9660 -> volume_identifier ) ) ;
+ archive_strcpy ( & ( iso9660 -> volume_identifier ) , "CDROM" ) ;
+ archive_string_init ( & ( iso9660 -> publisher_identifier ) ) ;
+ archive_string_init ( & ( iso9660 -> data_preparer_identifier ) ) ;
+ archive_string_init ( & ( iso9660 -> application_identifier ) ) ;
+ archive_strcpy ( & ( iso9660 -> application_identifier ) , archive_version_string ( ) ) ;
+ archive_string_init ( & ( iso9660 -> copyright_file_identifier ) ) ;
+ archive_string_init ( & ( iso9660 -> abstract_file_identifier ) ) ;
+ archive_string_init ( & ( iso9660 -> bibliographic_file_identifier ) ) ;
+ archive_string_init ( & ( iso9660 -> el_torito . catalog_filename ) ) ;
+ iso9660 -> el_torito . catalog = NULL ;
+ archive_strcpy ( & ( iso9660 -> el_torito . catalog_filename ) , "boot.catalog" ) ;
+ archive_string_init ( & ( iso9660 -> el_torito . boot_filename ) ) ;
+ iso9660 -> el_torito . boot = NULL ;
+ iso9660 -> el_torito . platform_id = BOOT_PLATFORM_X86 ;
+ archive_string_init ( & ( iso9660 -> el_torito . id ) ) ;
+ iso9660 -> el_torito . boot_load_seg = 0 ;
+ iso9660 -> el_torito . boot_load_size = BOOT_LOAD_SIZE ;
+ # ifdef HAVE_ZLIB_H iso9660 -> zisofs . block_pointers = NULL ;
+ iso9660 -> zisofs . block_pointers_allocated = 0 ;
+ iso9660 -> zisofs . stream_valid = 0 ;
+ iso9660 -> zisofs . compression_level = 9 ;
+ memset ( & ( iso9660 -> zisofs . stream ) , 0 , sizeof ( iso9660 -> zisofs . stream ) ) ;
+ # endif iso9660 -> opt . abstract_file = OPT_ABSTRACT_FILE_DEFAULT ;
+ iso9660 -> opt . application_id = OPT_APPLICATION_ID_DEFAULT ;
+ iso9660 -> opt . allow_vernum = OPT_ALLOW_VERNUM_DEFAULT ;
+ 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct archive_write * a = ( struct archive_write * ) _a ;
+ struct iso9660 * iso9660 ;
+ archive_check_magic ( _a , ARCHIVE_WRITE_MAGIC , ARCHIVE_STATE_NEW , "archive_write_set_format_iso9660" ) ;
+ if ( a -> format_free != NULL ) ( a -> format_free ) ( a ) ;
+ iso9660 = calloc ( 1 , sizeof ( * iso9660 ) ) ;
+ if ( iso9660 == NULL ) {
+ archive_set_error ( & a -> archive , ENOMEM , "Can't allocate iso9660 data" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+ iso9660 -> birth_time = 0 ;
+ iso9660 -> temp_fd = - 1 ;
+ iso9660 -> cur_file = NULL ;
+ iso9660 -> primary . max_depth = 0 ;
+ iso9660 -> primary . vdd_type = VDD_PRIMARY ;
+ iso9660 -> primary . pathtbl = NULL ;
+ iso9660 -> joliet . rootent = NULL ;
+ iso9660 -> joliet . max_depth = 0 ;
+ iso9660 -> joliet . vdd_type = VDD_JOLIET ;
+ iso9660 -> joliet . pathtbl = NULL ;
+ isofile_init_entry_list ( iso9660 ) ;
+ isofile_init_entry_data_file_list ( iso9660 ) ;
+ isofile_init_hardlinks ( iso9660 ) ;
+ iso9660 -> directories_too_deep = NULL ;
+ iso9660 -> ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ archive_set_error ( & a -> archive , ENOMEM , "Can't allocate iso9660 data" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ free ( iso9660 ) ;
+ archive_set_error ( & a -> archive , ENOMEM , "Can't allocate memory" ) ;
+ return ( ARCHIVE_FATAL ) ;
+ }
+      
+30064771072 | CALL | a = ( struct archive_write * ) _a
+30064771073 | CALL | ( struct archive_write * ) _a
+30064771074 | CALL | 
+        archive_check_magic ( _a , ARCHIVE_WRITE_MAGIC , ARCHIVE_STATE_NEW , "archive_write_set_format_iso9660" )
+      
+30064771075 | CALL | a -> format_free != NULL
+30064771076 | CALL | a -> format_free
+30064771077 | CALL | ( a -> format_free ) ( a )
+30064771078 | CALL | a -> format_free
+30064771079 | CALL | iso9660 = calloc ( 1 , sizeof ( * iso9660 ) )
+30064771080 | CALL | calloc ( 1 , sizeof ( * iso9660 ) )
+30064771081 | CALL | sizeof ( * iso9660 )
+30064771082 | CALL | * iso9660
+30064771083 | CALL | iso9660 == NULL
+30064771084 | CALL | 
+        archive_set_error ( & a -> archive , ENOMEM , "Can't allocate iso9660 data" )
+      
+30064771085 | CALL | & a -> archive
+30064771086 | CALL | a -> archive
+30064771087 | CALL | iso9660 -> birth_time = 0
+30064771088 | CALL | iso9660 -> birth_time
+30064771089 | CALL | iso9660 -> temp_fd = - 1
+30064771090 | CALL | iso9660 -> temp_fd
+30064771091 | CALL | - 1
+30064771092 | CALL | iso9660 -> cur_file = NULL
+30064771093 | CALL | iso9660 -> cur_file
+30064771094 | CALL | iso9660 -> primary . max_depth = 0
+30064771095 | CALL | iso9660 -> primary . max_depth
+30064771096 | CALL | iso9660 -> primary
+30064771097 | CALL | iso9660 -> primary . vdd_type = VDD_PRIMARY
+30064771098 | CALL | iso9660 -> primary . vdd_type
+30064771099 | CALL | iso9660 -> primary
+30064771100 | CALL | iso9660 -> primary . pathtbl = NULL
+30064771101 | CALL | iso9660 -> primary . pathtbl
+30064771102 | CALL | iso9660 -> primary
+30064771103 | CALL | iso9660 -> joliet . rootent = NULL
+30064771104 | CALL | iso9660 -> joliet . rootent
+30064771105 | CALL | iso9660 -> joliet
+30064771106 | CALL | iso9660 -> joliet . max_depth = 0
+30064771107 | CALL | iso9660 -> joliet . max_depth
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 30064771084 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [RECEIVER]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINAT
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

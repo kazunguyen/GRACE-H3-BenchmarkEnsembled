@@ -1,0 +1,177 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int collated_compare ( const void * a , const void * b ) {
+ const char * const s1 = * ( const char * const * const ) a ;
+ const char * const s2 = * ( const char * const * const ) b ;
+ if ( s1 == s2 ) return 0 ;
+ if ( s1 == NULL ) return 1 ;
+ if ( s2 == NULL ) return - 1 ;
+ return strcoll ( s1 , s2 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * const s1 = * ( const char * const * const ) a ;
+ const char * const s2 = * ( const char * const * const ) b ;
+ if ( s1 == s2 ) return 0 ;
+ if ( s1 == NULL ) return 1 ;
+ if ( s2 == NULL ) return - 1 ;
+ return strcoll ( s1 , s2 ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | const s1 = * ( const char * const * const ) a
+30064771073 | CALL | * ( const char * const * const ) a
+30064771074 | CALL | ( const char * const * const ) a
+30064771075 | CALL | const s2 = * ( const char * const * const ) b
+30064771076 | CALL | * ( const char * const * const ) b
+30064771077 | CALL | ( const char * const * const ) b
+30064771078 | CALL | s1 == s2
+30064771079 | CALL | s1 == NULL
+30064771080 | CALL | s2 == NULL
+30064771081 | CALL | - 1
+30064771082 | CALL | strcoll ( s1 , s2 )
+47244640256 | CONTROL_STRUCTURE | if ( s1 == s2 ) return 0 ;
+47244640257 | CONTROL_STRUCTURE | if ( s1 == NULL ) return 1 ;
+47244640258 | CONTROL_STRUCTURE | if ( s2 == NULL ) return - 1 ;
+68719476736 | IDENTIFIER | s1
+68719476737 | IDENTIFIER | a
+68719476738 | IDENTIFIER | s2
+68719476739 | IDENTIFIER | b
+68719476740 | IDENTIFIER | s1
+68719476741 | IDENTIFIER | s2
+68719476742 | IDENTIFIER | s1
+68719476743 | IDENTIFIER | <unknown> NULL
+68719476744 | IDENTIFIER | s2
+68719476745 | IDENTIFIER | <unknown> NULL
+68719476746 | IDENTIFIER | s1
+68719476747 | IDENTIFIER | s2
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 1
+90194313218 | LITERAL | 1
+94489280512 | LOCAL | const char * const s1
+94489280513 | LOCAL | const char * const s2
+94489280514 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static int collated_compare ( const void * a , const void * b ) {
+ const char * const s1 = * ( const char * const * const ) a ;
+ const char * const s2 = * ( const char * const * const ) b ;
+ if ( s1 == s2 ) return 0 ;
+ if ( s1 == NULL ) return 1 ;
+ if ( s2 == NULL ) return - 1 ;
+ return strcoll ( s1 , s2 ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | const void * a
+111669149697 | METHOD_PARAMETER_IN | const void * b
+115964116992 | METHOD_PARAMETER_OUT | const void * a
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476739 [POST_DOMINATE]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 90194313216 [CDG]
+30064771078 -> 68719476742 [CDG]
+30064771078 -> 68719476743 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 90194313216 [CFG]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 90194313216 [DOMINATE]
+30064771078 -> 68719476742 [DOMINATE]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 90194313217 [CDG]
+30064771079 -> 68719476745 [CDG]
+30064771079 -> 68719476744 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 90194313217 [CFG]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 90194313217 [DOMINATE]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 68719476743 [POST_DOMINATE]
+30064771080 -> 68719476744 [ARGUMENT]
+30064771080 -> 68719476745 [ARGUMENT]
+30064771080 -> 68719476744 [AST]
+30064771080 -> 68719476745 [AST]
+30064771080 -> 90194313218 [CDG]
+30064771080 -> 68719476747 [CDG]
+30064771080 -> 68719476746 [CDG]
+30064771080 -> 30064771082 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int compare_tile_buffers ( const void * a , const void * b ) {
+ const TileBuffer * const buf1 = ( const TileBuffer * ) a ;
+ const TileBuffer * const buf2 = ( const TileBuffer * ) b ;
+ if ( buf1 -> size < buf2 -> size ) {
+ return 1 ;
+ }
+ else if ( buf1 -> size == buf2 -> size ) {
+ return 0 ;
+ }
+ else {
+ return - 1 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,339 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int wav_write_trailer(AVFormatContext *s)
+
+{
+
+    AVIOContext *pb  = s->pb;
+
+    WAVMuxContext    *wav = s->priv_data;
+
+    int64_t file_size, data_size;
+
+    int64_t number_of_samples = 0;
+
+    int rf64 = 0;
+
+
+
+    avio_flush(pb);
+
+
+
+    if (s->pb->seekable) {
+
+        if (wav->write_peak != 2) {
+
+            ff_end_tag(pb, wav->data);
+
+            avio_flush(pb);
+
+        }
+
+
+
+        if (wav->write_peak && wav->peak_output) {
+
+            peak_write_chunk(s);
+
+            avio_flush(pb);
+
+        }
+
+
+
+        /* update file size */
+
+        file_size = avio_tell(pb);
+
+        data_size = file_size - wav->data;
+
+        if (wav->rf64 == RF64_ALWAYS || (wav->rf64 == RF64_AUTO && file_size - 8 > UINT32_MAX)) {
+
+            rf64 = 1;
+
+        } else {
+
+            avio_seek(pb, 4, SEEK_SET);
+
+            avio_wl32(pb, (uint32_t)(file_size - 8));
+
+            avio_seek(pb, file_size, SEEK_SET);
+
+
+
+            avio_flush(pb);
+
+        }
+
+
+
+        number_of_samples = av_rescale(wav->maxpts - wav->minpts + wav->last_duration,
+
+                                       s->streams[0]->codec->sample_rate * (int64_t)s->streams[0]->time_base.num,
+
+                                       s->streams[0]->time_base.den);
+
+
+
+        if(s->streams[0]->codec->codec_tag != 0x01) {
+
+            /* Update num_samps in fact chunk */
+
+            avio_seek(pb, wav->fact_pos, SEEK_SET);
+
+            if (rf64 || (wav->rf64 == RF64_AUTO && number_of_samples > UINT32_MAX)) {
+
+                rf64 = 1;
+
+                avio_wl32(pb, -1);
+
+            } else {
+
+                avio_wl32(pb, number_of_samples);
+
+                avio_seek(pb, file_size, SEEK_SET);
+
+                avio_flush(pb);
+
+            }
+
+        }
+
+
+
+        if (rf64) {
+
+            /* overwrite RIFF with RF64 */
+
+            avio_seek(pb, 0, SEEK_SET);
+
+            ffio_wfourcc(pb, "RF64");
+
+            avio_wl32(pb, -1);
+
+
+
+            /* write ds64 chunk (overwrite JUNK if rf64 == RF64_AUTO) */
+
+            avio_seek(pb, wav->ds64 - 8, SEEK_SET);
+
+            ffio_wfourcc(pb, "ds64");
+
+            avio_wl32(pb, 28);                  /* ds64 chunk size */
+
+            avio_wl64(pb, file_size - 8);       /* RF64 chunk size */
+
+            avio_wl64(pb, data_size);           /* data chunk size */
+
+            avio_wl64(pb, number_of_samples);   /* fact chunk number of samples */
+
+            avio_wl32(pb, 0);                   /* number of table entries for non-'data' chunks */
+
+
+
+            /* write -1 in data chunk size */
+
+            avio_seek(pb, wav->data - 4, SEEK_SET);
+
+            avio_wl32(pb, -1);
+
+
+
+            avio_seek(pb, file_size, SEEK_SET);
+
+            avio_flush(pb);
+
+        }
+
+    }
+
+
+
+    if (wav->write_peak)
+
+        peak_free_buffers(s);
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+38 -> 41 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 57 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+79 -> 82 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+66 -> 78 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+88 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int wav_write_header(AVFormatContext *s)
+
+{
+
+    WAVContext *wav = s->priv_data;
+
+    AVIOContext *pb = s->pb;
+
+    int64_t fmt, fact;
+
+
+
+    ffio_wfourcc(pb, "RIFF");
+
+    avio_wl32(pb, 0); /* file length */
+
+    ffio_wfourcc(pb, "WAVE");
+
+
+
+    /* format header */
+
+    fmt = ff_start_tag(pb, "fmt ");
+
+    if (ff_put_wav_header(pb, s->streams[0]->codec) < 0) {
+
+        av_log(s, AV_LOG_ERROR, "%s codec not supported in WAVE format\n",
+
+               s->streams[0]->codec->codec ? s->streams[0]->codec->codec->name : "NONE");
+
+        av_free(wav);
+
+        return -1;
+
+    }
+
+    ff_end_tag(pb, fmt);
+
+
+
+    if (s->streams[0]->codec->codec_tag != 0x01 /* hence for all other than PCM */
+
+        && s->pb->seekable) {
+
+        fact = ff_start_tag(pb, "fact");
+
+        avio_wl32(pb, 0);
+
+        ff_end_tag(pb, fact);
+
+    }
+
+
+
+    av_set_pts_info(s->streams[0], 64, 1, s->streams[0]->codec->sample_rate);
+
+    wav->maxpts = wav->last_duration = 0;
+
+    wav->minpts = INT64_MAX;
+
+
+
+    /* data header */
+
+    wav->data = ff_start_tag(pb, "data");
+
+
+
+    avio_flush(pb);
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

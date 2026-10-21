@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _check_database_version ( ArchiveHandle * AH ) {
+ const char * remoteversion_str ;
+ int remoteversion ;
+ PGresult * res ;
+ remoteversion_str = PQparameterStatus ( AH -> connection , "server_version" ) ;
+ remoteversion = PQserverVersion ( AH -> connection ) ;
+ if ( remoteversion == 0 || ! remoteversion_str ) exit_horribly ( modulename , "could not get server_version from libpq\n" ) ;
+ AH -> public . remoteVersionStr = pg_strdup ( remoteversion_str ) ;
+ AH -> public . remoteVersion = remoteversion ;
+ if ( ! AH -> archiveRemoteVersion ) AH -> archiveRemoteVersion = AH -> public . remoteVersionStr ;
+ if ( remoteversion != PG_VERSION_NUM && ( remoteversion < AH -> public . minRemoteVersion || remoteversion > AH -> public . maxRemoteVersion ) ) {
+ write_msg ( NULL , "server version: %s;
+ %s version: %s\n" , remoteversion_str , progname , PG_VERSION ) ;
+ exit_horribly ( NULL , "aborting because of server version mismatch\n" ) ;
+ }
+ if ( remoteversion >= 90000 ) {
+ res = ExecuteSqlQueryForSingleRow ( ( Archive * ) AH , "SELECT pg_catalog.pg_is_in_recovery()" ) ;
+ AH -> public . isStandby = ( strcmp ( PQgetvalue ( res , 0 , 0 ) , "t" ) == 0 ) ;
+ PQclear ( res ) ;
+ }
+ else AH -> public . isStandby = false ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * remoteversion_str ;
+ int remoteversion ;
+ PGresult * res ;
+ remoteversion_str = PQparameterStatus ( AH -> connection , "server_version" ) ;
+ remoteversion = PQserverVersion ( AH -> connection ) ;
+ if ( remoteversion == 0 || ! remoteversion_str ) exit_horribly ( modulename , "could not get server_version from libpq\n" ) ;
+ AH -> public . remoteVersionStr = pg_strdup ( remoteversion_str ) ;
+ AH -> public . remoteVersion = remoteversion ;
+ if ( ! AH -> archiveRemoteVersion ) AH -> archiveRemoteVersion = AH -> public . remoteVersionStr ;
+ if ( remoteversion != PG_VERSION_NUM && ( remoteversion < AH -> public . minRemoteVersion || remoteversion > AH -> public . maxRemoteVersion ) ) {
+ write_msg ( NULL , "server version: %s;
+ %s version: %s\n" , remoteversion_str , progname , PG_VERSION ) ;
+ exit_horribly ( NULL , "aborting because of server version mismatch\n" ) ;
+ }
+ if ( remoteversion >= 90000 ) {
+ res = ExecuteSqlQueryForSingleRow ( ( Archive * ) AH , "SELECT pg_catalo...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ write_msg ( NULL , "server version: %s;
+ %s version: %s\n" , remoteversion_str , progname , PG_VERSION ) ;
+ exit_horribly ( NULL , "aborting because of server version mismatch\n" ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ res = ExecuteSqlQueryForSingleRow ( ( Archive * ) AH , "SELECT pg_catalog.pg_is_in_recovery()" ) ;
+ AH -> public . isStandby = ( strcmp ( PQgetvalue ( res , 0 , 0 ) , "t" ) == 0 ) ;
+ PQclear ( res ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | 
+        remoteversion_str = PQparameterStatus ( AH -> connection , "server_version" )
+      
+30064771073 | CALL | PQparameterStatus ( AH -> connection , "server_version" )
+30064771074 | CALL | AH -> connection
+30064771075 | CALL | remoteversion = PQserverVersion ( AH -> connection )
+30064771076 | CALL | PQserverVersion ( AH -> connection )
+30064771077 | CALL | AH -> connection
+30064771078 | CALL | remoteversion == 0 || ! remoteversion_str
+30064771079 | CALL | remoteversion == 0
+30064771080 | CALL | ! remoteversion_str
+30064771081 | CALL | 
+        exit_horribly ( modulename , "could not get server_version from libpq\n" )
+      
+30064771082 | CALL | AH -> public . remoteVersionStr = pg_strdup ( remoteversion_str )
+30064771083 | CALL | AH -> public . remoteVersionStr
+30064771084 | CALL | AH -> public
+30064771085 | CALL | pg_strdup ( remoteversion_str )
+30064771086 | CALL | AH -> public . remoteVersion = remoteversion
+30064771087 | CALL | AH -> public . remoteVersion
+30064771088 | CALL | AH -> public
+30064771089 | CALL | ! AH -> archiveRemoteVersion
+30064771090 | CALL | AH -> archiveRemoteVersion
+30064771091 | CALL | AH -> archiveRemoteVersion = AH -> public . remoteVersionStr
+30064771092 | CALL | AH -> archiveRemoteVersion
+30064771093 | CALL | AH -> public . remoteVersionStr
+30064771094 | CALL | AH -> public
+30064771095 | CALL | 
+        remoteversion != PG_VERSION_NUM && ( remoteversion < AH -> public . minRemoteVersion || remoteversion > AH -> public . maxRemoteVersion )
+      
+30064771096 | CALL | remoteversion != PG_VERSION_NUM
+30064771097 | CALL | 
+        remoteversion < AH -> public . minRemoteVersion || remoteversion > AH -> public . maxRemoteVersion
+      
+30064771098 | CALL | remoteversion < AH -> public . minRemoteVersion
+30064771099 | CALL | AH -> public . minRemoteVersion
+30064771100 | CALL | AH -> public
+30064771101 | CALL | remoteversion > AH -> public . maxRemoteVersion
+30064771102 | CALL | AH -> public . maxRemoteVersion
+30064771103 | CALL | AH -> public
+30064771104 | CALL | remoteversion >= 90000
+30064771105 | CALL | 
+        res = ExecuteSqlQueryForSingleRow ( ( Archive * ) AH , "SELECT pg_catalog.pg_is_in_recovery()" )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803777 -> 30064771081 [AST]
+25769803778 -> 30064771091 [AST]
+25769803780 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771093 [REACHING_DEF]
+30064771083 -> 30064771103 [REACHING_DEF]
+30064771083 -> 30064771088 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771100 [REACHING_DEF]
+30064771083 -> 30064771094 [REACHING_DEF]
+30064771085 -> 30064771082 [CFG]
+30064771085 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

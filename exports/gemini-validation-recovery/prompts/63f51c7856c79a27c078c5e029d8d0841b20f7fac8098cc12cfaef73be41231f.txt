@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rate_control ( AVCodecContext * avctx , void * arg ) {
+ SliceArgs * slice_dat = arg ;
+ VC2EncContext * s = slice_dat -> ctx ;
+ const int top = slice_dat -> bits_ceil ;
+ const int bottom = slice_dat -> bits_floor ;
+ int quant_buf [ 2 ] = {
+ - 1 , - 1 }
+ ;
+ int quant = slice_dat -> quant_idx , step = 1 ;
+ int bits_last , bits = count_hq_slice ( slice_dat , quant ) ;
+ while ( ( bits > top ) || ( bits < bottom ) ) {
+ const int signed_step = bits > top ? + step : - step ;
+ quant = av_clip ( quant + signed_step , 0 , s -> q_ceil - 1 ) ;
+ bits = count_hq_slice ( slice_dat , quant ) ;
+ if ( quant_buf [ 1 ] == quant ) {
+ quant = FFMAX ( quant_buf [ 0 ] , quant ) ;
+ bits = quant == quant_buf [ 0 ] ? bits_last : bits ;
+ break ;
+ }
+ step = av_clip ( step / 2 , 1 , ( s -> q_ceil - 1 ) / 2 ) ;
+ quant_buf [ 1 ] = quant_buf [ 0 ] ;
+ quant_buf [ 0 ] = quant ;
+ bits_last = bits ;
+ }
+ slice_dat -> quant_idx = av_clip ( quant , 0 , s -> q_ceil - 1 ) ;
+ slice_dat -> bytes = SSIZE_ROUND ( bits >> 3 ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ SliceArgs * slice_dat = arg ;
+ VC2EncContext * s = slice_dat -> ctx ;
+ const int top = slice_dat -> bits_ceil ;
+ const int bottom = slice_dat -> bits_floor ;
+ int quant_buf [ 2 ] = {
+ - 1 , - 1 }
+ ;
+ int quant = slice_dat -> quant_idx , step = 1 ;
+ int bits_last , bits = count_hq_slice ( slice_dat , quant ) ;
+ while ( ( bits > top ) || ( bits < bottom ) ) {
+ const int signed_step = bits > top ? + step : - step ;
+ quant = av_clip ( quant + signed_step , 0 , s -> q_ceil - 1 ) ;
+ bits = count_hq_slice ( slice_dat , quant ) ;
+ if ( quant_buf [ 1 ] == quant ) {
+ quant = FFMAX ( quant_buf [ 0 ] , quant ) ;
+ bits = quant == quant_buf [ 0 ] ? bits_last : bits ;
+ break ;
+ }
+ step = av_clip ( step / 2 , 1 , ( s -> q_ceil - 1 ) / 2 ) ;
+ quant_buf [ 1 ] = quant_buf [ 0 ] ;
+ quant_buf [ 0 ] = quant ;
+ bits_last = bits ;
+ }
+ slice_dat -> quant_idx = av_clip ( quant , 0 , s -> q_ceil - 1 ) ;
+ slice_dat -> bytes = SSIZE_ROUND ( bits >> 3 ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ const int signed_step = bits > top ? + step : - step ;
+ quant = av_clip ( quant + signed_step , 0 , s -> q_ceil - 1 ) ;
+ bits = count_hq_slice ( slice_dat , quant ) ;
+ if ( quant_buf [ 1 ] == quant ) {
+ quant = FFMAX ( quant_buf [ 0 ] , quant ) ;
+ bits = quant == quant_buf [ 0 ] ? bits_last : bits ;
+ break ;
+ }
+ step = av_clip ( step / 2 , 1 , ( s -> q_ceil - 1 ) / 2 ) ;
+ quant_buf [ 1 ] = quant_buf [ 0 ] ;
+ quant_buf [ 0 ] = quant ;
+ bits_last = bits ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ quant = FFMAX ( quant_buf [ 0 ] , quant ) ;
+ bits = quant == quant_buf [ 0 ] ? bits_last : bits ;
+ break ;
+ }
+      
+30064771072 | CALL | slice_dat = arg
+30064771073 | CALL | s = slice_dat -> ctx
+30064771074 | CALL | slice_dat -> ctx
+30064771075 | CALL | top = slice_dat -> bits_ceil
+30064771076 | CALL | slice_dat -> bits_ceil
+30064771077 | CALL | bottom = slice_dat -> bits_floor
+30064771078 | CALL | slice_dat -> bits_floor
+30064771079 | CALL | quant_buf [ 2 ] = { - 1 , - 1 }
+30064771080 | CALL | quant_buf [ 2 ] = { - 1 , - 1 }
+30064771081 | CALL | quant_buf [ 2 ] = { - 1 , - 1 }
+30064771082 | CALL | { - 1 , - 1 }
+30064771083 | CALL | - 1
+30064771084 | CALL | - 1
+30064771085 | CALL | quant = slice_dat -> quant_idx
+30064771086 | CALL | slice_dat -> quant_idx
+30064771087 | CALL | step = 1
+30064771088 | CALL | bits = count_hq_slice ( slice_dat , quant )
+30064771089 | CALL | count_hq_slice ( slice_dat , quant )
+30064771090 | CALL | ( bits > top ) || ( bits < bottom )
+30064771091 | CALL | bits > top
+30064771092 | CALL | bits < bottom
+30064771093 | CALL | signed_step = bits > top ? + step : - step
+30064771094 | CALL | bits > top ? + step : - step
+30064771095 | CALL | bits > top
+30064771096 | CALL | + step
+30064771097 | CALL | - step
+30064771098 | CALL | quant = av_clip ( quant + signed_step , 0 , s -> q_ceil - 1 )
+30064771099 | CALL | av_clip ( quant + signed_step , 0 , s -> q_ceil - 1 )
+30064771100 | CALL | quant + signed_step
+30064771101 | CALL | s -> q_ceil - 1
+30064771102 | CALL | s -> q_ceil
+30064771103 | CALL | bits = count_hq_slice ( slice_dat , quant )
+30064771104 | CALL | count_hq_slice ( slice_dat , quant )
+30064771105 | CALL | quant_buf [ 1 ] == quant
+30064771106 | CALL | quant_buf [ 1 ]
+30064771107 | CALL | quant = FFMAX ( quant_buf [ 0 ] , quant )
+30064771108 | CALL | FFMAX ( quant_buf [ 0 ] , quant )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771098 [AST]
+25769803777 -> 30064771103 [AST]
+25769803778 -> 30064771107 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771092 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771092 [AST]
+30064771090 -> 30064771095 [CDG]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771093 [CDG]
+30064771090 -> 30064771103 [CDG]
+30064771090 -> 30064771102 [CDG]
+30064771090 -> 30064771101 [CDG]
+30064771090 -> 30064771100 [CDG]
+30064771090 -> 30064771099 [CDG]
+30064771090 -> 30064771098 [CDG]
+30064771090 -> 30064771106 [CDG]
+30064771090 -> 30064771105 [CDG]
+30064771090 -> 30064771104 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int calc_slice_sizes ( VC2EncContext * s ) {
+ int i , j , slice_x , slice_y , byt
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

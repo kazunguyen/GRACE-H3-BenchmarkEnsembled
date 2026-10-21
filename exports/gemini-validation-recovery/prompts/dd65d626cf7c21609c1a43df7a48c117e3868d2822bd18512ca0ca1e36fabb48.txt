@@ -1,0 +1,238 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void gen_op_evabs(TCGv_i32 ret, TCGv_i32 arg1)
+
+{
+
+    int l1 = gen_new_label();
+
+    int l2 = gen_new_label();
+
+
+
+    tcg_gen_brcondi_i32(TCG_COND_GE, arg1, 0, l1);
+
+    tcg_gen_neg_i32(ret, arg1);
+
+    tcg_gen_br(l2);
+
+    gen_set_label(l1);
+
+    tcg_gen_mov_i32(ret, arg1);
+
+    gen_set_label(l2);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int l1 = gen_new_label();
+
+    int l2 = gen_new_label();
+
+
+
+    tcg_gen_brcondi_i32(TCG_COND_GE, arg1, 0, l1);
+
+    tcg_gen_neg_i32(ret, arg1);
+
+    tcg_gen_br(l2);
+
+    gen_set_label(l1);
+
+    tcg_gen_mov_i32(ret, arg1);
+
+    gen_set_label(l2);
+
+}
+      
+30064771072 | CALL | l1 = gen_new_label()
+30064771073 | CALL | gen_new_label()
+30064771074 | CALL | l2 = gen_new_label()
+30064771075 | CALL | gen_new_label()
+30064771076 | CALL | tcg_gen_brcondi_i32(TCG_COND_GE, arg1, 0, l1)
+30064771077 | CALL | tcg_gen_neg_i32(ret, arg1)
+30064771078 | CALL | tcg_gen_br(l2)
+30064771079 | CALL | gen_set_label(l1)
+30064771080 | CALL | tcg_gen_mov_i32(ret, arg1)
+30064771081 | CALL | gen_set_label(l2)
+68719476736 | IDENTIFIER | l1
+68719476737 | IDENTIFIER | l2
+68719476738 | IDENTIFIER | <unknown> TCG_COND_GE
+68719476739 | IDENTIFIER | arg1
+68719476740 | IDENTIFIER | l1
+68719476741 | IDENTIFIER | ret
+68719476742 | IDENTIFIER | arg1
+68719476743 | IDENTIFIER | l2
+68719476744 | IDENTIFIER | l1
+68719476745 | IDENTIFIER | ret
+68719476746 | IDENTIFIER | arg1
+68719476747 | IDENTIFIER | l2
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | int l1
+94489280513 | LOCAL | int l2
+94489280514 | LOCAL | <unknown> TCG_COND_GE
+107374182400 | METHOD | 
+        static inline void gen_op_evabs(TCGv_i32 ret, TCGv_i32 arg1)
+
+{
+
+    int l1 = gen_new_label();
+
+    int l2 = gen_new_label();
+
+
+
+    tcg_gen_brcondi_i32(TCG_COND_GE, arg1, 0, l1);
+
+    tcg_gen_neg_i32(ret, arg1);
+
+    tcg_gen_br(l2);
+
+    gen_set_label(l1);
+
+    tcg_gen_mov_i32(ret, arg1);
+
+    gen_set_label(l2);
+
+}
+      
+111669149696 | METHOD_PARAMETER_IN | TCGv_i32 ret
+111669149697 | METHOD_PARAMETER_IN | TCGv_i32 arg1
+115964116992 | METHOD_PARAMETER_OUT | TCGv_i32 ret
+115964116993 | METHOD_PARAMETER_OUT | TCGv_i32 arg1
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [CFG]
+30064771078 -> 68719476744 [DOMINATE]
+30064771078 -> 68719476743 [POST_DOMINATE]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 68719476744 [AST]
+30064771079 -> 68719476745 [CFG]
+30064771079 -> 68719476745 [DOMINATE]
+30064771079 -> 68719476744 [POST_DOMINATE]
+30064771079 -> 124554051584 [REACHING_DEF]
+30064771080 -> 68719476745 [ARGUMENT]
+30064771080 -> 68719476746 [ARGUMENT]
+30064771080 -> 68719476745 [AST]
+30064771080 -> 68719476746 [AST]
+30064771080 -> 68719476747 [CFG]
+30064771080 -> 68719476747 [DOMINATE]
+30064771080 -> 68719476746 [POST_DOMINATE]
+30064771080 -> 124554051584 [REACHING_DEF]
+30064771081 -> 68719476747 [ARGUMENT]
+30064771081 -> 68719476747 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline void gen_op_evsrws(TCGv_i32 ret, TCGv_i32 arg1, TCGv_i32 arg2)
+
+{
+
+    TCGv_i32 t0;
+
+    int l1, l2;
+
+
+
+    l1 = gen_new_label();
+
+    l2 = gen_new_label();
+
+    t0 = tcg_temp_local_new_i32();
+
+    /* No error here: 6 bits are used */
+
+    tcg_gen_andi_i32(t0, arg2, 0x3F);
+
+    tcg_gen_brcondi_i32(TCG_COND_GE, t0, 32, l1);
+
+    tcg_gen_sar_i32(ret, arg1, t0);
+
+    tcg_gen_br(l2);
+
+    gen_set_label(l1);
+
+    tcg_gen_movi_i32(ret, 0);
+
+    gen_set_label(l2);
+
+    tcg_temp_free_i32(t0);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

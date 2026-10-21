@@ -1,0 +1,352 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int colo_do_checkpoint_transaction(MigrationState *s,
+
+                                          QIOChannelBuffer *bioc,
+
+                                          QEMUFile *fb)
+
+{
+
+    Error *local_err = NULL;
+
+    int ret = -1;
+
+
+
+    colo_send_message(s->to_dst_file, COLO_MESSAGE_CHECKPOINT_REQUEST,
+
+                      &local_err);
+
+    if (local_err) {
+
+
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                    COLO_MESSAGE_CHECKPOINT_REPLY, &local_err);
+
+    if (local_err) {
+
+
+
+    /* Reset channel-buffer directly */
+
+    qio_channel_io_seek(QIO_CHANNEL(bioc), 0, 0, NULL);
+
+    bioc->usage = 0;
+
+
+
+    qemu_mutex_lock_iothread();
+
+
+
+
+
+    vm_stop_force_state(RUN_STATE_COLO);
+
+
+    trace_colo_vm_state_change("run", "stop");
+
+
+
+
+
+
+
+
+
+
+    /* Disable block migration */
+
+    s->params.blk = 0;
+
+    s->params.shared = 0;
+
+    qemu_savevm_state_header(fb);
+
+    qemu_savevm_state_begin(fb, &s->params);
+
+    qemu_mutex_lock_iothread();
+
+    qemu_savevm_state_complete_precopy(fb, false);
+
+
+
+
+    qemu_fflush(fb);
+
+
+
+    colo_send_message(s->to_dst_file, COLO_MESSAGE_VMSTATE_SEND, &local_err);
+
+    if (local_err) {
+
+
+
+
+     * We need the size of the VMstate data in Secondary side,
+
+     * With which we can decide how much data should be read.
+
+
+    colo_send_message_value(s->to_dst_file, COLO_MESSAGE_VMSTATE_SIZE,
+
+                            bioc->usage, &local_err);
+
+    if (local_err) {
+
+
+
+
+
+    qemu_put_buffer(s->to_dst_file, bioc->data, bioc->usage);
+
+    qemu_fflush(s->to_dst_file);
+
+    ret = qemu_file_get_error(s->to_dst_file);
+
+    if (ret < 0) {
+
+
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                       COLO_MESSAGE_VMSTATE_RECEIVED, &local_err);
+
+    if (local_err) {
+
+
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                       COLO_MESSAGE_VMSTATE_LOADED, &local_err);
+
+    if (local_err) {
+
+
+
+
+
+    ret = 0;
+
+
+
+    qemu_mutex_lock_iothread();
+
+    vm_start();
+
+
+    trace_colo_vm_state_change("stop", "run");
+
+
+
+out:
+
+    if (local_err) {
+
+        error_report_err(local_err);
+
+
+    return ret;
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+25 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+25 -> 32 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 36 [IS_AST_PARENT]
+3 -> 37 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+38 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+38 -> 45 [IS_AST_PARENT]
+3 -> 38 [IS_AST_PARENT]
+48 -> 39 [FLOWS_TO]
+39 -> 42 [FLOWS_TO]
+42 -> 45 [FLOWS_TO]
+45 -> 5 [FLOWS_TO]
+5 -> 12 [FLOWS_TO]
+12 -> 21 [FLOWS_TO]
+21 -> 49 [FLOWS_TO]
+12 -> 50 [DEF]
+13 -> 50 [DEF]
+16 -> 50 [DEF]
+39 -> 51 [DEF]
+21 -> 51 [USE]
+27 -> 51 [USE]
+5 -> 52 [USE]
+9 -> 52 [USE]
+5 -> 52 [DEF]
+9 -> 52 [DEF]
+42 -> 53 [DEF]
+21 -> 54 [USE]
+26 -> 54 [USE]
+21 -> 55 [USE]
+32 -> 55 [USE]
+45 -> 56 [DEF]
+21 -> 57 [USE]
+30 -> 57 [USE]
+21 -> 58 [USE]
+26 -> 58 [USE]
+5 -> 59 [DEF]
+6 -> 59 [DEF]
+39 -> 21 [REACHES]
+48 -> 39 [CONTROLS]
+48 -> 42 [CONTROLS]
+48 -> 45 [CONTROLS]
+48 -> 5 [CONTROLS]
+48 -> 12 [CONTROLS]
+48 -> 21 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int colo_do_checkpoint_transaction(MigrationState *s)
+
+{
+
+    Error *local_err = NULL;
+
+
+
+    colo_send_message(s->to_dst_file, COLO_MESSAGE_CHECKPOINT_REQUEST,
+
+                      &local_err);
+
+    if (local_err) {
+
+        goto out;
+
+    }
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                    COLO_MESSAGE_CHECKPOINT_REPLY, &local_err);
+
+    if (local_err) {
+
+        goto out;
+
+    }
+
+
+
+    /* TODO: suspend and save vm state to colo buffer */
+
+
+
+    colo_send_message(s->to_dst_file, COLO_MESSAGE_VMSTATE_SEND, &local_err);
+
+    if (local_err) {
+
+        goto out;
+
+    }
+
+
+
+    /* TODO: send vmstate to Secondary */
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                       COLO_MESSAGE_VMSTATE_RECEIVED, &local_err);
+
+    if (local_err) {
+
+        goto out;
+
+    }
+
+
+
+    colo_receive_check_message(s->rp_state.from_dst_file,
+
+                       COLO_MESSAGE_VMSTATE_LOADED, &local_err);
+
+    if (local_err) {
+
+        goto out;
+
+    }
+
+
+
+    /* TODO: resume Primary */
+
+
+
+    return 0;
+
+out:
+
+    if (local_err) {
+
+        error_report_err(local_err);
+
+    }
+
+    return -EINVAL;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

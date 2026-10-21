@@ -1,0 +1,320 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mpc8_read_header(AVFormatContext *s)
+
+{
+
+    MPCContext *c = s->priv_data;
+
+    AVIOContext *pb = s->pb;
+
+    AVStream *st;
+
+    int tag = 0;
+
+    int64_t size, pos;
+
+
+
+    c->header_pos = avio_tell(pb);
+
+    if(avio_rl32(pb) != TAG_MPCK){
+
+        av_log(s, AV_LOG_ERROR, "Not a Musepack8 file\n");
+
+
+
+
+
+    while(!avio_feof(pb)){
+
+        pos = avio_tell(pb);
+
+        mpc8_get_chunk_header(pb, &tag, &size);
+
+
+
+
+
+        if(tag == TAG_STREAMHDR)
+
+            break;
+
+        mpc8_handle_chunk(s, tag, pos, size);
+
+
+    if(tag != TAG_STREAMHDR){
+
+        av_log(s, AV_LOG_ERROR, "Stream header not found\n");
+
+
+
+    pos = avio_tell(pb);
+
+    avio_skip(pb, 4); //CRC
+
+    c->ver = avio_r8(pb);
+
+    if(c->ver != 8){
+
+        av_log(s, AV_LOG_ERROR, "Unknown stream version %d\n", c->ver);
+
+        return AVERROR_PATCHWELCOME;
+
+
+    c->samples = ffio_read_varlen(pb);
+
+    ffio_read_varlen(pb); //silence samples at the beginning
+
+
+
+    st = avformat_new_stream(s, NULL);
+
+    if (!st)
+
+        return AVERROR(ENOMEM);
+
+    st->codec->codec_type = AVMEDIA_TYPE_AUDIO;
+
+    st->codec->codec_id = AV_CODEC_ID_MUSEPACK8;
+
+    st->codec->bits_per_coded_sample = 16;
+
+
+
+    if (ff_get_extradata(st->codec, pb, 2) < 0)
+
+        return AVERROR(ENOMEM);
+
+
+
+    st->codec->channels = (st->codec->extradata[1] >> 4) + 1;
+
+    st->codec->sample_rate = mpc8_rate[st->codec->extradata[0] >> 5];
+
+    avpriv_set_pts_info(st, 32, 1152  << (st->codec->extradata[1]&3)*2, st->codec->sample_rate);
+
+    st->start_time = 0;
+
+    st->duration = c->samples / (1152 << (st->codec->extradata[1]&3)*2);
+
+    size -= avio_tell(pb) - pos;
+
+    if (size > 0)
+
+        avio_skip(pb, size);
+
+
+
+    if (pb->seekable) {
+
+        int64_t pos = avio_tell(s->pb);
+
+        c->apetag_start = ff_ape_parse_tag(s);
+
+        avio_seek(s->pb, pos, SEEK_SET);
+
+
+
+
+    return 0;
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+34 -> 38 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+42 -> 46 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 52 [IS_AST_PARENT]
+3 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+3 -> 54 [IS_AST_PARENT]
+58 -> 55 [FLOWS_TO]
+55 -> 5 [FLOWS_TO]
+5 -> 14 [FLOWS_TO]
+14 -> 23 [FLOWS_TO]
+23 -> 27 [FLOWS_TO]
+27 -> 34 [FLOWS_TO]
+34 -> 41 [FLOWS_TO]
+41 -> 59 [FLOWS_TO]
+5 -> 60 [USE]
+9 -> 60 [USE]
+23 -> 61 [DEF]
+24 -> 61 [DEF]
+5 -> 62 [DEF]
+9 -> 62 [DEF]
+6 -> 62 [DEF]
+41 -> 62 [USE]
+43 -> 62 [USE]
+14 -> 63 [USE]
+18 -> 63 [USE]
+41 -> 64 [DEF]
+42 -> 64 [DEF]
+41 -> 65 [DEF]
+42 -> 65 [DEF]
+14 -> 66 [DEF]
+15 -> 66 [DEF]
+18 -> 66 [DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int au_read_header(AVFormatContext *s)
+
+{
+
+    int size;
+
+    unsigned int tag;
+
+    AVIOContext *pb = s->pb;
+
+    unsigned int id, channels, rate;
+
+    enum AVCodecID codec;
+
+    AVStream *st;
+
+
+
+    /* check ".snd" header */
+
+    tag = avio_rl32(pb);
+
+    if (tag != MKTAG('.', 's', 'n', 'd'))
+
+        return -1;
+
+    size = avio_rb32(pb); /* header size */
+
+    avio_rb32(pb); /* data size */
+
+
+
+    id = avio_rb32(pb);
+
+    rate = avio_rb32(pb);
+
+    channels = avio_rb32(pb);
+
+
+
+    codec = ff_codec_get_id(codec_au_tags, id);
+
+
+
+    if (!av_get_bits_per_sample(codec)) {
+
+        av_log_ask_for_sample(s, "could not determine bits per sample\n");
+
+        return AVERROR_PATCHWELCOME;
+
+    }
+
+
+
+    if (channels == 0 || channels > 64) {
+
+        av_log(s, AV_LOG_ERROR, "Invalid number of channels %d\n", channels);
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+
+
+    if (size >= 24) {
+
+        /* skip unused data */
+
+        avio_skip(pb, size - 24);
+
+    }
+
+
+
+    /* now we are ready: build format streams */
+
+    st = avformat_new_stream(s, NULL);
+
+    if (!st)
+
+        return -1;
+
+    st->codec->codec_type = AVMEDIA_TYPE_AUDIO;
+
+    st->codec->codec_tag = id;
+
+    st->codec->codec_id = codec;
+
+    st->codec->channels = channels;
+
+    st->codec->sample_rate = rate;
+
+    avpriv_set_pts_info(st, 64, 1, rate);
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

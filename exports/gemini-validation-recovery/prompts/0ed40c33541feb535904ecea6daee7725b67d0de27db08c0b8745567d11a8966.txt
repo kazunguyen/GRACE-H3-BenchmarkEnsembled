@@ -1,0 +1,233 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int fn_print ( netdissect_options * ndo , register const u_char * s , register const u_char * ep ) {
+ register int ret ;
+ register u_char c ;
+ ret = 1 ;
+ while ( ep == NULL || s < ep ) {
+ c = * s ++ ;
+ if ( c == '\0' ) {
+ ret = 0 ;
+ break ;
+ }
+ if ( ! ND_ISASCII ( c ) ) {
+ c = ND_TOASCII ( c ) ;
+ ND_PRINT ( ( ndo , "M-" ) ) ;
+ }
+ if ( ! ND_ISPRINT ( c ) ) {
+ c ^= 0x40 ;
+ ND_PRINT ( ( ndo , "^" ) ) ;
+ }
+ ND_PRINT ( ( ndo , "%c" , c ) ) ;
+ }
+ return ( ret ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ register int ret ;
+ register u_char c ;
+ ret = 1 ;
+ while ( ep == NULL || s < ep ) {
+ c = * s ++ ;
+ if ( c == '\0' ) {
+ ret = 0 ;
+ break ;
+ }
+ if ( ! ND_ISASCII ( c ) ) {
+ c = ND_TOASCII ( c ) ;
+ ND_PRINT ( ( ndo , "M-" ) ) ;
+ }
+ if ( ! ND_ISPRINT ( c ) ) {
+ c ^= 0x40 ;
+ ND_PRINT ( ( ndo , "^" ) ) ;
+ }
+ ND_PRINT ( ( ndo , "%c" , c ) ) ;
+ }
+ return ( ret ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ c = * s ++ ;
+ if ( c == '\0' ) {
+ ret = 0 ;
+ break ;
+ }
+ if ( ! ND_ISASCII ( c ) ) {
+ c = ND_TOASCII ( c ) ;
+ ND_PRINT ( ( ndo , "M-" ) ) ;
+ }
+ if ( ! ND_ISPRINT ( c ) ) {
+ c ^= 0x40 ;
+ ND_PRINT ( ( ndo , "^" ) ) ;
+ }
+ ND_PRINT ( ( ndo , "%c" , c ) ) ;
+ }
+      
+25769803778 | BLOCK | { ret = 0 ; break ; }
+25769803779 | BLOCK | { c = ND_TOASCII ( c ) ; ND_PRINT ( ( ndo , "M-" ) ) ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { c ^= 0x40 ; ND_PRINT ( ( ndo , "^" ) ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | ret = 1
+30064771073 | CALL | ep == NULL || s < ep
+30064771074 | CALL | ep == NULL
+30064771075 | CALL | s < ep
+30064771076 | CALL | c = * s ++
+30064771077 | CALL | * s ++
+30064771078 | CALL | s ++
+30064771079 | CALL | c == '\0'
+30064771080 | CALL | ret = 0
+30064771081 | CALL | ! ND_ISASCII ( c )
+30064771082 | CALL | ND_ISASCII ( c )
+30064771083 | CALL | c = ND_TOASCII ( c )
+30064771084 | CALL | ND_TOASCII ( c )
+30064771085 | CALL | ND_PRINT ( ( ndo , "M-" ) )
+30064771086 | CALL | ! ND_ISPRINT ( c )
+30064771087 | CALL | ND_ISPRINT ( c )
+30064771088 | CALL | c ^= 0x40
+30064771089 | CALL | ND_PRINT ( ( ndo , "^" ) )
+30064771090 | CALL | ND_PRINT ( ( ndo , "%c" , c ) )
+47244640256 | CONTROL_STRUCTURE | while (ep == NULL || s < ep)
+47244640257 | CONTROL_STRUCTURE | if ( c == '\0' ) { ret = 0 ; break ; }
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | 
+        if ( ! ND_ISASCII ( c ) ) {
+ c = ND_TOASCII ( c ) ;
+ ND_PRINT ( ( ndo , "M-" ) ) ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | 
+        if ( ! ND_ISPRINT ( c ) ) {
+ c ^= 0x40 ;
+ ND_PRINT ( ( ndo , "^" ) ) ;
+ }
+      
+68719476736 | IDENTIFIER | ret
+68719476737 | IDENTIFIER | ep
+68719476738 | IDENTIFIER | <unknown> NULL
+68719476739 | IDENTIFIER | s
+68719476740 | IDENTIFIER | ep
+68719476741 | IDENTIFIER | c
+68719476742 | IDENTIFIER | s
+68719476743 | IDENTIFIER | c
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640259 [AST]
+25769803777 -> 47244640260 [AST]
+25769803777 -> 30064771090 [AST]
+25769803778 -> 30064771080 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771085 [AST]
+25769803780 -> 30064771085 [CFG]
+25769803780 -> 30064771085 [DOMINATE]
+25769803780 -> 30064771085 [REACHING_DEF]
+25769803781 -> 30064771088 [AST]
+25769803781 -> 30064771089 [AST]
+25769803782 -> 30064771089 [CFG]
+25769803782 -> 30064771089 [DOMINATE]
+25769803782 -> 30064771089 [REACHING_DEF]
+25769803783 -> 30064771090 [CFG]
+25769803783 -> 30064771090 [DOMINATE]
+25769803783 -> 30064771090 [REACHING_DEF]
+25769803783 -> 30064771090 [REACHING_DEF]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 68719476743 [CDG]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476742 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int fn_printzp ( netdissect_options * ndo , register const u_char * s , register u_int n , register const u_char * ep ) {
+ register int ret ;
+ register u_char c ;
+ ret = 1 ;
+ while ( n > 0 && ( ep == NULL || s < ep ) ) {
+ n -- ;
+ c = * s ++ ;
+ if ( c == '\0' ) {
+ ret = 0 ;
+ break ;
+ }
+ if ( ! ND_ISASCII ( c ) ) {
+ c = ND_TOASCII ( c ) ;
+ ND_PRINT ( ( ndo , "M-" ) ) ;
+ }
+ if ( ! ND_ISPRINT ( c ) ) {
+ c ^= 0x40 ;
+ ND_PRINT ( ( ndo , "^" ) ) ;
+ }
+ ND_PRINT ( ( ndo , "%c" , c ) ) ;
+ }
+ return ( n == 0 ) ? 0 : ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

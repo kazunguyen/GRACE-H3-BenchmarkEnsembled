@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vga_draw_line8 ( VGACommonState * vga , uint8_t * d , uint32_t addr , int width ) {
+ uint32_t * palette ;
+ int x ;
+ palette = vga -> last_palette ;
+ width >>= 3 ;
+ for ( x = 0 ;
+ x < width ;
+ x ++ ) {
+ ( ( uint32_t * ) d ) [ 0 ] = palette [ vga_read_byte ( vga , addr + 0 ) ] ;
+ ( ( uint32_t * ) d ) [ 1 ] = palette [ vga_read_byte ( vga , addr + 1 ) ] ;
+ ( ( uint32_t * ) d ) [ 2 ] = palette [ vga_read_byte ( vga , addr + 2 ) ] ;
+ ( ( uint32_t * ) d ) [ 3 ] = palette [ vga_read_byte ( vga , addr + 3 ) ] ;
+ ( ( uint32_t * ) d ) [ 4 ] = palette [ vga_read_byte ( vga , addr + 4 ) ] ;
+ ( ( uint32_t * ) d ) [ 5 ] = palette [ vga_read_byte ( vga , addr + 5 ) ] ;
+ ( ( uint32_t * ) d ) [ 6 ] = palette [ vga_read_byte ( vga , addr + 6 ) ] ;
+ ( ( uint32_t * ) d ) [ 7 ] = palette [ vga_read_byte ( vga , addr + 7 ) ] ;
+ d += 32 ;
+ addr += 8 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t * palette ;
+ int x ;
+ palette = vga -> last_palette ;
+ width >>= 3 ;
+ for ( x = 0 ;
+ x < width ;
+ x ++ ) {
+ ( ( uint32_t * ) d ) [ 0 ] = palette [ vga_read_byte ( vga , addr + 0 ) ] ;
+ ( ( uint32_t * ) d ) [ 1 ] = palette [ vga_read_byte ( vga , addr + 1 ) ] ;
+ ( ( uint32_t * ) d ) [ 2 ] = palette [ vga_read_byte ( vga , addr + 2 ) ] ;
+ ( ( uint32_t * ) d ) [ 3 ] = palette [ vga_read_byte ( vga , addr + 3 ) ] ;
+ ( ( uint32_t * ) d ) [ 4 ] = palette [ vga_read_byte ( vga , addr + 4 ) ] ;
+ ( ( uint32_t * ) d ) [ 5 ] = palette [ vga_read_byte ( vga , addr + 5 ) ] ;
+ ( ( uint32_t * ) d ) [ 6 ] = palette [ vga_read_byte ( vga , addr + 6 ) ] ;
+ ( ( uint32_t * ) d ) [ 7 ] = palette [ vga_read_byte ( vga , addr + 7 ) ] ;
+ d += 32 ;
+ addr += 8 ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ( ( uint32_t * ) d ) [ 0 ] = palette [ vga_read_byte ( vga , addr + 0 ) ] ;
+ ( ( uint32_t * ) d ) [ 1 ] = palette [ vga_read_byte ( vga , addr + 1 ) ] ;
+ ( ( uint32_t * ) d ) [ 2 ] = palette [ vga_read_byte ( vga , addr + 2 ) ] ;
+ ( ( uint32_t * ) d ) [ 3 ] = palette [ vga_read_byte ( vga , addr + 3 ) ] ;
+ ( ( uint32_t * ) d ) [ 4 ] = palette [ vga_read_byte ( vga , addr + 4 ) ] ;
+ ( ( uint32_t * ) d ) [ 5 ] = palette [ vga_read_byte ( vga , addr + 5 ) ] ;
+ ( ( uint32_t * ) d ) [ 6 ] = palette [ vga_read_byte ( vga , addr + 6 ) ] ;
+ ( ( uint32_t * ) d ) [ 7 ] = palette [ vga_read_byte ( vga , addr + 7 ) ] ;
+ d += 32 ;
+ addr += 8 ;
+ }
+      
+30064771072 | CALL | palette = vga -> last_palette
+30064771073 | CALL | vga -> last_palette
+30064771074 | CALL | width >>= 3
+30064771075 | CALL | x = 0
+30064771076 | CALL | x < width
+30064771077 | CALL | x ++
+30064771078 | CALL | ( ( uint32_t * ) d ) [ 0 ] = palette [ vga_read_byte ( vga , addr + 0 ) ]
+30064771079 | CALL | ( ( uint32_t * ) d ) [ 0 ]
+30064771080 | CALL | ( uint32_t * ) d
+30064771081 | CALL | palette [ vga_read_byte ( vga , addr + 0 ) ]
+30064771082 | CALL | vga_read_byte ( vga , addr + 0 )
+30064771083 | CALL | addr + 0
+30064771084 | CALL | ( ( uint32_t * ) d ) [ 1 ] = palette [ vga_read_byte ( vga , addr + 1 ) ]
+30064771085 | CALL | ( ( uint32_t * ) d ) [ 1 ]
+30064771086 | CALL | ( uint32_t * ) d
+30064771087 | CALL | palette [ vga_read_byte ( vga , addr + 1 ) ]
+30064771088 | CALL | vga_read_byte ( vga , addr + 1 )
+30064771089 | CALL | addr + 1
+30064771090 | CALL | ( ( uint32_t * ) d ) [ 2 ] = palette [ vga_read_byte ( vga , addr + 2 ) ]
+30064771091 | CALL | ( ( uint32_t * ) d ) [ 2 ]
+30064771092 | CALL | ( uint32_t * ) d
+30064771093 | CALL | palette [ vga_read_byte ( vga , addr + 2 ) ]
+30064771094 | CALL | vga_read_byte ( vga , addr + 2 )
+30064771095 | CALL | addr + 2
+30064771096 | CALL | ( ( uint32_t * ) d ) [ 3 ] = palette [ vga_read_byte ( vga , addr + 3 ) ]
+30064771097 | CALL | ( ( uint32_t * ) d ) [ 3 ]
+30064771098 | CALL | ( uint32_t * ) d
+30064771099 | CALL | palette [ vga_read_byte ( vga , addr + 3 ) ]
+30064771100 | CALL | vga_read_byte ( vga , addr + 3 )
+30064771101 | CALL | addr + 3
+30064771102 | CALL | ( ( uint32_t * ) d ) [ 4 ] = palette [ vga_read_byte ( vga , addr + 4 ) ]
+30064771103 | CALL | ( ( uint32_t * ) d ) [ 4 ]
+30064771104 | CALL | ( uint32_t * ) d
+30064771105 | CALL | palette [ vga_read_byte ( vga , addr + 4 ) ]
+30064771106 | CALL | vga_read_byte ( vga , addr + 4 )
+30064771107 | CALL | addr + 4
+30064771108 | CALL | ( ( uint32_t * ) d ) [ 5 ] = palette [ vga_read_byte ( vga , addr + 5 ) ]
+30064771109 | CALL | ( ( uint32_t * ) d ) [ 5 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771096 [AST]
+25769803777 -> 30064771102 [AST]
+25769803777 -> 30064771108 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771108 [CDG]
+30064771076 -> 30064771109 [CDG]
+30064771076 -> 30064771102 [CDG]
+30064771076 -> 30064771103 [CDG]
+30064771076 -> 30064771100 [CDG]
+30064771076 -> 30064771101 [CDG]
+30064771076 -> 30064771106 [CDG]
+30064771076 -> 30064771107 [CDG]
+30064771076 -> 30064771104 [CDG]
+30064771076 -> 30064771105 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771094 [CDG]
+30064771076 -> 30064771095 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771093 [CDG]
+30064771076 -> 30064771098 [CDG]
+30064771076 -> 30064771099 [CDG]
+30064771076 -> 30064771096 [CDG]
+30064771076 -> 30064771097 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771086 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771092 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771098 [REACHING_DEF]
+30064771079 -> 30064771104 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771078 [CFG]
+30064771081 -> 30064771078 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771087 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771087 [AST]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void vga_draw_line8 ( VGACommonState * s1 , uint8_t * d , const uint8_t * s , int width ) {
+ uint32_t * palette ;
+ int x ;
+ palette = s1 -> last_palette ;
+ width >>= 3 ;
+ for ( x = 0 ;
+ x < wi
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

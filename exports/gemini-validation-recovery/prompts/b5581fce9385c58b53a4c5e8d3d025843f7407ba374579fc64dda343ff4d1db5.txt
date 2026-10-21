@@ -1,0 +1,261 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_rfc822_parse_quoted_string ( void ) {
+ const struct {
+ const char * input , * output ;
+ int ret ;
+ }
+ tests [ ] = {
+ {
+ "\"" , "" , - 1 }
+ , {
+ "\"\"" , "" , 0 }
+ , {
+ "\"foo\"" , "foo" , 0 }
+ , {
+ "\"\"foo" , "" , 1 }
+ , {
+ "\"\"\"" , "" , 1 }
+ , {
+ "\"\\\"\"" , "\"" , 0 }
+ , {
+ "\"\\\\\"" , "\\" , 0 }
+ , {
+ "\"\\\\foo\\\\foo\\\\\"" , "\\foo\\foo\\" , 0 }
+ }
+ ;
+ struct rfc822_parser_context parser ;
+ string_t * str = t_str_new ( 64 ) ;
+ unsigned int i = 0 ;
+ test_begin ( "rfc822 parse quoted string" ) ;
+ for ( i = 0 ;
+ i < N_ELEMENTS ( tests ) ;
+ i ++ ) {
+ rfc822_parser_init ( & parser , ( const void * ) tests [ i ] . input , strlen ( tests [ i ] . input ) , NULL ) ;
+ test_assert_idx ( rfc822_parse_quoted_string ( & parser , str ) == tests [ i ] . ret , i ) ;
+ test_assert_idx ( tests [ i ] . ret < 0 || strcmp ( tests [ i ] . output , str_c ( str ) ) == 0 , i ) ;
+ rfc822_parser_deinit ( & parser ) ;
+ str_truncate ( str , 0 ) ;
+ }
+ test_end ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const struct {
+ const char * input , * output ;
+ int ret ;
+ }
+ tests [ ] = {
+ {
+ "\"" , "" , - 1 }
+ , {
+ "\"\"" , "" , 0 }
+ , {
+ "\"foo\"" , "foo" , 0 }
+ , {
+ "\"\"foo" , "" , 1 }
+ , {
+ "\"\"\"" , "" , 1 }
+ , {
+ "\"\\\"\"" , "\"" , 0 }
+ , {
+ "\"\\\\\"" , "\\" , 0 }
+ , {
+ "\"\\\\foo\\\\foo\\\\\"" , "\\foo\\foo\\" , 0 }
+ }
+ ;
+ struct rfc822_parser_context parser ;
+ string_t * str = t_str_new ( 64 ) ;
+ unsigned int i = 0 ;
+ test_begin ( "rfc822 parse quoted string" ) ;
+ for ( i = 0 ;
+ i < N_ELEMENTS ( tests ) ;
+ i ++ ) {
+ rfc822_parser_init ( & parser , ( const void * ) tests [ i ] . input , strlen ( tests [ i ] . input ) , NULL ) ;
+ test_assert_idx ( rfc822_parse_quoted_string ( & parser , str ) == tests [ i ] . ret , i ) ;
+ test_assert_idx ( tests [ i ] . ret < 0 || strcmp ( tests [ i ] . output , str_c ( str ) ) == 0 , i ) ;
+ rfc822_parser_deinit ( & parser ) ;
+ str_truncate ( str , 0 ) ;
+ }
+ test_end ( ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ rfc822_parser_init ( & parser , ( const void * ) tests [ i ] . input , strlen ( tests [ i ] . input ) , NULL ) ;
+ test_assert_idx ( rfc822_parse_quoted_string ( & parser , str ) == tests [ i ] . ret , i ) ;
+ test_assert_idx ( tests [ i ] . ret < 0 || strcmp ( tests [ i ] . output , str_c ( str ) ) == 0 , i ) ;
+ rfc822_parser_deinit ( & parser ) ;
+ str_truncate ( str , 0 ) ;
+ }
+      
+30064771072 | CALL | 
+        tests [ ] = {
+ {
+ "\"" , "" , - 1 }
+ , {
+ "\"\"" , "" , 0 }
+ , {
+ "\"foo\"" , "foo" , 0 }
+ , {
+ "\"\"foo" , "" , 1 }
+ , {
+ "\"\"\"" , "" , 1 }
+ , {
+ "\"\\\"\"" , "\"" , 0 }
+ , {
+ "\"\\\\\"" , "\\" , 0 }
+ , {
+ "\"\\\\foo\\\\foo\\\\\"" , "\\foo\\foo\\" , 0 }
+ }
+      
+30064771073 | CALL | 
+        {
+ {
+ "\"" , "" , - 1 }
+ , {
+ "\"\"" , "" , 0 }
+ , {
+ "\"foo\"" , "foo" , 0 }
+ , {
+ "\"\"foo" , "" , 1 }
+ , {
+ "\"\"\"" , "" , 1 }
+ , {
+ "\"\\\"\"" , "\"" , 0 }
+ , {
+ "\"\\\\\"" , "\\" , 0 }
+ , {
+ "\"\\\\foo\\\\foo\\\\\"" , "\\foo\\foo\\" , 0 }
+ }
+      
+30064771074 | CALL | { "\"" , "" , - 1 }
+30064771075 | CALL | - 1
+30064771076 | CALL | { "\"\"" , "" , 0 }
+30064771077 | CALL | { "\"foo\"" , "foo" , 0 }
+30064771078 | CALL | { "\"\"foo" , "" , 1 }
+30064771079 | CALL | { "\"\"\"" , "" , 1 }
+30064771080 | CALL | { "\"\\\"\"" , "\"" , 0 }
+30064771081 | CALL | { "\"\\\\\"" , "\\" , 0 }
+30064771082 | CALL | { "\"\\\\foo\\\\foo\\\\\"" , "\\foo\\foo\\" , 0 }
+30064771083 | CALL | str = t_str_new ( 64 )
+30064771084 | CALL | t_str_new ( 64 )
+30064771085 | CALL | i = 0
+30064771086 | CALL | test_begin ( "rfc822 parse quoted string" )
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < N_ELEMENTS ( tests )
+30064771089 | CALL | N_ELEMENTS ( tests )
+30064771090 | CALL | i ++
+30064771091 | CALL | 
+        rfc822_parser_init ( & parser , ( const void * ) tests [ i ] . input , strlen ( tests [ i ] . input ) , NULL )
+      
+30064771092 | CALL | & parser
+30064771093 | CALL | ( const void * ) tests [ i ] . input
+30064771094 | CALL | tests [ i ] . input
+30064771095 | CALL | tests [ i ]
+30064771096 | CALL | strlen ( tests [ i ] . input )
+30064771097 | CALL | tests [ i ] . input
+30064771098 | CALL | tests [ i ]
+30064771099 | CALL | 
+        test_assert_idx ( rfc822_parse_quoted_string ( & parser , str ) == tests [ i ] . ret , i )
+      
+30064771100 | CALL | rfc822_parse_quoted_string ( & parser , str ) == tests [ i ] . ret
+30064771101 | CALL | rfc822_parse_quoted_string ( & parser , str )
+30064771102 | CALL | & parser
+30064771103 | CALL | tests [ i ] . ret
+30064771104 | CALL | tests [ i ]
+30064771105 | CALL | 
+        test_assert_idx ( tests [ i ] . ret < 0 || strcmp ( tests [ i ] . output , str_c ( str ) ) == 0 , i )
+      
+30064771106 | CALL | tests [ i ] . ret < 0 || strcmp ( tests [ i ] . output , str_c ( str ) ) == 0
+30064771107 | CALL | tests [ i ] . ret < 0
+30064771108 | CALL | tests [ i ] . ret
+30064771109 | CALL | tests [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771099 [AST]
+25769803777 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771078 [ARGUMENT]
+30064771073 -> 30064771079 [ARGUMENT]
+30064771073 -> 30064771080 [ARGUMENT]
+30064771073 -> 30064771081 [ARGUMENT]
+30064771073 -> 30064771082 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 30064771078 [AST]
+30064771073 -> 30064771079 [AST]
+30064771073 -> 30064771080 [AST]
+30064771073 -> 30064771081 [AST]
+30064771073 -> 30064771082 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771082 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771078 -> 30064771073 [REACHING_DEF]
+30064771079 -> 30064771073 [REACHING_DEF]
+30064771080 -> 30064771073 [REACHING_DEF]
+30064771081 -> 30064771073 [REACHING_DEF]
+30064771082 -> 30064771073 [CFG]
+30064771082 -> 30064771073 [DOMINATE]
+30064771082 -> 30064771073 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771103 [CDG]
+30064771088 -> 30064771104 [CDG]
+30064771088 -> 30064771101 [CDG]
+30064771088 -> 30064771102 [CDG]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771100 [CDG]
+30064771088 -> 30064771097 [CDG]
+30064771088 -> 30064771098 [CDG]
+30064771088 -> 30064771109 [CDG]
+30064771088 -> 30064771107 [CDG]
+30064771088 -> 30064771108 [CDG]
+30064771088 -> 30064771105 [CDG]
+30064771088 -> 30064771106 [CDG]
+30064771088 -> 30064771088 [CDG]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771096 [CDG]
+30064771
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

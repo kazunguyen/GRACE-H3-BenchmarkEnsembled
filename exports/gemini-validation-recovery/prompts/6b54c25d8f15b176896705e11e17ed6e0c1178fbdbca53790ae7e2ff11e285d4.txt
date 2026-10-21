@@ -1,0 +1,193 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ff_cavs_load_intra_pred_luma ( AVSContext * h , uint8_t * top , uint8_t * * left , int block ) {
+ int i ;
+ switch ( block ) {
+ case 0 : * left = h -> left_border_y ;
+ h -> left_border_y [ 0 ] = h -> left_border_y [ 1 ] ;
+ memset ( & h -> left_border_y [ 17 ] , h -> left_border_y [ 16 ] , 9 ) ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 ] , 16 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( ( h -> flags & A_AVAIL ) && ( h -> flags & B_AVAIL ) ) h -> left_border_y [ 0 ] = top [ 0 ] = h -> topleft_border_y ;
+ break ;
+ case 1 : * left = h -> intern_border_y ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) h -> intern_border_y [ i + 1 ] = * ( h -> cy + 7 + i * h -> l_stride ) ;
+ memset ( & h -> intern_border_y [ 9 ] , h -> intern_border_y [ 8 ] , 9 ) ;
+ h -> intern_border_y [ 0 ] = h -> intern_border_y [ 1 ] ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 + 8 ] , 8 ) ;
+ if ( h -> flags & C_AVAIL ) memcpy ( & top [ 9 ] , & h -> top_border_y [ ( h -> mbx + 1 ) * 16 ] , 8 ) ;
+ else memset ( & top [ 9 ] , top [ 8 ] , 9 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( h -> flags & B_AVAIL ) h -> intern_border_y [ 0 ] = top [ 0 ] = h -> top_border_y [ h -> mbx * 16 + 7 ] ;
+ break ;
+ case 2 : * left = & h -> left_border_y [ 8 ] ;
+ memcpy ( & top [ 1 ] , h -> cy + 7 * h -> l_stride , 16 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( h -> flags & A_AVAIL ) top [ 0 ] = h -> left_border_y [ 8 ] ;
+ break ;
+ case 3 : * left = & h -> intern_border_y [ 8 ] ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) h -> intern_border_y [ i + 9 ] = * ( h -> cy + 7 + ( i + 8 ) * h -> l_stride ) ;
+ memset ( & h -> intern_border_y [ 17 ] , h -> intern_border_y [ 16 ] , 9 ) ;
+ memcpy ( & top [ 0 ] , h -> cy + 7 + 7 * h -> l_stride , 9 ) ;
+ memset ( & top [ 9 ] , top [ 8 ] , 9 ) ;
+ break ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ switch ( block ) {
+ case 0 : * left = h -> left_border_y ;
+ h -> left_border_y [ 0 ] = h -> left_border_y [ 1 ] ;
+ memset ( & h -> left_border_y [ 17 ] , h -> left_border_y [ 16 ] , 9 ) ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 ] , 16 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( ( h -> flags & A_AVAIL ) && ( h -> flags & B_AVAIL ) ) h -> left_border_y [ 0 ] = top [ 0 ] = h -> topleft_border_y ;
+ break ;
+ case 1 : * left = h -> intern_border_y ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) h -> intern_border_y [ i + 1 ] = * ( h -> cy + 7 + i * h -> l_stride ) ;
+ memset ( & h -> intern_border_y [ 9 ] , h -> intern_border_y [ 8 ] , 9 ) ;
+ h -> intern_border_y [ 0 ] = h -> intern_border_y [ 1 ] ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 + 8 ] , 8 ) ;
+ if ( h -> flags & C_AVAIL ) memcpy ( & top [ 9 ] , & h -> top_border_y [ ( h -> mbx + 1 ) * 16 ] , 8 ) ;
+ else memset ( & top [ 9 ] , top [ 8 ] , 9 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top ...
+      
+25769803777 | BLOCK | 
+        {
+ case 0 : * left = h -> left_border_y ;
+ h -> left_border_y [ 0 ] = h -> left_border_y [ 1 ] ;
+ memset ( & h -> left_border_y [ 17 ] , h -> left_border_y [ 16 ] , 9 ) ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 ] , 16 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( ( h -> flags & A_AVAIL ) && ( h -> flags & B_AVAIL ) ) h -> left_border_y [ 0 ] = top [ 0 ] = h -> topleft_border_y ;
+ break ;
+ case 1 : * left = h -> intern_border_y ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) h -> intern_border_y [ i + 1 ] = * ( h -> cy + 7 + i * h -> l_stride ) ;
+ memset ( & h -> intern_border_y [ 9 ] , h -> intern_border_y [ 8 ] , 9 ) ;
+ h -> intern_border_y [ 0 ] = h -> intern_border_y [ 1 ] ;
+ memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 + 8 ] , 8 ) ;
+ if ( h -> flags & C_AVAIL ) memcpy ( & top [ 9 ] , & h -> top_border_y [ ( h -> mbx + 1 ) * 16 ] , 8 ) ;
+ else memset ( & top [ 9 ] , top [ 8 ] , 9 ) ;
+ top [ 17 ] = top [ 16 ] ;
+ top [ 0 ] = top [ 1 ] ;
+ if ( h -...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | * left = h -> left_border_y
+30064771073 | CALL | * left
+30064771074 | CALL | h -> left_border_y
+30064771075 | CALL | h -> left_border_y [ 0 ] = h -> left_border_y [ 1 ]
+30064771076 | CALL | h -> left_border_y [ 0 ]
+30064771077 | CALL | h -> left_border_y
+30064771078 | CALL | h -> left_border_y [ 1 ]
+30064771079 | CALL | h -> left_border_y
+30064771080 | CALL | memset ( & h -> left_border_y [ 17 ] , h -> left_border_y [ 16 ] , 9 )
+30064771081 | CALL | & h -> left_border_y [ 17 ]
+30064771082 | CALL | h -> left_border_y [ 17 ]
+30064771083 | CALL | h -> left_border_y
+30064771084 | CALL | h -> left_border_y [ 16 ]
+30064771085 | CALL | h -> left_border_y
+30064771086 | CALL | memcpy ( & top [ 1 ] , & h -> top_border_y [ h -> mbx * 16 ] , 16 )
+30064771087 | CALL | & top [ 1 ]
+30064771088 | CALL | top [ 1 ]
+30064771089 | CALL | & h -> top_border_y [ h -> mbx * 16 ]
+30064771090 | CALL | h -> top_border_y [ h -> mbx * 16 ]
+30064771091 | CALL | h -> top_border_y
+30064771092 | CALL | h -> mbx * 16
+30064771093 | CALL | h -> mbx
+30064771094 | CALL | top [ 17 ] = top [ 16 ]
+30064771095 | CALL | top [ 17 ]
+30064771096 | CALL | top [ 16 ]
+30064771097 | CALL | top [ 0 ] = top [ 1 ]
+30064771098 | CALL | top [ 0 ]
+30064771099 | CALL | top [ 1 ]
+30064771100 | CALL | ( h -> flags & A_AVAIL ) && ( h -> flags & B_AVAIL )
+30064771101 | CALL | h -> flags & A_AVAIL
+30064771102 | CALL | h -> flags
+30064771103 | CALL | h -> flags & B_AVAIL
+30064771104 | CALL | h -> flags
+EDGES:
+25769803777 -> 30064771072 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771085 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771081 [REACHING_DEF]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771079 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771085 [REACHING_DEF]
+30064771076 -> 30064771083 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771075 [CFG]
+30064771078 -> 30064771075 [DOMINATE]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771085 [REACHING_DEF]
+30064771078 -> 30064771083 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771084 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771084 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771084 [REACHING_DEF]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

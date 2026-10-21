@@ -1,0 +1,250 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PHP_NAMED_FUNCTION ( zif_zip_read ) {
+ zval * zip_dp ;
+ zip_read_rsrc * zr_rsrc ;
+ int ret ;
+ zip_rsrc * rsrc_int ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "r" , & zip_dp ) == FAILURE ) {
+ return ;
+ }
+ ZEND_FETCH_RESOURCE ( rsrc_int , zip_rsrc * , & zip_dp , - 1 , le_zip_dir_name , le_zip_dir ) ;
+ if ( rsrc_int && rsrc_int -> za ) {
+ if ( rsrc_int -> index_current >= rsrc_int -> num_files ) {
+ RETURN_FALSE ;
+ }
+ zr_rsrc = emalloc ( sizeof ( zip_read_rsrc ) ) ;
+ ret = zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb ) ;
+ if ( ret != 0 ) {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ zr_rsrc -> zf = zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 ) ;
+ if ( zr_rsrc -> zf ) {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+ else {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ }
+ else {
+ RETURN_FALSE ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ zval * zip_dp ;
+ zip_read_rsrc * zr_rsrc ;
+ int ret ;
+ zip_rsrc * rsrc_int ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "r" , & zip_dp ) == FAILURE ) {
+ return ;
+ }
+ ZEND_FETCH_RESOURCE ( rsrc_int , zip_rsrc * , & zip_dp , - 1 , le_zip_dir_name , le_zip_dir ) ;
+ if ( rsrc_int && rsrc_int -> za ) {
+ if ( rsrc_int -> index_current >= rsrc_int -> num_files ) {
+ RETURN_FALSE ;
+ }
+ zr_rsrc = emalloc ( sizeof ( zip_read_rsrc ) ) ;
+ ret = zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb ) ;
+ if ( ret != 0 ) {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ zr_rsrc -> zf = zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 ) ;
+ if ( zr_rsrc -> zf ) {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+ else {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ }
+ else {
+ RETURN_FALSE ;
+ }
+ }
+      
+25769803777 | BLOCK | { return ; }
+25769803778 | BLOCK | 
+        {
+ if ( rsrc_int -> index_current >= rsrc_int -> num_files ) {
+ RETURN_FALSE ;
+ }
+ zr_rsrc = emalloc ( sizeof ( zip_read_rsrc ) ) ;
+ ret = zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb ) ;
+ if ( ret != 0 ) {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ zr_rsrc -> zf = zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 ) ;
+ if ( zr_rsrc -> zf ) {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+ else {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ }
+      
+25769803779 | BLOCK | { RETURN_FALSE ; }
+25769803780 | BLOCK | { efree ( zr_rsrc ) ; RETURN_FALSE ; }
+25769803781 | BLOCK | 
+        {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+      
+25769803782 | BLOCK | { efree ( zr_rsrc ) ; RETURN_FALSE ; }
+25769803783 | BLOCK | { RETURN_FALSE ; }
+30064771072 | CALL | 
+        zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "r" , & zip_dp ) == FAILURE != 0
+      
+30064771073 | CALL | rsrc_int && rsrc_int -> za
+30064771074 | CALL | rsrc_int -> za
+30064771075 | CALL | rsrc_int -> index_current >= rsrc_int -> num_files
+30064771076 | CALL | rsrc_int -> index_current
+30064771077 | CALL | rsrc_int -> num_files
+30064771078 | CALL | zr_rsrc = emalloc ( sizeof ( zip_read_rsrc ) )
+30064771079 | CALL | emalloc ( sizeof ( zip_read_rsrc ) )
+30064771080 | CALL | sizeof ( zip_read_rsrc )
+30064771081 | CALL | 
+        ret = zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb )
+      
+30064771082 | CALL | 
+        zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb )
+      
+30064771083 | CALL | rsrc_int -> za
+30064771084 | CALL | rsrc_int -> index_current
+30064771085 | CALL | & zr_rsrc -> sb
+30064771086 | CALL | zr_rsrc -> sb
+30064771087 | CALL | ret != 0
+30064771088 | CALL | efree ( zr_rsrc )
+30064771089 | CALL | 
+        zr_rsrc -> zf = zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 )
+      
+30064771090 | CALL | zr_rsrc -> zf
+30064771091 | CALL | zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 )
+30064771092 | CALL | rsrc_int -> za
+30064771093 | CALL | rsrc_int -> index_current
+30064771094 | CALL | zr_rsrc -> zf
+30064771095 | CALL | rsrc_int -> index_current ++
+30064771096 | CALL | rsrc_int -> index_current
+30064771097 | CALL | ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry )
+30064771098 | CALL | efree ( zr_rsrc )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "r" , & zip_dp ) == FAILURE ) {
+ return ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( rsrc_int && rsrc_int -> za ) {
+ if ( rsrc_int -> index_current >= rsrc_int -> num_files ) {
+ RETURN_FALSE ;
+ }
+ zr_rsrc = emalloc ( sizeof ( zip_read_rsrc ) ) ;
+ ret = zip_stat_index ( rsrc_int -> za , rsrc_int -> index_current , 0 , & zr_rsrc -> sb ) ;
+ if ( ret != 0 ) {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ zr_rsrc -> zf = zip_fopen_index ( rsrc_int -> za , rsrc_int -> index_current , 0 ) ;
+ if ( zr_rsrc -> zf ) {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+ else {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+ }
+ else {
+ RETURN_FALSE ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( rsrc_int -> index_current >= rsrc_int -> num_files ) {
+ RETURN_FALSE ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | if ( ret != 0 ) { efree ( zr_rsrc ) ; RETURN_FALSE ; }
+47244640260 | CONTROL_STRUCTURE | 
+        if ( zr_rsrc -> zf ) {
+ rsrc_int -> index_current ++ ;
+ ZEND_REGISTER_RESOURCE ( return_value , zr_rsrc , le_zip_entry ) ;
+ }
+ else {
+ efree ( zr_rsrc ) ;
+ RETURN_FALSE ;
+ }
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771078 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 47244640260 [AST]
+25769803780 -> 30064771088 [AST]
+25769803781 -> 30064771095 [AST]
+25769803781 -> 30064771097 [AST]
+25769803782 -> 30064771098 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771094 [CDG]
+30064771073 -> 30064771093 [CDG]
+30064771073 -> 30064771092 [CDG]
+30064771073 -> 30064771091 [CDG]
+30064771073 -> 30064771090 [CDG]
+30064771073 -> 30064771089 [CDG]
+30064771073 -> 30064771087 [CDG]
+30064771073 -> 30064771086 [CDG]
+30064771073 -> 30064771085 [CDG]
+30064771073 -> 30064771084 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771084 [REACHING_DEF]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

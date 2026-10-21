@@ -1,0 +1,235 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static IOMMUTLBEntry vtd_iommu_translate(MemoryRegion *iommu, hwaddr addr,
+
+                                         bool is_write)
+
+{
+
+    VTDAddressSpace *vtd_as = container_of(iommu, VTDAddressSpace, iommu);
+
+    IntelIOMMUState *s = vtd_as->iommu_state;
+
+    IOMMUTLBEntry ret = {
+
+        .target_as = &address_space_memory,
+
+        .iova = addr,
+
+        .translated_addr = 0,
+
+        .addr_mask = ~(hwaddr)0,
+
+        .perm = IOMMU_NONE,
+
+    };
+
+
+
+    if (!s->dmar_enabled) {
+
+        /* DMAR disabled, passthrough, use 4k-page*/
+
+        ret.iova = addr & VTD_PAGE_MASK_4K;
+
+        ret.translated_addr = addr & VTD_PAGE_MASK_4K;
+
+        ret.addr_mask = ~VTD_PAGE_MASK_4K;
+
+        ret.perm = IOMMU_RW;
+
+        return ret;
+
+    }
+
+
+
+    vtd_do_iommu_translate(vtd_as, vtd_as->bus, vtd_as->devfn, addr,
+
+                           is_write, &ret);
+
+    VTD_DPRINTF(MMU,
+
+                "bus %"PRIu8 " slot %"PRIu8 " func %"PRIu8 " devfn %"PRIu8
+
+                " iova 0x%"PRIx64 " hpa 0x%"PRIx64, pci_bus_num(vtd_as->bus),
+
+                VTD_PCI_SLOT(vtd_as->devfn), VTD_PCI_FUNC(vtd_as->devfn),
+
+                vtd_as->devfn, addr, ret.translated_addr);
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+33 -> 37 [IS_AST_PARENT]
+33 -> 38 [IS_AST_PARENT]
+33 -> 39 [IS_AST_PARENT]
+33 -> 40 [IS_AST_PARENT]
+33 -> 41 [IS_AST_PARENT]
+33 -> 42 [IS_AST_PARENT]
+33 -> 43 [IS_AST_PARENT]
+33 -> 44 [IS_AST_PARENT]
+33 -> 45 [IS_AST_PARENT]
+33 -> 46 [IS_AST_PARENT]
+33 -> 47 [IS_AST_PARENT]
+33 -> 48 [IS_AST_PARENT]
+33 -> 49 [IS_AST_PARENT]
+33 -> 50 [IS_AST_PARENT]
+33 -> 51 [IS_AST_PARENT]
+33 -> 52 [IS_AST_PARENT]
+33 -> 53 [IS_AST_PARENT]
+33 -> 54 [IS_AST_PARENT]
+33 -> 55 [IS_AST_PARENT]
+33 -> 56 [IS_AST_PARENT]
+33 -> 57 [IS_AST_PARENT]
+33 -> 58 [IS_AST_PARENT]
+33 -> 59 [IS_AST_PARENT]
+33 -> 60 [IS_AST_PARENT]
+33 -> 61 [IS_AST_PARENT]
+33 -> 62 [IS_AST_PARENT]
+33 -> 63 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+74 -> 78 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static IOMMUTLBEntry amdvi_translate(MemoryRegion *iommu, hwaddr addr,
+
+                                     bool is_write)
+
+{
+
+    AMDVIAddressSpace *as = container_of(iommu, AMDVIAddressSpace, iommu);
+
+    AMDVIState *s = as->iommu_state;
+
+    IOMMUTLBEntry ret = {
+
+        .target_as = &address_space_memory,
+
+        .iova = addr,
+
+        .translated_addr = 0,
+
+        .addr_mask = ~(hwaddr)0,
+
+        .perm = IOMMU_NONE
+
+    };
+
+
+
+    if (!s->enabled) {
+
+        /* AMDVI disabled - corresponds to iommu=off not
+
+         * failure to provide any parameter
+
+         */
+
+        ret.iova = addr & AMDVI_PAGE_MASK_4K;
+
+        ret.translated_addr = addr & AMDVI_PAGE_MASK_4K;
+
+        ret.addr_mask = ~AMDVI_PAGE_MASK_4K;
+
+        ret.perm = IOMMU_RW;
+
+        return ret;
+
+    } else if (amdvi_is_interrupt_addr(addr)) {
+
+        ret.iova = addr & AMDVI_PAGE_MASK_4K;
+
+        ret.translated_addr = addr & AMDVI_PAGE_MASK_4K;
+
+        ret.addr_mask = ~AMDVI_PAGE_MASK_4K;
+
+        ret.perm = IOMMU_WO;
+
+        return ret;
+
+    }
+
+
+
+    amdvi_do_translate(as, addr, is_write, &ret);
+
+    trace_amdvi_translation_result(as->bus_num, PCI_SLOT(as->devfn),
+
+            PCI_FUNC(as->devfn), addr, ret.translated_addr);
+
+    return ret;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

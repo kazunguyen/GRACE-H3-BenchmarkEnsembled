@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void update_reference_segmentation_map ( VP9_COMP * cpi ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ MODE_INFO * * mi_8x8_ptr = cm -> mi_grid_visible ;
+ uint8_t * cache_ptr = cm -> last_frame_seg_map ;
+ int row , col ;
+ for ( row = 0 ;
+ row < cm -> mi_rows ;
+ row ++ ) {
+ MODE_INFO * * mi_8x8 = mi_8x8_ptr ;
+ uint8_t * cache = cache_ptr ;
+ for ( col = 0 ;
+ col < cm -> mi_cols ;
+ col ++ , mi_8x8 ++ , cache ++ ) cache [ 0 ] = mi_8x8 [ 0 ] -> mbmi . segment_id ;
+ mi_8x8_ptr += cm -> mi_stride ;
+ cache_ptr += cm -> mi_cols ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & cpi -> common ;
+ MODE_INFO * * mi_8x8_ptr = cm -> mi_grid_visible ;
+ uint8_t * cache_ptr = cm -> last_frame_seg_map ;
+ int row , col ;
+ for ( row = 0 ;
+ row < cm -> mi_rows ;
+ row ++ ) {
+ MODE_INFO * * mi_8x8 = mi_8x8_ptr ;
+ uint8_t * cache = cache_ptr ;
+ for ( col = 0 ;
+ col < cm -> mi_cols ;
+ col ++ , mi_8x8 ++ , cache ++ ) cache [ 0 ] = mi_8x8 [ 0 ] -> mbmi . segment_id ;
+ mi_8x8_ptr += cm -> mi_stride ;
+ cache_ptr += cm -> mi_cols ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ MODE_INFO * * mi_8x8 = mi_8x8_ptr ;
+ uint8_t * cache = cache_ptr ;
+ for ( col = 0 ;
+ col < cm -> mi_cols ;
+ col ++ , mi_8x8 ++ , cache ++ ) cache [ 0 ] = mi_8x8 [ 0 ] -> mbmi . segment_id ;
+ mi_8x8_ptr += cm -> mi_stride ;
+ cache_ptr += cm -> mi_cols ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | const cm = & cpi -> common
+30064771073 | CALL | & cpi -> common
+30064771074 | CALL | cpi -> common
+30064771075 | CALL | * mi_8x8_ptr = cm -> mi_grid_visible
+30064771076 | CALL | cm -> mi_grid_visible
+30064771077 | CALL | cache_ptr = cm -> last_frame_seg_map
+30064771078 | CALL | cm -> last_frame_seg_map
+30064771079 | CALL | row = 0
+30064771080 | CALL | row < cm -> mi_rows
+30064771081 | CALL | cm -> mi_rows
+30064771082 | CALL | row ++
+30064771083 | CALL | * mi_8x8 = mi_8x8_ptr
+30064771084 | CALL | cache = cache_ptr
+30064771085 | CALL | col = 0
+30064771086 | CALL | col < cm -> mi_cols
+30064771087 | CALL | cm -> mi_cols
+30064771088 | CALL | col ++
+30064771089 | CALL | mi_8x8 ++
+30064771090 | CALL | cache ++
+30064771091 | CALL | cache [ 0 ] = mi_8x8 [ 0 ] -> mbmi . segment_id
+30064771092 | CALL | cache [ 0 ]
+30064771093 | CALL | mi_8x8 [ 0 ] -> mbmi . segment_id
+30064771094 | CALL | mi_8x8 [ 0 ] -> mbmi
+30064771095 | CALL | mi_8x8 [ 0 ]
+30064771096 | CALL | mi_8x8_ptr += cm -> mi_stride
+30064771097 | CALL | cm -> mi_stride
+30064771098 | CALL | cache_ptr += cm -> mi_cols
+30064771099 | CALL | cm -> mi_cols
+47244640256 | CONTROL_STRUCTURE | for (row = 0 ;row < cm -> mi_rows;row ++)
+47244640257 | CONTROL_STRUCTURE | for (col = 0 ;col < cm -> mi_cols;col ++ , mi_8x8 ++ , cache ++)
+55834574848 | FIELD_IDENTIFIER | common
+55834574849 | FIELD_IDENTIFIER | mi_grid_visible
+55834574850 | FIELD_IDENTIFIER | last_frame_seg_map
+55834574851 | FIELD_IDENTIFIER | mi_rows
+55834574852 | FIELD_IDENTIFIER | mi_cols
+55834574853 | FIELD_IDENTIFIER | mbmi
+55834574854 | FIELD_IDENTIFIER | segment_id
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771096 [AST]
+25769803777 -> 30064771098 [AST]
+25769803778 -> 30064771088 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 55834574852 [CDG]
+30064771080 -> 55834574851 [CDG]
+30064771080 -> 30064771096 [CDG]
+30064771080 -> 30064771099 [CDG]
+30064771080 -> 30064771098 [CDG]
+30064771080 -> 30064771097 [CDG]
+30064771080 -> 30064771080 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 55834574851 [ARGUMENT]
+30064771081 -> 55834574851 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 55834574851 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 55834574854 [CDG]
+30064771086 -> 55834574853 [CDG]
+30064771086 -> 55834574852 [CDG]
+30064771086 -> 30064771095 [CDG]
+30064771086 -> 30064771094 [CDG]
+30064771086 -> 30064771093 [CDG]
+30064771086 -> 30064771092 [CDG]
+30064771086 -> 30064771091 [CDG]
+30064771086 -> 30064771090 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void update_reference_segmentation_map ( VP9_COMP * cpi ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ MODE_INFO * mi_8x8_ptr = cm -> mi ;
+ uint8_t * cache_ptr = cm -> last_frame_seg_map ;
+ int row , col ;
+ for ( row = 0 ;
+ row < cm -> mi_rows ;
+ row ++ ) {
+ MODE_INFO * mi_8x8 = mi_8x8_ptr ;
+ uint8_t * cache = cache_ptr ;
+ for ( col = 0 ;
+ col < cm -> mi_cols ;
+ col ++ , mi_8x8 ++ , cache ++ ) cache [ 0 ] = mi_8x8 [ 0 ] . src_mi -> mbmi . segment_id ;
+ mi_8x8_ptr += cm -> mi_stride ;
+ cache_ptr += cm -> mi_cols ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

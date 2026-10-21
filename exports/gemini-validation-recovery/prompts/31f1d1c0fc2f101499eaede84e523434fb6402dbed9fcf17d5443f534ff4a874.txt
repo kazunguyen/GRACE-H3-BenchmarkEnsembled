@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void copyarray ( struct pskeydict * to , struct pskeydict * from , struct garbage * tofrees ) {
+ int i ;
+ struct pskeyval * oldent = from -> entries ;
+ * to = * from ;
+ to -> entries = calloc ( to -> cnt , sizeof ( struct pskeyval ) ) ;
+ for ( i = 0 ;
+ i < to -> cnt ;
+ ++ i ) {
+ to -> entries [ i ] = oldent [ i ] ;
+ if ( to -> entries [ i ] . type == ps_string || to -> entries [ i ] . type == ps_instr || to -> entries [ i ] . type == ps_lit ) to -> entries [ i ] . u . str = copy ( to -> entries [ i ] . u . str ) ;
+ else if ( to -> entries [ i ] . type == ps_array || to -> entries [ i ] . type == ps_dict ) copyarray ( & to -> entries [ i ] . u . dict , & oldent [ i ] . u . dict , tofrees ) ;
+ }
+ collectgarbage ( tofrees , to ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ struct pskeyval * oldent = from -> entries ;
+ * to = * from ;
+ to -> entries = calloc ( to -> cnt , sizeof ( struct pskeyval ) ) ;
+ for ( i = 0 ;
+ i < to -> cnt ;
+ ++ i ) {
+ to -> entries [ i ] = oldent [ i ] ;
+ if ( to -> entries [ i ] . type == ps_string || to -> entries [ i ] . type == ps_instr || to -> entries [ i ] . type == ps_lit ) to -> entries [ i ] . u . str = copy ( to -> entries [ i ] . u . str ) ;
+ else if ( to -> entries [ i ] . type == ps_array || to -> entries [ i ] . type == ps_dict ) copyarray ( & to -> entries [ i ] . u . dict , & oldent [ i ] . u . dict , tofrees ) ;
+ }
+ collectgarbage ( tofrees , to ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ to -> entries [ i ] = oldent [ i ] ;
+ if ( to -> entries [ i ] . type == ps_string || to -> entries [ i ] . type == ps_instr || to -> entries [ i ] . type == ps_lit ) to -> entries [ i ] . u . str = copy ( to -> entries [ i ] . u . str ) ;
+ else if ( to -> entries [ i ] . type == ps_array || to -> entries [ i ] . type == ps_dict ) copyarray ( & to -> entries [ i ] . u . dict , & oldent [ i ] . u . dict , tofrees ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | oldent = from -> entries
+30064771073 | CALL | from -> entries
+30064771074 | CALL | * to = * from
+30064771075 | CALL | * to
+30064771076 | CALL | * from
+30064771077 | CALL | to -> entries = calloc ( to -> cnt , sizeof ( struct pskeyval ) )
+30064771078 | CALL | to -> entries
+30064771079 | CALL | calloc ( to -> cnt , sizeof ( struct pskeyval ) )
+30064771080 | CALL | to -> cnt
+30064771081 | CALL | sizeof ( struct pskeyval )
+30064771082 | CALL | i = 0
+30064771083 | CALL | i < to -> cnt
+30064771084 | CALL | to -> cnt
+30064771085 | CALL | ++ i
+30064771086 | CALL | to -> entries [ i ] = oldent [ i ]
+30064771087 | CALL | to -> entries [ i ]
+30064771088 | CALL | to -> entries
+30064771089 | CALL | oldent [ i ]
+30064771090 | CALL | 
+        to -> entries [ i ] . type == ps_string || to -> entries [ i ] . type == ps_instr || to -> entries [ i ] . type == ps_lit
+      
+30064771091 | CALL | 
+        to -> entries [ i ] . type == ps_string || to -> entries [ i ] . type == ps_instr
+      
+30064771092 | CALL | to -> entries [ i ] . type == ps_string
+30064771093 | CALL | to -> entries [ i ] . type
+30064771094 | CALL | to -> entries [ i ]
+30064771095 | CALL | to -> entries
+30064771096 | CALL | to -> entries [ i ] . type == ps_instr
+30064771097 | CALL | to -> entries [ i ] . type
+30064771098 | CALL | to -> entries [ i ]
+30064771099 | CALL | to -> entries
+30064771100 | CALL | to -> entries [ i ] . type == ps_lit
+30064771101 | CALL | to -> entries [ i ] . type
+30064771102 | CALL | to -> entries [ i ]
+30064771103 | CALL | to -> entries
+30064771104 | CALL | to -> entries [ i ] . u . str = copy ( to -> entries [ i ] . u . str )
+30064771105 | CALL | to -> entries [ i ] . u . str
+30064771106 | CALL | to -> entries [ i ] . u
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771086 [AST]
+25769803778 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771088 [REACHING_DEF]
+30064771078 -> 30064771095 [REACHING_DEF]
+30064771078 -> 30064771103 [REACHING_DEF]
+30064771078 -> 30064771099 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771083 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771094 [CDG]
+30064771083 -> 30064771095 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771093 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771089 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771089 [AST]
+30064771086 -> 30064771089 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771102 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771094 [REACHING_DEF]
+30064771087 -> 30064771098 [REACHING_DEF]
+30064771087 -> 30064771088 [REACHING_DEF]
+30064771087 -> 30064771095 [REACHING_DEF]
+30064771087 -> 30064771103 [REACHING_DEF]
+30064771087 -> 30064771099 [REACHING_DEF]
+30064771089 -> 30064771086 [CFG]
+30064771089 -> 30064771086 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void dictfree ( struct pskeydict * dict ) {
+ int i ;
+ for ( i = 0 ;
+ i < dict -> cnt ;
+ ++ i ) {
+ if ( dict -> entries [ i ] . type == ps_string || dict -> entries [ i ] . type == ps_instr || dict -> entries [ i ] . type == ps_lit ) free ( dict -> entries [ i ] . u . str ) ;
+ else if ( dict -> entries [ i ] . type == ps_array || dict -> entries [ i ] . type == ps_dict ) dictfree ( & dict -> entries [ i ] . u . dict ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

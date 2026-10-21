@@ -1,0 +1,300 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_acpi_one(const char *params)
+
+{
+
+    char *args;
+
+    uint8_t signature_low;
+
+    uint8_t signature_high;
+
+    uint16_t signature;
+
+    int i;
+
+    uint32_t off;
+
+
+
+
+
+    args = g_strdup_printf("-net none -display none %s %s",
+
+                           params ? params : "", disk);
+
+    qtest_start(args);
+
+
+
+   /* Wait at most 1 minute */
+
+#define TEST_DELAY (1 * G_USEC_PER_SEC / 10)
+
+#define TEST_CYCLES MAX((60 * G_USEC_PER_SEC / TEST_DELAY), 1)
+
+
+
+    /* Poll until code has run and modified memory.  Once it has we know BIOS
+
+     * initialization is done.  TODO: check that IP reached the halt
+
+     * instruction.
+
+     */
+
+    for (i = 0; i < TEST_CYCLES; ++i) {
+
+        signature_low = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET);
+
+        signature_high = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET + 1);
+
+        signature = (signature_high << 8) | signature_low;
+
+        if (signature == SIGNATURE) {
+
+            break;
+
+        }
+
+        g_usleep(TEST_DELAY);
+
+    }
+
+    g_assert_cmphex(signature, ==, SIGNATURE);
+
+
+
+    /* OK, now find RSDP */
+
+    for (off = 0xf0000; off < 0x100000; off += 0x10)
+
+    {
+
+        uint8_t sig[] = "RSD PTR ";
+
+        int i;
+
+
+
+        for (i = 0; i < sizeof sig - 1; ++i) {
+
+            sig[i] = readb(off + i);
+
+        }
+
+
+
+        if (!memcmp(sig, "RSD PTR ", sizeof sig)) {
+
+            break;
+
+        }
+
+    }
+
+
+
+    g_assert_cmphex(off, <, 0x100000);
+
+
+
+    qtest_quit(global_qtest);
+
+    g_free(args);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+39 -> 43 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+35 -> 44 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+4 -> 74 [IS_AST_PARENT]
+4 -> 75 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+76 -> 81 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_acpi_one(const char *params, test_data *data)
+
+{
+
+    char *args;
+
+    uint8_t signature_low;
+
+    uint8_t signature_high;
+
+    uint16_t signature;
+
+    int i;
+
+    const char *device = "";
+
+
+
+    if (!g_strcmp0(data->machine, MACHINE_Q35)) {
+
+        device = ",id=hd -device ide-hd,drive=hd";
+
+    }
+
+
+
+    args = g_strdup_printf("-net none -display none %s -drive file=%s%s,",
+
+                           params ? params : "", disk, device);
+
+    qtest_start(args);
+
+
+
+   /* Wait at most 1 minute */
+
+#define TEST_DELAY (1 * G_USEC_PER_SEC / 10)
+
+#define TEST_CYCLES MAX((60 * G_USEC_PER_SEC / TEST_DELAY), 1)
+
+
+
+    /* Poll until code has run and modified memory.  Once it has we know BIOS
+
+     * initialization is done.  TODO: check that IP reached the halt
+
+     * instruction.
+
+     */
+
+    for (i = 0; i < TEST_CYCLES; ++i) {
+
+        signature_low = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET);
+
+        signature_high = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET + 1);
+
+        signature = (signature_high << 8) | signature_low;
+
+        if (signature == SIGNATURE) {
+
+            break;
+
+        }
+
+        g_usleep(TEST_DELAY);
+
+    }
+
+    g_assert_cmphex(signature, ==, SIGNATURE);
+
+
+
+    test_acpi_rsdp_address(data);
+
+    test_acpi_rsdp_table(data);
+
+    test_acpi_rsdt_table(data);
+
+    test_acpi_fadt_table(data);
+
+    test_acpi_facs_table(data);
+
+    test_acpi_dsdt_table(data);
+
+    test_acpi_ssdt_tables(data);
+
+
+
+    if (iasl) {
+
+        test_acpi_asl(data)
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

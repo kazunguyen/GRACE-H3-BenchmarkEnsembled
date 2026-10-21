@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void * Type_LUTA2B_Read ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , cmsUInt32Number * nItems , cmsUInt32Number SizeOfTag ) {
+ cmsUInt32Number BaseOffset ;
+ cmsUInt8Number inputChan ;
+ cmsUInt8Number outputChan ;
+ cmsUInt32Number offsetB ;
+ cmsUInt32Number offsetMat ;
+ cmsUInt32Number offsetM ;
+ cmsUInt32Number offsetC ;
+ cmsUInt32Number offsetA ;
+ cmsPipeline * NewLUT = NULL ;
+ BaseOffset = io -> Tell ( io ) - sizeof ( _cmsTagBase ) ;
+ if ( ! _cmsReadUInt8Number ( io , & inputChan ) ) return NULL ;
+ if ( ! _cmsReadUInt8Number ( io , & outputChan ) ) return NULL ;
+ if ( ! _cmsReadUInt16Number ( io , NULL ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetB ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetMat ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetM ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetC ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetA ) ) return NULL ;
+ NewLUT = cmsPipelineAlloc ( self -> ContextID , inputChan , outputChan ) ;
+ if ( NewLUT == NULL ) return NULL ;
+ if ( offsetA != 0 ) {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetA , inputChan ) ) ) goto Error ;
+ }
+ if ( offsetC != 0 ) {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadCLUT ( self , io , BaseOffset + offsetC , inputChan , outputChan ) ) ) goto Error ;
+ }
+ if ( offsetM != 0 ) {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetM , outputChan ) ) ) goto Error ;
+ }
+ if ( offsetMat != 0 ) {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadMatrix ( self , io , BaseOffset + offsetMat ) ) ) goto Error ;
+ }
+ if ( offsetB != 0 ) {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetB , outputChan ) ) ) goto Error ;
+ }
+ * nItems = 1 ;
+ return NewLUT ;
+ Error : cmsPipelineFree ( NewLUT ) ;
+ return NULL ;
+ cmsUNUSED_PARAMETER ( SizeOfTag ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsUInt32Number BaseOffset ;
+ cmsUInt8Number inputChan ;
+ cmsUInt8Number outputChan ;
+ cmsUInt32Number offsetB ;
+ cmsUInt32Number offsetMat ;
+ cmsUInt32Number offsetM ;
+ cmsUInt32Number offsetC ;
+ cmsUInt32Number offsetA ;
+ cmsPipeline * NewLUT = NULL ;
+ BaseOffset = io -> Tell ( io ) - sizeof ( _cmsTagBase ) ;
+ if ( ! _cmsReadUInt8Number ( io , & inputChan ) ) return NULL ;
+ if ( ! _cmsReadUInt8Number ( io , & outputChan ) ) return NULL ;
+ if ( ! _cmsReadUInt16Number ( io , NULL ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetB ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetMat ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetM ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetC ) ) return NULL ;
+ if ( ! _cmsReadUInt32Number ( io , & offsetA ) ) return NULL ;
+ NewLUT = cmsPipelineAlloc ( self -> ContextID , inputChan , outputChan ) ;
+ if ( NewLUT == NULL ) return NULL ;
+ if ( offsetA != 0 ) {
+ if ( ! cmsPipelineInsertStage ( ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetA , inputChan ) ) ) goto Error ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadCLUT ( self , io , BaseOffset + offsetC , inputChan , outputChan ) ) ) goto Error ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetM , outputChan ) ) ) goto Error ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadMatrix ( self , io , BaseOffset + offsetMat ) ) ) goto Error ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ if ( ! cmsPipelineInsertStage ( NewLUT , cmsAT_END , ReadSetOfCurves ( self , io , BaseOffset + offsetB , outputChan ) ) ) goto Error ;
+ }
+      
+25769803795 | BLOCK | <empty>
+30064771072 | CALL | NewLUT = NULL
+30064771073 | CALL | BaseOffset = io -> Tell ( io ) - sizeof ( _cmsTagBase )
+30064771074 | CALL | io -> Tell ( io ) - sizeof ( _cmsTagBase )
+30064771075 | CALL | io -> Tell ( io )
+30064771076 | CALL | io -> Tell
+30064771077 | CALL | sizeof ( _cmsTagBase )
+30064771078 | CALL | ! _cmsReadUInt8Number ( io , & inputChan )
+30064771079 | CALL | _cmsReadUInt8Number ( io , & inputChan )
+30064771080 | CALL | & inputChan
+30064771081 | CALL | ! _cmsReadUInt8Number ( io , & outputChan )
+30064771082 | CALL | _cmsReadUInt8Number ( io , & outputChan )
+30064771083 | CALL | & outputChan
+30064771084 | CALL | ! _cmsReadUInt16Number ( io , NULL )
+30064771085 | CALL | _cmsReadUInt16Number ( io , NULL )
+30064771086 | CALL | ! _cmsReadUInt32Number ( io , & offsetB )
+30064771087 | CALL | _cmsReadUInt32Number ( io , & offsetB )
+30064771088 | CALL | & offsetB
+30064771089 | CALL | ! _cmsReadUInt32Number ( io , & offsetMat )
+30064771090 | CALL | _cmsReadUInt32Number ( io , & offsetMat )
+30064771091 | CALL | & offsetMat
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int vp9_rc_regulate_q ( const VP9_COMP * cpi , int target_bits_per_frame , int active_best_quality , int active_worst_quality ) {
+ const VP9_COMMON * const cm = & cpi -> common ;
+ int q = active_worst_quality ;
+ int last_error = INT_MAX ;
+ int i , target_bits_per_mb ;
+ const double correction_factor = get_rate_correction_factor ( cpi ) ;
+ target_bits_per_mb = ( ( uint64_t ) target_bits_per_frame << BPER_MB_NORMBITS ) / cm -> MBs ;
+ i = active_best_quality ;
+ do {
+ const int bits_per_mb_at_this_q = ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth ) ;
+ if ( bits_per_mb_at_this_q <= target_bits_per_mb ) {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+ else {
+ last_error = bits_per_mb_at_this_q - target_bits_per_mb ;
+ }
+ }
+ while ( ++ i <= active_worst_quality ) ;
+ return q ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const VP9_COMMON * const cm = & cpi -> common ;
+ int q = active_worst_quality ;
+ int last_error = INT_MAX ;
+ int i , target_bits_per_mb ;
+ const double correction_factor = get_rate_correction_factor ( cpi ) ;
+ target_bits_per_mb = ( ( uint64_t ) target_bits_per_frame << BPER_MB_NORMBITS ) / cm -> MBs ;
+ i = active_best_quality ;
+ do {
+ const int bits_per_mb_at_this_q = ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth ) ;
+ if ( bits_per_mb_at_this_q <= target_bits_per_mb ) {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+ else {
+ last_error = bits_per_mb_at_this_q - target_bits_per_mb ;
+ }
+ }
+ while ( ++ i <= active_worst_quality ) ;
+ return q ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ const int bits_per_mb_at_this_q = ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth ) ;
+ if ( bits_per_mb_at_this_q <= target_bits_per_mb ) {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+ else {
+ last_error = bits_per_mb_at_this_q - target_bits_per_mb ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { last_error = bits_per_mb_at_this_q - target_bits_per_mb ; }
+30064771072 | CALL | const cm = & cpi -> common
+30064771073 | CALL | & cpi -> common
+30064771074 | CALL | cpi -> common
+30064771075 | CALL | q = active_worst_quality
+30064771076 | CALL | last_error = INT_MAX
+30064771077 | CALL | correction_factor = get_rate_correction_factor ( cpi )
+30064771078 | CALL | get_rate_correction_factor ( cpi )
+30064771079 | CALL | 
+        target_bits_per_mb = ( ( uint64_t ) target_bits_per_frame << BPER_MB_NORMBITS ) / cm -> MBs
+      
+30064771080 | CALL | ( ( uint64_t ) target_bits_per_frame << BPER_MB_NORMBITS ) / cm -> MBs
+30064771081 | CALL | ( uint64_t ) target_bits_per_frame << BPER_MB_NORMBITS
+30064771082 | CALL | ( uint64_t ) target_bits_per_frame
+30064771083 | CALL | cm -> MBs
+30064771084 | CALL | i = active_best_quality
+30064771085 | CALL | 
+        bits_per_mb_at_this_q = ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth )
+      
+30064771086 | CALL | 
+        ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth )
+      
+30064771087 | CALL | 
+        vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth )
+      
+30064771088 | CALL | cm -> frame_type
+30064771089 | CALL | cm -> bit_depth
+30064771090 | CALL | bits_per_mb_at_this_q <= target_bits_per_mb
+30064771091 | CALL | ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error
+30064771092 | CALL | target_bits_per_mb - bits_per_mb_at_this_q
+30064771093 | CALL | q = i
+30064771094 | CALL | q = i - 1
+30064771095 | CALL | i - 1
+30064771096 | CALL | last_error = bits_per_mb_at_this_q - target_bits_per_mb
+30064771097 | CALL | bits_per_mb_at_this_q - target_bits_per_mb
+30064771098 | CALL | ++ i <= active_worst_quality
+30064771099 | CALL | ++ i
+47244640256 | CONTROL_STRUCTURE | 
+        do {
+ const int bits_per_mb_at_this_q = ( int ) vp9_rc_bits_per_mb ( cm -> frame_type , i , correction_factor , cm -> bit_depth ) ;
+ if ( bits_per_mb_at_this_q <= target_bits_per_mb ) {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+ else {
+ last_error = bits_per_mb_at_this_q - target_bits_per_mb ;
+ }
+ }
+ while ( ++ i <= active_worst_quality ) ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( bits_per_mb_at_this_q <= target_bits_per_mb ) {
+ if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+ break ;
+ }
+ else {
+ last_error = bits_per_mb_at_this_q - target_bits_per_mb ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ( target_bits_per_mb - bits_per_mb_at_this_q ) <= last_error ) q = i ;
+ else q = i - 1 ;
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | common
+55834574849 | FIELD_IDENTIFIER | MBs
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 47244640259 [AST]
+25769803779 -> 30064771093 [AST]
+25769803780 -> 30064771094 [AST]
+25769803781 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 55834574849 [ARGUMENT]
+30064771083 -> 55834574849 [AST]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 55834574849 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+300
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

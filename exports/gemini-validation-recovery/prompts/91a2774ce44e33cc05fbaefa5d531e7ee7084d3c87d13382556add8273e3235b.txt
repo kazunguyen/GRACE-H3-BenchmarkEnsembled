@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int kvm_arch_insert_hw_breakpoint ( target_ulong addr , target_ulong len , int type ) {
+ switch ( type ) {
+ case GDB_BREAKPOINT_HW : len = 1 ;
+ break ;
+ case GDB_WATCHPOINT_WRITE : case GDB_WATCHPOINT_ACCESS : switch ( len ) {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+ break ;
+ default : return - ENOSYS ;
+ }
+ if ( nb_hw_breakpoint == 4 ) {
+ return - ENOBUFS ;
+ }
+ if ( find_hw_breakpoint ( addr , len , type ) >= 0 ) {
+ return - EEXIST ;
+ }
+ hw_breakpoint [ nb_hw_breakpoint ] . addr = addr ;
+ hw_breakpoint [ nb_hw_breakpoint ] . len = len ;
+ hw_breakpoint [ nb_hw_breakpoint ] . type = type ;
+ nb_hw_breakpoint ++ ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ switch ( type ) {
+ case GDB_BREAKPOINT_HW : len = 1 ;
+ break ;
+ case GDB_WATCHPOINT_WRITE : case GDB_WATCHPOINT_ACCESS : switch ( len ) {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+ break ;
+ default : return - ENOSYS ;
+ }
+ if ( nb_hw_breakpoint == 4 ) {
+ return - ENOBUFS ;
+ }
+ if ( find_hw_breakpoint ( addr , len , type ) >= 0 ) {
+ return - EEXIST ;
+ }
+ hw_breakpoint [ nb_hw_breakpoint ] . addr = addr ;
+ hw_breakpoint [ nb_hw_breakpoint ] . len = len ;
+ hw_breakpoint [ nb_hw_breakpoint ] . type = type ;
+ nb_hw_breakpoint ++ ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case GDB_BREAKPOINT_HW : len = 1 ;
+ break ;
+ case GDB_WATCHPOINT_WRITE : case GDB_WATCHPOINT_ACCESS : switch ( len ) {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+ break ;
+ default : return - ENOSYS ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+      
+25769803779 | BLOCK | { return - EINVAL ; }
+25769803780 | BLOCK | { return - ENOBUFS ; }
+25769803781 | BLOCK | { return - EEXIST ; }
+30064771072 | CALL | len = 1
+30064771073 | CALL | addr & ( len - 1 )
+30064771074 | CALL | len - 1
+30064771075 | CALL | - EINVAL
+30064771076 | CALL | - EINVAL
+30064771077 | CALL | - ENOSYS
+30064771078 | CALL | nb_hw_breakpoint == 4
+30064771079 | CALL | - ENOBUFS
+30064771080 | CALL | find_hw_breakpoint ( addr , len , type ) >= 0
+30064771081 | CALL | find_hw_breakpoint ( addr , len , type )
+30064771082 | CALL | - EEXIST
+30064771083 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . addr = addr
+30064771084 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . addr
+30064771085 | CALL | hw_breakpoint [ nb_hw_breakpoint ]
+30064771086 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . len = len
+30064771087 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . len
+30064771088 | CALL | hw_breakpoint [ nb_hw_breakpoint ]
+30064771089 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . type = type
+30064771090 | CALL | hw_breakpoint [ nb_hw_breakpoint ] . type
+30064771091 | CALL | hw_breakpoint [ nb_hw_breakpoint ]
+30064771092 | CALL | nb_hw_breakpoint ++
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( type ) {
+ case GDB_BREAKPOINT_HW : len = 1 ;
+ break ;
+ case GDB_WATCHPOINT_WRITE : case GDB_WATCHPOINT_ACCESS : switch ( len ) {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+ break ;
+ default : return - ENOSYS ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | 
+        switch ( len ) {
+ case 1 : break ;
+ case 2 : case 4 : case 8 : if ( addr & ( len - 1 ) ) {
+ return - EINVAL ;
+ }
+ break ;
+ default : return - EINVAL ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | if ( addr & ( len - 1 ) ) { return - EINVAL ; }
+47244640261 | CONTROL_STRUCTURE | break ;
+47244640262 | CONTROL_STRUCTURE | break ;
+47244640263 | CONTROL_STRUCTURE | if ( nb_hw_breakpoint == 4 ) { return - ENOBUFS ; }
+47244640264 | CONTROL_STRUCTURE | 
+        if ( find_hw_breakpoint ( addr , len , type ) >= 0 ) {
+ return - EEXIST ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | addr
+55834574849 | FIELD_IDENTIFIER | len
+55834574850 | FIELD_IDENTIFIER | type
+68719476736 | IDENTIFIER | type
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640263 [AST]
+25769803776 -> 47244640264 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771072 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 47244640262 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 47244640260 [AST]
+25769803778 -> 47244640261 [AST]
+30064771072 -> 47244640257 [CFG]
+30064771072 -> 47244640257 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 47244640262 [CDG]
+30064771073 -> 47244640261 [CDG]
+30064771073 -> 47244640261 [CFG]
+30064771073 -> 47244640261 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 55834574849 [CDG]
+30064771080 -> 55834574848 [CDG]
+30064771080 -> 55834574850 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 55834574848 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 55834574848 [AST]
+30064771084 -> 55834574848 [POST_DOMINATE]
+30064771084 -> 30064771088 [REACHING_DEF]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 55834574848 [CFG]
+30064771085 -> 55834574848 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 55834574849 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 55834574849 [AST]
+30064771087 -> 55834574849 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771091 [REACHING_DEF]
+30064771088 -> 55834574849 [CFG]
+30064771088 -> 55834574849 [DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 55834574850 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 55834574850 [AST]
+30064771090 -> 55834574850 [POST_DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 55834574850 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int kvm_arch_remove_hw_breakpoint ( target_ulong addr , target_ulong len , int type ) {
+ int n ;
+ n = find_hw_breakpoint ( addr , ( type == GDB_BREAKPOINT_HW ) ? 1 : len , type ) ;
+ if ( n < 0 ) {
+ return - ENOENT ;
+ }
+ nb_hw_breakpoint -- ;
+ hw_breakpoint [ n ] = hw_breakpoint [ 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

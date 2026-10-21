@@ -1,0 +1,177 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pfkey_send_new_mapping ( struct xfrm_state * x , xfrm_address_t * ipaddr , __be16 sport ) {
+ struct sk_buff * skb ;
+ struct sadb_msg * hdr ;
+ struct sadb_sa * sa ;
+ struct sadb_address * addr ;
+ struct sadb_x_nat_t_port * n_port ;
+ int sockaddr_size ;
+ int size ;
+ __u8 satype = ( x -> id . proto == IPPROTO_ESP ? SADB_SATYPE_ESP : 0 ) ;
+ struct xfrm_encap_tmpl * natt = NULL ;
+ sockaddr_size = pfkey_sockaddr_size ( x -> props . family ) ;
+ if ( ! sockaddr_size ) return - EINVAL ;
+ if ( ! satype ) return - EINVAL ;
+ if ( ! x -> encap ) return - EINVAL ;
+ natt = x -> encap ;
+ size = sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 ) + ( sockaddr_size * 2 ) + ( sizeof ( struct sadb_x_nat_t_port ) * 2 ) ;
+ skb = alloc_skb ( size + 16 , GFP_ATOMIC ) ;
+ if ( skb == NULL ) return - ENOMEM ;
+ hdr = ( struct sadb_msg * ) skb_put ( skb , sizeof ( struct sadb_msg ) ) ;
+ hdr -> sadb_msg_version = PF_KEY_V2 ;
+ hdr -> sadb_msg_type = SADB_X_NAT_T_NEW_MAPPING ;
+ hdr -> sadb_msg_satype = satype ;
+ hdr -> sadb_msg_len = size / sizeof ( uint64_t ) ;
+ hdr -> sadb_msg_errno = 0 ;
+ hdr -> sadb_msg_reserved = 0 ;
+ hdr -> sadb_msg_seq = x -> km . seq = get_acqseq ( ) ;
+ hdr -> sadb_msg_pid = 0 ;
+ sa = ( struct sadb_sa * ) skb_put ( skb , sizeof ( struct sadb_sa ) ) ;
+ sa -> sadb_sa_len = sizeof ( struct sadb_sa ) / sizeof ( uint64_t ) ;
+ sa -> sadb_sa_exttype = SADB_EXT_SA ;
+ sa -> sadb_sa_spi = x -> id . spi ;
+ sa -> sadb_sa_replay = 0 ;
+ sa -> sadb_sa_state = 0 ;
+ sa -> sadb_sa_auth = 0 ;
+ sa -> sadb_sa_encrypt = 0 ;
+ sa -> sadb_sa_flags = 0 ;
+ addr = ( struct sadb_address * ) skb_put ( skb , sizeof ( struct sadb_address ) + sockaddr_size ) ;
+ addr -> sadb_address_len = ( sizeof ( struct sadb_address ) + sockaddr_size ) / sizeof ( uint64_t ) ;
+ addr -> sadb_address_exttype = SADB_EXT_ADDRESS_SRC ;
+ addr -> sadb_address_proto = 0 ;
+ addr -> sadb_address_reserved = 0 ;
+ addr -> sadb_address_prefixlen = pfkey_sockaddr_fill ( & x -> props . saddr , 0 , ( struct sockaddr * ) ( addr + 1 ) , x -> props . family ) ;
+ if ( ! addr -> sadb_address_prefixlen ) BUG ( ) ;
+ n_port = ( struct sadb_x_nat_t_port * ) skb_put ( skb , sizeof ( * n_port ) ) ;
+ n_port -> sadb_x_nat_t_port_len = sizeof ( * n_port ) / sizeof ( uint64_t ) ;
+ n_port -> sadb_x_nat_t_port_exttype = SADB_X_EXT_NAT_T_SPORT ;
+ n_port -> sadb_x_nat_t_port_port = natt -> encap_sport ;
+ n_port -> sadb_x_nat_t_port_reserved = 0 ;
+ addr = ( struct sadb_address * ) skb_put ( skb , sizeof ( struct sadb_address ) + sockaddr_size ) ;
+ addr -> sadb_address_len = ( sizeof ( struct sadb_address ) + sockaddr_size ) / sizeof ( uint64_t ) ;
+ addr -> sadb_address_exttype = SADB_EXT_ADDRESS_DST ;
+ addr -> sadb_address_proto = 0 ;
+ addr -> sadb_address_reserved = 0 ;
+ addr -> sadb_address_prefixlen = pfkey_sockaddr_fill ( ipaddr , 0 , ( struct sockaddr * ) ( addr + 1 ) , x -> props . family ) ;
+ if ( ! addr -> sadb_address_prefixlen ) BUG ( ) ;
+ n_port = ( struct sadb_x_nat_t_por
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct sk_buff * skb ;
+ struct sadb_msg * hdr ;
+ struct sadb_sa * sa ;
+ struct sadb_address * addr ;
+ struct sadb_x_nat_t_port * n_port ;
+ int sockaddr_size ;
+ int size ;
+ __u8 satype = ( x -> id . proto == IPPROTO_ESP ? SADB_SATYPE_ESP : 0 ) ;
+ struct xfrm_encap_tmpl * natt = NULL ;
+ sockaddr_size = pfkey_sockaddr_size ( x -> props . family ) ;
+ if ( ! sockaddr_size ) return - EINVAL ;
+ if ( ! satype ) return - EINVAL ;
+ if ( ! x -> encap ) return - EINVAL ;
+ natt = x -> encap ;
+ size = sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 ) + ( sockaddr_size * 2 ) + ( sizeof ( struct sadb_x_nat_t_port ) * 2 ) ;
+ skb = alloc_skb ( size + 16 , GFP_ATOMIC ) ;
+ if ( skb == NULL ) return - ENOMEM ;
+ hdr = ( struct sadb_msg * ) skb_put ( skb , sizeof ( struct sadb_msg ) ) ;
+ hdr -> sadb_msg_version = PF_KEY_V2 ;
+ hdr -> sadb_msg_type = SADB_X_NAT_T_NEW_MAPPING ;
+ hdr -> sadb_msg_satype = satype ;
+ hdr -> sadb_msg_len = size / sizeof ( uint64_t ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | satype = ( x -> id . proto == IPPROTO_ESP ? SADB_SATYPE_ESP : 0 )
+30064771073 | CALL | x -> id . proto == IPPROTO_ESP ? SADB_SATYPE_ESP : 0
+30064771074 | CALL | x -> id . proto == IPPROTO_ESP
+30064771075 | CALL | x -> id . proto
+30064771076 | CALL | x -> id
+30064771077 | CALL | natt = NULL
+30064771078 | CALL | sockaddr_size = pfkey_sockaddr_size ( x -> props . family )
+30064771079 | CALL | pfkey_sockaddr_size ( x -> props . family )
+30064771080 | CALL | x -> props . family
+30064771081 | CALL | x -> props
+30064771082 | CALL | ! sockaddr_size
+30064771083 | CALL | - EINVAL
+30064771084 | CALL | ! satype
+30064771085 | CALL | - EINVAL
+30064771086 | CALL | ! x -> encap
+30064771087 | CALL | x -> encap
+30064771088 | CALL | - EINVAL
+30064771089 | CALL | natt = x -> encap
+30064771090 | CALL | x -> encap
+30064771091 | CALL | 
+        size = sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 ) + ( sockaddr_size * 2 ) + ( sizeof ( struct sadb_x_nat_t_port ) * 2 )
+      
+30064771092 | CALL | 
+        sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 ) + ( sockaddr_size * 2 ) + ( sizeof ( struct sadb_x_nat_t_port ) * 2 )
+      
+30064771093 | CALL | 
+        sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 ) + ( sockaddr_size * 2 )
+      
+30064771094 | CALL | 
+        sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa ) + ( sizeof ( struct sadb_address ) * 2 )
+      
+30064771095 | CALL | sizeof ( struct sadb_msg ) + sizeof ( struct sadb_sa )
+30064771096 | CALL | sizeof ( struct sadb_msg )
+30064771097 | CALL | sizeof ( struct sadb_sa )
+30064771098 | CALL | sizeof ( struct sadb_address ) * 2
+30064771099 | CALL | sizeof ( struct sadb_address )
+30064771100 | CALL | sockaddr_size * 2
+30064771101 | CALL | sizeof ( struct sadb_x_nat_t_port ) * 2
+30064771102 | CALL | sizeof ( struct sadb_x_nat_t_port )
+30064771103 | CALL | skb = alloc_skb ( size + 16 , GFP_ATOMIC )
+30064771104 | CALL | alloc_skb ( size + 16 , GFP_ATOMIC )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+3006477107
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

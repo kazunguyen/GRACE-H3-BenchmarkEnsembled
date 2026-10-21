@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int wma_decode_block ( WMACodecContext * s ) {
+ int n , v , a , ch , bsize ;
+ int coef_nb_bits , total_gain ;
+ int nb_coefs [ MAX_CHANNELS ] ;
+ float mdct_norm ;
+ FFTContext * mdct ;
+ # ifdef TRACE tprintf ( s -> avctx , "***decode_block: %d:%d\n" , s -> frame_count - 1 , s -> block_num ) ;
+ # endif if ( s -> use_variable_block_len ) {
+ n = av_log2 ( s -> nb_block_sizes - 1 ) + 1 ;
+ if ( s -> reset_block_lengths ) {
+ s -> reset_block_lengths = 0 ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "prev_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> prev_block_len_bits = s -> frame_len_bits - v ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> block_len_bits = s -> frame_len_bits - v ;
+ }
+ else {
+ s -> prev_block_len_bits = s -> block_len_bits ;
+ s -> block_len_bits = s -> next_block_len_bits ;
+ }
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "next_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> next_block_len_bits = s -> frame_len_bits - v ;
+ }
+ else {
+ s -> next_block_len_bits = s -> frame_len_bits ;
+ s -> prev_block_len_bits = s -> frame_len_bits ;
+ s -> block_len_bits = s -> frame_len_bits ;
+ }
+ s -> block_len = 1 << s -> block_len_bits ;
+ if ( ( s -> block_pos + s -> block_len ) > s -> frame_len ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "frame_len overflow\n" ) ;
+ return - 1 ;
+ }
+ if ( s -> avctx -> channels == 2 ) {
+ s -> ms_stereo = get_bits1 ( & s -> gb ) ;
+ }
+ v = 0 ;
+ for ( ch = 0 ;
+ ch < s -> avctx -> channels ;
+ ch ++ ) {
+ a = get_bits1 ( & s -> gb ) ;
+ s -> channel_coded [ ch ] = a ;
+ v |= a ;
+ }
+ bsize = s -> frame_len_bits - s -> block_len_bits ;
+ if ( ! v ) goto next ;
+ total_gain = 1 ;
+ for ( ;
+ ;
+ ) {
+ a = get_bits ( & s -> gb , 7 ) ;
+ total_gain += a ;
+ if ( a != 127 ) break ;
+ }
+ coef_nb_bits = ff_wma_total_gain_to_bits ( total_gain ) ;
+ n = s -> coefs_end [ bsize ] - s -> coefs_start ;
+ for ( ch = 0 ;
+ ch < s -> avctx -> channels ;
+ ch ++ ) nb_coefs [ ch ] = n ;
+ if ( s -> use_noise_coding ) {
+ for ( ch = 0 ;
+ ch < s -> avctx -> channels ;
+ ch ++ ) {
+ if ( s -> channel_coded [ ch ] ) {
+ int i , n , a ;
+ n = s -> exponent_high_sizes [ bsize ] ;
+ for ( i = 0 ;
+ i < n ;
+ i ++ ) {
+ a = get_bits1 ( & s -> gb ) ;
+ s -> high_band_coded [ ch ] [ i ] = a ;
+ if ( a ) nb_coefs [ ch ] -= s -> exponent_high_bands [ bsize ] [ i ] ;
+ }
+ }
+ }
+ for ( ch = 0 ;
+ ch < s -> avctx -> channels ;
+ ch ++ ) {
+ if ( s -> channel_coded [ ch ] ) {
+ int i , n , val , code ;
+ n = s -> exponent_high_sizes [ bsize ] ;
+ val = ( int ) 0x80000000 ;
+ for ( i = 0 ;
+ i < n ;
+ i ++ ) {
+ if ( s -> high_band_coded [ ch ] [ i ] ) {
+ if ( val == ( int ) 0x80000000 ) {
+ val = get_bits ( & s -> gb , 7 ) - 19 ;
+ }
+ else {
+ code 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int n , v , a , ch , bsize ;
+ int coef_nb_bits , total_gain ;
+ int nb_coefs [ MAX_CHANNELS ] ;
+ float mdct_norm ;
+ FFTContext * mdct ;
+ # ifdef TRACE tprintf ( s -> avctx , "***decode_block: %d:%d\n" , s -> frame_count - 1 , s -> block_num ) ;
+ # endif if ( s -> use_variable_block_len ) {
+ n = av_log2 ( s -> nb_block_sizes - 1 ) + 1 ;
+ if ( s -> reset_block_lengths ) {
+ s -> reset_block_lengths = 0 ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "prev_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> prev_block_len_bits = s -> frame_len_bits - v ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> block_len_bits = s -> frame_len_bits - v ;
+ }
+ else {
+ s -> prev_block_len_bits = s -> block_len_bits ;
+ s -> block_len_bits = s -> next_block_len_...
+      
+25769803777 | BLOCK | 
+        {
+ s -> reset_block_lengths = 0 ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "prev_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> prev_block_len_bits = s -> frame_len_bits - v ;
+ v = get_bits ( & s -> gb , n ) ;
+ if ( v >= s -> nb_block_sizes ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+ s -> block_len_bits = s -> frame_len_bits - v ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "prev_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ s -> prev_block_len_bits = s -> block_len_bits ;
+ s -> block_len_bits = s -> next_block_len_bits ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "next_block_len_bits %d out of range\n" , s -> frame_len_bits - v ) ;
+ return - 1 ;
+ }
+      
+30064771072 | CALL | nb_coefs [ MAX_CHANNELS ]
+30064771073 | CALL | nb_coefs [ MAX_CHANNELS ]
+30064771074 | CALL | n = av_log2 ( s -> nb_block_sizes - 1 ) + 1
+30064771075 | CALL | av_log2 ( s -> nb_block_sizes - 1 ) + 1
+30064771076 | CALL | av_log2 ( s -> nb_block_sizes - 1 )
+30064771077 | CALL | s -> nb_block_sizes - 1
+30064771078 | CALL | s -> nb_block_sizes
+30064771079 | CALL | s -> reset_block_lengths
+30064771080 | CALL | s -> reset_block_lengths = 0
+30064771081 | CALL | s -> reset_block_lengths
+30064771082 | CALL | v = get_bits ( & s -> gb , n )
+30064771083 | CALL | get_bits ( & s -> gb , n )
+30064771084 | CALL | & s -> gb
+30064771085 | CALL | s -> gb
+30064771086 | CALL | v >= s -> nb_block_sizes
+30064771087 | CALL | s -> nb_block_sizes
+30064771088 | CALL | 
+        av_log ( s -> avctx , AV_LOG_ERROR , "prev_block_len_bits %d out of range\n" , s -> frame_len_bits - v )
+      
+30064771089 | CALL | s -> avctx
+30064771090 | CALL | s -> frame_len_bits - v
+30064771091 | CALL | s -> frame_len_bits
+30064771092 | CALL | - 1
+30064771093 | CALL | s -> prev_block_len_bits = s -> frame_len_bits - v
+30064771094 | CALL | s -> prev_block_len_bits
+30064771095 | CALL | s -> frame_len_bits - v
+30064771096 | CALL | s -> frame_len_bits
+30064771097 | CALL | v = get_bits ( & s -> gb , n )
+30064771098 | CALL | get_bits ( & s -> gb , n )
+30064771099 | CALL | & s -> gb
+30064771100 | CALL | s -> gb
+30064771101 | CALL | v >= s -> nb_block_sizes
+30064771102 | CALL | s -> nb_block_sizes
+30064771103 | CALL | 
+        av_log ( s -> avctx , AV_LOG_ERROR , "block_len_bits %d out of range\n" , s -> frame_len_bits - v )
+      
+30064771104 | CALL | s -> avctx
+30064771105 | CALL | s -> frame_len_bits - v
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771097 [AST]
+25769803778 -> 30064771088 [AST]
+25769803779 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [D
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

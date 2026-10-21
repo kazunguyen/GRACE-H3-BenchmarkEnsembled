@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void evhttp_read_header ( struct evhttp_connection * evcon , struct evhttp_request * req ) {
+ enum message_read_status res ;
+ int fd = evcon -> fd ;
+ res = evhttp_parse_headers ( req , evcon -> input_buffer ) ;
+ if ( res == DATA_CORRUPTED ) {
+ event_debug ( ( "%s: bad header lines on %d\n" , __func__ , fd ) ) ;
+ evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER ) ;
+ return ;
+ }
+ else if ( res == MORE_DATA_EXPECTED ) {
+ evhttp_add_event ( & evcon -> ev , evcon -> timeout , HTTP_READ_TIMEOUT ) ;
+ return ;
+ }
+ switch ( req -> kind ) {
+ case EVHTTP_REQUEST : event_debug ( ( "%s: checking for post data on %d\n" , __func__ , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ break ;
+ case EVHTTP_RESPONSE : if ( req -> response_code == HTTP_NOCONTENT || req -> response_code == HTTP_NOTMODIFIED || ( req -> response_code >= 100 && req -> response_code < 200 ) ) {
+ event_debug ( ( "%s: skipping body for code %d\n" , __func__ , req -> response_code ) ) ;
+ evhttp_connection_done ( evcon ) ;
+ }
+ else {
+ event_debug ( ( "%s: start of read body for %s on %d\n" , __func__ , req -> remote_host , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ }
+ break ;
+ default : event_warnx ( "%s: bad header on %d" , __func__ , fd ) ;
+ evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER ) ;
+ break ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ enum message_read_status res ;
+ int fd = evcon -> fd ;
+ res = evhttp_parse_headers ( req , evcon -> input_buffer ) ;
+ if ( res == DATA_CORRUPTED ) {
+ event_debug ( ( "%s: bad header lines on %d\n" , __func__ , fd ) ) ;
+ evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER ) ;
+ return ;
+ }
+ else if ( res == MORE_DATA_EXPECTED ) {
+ evhttp_add_event ( & evcon -> ev , evcon -> timeout , HTTP_READ_TIMEOUT ) ;
+ return ;
+ }
+ switch ( req -> kind ) {
+ case EVHTTP_REQUEST : event_debug ( ( "%s: checking for post data on %d\n" , __func__ , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ break ;
+ case EVHTTP_RESPONSE : if ( req -> response_code == HTTP_NOCONTENT || req -> response_code == HTTP_NOTMODIFIED || ( req -> response_code >= 100 && req -> response_code < 200 ) ) {
+ event_debug ( ( "%s: skipping body for code %d\n" , __func__ , req -> response_code ) ) ;
+ evhttp_connection_done ( evcon ) ;
+ }
+ else {
+ event_debug ( ( "%s: start of read body for %s on %d\n" , __func__ , req -> rem...
+      
+25769803777 | BLOCK | 
+        {
+ event_debug ( ( "%s: bad header lines on %d\n" , __func__ , fd ) ) ;
+ evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER ) ;
+ return ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ evhttp_add_event ( & evcon -> ev , evcon -> timeout , HTTP_READ_TIMEOUT ) ;
+ return ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ case EVHTTP_REQUEST : event_debug ( ( "%s: checking for post data on %d\n" , __func__ , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ break ;
+ case EVHTTP_RESPONSE : if ( req -> response_code == HTTP_NOCONTENT || req -> response_code == HTTP_NOTMODIFIED || ( req -> response_code >= 100 && req -> response_code < 200 ) ) {
+ event_debug ( ( "%s: skipping body for code %d\n" , __func__ , req -> response_code ) ) ;
+ evhttp_connection_done ( evcon ) ;
+ }
+ else {
+ event_debug ( ( "%s: start of read body for %s on %d\n" , __func__ , req -> remote_host , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ }
+ break ;
+ default : event_warnx ( "%s: bad header on %d" , __func__ , fd ) ;
+ evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER ) ;
+ break ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ event_debug ( ( "%s: skipping body for code %d\n" , __func__ , req -> response_code ) ) ;
+ evhttp_connection_done ( evcon ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ event_debug ( ( "%s: start of read body for %s on %d\n" , __func__ , req -> remote_host , fd ) ) ;
+ evhttp_get_body ( evcon , req ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | fd = evcon -> fd
+30064771073 | CALL | evcon -> fd
+30064771074 | CALL | res = evhttp_parse_headers ( req , evcon -> input_buffer )
+30064771075 | CALL | evhttp_parse_headers ( req , evcon -> input_buffer )
+30064771076 | CALL | evcon -> input_buffer
+30064771077 | CALL | res == DATA_CORRUPTED
+30064771078 | CALL | event_debug ( ( "%s: bad header lines on %d\n" , __func__ , fd ) )
+30064771079 | CALL | evhttp_connection_fail ( evcon , EVCON_HTTP_INVALID_HEADER )
+30064771080 | CALL | res == MORE_DATA_EXPECTED
+30064771081 | CALL | evhttp_add_event ( & evcon -> ev , evcon -> timeout , HTTP_READ_TIMEOUT )
+30064771082 | CALL | & evcon -> ev
+30064771083 | CALL | evcon -> ev
+30064771084 | CALL | evcon -> timeout
+30064771085 | CALL | req -> kind
+30064771086 | CALL | event_debug ( ( "%s: checking for post data on %d\n" , __func__ , fd ) )
+30064771087 | CALL | evhttp_get_body ( evcon , req )
+30064771088 | CALL | 
+        req -> response_code == HTTP_NOCONTENT || req -> response_code == HTTP_NOTMODIFIED || ( req -> response_code >= 100 && req -> response_code < 200 )
+      
+30064771089 | CALL | 
+        req -> response_code == HTTP_NOCONTENT || req -> response_code == HTTP_NOTMODIFIED
+      
+30064771090 | CALL | req -> response_code == HTTP_NOCONTENT
+30064771091 | CALL | req -> response_code
+30064771092 | CALL | req -> response_code == HTTP_NOTMODIFIED
+30064771093 | CALL | req -> response_code
+30064771094 | CALL | req -> response_code >= 100 && req -> response_code < 200
+30064771095 | CALL | req -> response_code >= 100
+30064771096 | CALL | req -> response_code
+30064771097 | CALL | req -> response_code < 200
+30064771098 | CALL | req -> response_code
+30064771099 | CALL | 
+        event_debug ( ( "%s: skipping body for code %d\n" , __func__ , req -> response_code ) )
+      
+30064771100 | CALL | req -> response_code
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771078 [CFG]
+25769803778 -> 30064771078 [DOMINATE]
+25769803778 -> 30064771078 [REACHING_DEF]
+25769803778 -> 30064771078 [REACHING_DEF]
+25769803780 -> 30064771081 [AST]
+25769803781 -> 30064771086 [AST]
+25769803781 -> 30064771087 [AST]
+25769803782 -> 30064771086 [CFG]
+25769803782 -> 30064771086 [DOMINATE]
+25769803782 -> 30064771086 [REACHING_DEF]
+25769803782 -> 30064771086 [REACHING_DEF]
+25769803783 -> 30064771099 [AST]
+25769803784 -> 30064771100 [AST]
+25769803784 -> 30064771099 [CFG]
+25769803784 -> 30064771099 [DOMINATE]
+25769803784 -> 30064771100 [POST_DOMINATE]
+25769803784 -> 30064771099 [REACHING_DEF]
+25769803784 -> 30064771099 [REACHING_DEF]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 25769803778 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

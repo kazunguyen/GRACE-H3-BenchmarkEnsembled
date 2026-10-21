@@ -1,0 +1,255 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nntp_fetch_lines ( struct NntpData * nntp_data , char * query , size_t qlen , const char * msg , int ( * funct ) ( char * , void * ) , void * data ) {
+ int done = false ;
+ int rc ;
+ while ( ! done ) {
+ char buf [ LONG_STRING ] ;
+ char * line = NULL ;
+ unsigned int lines = 0 ;
+ size_t off = 0 ;
+ struct Progress progress ;
+ if ( msg ) mutt_progress_init ( & progress , msg , MUTT_PROGRESS_MSG , ReadInc , 0 ) ;
+ mutt_str_strfcpy ( buf , query , sizeof ( buf ) ) ;
+ if ( nntp_query ( nntp_data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ if ( buf [ 0 ] != '2' ) {
+ mutt_str_strfcpy ( query , buf , qlen ) ;
+ return 1 ;
+ }
+ line = mutt_mem_malloc ( sizeof ( buf ) ) ;
+ rc = 0 ;
+ while ( true ) {
+ char * p = NULL ;
+ int chunk = mutt_socket_readln_d ( buf , sizeof ( buf ) , nntp_data -> nserv -> conn , MUTT_SOCK_LOG_HDR ) ;
+ if ( chunk < 0 ) {
+ nntp_data -> nserv -> status = NNTP_NONE ;
+ break ;
+ }
+ p = buf ;
+ if ( ! off && buf [ 0 ] == '.' ) {
+ if ( buf [ 1 ] == '\0' ) {
+ done = true ;
+ break ;
+ }
+ if ( buf [ 1 ] == '.' ) p ++ ;
+ }
+ mutt_str_strfcpy ( line + off , p , sizeof ( buf ) ) ;
+ if ( chunk >= sizeof ( buf ) ) off += strlen ( p ) ;
+ else {
+ if ( msg ) mutt_progress_update ( & progress , ++ lines , - 1 ) ;
+ if ( rc == 0 && funct ( line , data ) < 0 ) rc = - 2 ;
+ off = 0 ;
+ }
+ mutt_mem_realloc ( & line , off + sizeof ( buf ) ) ;
+ }
+ FREE ( & line ) ;
+ funct ( NULL , data ) ;
+ }
+ return rc ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int done = false ;
+ int rc ;
+ while ( ! done ) {
+ char buf [ LONG_STRING ] ;
+ char * line = NULL ;
+ unsigned int lines = 0 ;
+ size_t off = 0 ;
+ struct Progress progress ;
+ if ( msg ) mutt_progress_init ( & progress , msg , MUTT_PROGRESS_MSG , ReadInc , 0 ) ;
+ mutt_str_strfcpy ( buf , query , sizeof ( buf ) ) ;
+ if ( nntp_query ( nntp_data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ if ( buf [ 0 ] != '2' ) {
+ mutt_str_strfcpy ( query , buf , qlen ) ;
+ return 1 ;
+ }
+ line = mutt_mem_malloc ( sizeof ( buf ) ) ;
+ rc = 0 ;
+ while ( true ) {
+ char * p = NULL ;
+ int chunk = mutt_socket_readln_d ( buf , sizeof ( buf ) , nntp_data -> nserv -> conn , MUTT_SOCK_LOG_HDR ) ;
+ if ( chunk < 0 ) {
+ nntp_data -> nserv -> status = NNTP_NONE ;
+ break ;
+ }
+ p = buf ;
+ if ( ! off && buf [ 0 ] == '.' ) {
+ if ( buf [ 1 ] == '\0' ) {
+ done = true ;
+ break ;
+ }
+ if ( buf [ 1 ] == '.' ) p ++ ;
+ }
+ mutt_str_strfcpy ( line + off , p , sizeof ( buf ) ) ;
+ if ( chunk >= sizeof ( buf ) ) off += strlen ( p ) ;...
+      
+25769803777 | BLOCK | 
+        {
+ char buf [ LONG_STRING ] ;
+ char * line = NULL ;
+ unsigned int lines = 0 ;
+ size_t off = 0 ;
+ struct Progress progress ;
+ if ( msg ) mutt_progress_init ( & progress , msg , MUTT_PROGRESS_MSG , ReadInc , 0 ) ;
+ mutt_str_strfcpy ( buf , query , sizeof ( buf ) ) ;
+ if ( nntp_query ( nntp_data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ if ( buf [ 0 ] != '2' ) {
+ mutt_str_strfcpy ( query , buf , qlen ) ;
+ return 1 ;
+ }
+ line = mutt_mem_malloc ( sizeof ( buf ) ) ;
+ rc = 0 ;
+ while ( true ) {
+ char * p = NULL ;
+ int chunk = mutt_socket_readln_d ( buf , sizeof ( buf ) , nntp_data -> nserv -> conn , MUTT_SOCK_LOG_HDR ) ;
+ if ( chunk < 0 ) {
+ nntp_data -> nserv -> status = NNTP_NONE ;
+ break ;
+ }
+ p = buf ;
+ if ( ! off && buf [ 0 ] == '.' ) {
+ if ( buf [ 1 ] == '\0' ) {
+ done = true ;
+ break ;
+ }
+ if ( buf [ 1 ] == '.' ) p ++ ;
+ }
+ mutt_str_strfcpy ( line + off , p , sizeof ( buf ) ) ;
+ if ( chunk >= sizeof ( buf ) ) off += strlen ( p ) ;
+ else {
+ if ( msg ) mutt_progress_update ( & prog...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { mutt_str_strfcpy ( query , buf , qlen ) ; return 1 ; }
+25769803781 | BLOCK | 
+        {
+ char * p = NULL ;
+ int chunk = mutt_socket_readln_d ( buf , sizeof ( buf ) , nntp_data -> nserv -> conn , MUTT_SOCK_LOG_HDR ) ;
+ if ( chunk < 0 ) {
+ nntp_data -> nserv -> status = NNTP_NONE ;
+ break ;
+ }
+ p = buf ;
+ if ( ! off && buf [ 0 ] == '.' ) {
+ if ( buf [ 1 ] == '\0' ) {
+ done = true ;
+ break ;
+ }
+ if ( buf [ 1 ] == '.' ) p ++ ;
+ }
+ mutt_str_strfcpy ( line + off , p , sizeof ( buf ) ) ;
+ if ( chunk >= sizeof ( buf ) ) off += strlen ( p ) ;
+ else {
+ if ( msg ) mutt_progress_update ( & progress , ++ lines , - 1 ) ;
+ if ( rc == 0 && funct ( line , data ) < 0 ) rc = - 2 ;
+ off = 0 ;
+ }
+ mutt_mem_realloc ( & line , off + sizeof ( buf ) ) ;
+ }
+      
+25769803782 | BLOCK | { nntp_data -> nserv -> status = NNTP_NONE ; break ; }
+25769803783 | BLOCK | 
+        {
+ if ( buf [ 1 ] == '\0' ) {
+ done = true ;
+ break ;
+ }
+ if ( buf [ 1 ] == '.' ) p ++ ;
+ }
+      
+25769803784 | BLOCK | { done = true ; break ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( msg ) mutt_progress_update ( & progress , ++ lines , - 1 ) ;
+ if ( rc == 0 && funct ( line , data ) < 0 ) rc = - 2 ;
+ off = 0 ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+30064771072 | CALL | done = false
+30064771073 | CALL | ! done
+30064771074 | CALL | buf [ LONG_STRING ]
+30064771075 | CALL | buf [ LONG_STRING ]
+30064771076 | CALL | line = NULL
+30064771077 | CALL | lines = 0
+30064771078 | CALL | off = 0
+30064771079 | CALL | msg != NULL
+30064771080 | CALL | mutt_progress_init ( & progress , msg , MUTT_PROGRESS_MSG , ReadInc , 0 )
+30064771081 | CALL | & progress
+30064771082 | CALL | mutt_str_strfcpy ( buf , query , sizeof ( buf ) )
+30064771083 | CALL | sizeof ( buf )
+30064771084 | CALL | nntp_query ( nntp_data , buf , sizeof ( buf ) ) < 0
+30064771085 | CALL | nntp_query ( nntp_data , buf , sizeof ( buf ) )
+30064771086 | CALL | sizeof ( buf )
+30064771087 | CALL | - 1
+30064771088 | CALL | buf [ 0 ] != '2'
+30064771089 | CALL | buf [ 0 ]
+30064771090 | CALL | mutt_str_strfcpy ( query , buf , qlen )
+30064771091 | CALL | line = mutt_mem_malloc ( sizeof ( buf ) )
+30064771092 | CALL | mutt_mem_malloc ( sizeof ( buf ) )
+30064771093 | CALL | sizeof ( buf )
+30064771094 | CALL | rc = 0
+30064771095 | CALL | true != 0
+30064771096 | CALL | p = NULL
+30064771097 | CALL | 
+        chunk = mutt_socket_readln_d ( buf , sizeof ( buf ) , nntp_data -> nserv -> conn , MUTT_SOCK_LOG_HDR )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771094 [AST]
+25769803778 -> 30064771080 [AST]
+25769803780 -> 30064771090 [AST]
+25769803781 -> 30064771096 [AST]
+25769803781 -> 30064771097 [AST]
+30064771073 -> 30064771084 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771086 [CDG]
+30064771073 -> 30064771085 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

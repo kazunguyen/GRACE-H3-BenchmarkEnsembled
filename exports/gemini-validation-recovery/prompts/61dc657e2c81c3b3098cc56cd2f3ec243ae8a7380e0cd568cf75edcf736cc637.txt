@@ -1,0 +1,211 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rtp_packetize_amr ( sout_stream_id_sys_t * id , block_t * in ) {
+ int i_max = rtp_mtu ( id ) - 2 ;
+ int i_count = ( in -> i_buffer + i_max - 1 ) / i_max ;
+ uint8_t * p_data = in -> p_buffer ;
+ int i_data = in -> i_buffer ;
+ int i ;
+ for ( i = 0 ;
+ i < i_count ;
+ i ++ ) {
+ int i_payload = __MIN ( i_max , i_data ) ;
+ block_t * out = block_Alloc ( 14 + i_payload ) ;
+ rtp_packetize_common ( id , out , ( ( i == i_count - 1 ) ? 1 : 0 ) , ( in -> i_pts > VLC_TS_INVALID ? in -> i_pts : in -> i_dts ) ) ;
+ out -> p_buffer [ 12 ] = 0xF0 ;
+ out -> p_buffer [ 13 ] = p_data [ 0 ] & 0x7C ;
+ memcpy ( & out -> p_buffer [ 14 ] , p_data + 1 , i_payload - 1 ) ;
+ out -> i_buffer -- ;
+ out -> i_dts = in -> i_dts + i * in -> i_length / i_count ;
+ out -> i_length = in -> i_length / i_count ;
+ rtp_packetize_send ( id , out ) ;
+ p_data += i_payload ;
+ i_data -= i_payload ;
+ }
+ block_Release ( in ) ;
+ return VLC_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i_max = rtp_mtu ( id ) - 2 ;
+ int i_count = ( in -> i_buffer + i_max - 1 ) / i_max ;
+ uint8_t * p_data = in -> p_buffer ;
+ int i_data = in -> i_buffer ;
+ int i ;
+ for ( i = 0 ;
+ i < i_count ;
+ i ++ ) {
+ int i_payload = __MIN ( i_max , i_data ) ;
+ block_t * out = block_Alloc ( 14 + i_payload ) ;
+ rtp_packetize_common ( id , out , ( ( i == i_count - 1 ) ? 1 : 0 ) , ( in -> i_pts > VLC_TS_INVALID ? in -> i_pts : in -> i_dts ) ) ;
+ out -> p_buffer [ 12 ] = 0xF0 ;
+ out -> p_buffer [ 13 ] = p_data [ 0 ] & 0x7C ;
+ memcpy ( & out -> p_buffer [ 14 ] , p_data + 1 , i_payload - 1 ) ;
+ out -> i_buffer -- ;
+ out -> i_dts = in -> i_dts + i * in -> i_length / i_count ;
+ out -> i_length = in -> i_length / i_count ;
+ rtp_packetize_send ( id , out ) ;
+ p_data += i_payload ;
+ i_data -= i_payload ;
+ }
+ block_Release ( in ) ;
+ return VLC_SUCCESS ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int i_payload = __MIN ( i_max , i_data ) ;
+ block_t * out = block_Alloc ( 14 + i_payload ) ;
+ rtp_packetize_common ( id , out , ( ( i == i_count - 1 ) ? 1 : 0 ) , ( in -> i_pts > VLC_TS_INVALID ? in -> i_pts : in -> i_dts ) ) ;
+ out -> p_buffer [ 12 ] = 0xF0 ;
+ out -> p_buffer [ 13 ] = p_data [ 0 ] & 0x7C ;
+ memcpy ( & out -> p_buffer [ 14 ] , p_data + 1 , i_payload - 1 ) ;
+ out -> i_buffer -- ;
+ out -> i_dts = in -> i_dts + i * in -> i_length / i_count ;
+ out -> i_length = in -> i_length / i_count ;
+ rtp_packetize_send ( id , out ) ;
+ p_data += i_payload ;
+ i_data -= i_payload ;
+ }
+      
+30064771072 | CALL | i_max = rtp_mtu ( id ) - 2
+30064771073 | CALL | rtp_mtu ( id ) - 2
+30064771074 | CALL | rtp_mtu ( id )
+30064771075 | CALL | i_count = ( in -> i_buffer + i_max - 1 ) / i_max
+30064771076 | CALL | ( in -> i_buffer + i_max - 1 ) / i_max
+30064771077 | CALL | in -> i_buffer + i_max - 1
+30064771078 | CALL | in -> i_buffer + i_max
+30064771079 | CALL | in -> i_buffer
+30064771080 | CALL | p_data = in -> p_buffer
+30064771081 | CALL | in -> p_buffer
+30064771082 | CALL | i_data = in -> i_buffer
+30064771083 | CALL | in -> i_buffer
+30064771084 | CALL | i = 0
+30064771085 | CALL | i < i_count
+30064771086 | CALL | i ++
+30064771087 | CALL | i_payload = __MIN ( i_max , i_data )
+30064771088 | CALL | __MIN ( i_max , i_data )
+30064771089 | CALL | out = block_Alloc ( 14 + i_payload )
+30064771090 | CALL | block_Alloc ( 14 + i_payload )
+30064771091 | CALL | 14 + i_payload
+30064771092 | CALL | 
+        rtp_packetize_common ( id , out , ( ( i == i_count - 1 ) ? 1 : 0 ) , ( in -> i_pts > VLC_TS_INVALID ? in -> i_pts : in -> i_dts ) )
+      
+30064771093 | CALL | ( i == i_count - 1 ) ? 1 : 0
+30064771094 | CALL | i == i_count - 1
+30064771095 | CALL | i_count - 1
+30064771096 | CALL | in -> i_pts > VLC_TS_INVALID ? in -> i_pts : in -> i_dts
+30064771097 | CALL | in -> i_pts > VLC_TS_INVALID
+30064771098 | CALL | in -> i_pts
+30064771099 | CALL | in -> i_pts
+30064771100 | CALL | in -> i_dts
+30064771101 | CALL | out -> p_buffer [ 12 ] = 0xF0
+30064771102 | CALL | out -> p_buffer [ 12 ]
+30064771103 | CALL | out -> p_buffer
+30064771104 | CALL | out -> p_buffer [ 13 ] = p_data [ 0 ] & 0x7C
+30064771105 | CALL | out -> p_buffer [ 13 ]
+30064771106 | CALL | out -> p_buffer
+30064771107 | CALL | p_data [ 0 ] & 0x7C
+30064771108 | CALL | p_data [ 0 ]
+30064771109 | CALL | memcpy ( & out -> p_buffer [ 14 ] , p_data + 1 , i_payload - 1 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771101 [AST]
+25769803777 -> 30064771104 [AST]
+25769803777 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771107 [CDG]
+30064771085 -> 30064771108 [CDG]
+30064771085 -> 30064771109 [CDG]
+30064771085 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771101 [CDG]
+30064771085 -> 30064771102 [CDG]
+30064771085 -> 30064771103 [CDG]
+30064771085 -> 30064771104 [CDG]
+30064771085 -> 30064771105 [CDG]
+30064771085 -> 30064771106 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771097 [CDG]
+30064771085 -> 30064771098 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int rtp_packetize_mp4a ( sout_stream_id_sys_t * id , block_t * in ) {
+ int i_max = rtp_mtu ( id ) - 4 ;
+ int i_count = ( in -> i_buffer + i_max - 1 ) / i_max ;
+ uint8_t * p_data = in -> p_buffer ;
+ int i_data = in -> i_buf
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,190 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _slurm_rpc_dump_jobs ( slurm_msg_t * msg ) {
+ DEF_TIMERS ;
+ char * dump ;
+ int dump_size ;
+ slurm_msg_t response_msg ;
+ job_info_request_msg_t * job_info_request_msg = ( job_info_request_msg_t * ) msg -> data ;
+ slurmctld_lock_t job_read_lock = {
+ READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , READ_LOCK }
+ ;
+ uid_t uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info ) ;
+ START_TIMER ;
+ debug3 ( "Processing RPC: REQUEST_JOB_INFO from uid=%d" , uid ) ;
+ lock_slurmctld ( job_read_lock ) ;
+ if ( ( job_info_request_msg -> last_update - 1 ) >= last_job_update ) {
+ unlock_slurmctld ( job_read_lock ) ;
+ debug3 ( "_slurm_rpc_dump_jobs, no change" ) ;
+ slurm_send_rc_msg ( msg , SLURM_NO_CHANGE_IN_DATA ) ;
+ }
+ else {
+ if ( job_info_request_msg -> job_ids ) {
+ pack_spec_jobs ( & dump , & dump_size , job_info_request_msg -> job_ids , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+ else {
+ pack_all_jobs ( & dump , & dump_size , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+ unlock_slurmctld ( job_read_lock ) ;
+ END_TIMER2 ( "_slurm_rpc_dump_jobs" ) ;
+ # if 0 info ( "_slurm_rpc_dump_jobs, size=%d %s" , dump_size , TIME_STR ) ;
+ # endif slurm_msg_t_init ( & response_msg ) ;
+ response_msg . flags = msg -> flags ;
+ response_msg . protocol_version = msg -> protocol_version ;
+ response_msg . address = msg -> address ;
+ response_msg . conn = msg -> conn ;
+ response_msg . msg_type = RESPONSE_JOB_INFO ;
+ response_msg . data = dump ;
+ response_msg . data_size = dump_size ;
+ slurm_send_node_msg ( msg -> conn_fd , & response_msg ) ;
+ xfree ( dump ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DEF_TIMERS ;
+ char * dump ;
+ int dump_size ;
+ slurm_msg_t response_msg ;
+ job_info_request_msg_t * job_info_request_msg = ( job_info_request_msg_t * ) msg -> data ;
+ slurmctld_lock_t job_read_lock = {
+ READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , READ_LOCK }
+ ;
+ uid_t uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info ) ;
+ START_TIMER ;
+ debug3 ( "Processing RPC: REQUEST_JOB_INFO from uid=%d" , uid ) ;
+ lock_slurmctld ( job_read_lock ) ;
+ if ( ( job_info_request_msg -> last_update - 1 ) >= last_job_update ) {
+ unlock_slurmctld ( job_read_lock ) ;
+ debug3 ( "_slurm_rpc_dump_jobs, no change" ) ;
+ slurm_send_rc_msg ( msg , SLURM_NO_CHANGE_IN_DATA ) ;
+ }
+ else {
+ if ( job_info_request_msg -> job_ids ) {
+ pack_spec_jobs ( & dump , & dump_size , job_info_request_msg -> job_ids , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+ else {
+ pack_all_jobs ( & dump , & dump_size , job_info_request_msg -> show_flags , uid , NO_VAL , ...
+      
+25769803777 | BLOCK | 
+        {
+ unlock_slurmctld ( job_read_lock ) ;
+ debug3 ( "_slurm_rpc_dump_jobs, no change" ) ;
+ slurm_send_rc_msg ( msg , SLURM_NO_CHANGE_IN_DATA ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( job_info_request_msg -> job_ids ) {
+ pack_spec_jobs ( & dump , & dump_size , job_info_request_msg -> job_ids , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+ else {
+ pack_all_jobs ( & dump , & dump_size , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+ unlock_slurmctld ( job_read_lock ) ;
+ END_TIMER2 ( "_slurm_rpc_dump_jobs" ) ;
+ # if 0 info ( "_slurm_rpc_dump_jobs, size=%d %s" , dump_size , TIME_STR ) ;
+ # endif slurm_msg_t_init ( & response_msg ) ;
+ response_msg . flags = msg -> flags ;
+ response_msg . protocol_version = msg -> protocol_version ;
+ response_msg . address = msg -> address ;
+ response_msg . conn = msg -> conn ;
+ response_msg . msg_type = RESPONSE_JOB_INFO ;
+ response_msg . data = dump ;
+ response_msg . data_size = dump_size ;
+ slurm_send_node_msg ( msg -> conn_fd , & response_msg ) ;
+ xfree ( dump ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ pack_spec_jobs ( & dump , & dump_size , job_info_request_msg -> job_ids , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ pack_all_jobs ( & dump , & dump_size , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version ) ;
+ }
+      
+30064771072 | CALL | job_info_request_msg = ( job_info_request_msg_t * ) msg -> data
+30064771073 | CALL | ( job_info_request_msg_t * ) msg -> data
+30064771074 | CALL | msg -> data
+30064771075 | CALL | job_read_lock = { READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , READ_LOCK }
+30064771076 | CALL | { READ_LOCK , READ_LOCK , NO_LOCK , READ_LOCK , READ_LOCK }
+30064771077 | CALL | uid = g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info )
+30064771078 | CALL | g_slurm_auth_get_uid ( msg -> auth_cred , slurmctld_config . auth_info )
+30064771079 | CALL | msg -> auth_cred
+30064771080 | CALL | slurmctld_config . auth_info
+30064771081 | CALL | debug3 ( "Processing RPC: REQUEST_JOB_INFO from uid=%d" , uid )
+30064771082 | CALL | lock_slurmctld ( job_read_lock )
+30064771083 | CALL | ( job_info_request_msg -> last_update - 1 ) >= last_job_update
+30064771084 | CALL | job_info_request_msg -> last_update - 1
+30064771085 | CALL | job_info_request_msg -> last_update
+30064771086 | CALL | unlock_slurmctld ( job_read_lock )
+30064771087 | CALL | debug3 ( "_slurm_rpc_dump_jobs, no change" )
+30064771088 | CALL | slurm_send_rc_msg ( msg , SLURM_NO_CHANGE_IN_DATA )
+30064771089 | CALL | job_info_request_msg -> job_ids
+30064771090 | CALL | 
+        pack_spec_jobs ( & dump , & dump_size , job_info_request_msg -> job_ids , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version )
+      
+30064771091 | CALL | & dump
+30064771092 | CALL | & dump_size
+30064771093 | CALL | job_info_request_msg -> job_ids
+30064771094 | CALL | job_info_request_msg -> show_flags
+30064771095 | CALL | msg -> protocol_version
+30064771096 | CALL | 
+        pack_all_jobs ( & dump , & dump_size , job_info_request_msg -> show_flags , uid , NO_VAL , msg -> protocol_version )
+      
+30064771097 | CALL | & dump
+30064771098 | CALL | & dump_size
+30064771099 | CALL | job_info_request_msg -> show_flags
+30064771100 | CALL | msg -> protocol_version
+30064771101 | CALL | unlock_slurmctld ( job_read_lock )
+30064771102 | CALL | END_TIMER2 ( "_slurm_rpc_dump_jobs" )
+30064771103 | CALL | response_msg . flags = msg -> flags
+30064771104 | CALL | response_msg . flags
+30064771105 | CALL | msg -> flags
+30064771106 | CALL | response_msg . protocol_version = msg -> protocol_version
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771102 [AST]
+25769803778 -> 30064771103 [AST]
+25769803778 -> 30064771106 [AST]
+25769803779 -> 30064771090 [AST]
+25769803780 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 3006477107
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

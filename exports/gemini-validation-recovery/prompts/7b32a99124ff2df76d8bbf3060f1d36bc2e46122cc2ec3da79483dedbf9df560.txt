@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int zzstop ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ uint count ;
+ check_type ( * op , t_integer ) ;
+ count = count_to_stopped ( i_ctx_p , op -> value . intval ) ;
+ if ( count ) {
+ ref save_result ;
+ check_op ( 2 ) ;
+ save_result = op [ - 1 ] ;
+ pop ( 2 ) ;
+ pop_estack ( i_ctx_p , count ) ;
+ op = osp ;
+ push ( 1 ) ;
+ * op = save_result ;
+ return o_pop_estack ;
+ }
+ return unmatched_exit ( op , zzstop ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ os_ptr op = osp ;
+ uint count ;
+ check_type ( * op , t_integer ) ;
+ count = count_to_stopped ( i_ctx_p , op -> value . intval ) ;
+ if ( count ) {
+ ref save_result ;
+ check_op ( 2 ) ;
+ save_result = op [ - 1 ] ;
+ pop ( 2 ) ;
+ pop_estack ( i_ctx_p , count ) ;
+ op = osp ;
+ push ( 1 ) ;
+ * op = save_result ;
+ return o_pop_estack ;
+ }
+ return unmatched_exit ( op , zzstop ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ref save_result ;
+ check_op ( 2 ) ;
+ save_result = op [ - 1 ] ;
+ pop ( 2 ) ;
+ pop_estack ( i_ctx_p , count ) ;
+ op = osp ;
+ push ( 1 ) ;
+ * op = save_result ;
+ return o_pop_estack ;
+ }
+      
+30064771072 | CALL | op = osp
+30064771073 | CALL | check_type ( * op , t_integer )
+30064771074 | CALL | * op
+30064771075 | CALL | count = count_to_stopped ( i_ctx_p , op -> value . intval )
+30064771076 | CALL | count_to_stopped ( i_ctx_p , op -> value . intval )
+30064771077 | CALL | op -> value . intval
+30064771078 | CALL | op -> value
+30064771079 | CALL | count != 0
+30064771080 | CALL | check_op ( 2 )
+30064771081 | CALL | save_result = op [ - 1 ]
+30064771082 | CALL | op [ - 1 ]
+30064771083 | CALL | - 1
+30064771084 | CALL | pop ( 2 )
+30064771085 | CALL | pop_estack ( i_ctx_p , count )
+30064771086 | CALL | op = osp
+30064771087 | CALL | push ( 1 )
+30064771088 | CALL | * op = save_result
+30064771089 | CALL | * op
+30064771090 | CALL | unmatched_exit ( op , zzstop )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( count ) {
+ ref save_result ;
+ check_op ( 2 ) ;
+ save_result = op [ - 1 ] ;
+ pop ( 2 ) ;
+ pop_estack ( i_ctx_p , count ) ;
+ op = osp ;
+ push ( 1 ) ;
+ * op = save_result ;
+ return o_pop_estack ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | value
+55834574849 | FIELD_IDENTIFIER | intval
+68719476736 | IDENTIFIER | op
+68719476737 | IDENTIFIER | <unknown> osp
+68719476738 | IDENTIFIER | op
+68719476739 | IDENTIFIER | <unknown> t_integer
+68719476740 | IDENTIFIER | count
+68719476741 | IDENTIFIER | i_ctx_p
+68719476742 | IDENTIFIER | op
+68719476743 | IDENTIFIER | count
+68719476744 | IDENTIFIER | save_result
+68719476745 | IDENTIFIER | op
+68719476746 | IDENTIFIER | i_ctx_p
+68719476747 | IDENTIFIER | count
+68719476748 | IDENTIFIER | op
+68719476749 | IDENTIFIER | <unknown> osp
+68719476750 | IDENTIFIER | op
+68719476751 | IDENTIFIER | save_result
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771088 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476745 [REACHING_DEF]
+30064771074 -> 68719476742 [REACHING_DEF]
+30064771074 -> 68719476750 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476743 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 55834574848 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 55834574848 [AST]
+30064771078 -> 55834574849 [CFG]
+30064771078 -> 55834574849 [DOMINATE]
+30064771078 -> 55834574848 [POST_DOMINATE]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771088 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int zinstopped ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ uint count ;
+ check_type ( * op , t_integer ) ;
+ count = count_to_stopped ( i_ctx_p , op -> value . intval ) ;
+ if ( count ) {
+ push ( 1 ) ;
+ op [ - 1 ] = * ref_stack_index ( & e_stack , count - 2 ) ;
+ make_true ( op ) ;
+ }
+ else make_false ( op ) ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+fixup_vorbis_headers(AVFormatContext * as, struct oggvorbis_private *priv,
+
+                     uint8_t **buf)
+
+{
+
+    int i,offset, len, buf_len;
+
+    unsigned char *ptr;
+
+
+
+    len = priv->len[0] + priv->len[1] + priv->len[2];
+
+    buf_len = len + len/255 + 64;
+
+    ptr = *buf = av_realloc(NULL, buf_len);
+
+
+
+    memset(*buf, '\0', buf_len);
+
+
+
+    ptr[0] = 2;
+
+    offset = 1;
+
+    offset += av_xiphlacing(&ptr[offset], priv->len[0]);
+
+    offset += av_xiphlacing(&ptr[offset], priv->len[1]);
+
+    for (i = 0; i < 3; i++) {
+
+        memcpy(&ptr[offset], priv->packet[i], priv->len[i]);
+
+        offset += priv->len[i];
+
+        av_freep(&priv->packet[i]);
+
+    }
+
+    *buf = av_realloc(*buf, offset + FF_INPUT_BUFFER_PADDING_SIZE);
+
+    return offset;
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 41 [IS_AST_PARENT]
+31 -> 37 [IS_AST_PARENT]
+25 -> 31 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+71 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+71 -> 78 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static ssize_t vc_sendv_compat(VLANClientState *vc, const struct iovec *iov,
+
+                               int iovcnt)
+
+{
+
+    uint8_t buffer[4096];
+
+    size_t offset = 0;
+
+    int i;
+
+
+
+    for (i = 0; i < iovcnt; i++) {
+
+        size_t len;
+
+
+
+        len = MIN(sizeof(buffer) - offset, iov[i].iov_len);
+
+        memcpy(buffer + offset, iov[i].iov_base, len);
+
+        offset += len;
+
+    }
+
+
+
+    vc->receive(vc->opaque, buffer, offset);
+
+
+
+    return offset;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

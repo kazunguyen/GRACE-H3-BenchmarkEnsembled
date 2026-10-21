@@ -1,0 +1,313 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static av_always_inline void decode_cabac_residual_internal( H264Context *h, DCTELEM *block, int cat, int n, const uint8_t *scantable, const uint32_t *qmul, int max_coeff, int is_dc ) {
+
+    static const int significant_coeff_flag_offset[2][6] = {
+
+      { 105+0, 105+15, 105+29, 105+44, 105+47, 402 },
+
+      { 277+0, 277+15, 277+29, 277+44, 277+47, 436 }
+
+    };
+
+    static const int last_coeff_flag_offset[2][6] = {
+
+      { 166+0, 166+15, 166+29, 166+44, 166+47, 417 },
+
+      { 338+0, 338+15, 338+29, 338+44, 338+47, 451 }
+
+    };
+
+    static const int coeff_abs_level_m1_offset[6] = {
+
+        227+0, 227+10, 227+20, 227+30, 227+39, 426
+
+    };
+
+    static const uint8_t significant_coeff_flag_offset_8x8[2][63] = {
+
+      { 0, 1, 2, 3, 4, 5, 5, 4, 4, 3, 3, 4, 4, 4, 5, 5,
+
+        4, 4, 4, 4, 3, 3, 6, 7, 7, 7, 8, 9,10, 9, 8, 7,
+
+        7, 6,11,12,13,11, 6, 7, 8, 9,14,10, 9, 8, 6,11,
+
+       12,13,11, 6, 9,14,10, 9,11,12,13,11,14,10,12 },
+
+      { 0, 1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 7, 7, 8, 4, 5,
+
+        6, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,11,12,11,
+
+        9, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,13,13, 9,
+
+        9,10,10, 8,13,13, 9, 9,10,10,14,14,14,14,14 }
+
+    };
+
+    /* node ctx: 0..3: abslevel1 (with abslevelgt1 == 0).
+
+     * 4..7: abslevelgt1 + 3 (and abslevel1 doesn't matter).
+
+     * map node ctx => cabac ctx for level=1 */
+
+    static const uint8_t coeff_abs_level1_ctx[8] = { 1, 2, 3, 4, 0, 0, 0, 0 };
+
+    /* map node ctx => cabac ctx for level>1 */
+
+    static const uint8_t coeff_abs_levelgt1_ctx[8] = { 5, 5, 5, 5, 6, 7, 8, 9 };
+
+    static const uint8_t coeff_abs_level_transition[2][8] = {
+
+    /* update node ctx after decoding a level=1 */
+
+        { 1, 2, 3, 3, 4, 5, 6, 7 },
+
+    /* update node ctx after decoding a level>1 */
+
+        { 4, 4, 4, 4, 5, 6, 7, 7 }
+
+    };
+
+
+
+    int index[64];
+
+
+
+    int av_unused last;
+
+    int coeff_count = 0;
+
+    int node_ctx = 0;
+
+
+
+    uint8_t *significant_coeff_ctx_base;
+
+    uint8_t *last_coeff_ctx_base;
+
+    uint8_t *abs_level_m1_ctx_base;
+
+
+
+#ifndef ARCH_X86
+
+#define CABAC_ON_STACK
+
+#endif
+
+#ifdef CABAC_ON_STACK
+
+#define CC &cc
+
+    CABACContext cc;
+
+    cc.range     = h->cabac.range;
+
+    cc.low       = h->cabac.low;
+
+    cc.bytestream= h->cabac.bytestream;
+
+#else
+
+#define CC &h->cabac
+
+#endif
+
+
+
+
+
+    /* cat: 0-> DC 16x16  n = 0
+
+     *      1-> AC 16x16  n = luma4x4idx
+
+     *      2-> Luma4x4   n = luma4x4idx
+
+     *      3-> DC Chroma n = iCbCr
+
+     *      4-> AC Chroma n = 4 * iCbCr + chroma4x4idx
+
+     *      5-> Luma8x8   n = 4 * luma8x8idx
+
+     */
+
+
+
+    /* read coded block flag */
+
+    if( is_dc || cat != 5 ) {
+
+        if( get_cabac( CC, &h->cabac_state[85 + get_cabac_cbf_ctx( h, cat, n, is_dc ) ] ) == 0 ) {
+
+            if( !is_dc ) {
+
+                if( cat == 1 || cat == 2 )
+
+                    h->non_zero_count_cache[scan8[n]] = 0;
+
+                else
+
+                    h->non_zero_count_cache[scan8[16+n]] = 0;
+
+            }
+
+
+
+#ifdef CABAC_ON_STACK
+
+            h->caba
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Statement
+AST 2 | CompoundStatement
+AST 3 | FunctionDef
+EDGES (original Joern endpoint IDs):
+4 -> 5 [IS_AST_PARENT]
+4 -> 6 [IS_AST_PARENT]
+4 -> 7 [IS_AST_PARENT]
+4 -> 8 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+4 -> 10 [IS_AST_PARENT]
+4 -> 11 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+17 -> 21 [IS_AST_PARENT]
+17 -> 22 [IS_AST_PARENT]
+17 -> 23 [IS_AST_PARENT]
+17 -> 24 [IS_AST_PARENT]
+17 -> 25 [IS_AST_PARENT]
+17 -> 26 [IS_AST_PARENT]
+17 -> 27 [IS_AST_PARENT]
+17 -> 28 [IS_AST_PARENT]
+17 -> 29 [IS_AST_PARENT]
+17 -> 30 [IS_AST_PARENT]
+17 -> 31 [IS_AST_PARENT]
+17 -> 32 [IS_AST_PARENT]
+17 -> 33 [IS_AST_PARENT]
+17 -> 34 [IS_AST_PARENT]
+17 -> 35 [IS_AST_PARENT]
+17 -> 36 [IS_AST_PARENT]
+17 -> 37 [IS_AST_PARENT]
+17 -> 38 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+40 -> 45 [IS_AST_PARENT]
+40 -> 46 [IS_AST_PARENT]
+40 -> 47 [IS_AST_PARENT]
+40 -> 48 [IS_AST_PARENT]
+40 -> 49 [IS_AST_PARENT]
+40 -> 50 [IS_AST_PARENT]
+40 -> 51 [IS_AST_PARENT]
+40 -> 52 [IS_AST_PARENT]
+40 -> 53 [IS_AST_PARENT]
+40 -> 54 [IS_AST_PARENT]
+40 -> 55 [IS_AST_PARENT]
+40 -> 56 [IS_AST_PARENT]
+40 -> 57 [IS_AST_PARENT]
+40 -> 58 [IS_AST_PARENT]
+40 -> 59 [IS_AST_PARENT]
+40 -> 60 [IS_AST_PARENT]
+40 -> 61 [IS_AST_PARENT]
+16 -> 40 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+75 -> 80 [IS_AST_PARENT]
+75 -> 81 [IS_AST_PARENT]
+75 -> 82 [IS_AST_PARENT]
+75 -> 83 [IS_AST_PARENT]
+75 -> 84 [IS_AST_PARENT]
+75 -> 85 [IS_AST_PARENT]
+75 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void decode_cabac_residual( H264Context *h, DCTELEM *block, int cat, int n, const uint8_t *scantable, const uint32_t *qmul, int max_coeff) {
+
+    static const int significant_coeff_flag_offset[2][6] = {
+
+      { 105+0, 105+15, 105+29, 105+44, 105+47, 402 },
+
+      { 277+0, 277+15, 277+29, 277+44, 277+47, 436 }
+
+    };
+
+    static const int last_coeff_flag_offset[2][6] = {
+
+      { 166+0, 166+15, 166+29, 166+44, 166+47, 417 },
+
+      { 338+0, 338+15, 338+29, 338+44, 338+47, 451 }
+
+    };
+
+    static const int coeff_abs_level_m1_offset[6] = {
+
+        227+0, 227+10, 227+20, 227+30, 227+39, 426
+
+    };
+
+    static const uint8_t significant_coeff_flag_offset_8x8[2][63] = {
+
+      { 0, 1, 2, 3, 4, 5, 5, 4, 4, 3, 3, 4, 4, 4, 5, 5,
+
+        4, 4, 4, 4, 3, 3, 6, 7, 7, 7, 8, 9,10, 9, 8, 7,
+
+        7, 6,11,12,13,11, 6, 7, 8, 9,14,10, 9, 8, 6,11,
+
+       12,13,11, 6, 9,14,10, 9,11,12,13,11,14,10,12 },
+
+      { 0, 1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 7, 7, 8, 4, 5,
+
+        6, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,11,12,11,
+
+        9, 9,10,10, 8,11,12,11, 9, 9,10,10, 8,13,13, 9,
+
+        9,10,10, 8,13,13, 9, 9,10,10,14,14,14,14,14 }
+
+    };
+
+    /* node ctx: 0..3: abslevel1 (with abslevelgt1 == 0).
+
+     * 4..7: abslevelgt1 + 3 (and abslevel1 doesn't matter).
+
+     * map node ctx => cabac ctx for level=1 */
+
+    static const uint8_t coeff_abs_level1_ctx[8] = { 1, 2, 3, 4, 0, 0, 0, 0 };
+
+    /* map node ctx => cabac ctx for level>1 */
+
+    static const uint8_t coeff_abs_levelgt1_ctx[8] = {
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

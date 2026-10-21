@@ -1,0 +1,232 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int dtls1_get_record ( SSL * s ) {
+ int ssl_major , ssl_minor ;
+ int i , n ;
+ SSL3_RECORD * rr ;
+ unsigned char * p = NULL ;
+ unsigned short version ;
+ DTLS1_BITMAP * bitmap ;
+ unsigned int is_next_epoch ;
+ rr = RECORD_LAYER_get_rrec ( & s -> rlayer ) ;
+ again : if ( ! dtls1_process_buffered_records ( s ) ) return - 1 ;
+ if ( dtls1_get_processed_record ( s ) ) return 1 ;
+ if ( ( RECORD_LAYER_get_rstate ( & s -> rlayer ) != SSL_ST_READ_BODY ) || ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) < DTLS1_RT_HEADER_LENGTH ) ) {
+ n = ssl3_read_n ( s , DTLS1_RT_HEADER_LENGTH , SSL3_BUFFER_get_len ( & s -> rlayer . rbuf ) , 0 , 1 ) ;
+ if ( n <= 0 ) return ( n ) ;
+ if ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) != DTLS1_RT_HEADER_LENGTH ) {
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ RECORD_LAYER_set_rstate ( & s -> rlayer , SSL_ST_READ_BODY ) ;
+ p = RECORD_LAYER_get_packet ( & s -> rlayer ) ;
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , 0 , SSL3_RT_HEADER , p , DTLS1_RT_HEADER_LENGTH , s , s -> msg_callback_arg ) ;
+ rr -> type = * ( p ++ ) ;
+ ssl_major = * ( p ++ ) ;
+ ssl_minor = * ( p ++ ) ;
+ version = ( ssl_major << 8 ) | ssl_minor ;
+ n2s ( p , rr -> epoch ) ;
+ memcpy ( & ( RECORD_LAYER_get_read_sequence ( & s -> rlayer ) [ 2 ] ) , p , 6 ) ;
+ p += 6 ;
+ n2s ( p , rr -> length ) ;
+ if ( ! s -> first_packet ) {
+ if ( version != s -> version ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+ if ( ( version & 0xff00 ) != ( s -> version & 0xff00 ) ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ if ( rr -> length > SSL3_RT_MAX_ENCRYPTED_LENGTH ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+ if ( rr -> length > RECORD_LAYER_get_packet_length ( & s -> rlayer ) - DTLS1_RT_HEADER_LENGTH ) {
+ i = rr -> length ;
+ n = ssl3_read_n ( s , i , i , 1 , 1 ) ;
+ if ( n != i ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+ RECORD_LAYER_set_rstate ( & s -> rlayer , SSL_ST_READ_HEADER ) ;
+ bitmap = dtls1_get_bitmap ( s , rr , & is_next_epoch ) ;
+ if ( bitmap == NULL ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ # ifndef OPENSSL_NO_SCTP if ( ! BIO_dgram_is_sctp ( SSL_get_rbio ( s ) ) ) {
+ # endif if ( ! dtls1_record_replay_check ( s , bitmap ) ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ # ifndef OPENSSL_NO_SCTP }
+ # endif if ( rr -> length == 0 ) goto again ;
+ if ( is_next_epoch ) {
+ if ( ( SSL_in_init ( s ) || ossl_statem_get_in_handshake ( s ) ) ) {
+ if ( dtls1_buffer_record ( s , & ( DTLS_RECORD_LAYER_get_unprocessed_rcds ( & s -> rlayer ) ) , rr -> seq_num ) < 0 ) return - 1 ;
+ }
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ if ( ! dtls1_process_record ( s , bitmap ) ) {
+ rr -> length = 0 ;
+ RE
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ssl_major , ssl_minor ;
+ int i , n ;
+ SSL3_RECORD * rr ;
+ unsigned char * p = NULL ;
+ unsigned short version ;
+ DTLS1_BITMAP * bitmap ;
+ unsigned int is_next_epoch ;
+ rr = RECORD_LAYER_get_rrec ( & s -> rlayer ) ;
+ again : if ( ! dtls1_process_buffered_records ( s ) ) return - 1 ;
+ if ( dtls1_get_processed_record ( s ) ) return 1 ;
+ if ( ( RECORD_LAYER_get_rstate ( & s -> rlayer ) != SSL_ST_READ_BODY ) || ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) < DTLS1_RT_HEADER_LENGTH ) ) {
+ n = ssl3_read_n ( s , DTLS1_RT_HEADER_LENGTH , SSL3_BUFFER_get_len ( & s -> rlayer . rbuf ) , 0 , 1 ) ;
+ if ( n <= 0 ) return ( n ) ;
+ if ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) != DTLS1_RT_HEADER_LENGTH ) {
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ RECORD_LAYER_set_rstate ( & s -> rlayer , SSL_ST_READ_BODY ) ;
+ p = RECORD_LAYER_get_packet ( & s -> rlayer ) ;
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , 0 , SSL3_RT_HEADER , p , DTLS1_RT_HEADER_LENG...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ n = ssl3_read_n ( s , DTLS1_RT_HEADER_LENGTH , SSL3_BUFFER_get_len ( & s -> rlayer . rbuf ) , 0 , 1 ) ;
+ if ( n <= 0 ) return ( n ) ;
+ if ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) != DTLS1_RT_HEADER_LENGTH ) {
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ RECORD_LAYER_set_rstate ( & s -> rlayer , SSL_ST_READ_BODY ) ;
+ p = RECORD_LAYER_get_packet ( & s -> rlayer ) ;
+ if ( s -> msg_callback ) s -> msg_callback ( 0 , 0 , SSL3_RT_HEADER , p , DTLS1_RT_HEADER_LENGTH , s , s -> msg_callback_arg ) ;
+ rr -> type = * ( p ++ ) ;
+ ssl_major = * ( p ++ ) ;
+ ssl_minor = * ( p ++ ) ;
+ version = ( ssl_major << 8 ) | ssl_minor ;
+ n2s ( p , rr -> epoch ) ;
+ memcpy ( & ( RECORD_LAYER_get_read_sequence ( & s -> rlayer ) [ 2 ] ) , p , 6 ) ;
+ p += 6 ;
+ n2s ( p , rr -> length ) ;
+ if ( ! s -> first_packet ) {
+ if ( version != s -> version ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+ if ( ( version & 0xff00 ) != ( ...
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ; goto again ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( version != s -> version ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ i = rr -> length ;
+ n = ssl3_read_n ( s , i , i , 1 , 1 ) ;
+ if ( n != i ) {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+ }
+      
+25769803788 | BLOCK | 
+        {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ rr -> length = 0 ;
+ RECORD_LAYER_reset_packet_length ( & s -> rlayer ) ;
+ goto again ;
+ }
+      
+30064771072 | CALL | p = NULL
+30064771073 | CALL | rr = RECORD_LAYER_get_rrec ( & s -> rlayer )
+30064771074 | CALL | RECORD_LAYER_get_rrec ( & s -> rlayer )
+30064771075 | CALL | & s -> rlayer
+30064771076 | CALL | s -> rlayer
+30064771077 | CALL | ! dtls1_process_buffered_records ( s )
+30064771078 | CALL | dtls1_process_buffered_records ( s )
+30064771079 | CALL | - 1
+30064771080 | CALL | dtls1_get_processed_record ( s )
+30064771081 | CALL | 
+        ( RECORD_LAYER_get_rstate ( & s -> rlayer ) != SSL_ST_READ_BODY ) || ( RECORD_LAYER_get_packet_length ( & s -> rlayer ) < DTLS1_RT_HEADER_LENGTH )
+      
+30064771082 | CALL | RECORD_LAYER_get_rstate ( & s -> rlayer ) != SSL_ST_READ_BODY
+30064771083 | CALL | RECORD_LAYER_get_rstate ( & s -> rlayer )
+30064771084 | CALL | & s -> rlayer
+30064771085 | CALL | s -> rlayer
+30064771086 | CALL | RECORD_LAYER_get_packet_length ( & s -> rlayer ) < DTLS1_RT_HEADER_LENGTH
+30064771087 | CALL | RECORD_LAYER_get_packet_length ( & s -> rlayer )
+30064771088 | CALL | & s -> rlayer
+30064771089 | CALL | s -> rlayer
+30064771
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

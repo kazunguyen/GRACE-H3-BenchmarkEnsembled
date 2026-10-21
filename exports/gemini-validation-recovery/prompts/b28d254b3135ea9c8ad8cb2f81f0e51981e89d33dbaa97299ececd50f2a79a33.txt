@@ -1,0 +1,223 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rv34_decode_inter_mb_header ( RV34DecContext * r , int8_t * intra_types ) {
+ MpegEncContext * s = & r -> s ;
+ GetBitContext * gb = & s -> gb ;
+ int mb_pos = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int i , t ;
+ r -> block_type = r -> decode_mb_info ( r ) ;
+ if ( r -> block_type == - 1 ) return - 1 ;
+ s -> current_picture_ptr -> mb_type [ mb_pos ] = rv34_mb_type_to_lavc [ r -> block_type ] ;
+ r -> mb_type [ mb_pos ] = r -> block_type ;
+ if ( r -> block_type == RV34_MB_SKIP ) {
+ if ( s -> pict_type == AV_PICTURE_TYPE_P ) r -> mb_type [ mb_pos ] = RV34_MB_P_16x16 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_B ) r -> mb_type [ mb_pos ] = RV34_MB_B_DIRECT ;
+ }
+ r -> is16 = ! ! IS_INTRA16x16 ( s -> current_picture_ptr -> mb_type [ mb_pos ] ) ;
+ rv34_decode_mv ( r , r -> block_type ) ;
+ if ( r -> block_type == RV34_MB_SKIP ) {
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , 0 , sizeof ( intra_types [ 0 ] ) ) ;
+ return 0 ;
+ }
+ r -> chroma_vlc = 1 ;
+ r -> luma_vlc = 0 ;
+ if ( IS_INTRA ( s -> current_picture_ptr -> mb_type [ mb_pos ] ) ) {
+ if ( r -> is16 ) {
+ t = get_bits ( gb , 2 ) ;
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , t , sizeof ( intra_types [ 0 ] ) ) ;
+ r -> luma_vlc = 2 ;
+ }
+ else {
+ if ( r -> decode_intra_types ( r , gb , intra_types ) < 0 ) return - 1 ;
+ r -> luma_vlc = 1 ;
+ }
+ r -> chroma_vlc = 0 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 0 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < 16 ;
+ i ++ ) intra_types [ ( i & 3 ) + ( i >> 2 ) * r -> intra_types_stride ] = 0 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 1 ) ;
+ if ( r -> mb_type [ mb_pos ] == RV34_MB_P_MIX16x16 ) {
+ r -> is16 = 1 ;
+ r -> chroma_vlc = 1 ;
+ r -> luma_vlc = 2 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 0 ) ;
+ }
+ }
+ return rv34_decode_cbp ( gb , r -> cur_vlcs , r -> is16 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MpegEncContext * s = & r -> s ;
+ GetBitContext * gb = & s -> gb ;
+ int mb_pos = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int i , t ;
+ r -> block_type = r -> decode_mb_info ( r ) ;
+ if ( r -> block_type == - 1 ) return - 1 ;
+ s -> current_picture_ptr -> mb_type [ mb_pos ] = rv34_mb_type_to_lavc [ r -> block_type ] ;
+ r -> mb_type [ mb_pos ] = r -> block_type ;
+ if ( r -> block_type == RV34_MB_SKIP ) {
+ if ( s -> pict_type == AV_PICTURE_TYPE_P ) r -> mb_type [ mb_pos ] = RV34_MB_P_16x16 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_B ) r -> mb_type [ mb_pos ] = RV34_MB_B_DIRECT ;
+ }
+ r -> is16 = ! ! IS_INTRA16x16 ( s -> current_picture_ptr -> mb_type [ mb_pos ] ) ;
+ rv34_decode_mv ( r , r -> block_type ) ;
+ if ( r -> block_type == RV34_MB_SKIP ) {
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , 0 , sizeof ( intra_types [ 0 ] ) ) ;
+ return 0 ;
+ }
+ r -> chroma_vlc = 1 ;
+ r -> luma_vlc = 0 ;
+ if ( IS_INTRA ( s -> current_picture_ptr -> mb_type [ mb_pos ] ) ) {
+ if ( r -...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( s -> pict_type == AV_PICTURE_TYPE_P ) r -> mb_type [ mb_pos ] = RV34_MB_P_16x16 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_B ) r -> mb_type [ mb_pos ] = RV34_MB_B_DIRECT ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , 0 , sizeof ( intra_types [ 0 ] ) ) ;
+ return 0 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( r -> is16 ) {
+ t = get_bits ( gb , 2 ) ;
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , t , sizeof ( intra_types [ 0 ] ) ) ;
+ r -> luma_vlc = 2 ;
+ }
+ else {
+ if ( r -> decode_intra_types ( r , gb , intra_types ) < 0 ) return - 1 ;
+ r -> luma_vlc = 1 ;
+ }
+ r -> chroma_vlc = 0 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 0 ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ t = get_bits ( gb , 2 ) ;
+ fill_rectangle ( intra_types , 4 , 4 , r -> intra_types_stride , t , sizeof ( intra_types [ 0 ] ) ) ;
+ r -> luma_vlc = 2 ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ if ( r -> decode_intra_types ( r , gb , intra_types ) < 0 ) return - 1 ;
+ r -> luma_vlc = 1 ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < 16 ;
+ i ++ ) intra_types [ ( i & 3 ) + ( i >> 2 ) * r -> intra_types_stride ] = 0 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 1 ) ;
+ if ( r -> mb_type [ mb_pos ] == RV34_MB_P_MIX16x16 ) {
+ r -> is16 = 1 ;
+ r -> chroma_vlc = 1 ;
+ r -> luma_vlc = 2 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 0 ) ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ r -> is16 = 1 ;
+ r -> chroma_vlc = 1 ;
+ r -> luma_vlc = 2 ;
+ r -> cur_vlcs = choose_vlc_set ( r -> si . quant , r -> si . vlc_set , 0 ) ;
+ }
+      
+30064771072 | CALL | s = & r -> s
+30064771073 | CALL | & r -> s
+30064771074 | CALL | r -> s
+30064771075 | CALL | gb = & s -> gb
+30064771076 | CALL | & s -> gb
+30064771077 | CALL | s -> gb
+30064771078 | CALL | mb_pos = s -> mb_x + s -> mb_y * s -> mb_stride
+30064771079 | CALL | s -> mb_x + s -> mb_y * s -> mb_stride
+30064771080 | CALL | s -> mb_x
+30064771081 | CALL | s -> mb_y * s -> mb_stride
+30064771082 | CALL | s -> mb_y
+30064771083 | CALL | s -> mb_stride
+30064771084 | CALL | r -> block_type = r -> decode_mb_info ( r )
+30064771085 | CALL | r -> block_type
+30064771086 | CALL | r -> decode_mb_info ( r )
+30064771087 | CALL | r -> decode_mb_info
+30064771088 | CALL | r -> block_type == - 1
+30064771089 | CALL | r -> block_type
+30064771090 | CALL | - 1
+30064771091 | CALL | - 1
+30064771092 | CALL | 
+        s -> current_picture_ptr -> mb_type [ mb_pos ] = rv34_mb_type_to_lavc [ r -> block_type ]
+      
+30064771093 | CALL | s -> current_picture_ptr -> mb_type [ mb_pos ]
+30064771094 | CALL | s -> current_picture_ptr -> mb_type
+30064771095 | CALL | s -> current_picture_ptr
+30064771096 | CALL | rv34_mb_type_to_lavc [ r -> block_type ]
+30064771097 | CALL | r -> block_type
+30064771098 | CALL | r -> mb_type [ mb_pos ] = r -> block_type
+30064771099 | CALL | r -> mb_type [ mb_pos ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

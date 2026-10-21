@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rawv6_send_hdrinc ( struct sock * sk , void * from , int length , struct flowi * fl , struct rt6_info * rt , unsigned int flags ) {
+ struct ipv6_pinfo * np = inet6_sk ( sk ) ;
+ struct ipv6hdr * iph ;
+ struct sk_buff * skb ;
+ int err ;
+ if ( length > rt -> u . dst . dev -> mtu ) {
+ ipv6_local_error ( sk , EMSGSIZE , fl , rt -> u . dst . dev -> mtu ) ;
+ return - EMSGSIZE ;
+ }
+ if ( flags & MSG_PROBE ) goto out ;
+ skb = sock_alloc_send_skb ( sk , length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev ) + 15 , flags & MSG_DONTWAIT , & err ) ;
+ if ( skb == NULL ) goto error ;
+ skb_reserve ( skb , LL_RESERVED_SPACE ( rt -> u . dst . dev ) ) ;
+ skb -> priority = sk -> sk_priority ;
+ skb -> mark = sk -> sk_mark ;
+ skb_dst_set ( skb , dst_clone ( & rt -> u . dst ) ) ;
+ skb_put ( skb , length ) ;
+ skb_reset_network_header ( skb ) ;
+ iph = ipv6_hdr ( skb ) ;
+ skb -> ip_summed = CHECKSUM_NONE ;
+ skb -> transport_header = skb -> network_header ;
+ err = memcpy_fromiovecend ( ( void * ) iph , from , 0 , length ) ;
+ if ( err ) goto error_fault ;
+ IP6_UPD_PO_STATS ( sock_net ( sk ) , rt -> rt6i_idev , IPSTATS_MIB_OUT , skb -> len ) ;
+ err = NF_HOOK ( PF_INET6 , NF_INET_LOCAL_OUT , skb , NULL , rt -> u . dst . dev , dst_output ) ;
+ if ( err > 0 ) err = net_xmit_errno ( err ) ;
+ if ( err ) goto error ;
+ out : return 0 ;
+ error_fault : err = - EFAULT ;
+ kfree_skb ( skb ) ;
+ error : IP6_INC_STATS ( sock_net ( sk ) , rt -> rt6i_idev , IPSTATS_MIB_OUTDISCARDS ) ;
+ if ( err == - ENOBUFS && ! np -> recverr ) err = 0 ;
+ return err ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct ipv6_pinfo * np = inet6_sk ( sk ) ;
+ struct ipv6hdr * iph ;
+ struct sk_buff * skb ;
+ int err ;
+ if ( length > rt -> u . dst . dev -> mtu ) {
+ ipv6_local_error ( sk , EMSGSIZE , fl , rt -> u . dst . dev -> mtu ) ;
+ return - EMSGSIZE ;
+ }
+ if ( flags & MSG_PROBE ) goto out ;
+ skb = sock_alloc_send_skb ( sk , length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev ) + 15 , flags & MSG_DONTWAIT , & err ) ;
+ if ( skb == NULL ) goto error ;
+ skb_reserve ( skb , LL_RESERVED_SPACE ( rt -> u . dst . dev ) ) ;
+ skb -> priority = sk -> sk_priority ;
+ skb -> mark = sk -> sk_mark ;
+ skb_dst_set ( skb , dst_clone ( & rt -> u . dst ) ) ;
+ skb_put ( skb , length ) ;
+ skb_reset_network_header ( skb ) ;
+ iph = ipv6_hdr ( skb ) ;
+ skb -> ip_summed = CHECKSUM_NONE ;
+ skb -> transport_header = skb -> network_header ;
+ err = memcpy_fromiovecend ( ( void * ) iph , from , 0 , length ) ;
+ if ( err ) goto error_fault ;
+ IP6_UPD_PO_STATS ( sock_net ( sk ) , rt -> rt6i_idev , IPSTATS_MIB_OUT , skb -> len )...
+      
+25769803777 | BLOCK | 
+        {
+ ipv6_local_error ( sk , EMSGSIZE , fl , rt -> u . dst . dev -> mtu ) ;
+ return - EMSGSIZE ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | np = inet6_sk ( sk )
+30064771073 | CALL | inet6_sk ( sk )
+30064771074 | CALL | length > rt -> u . dst . dev -> mtu
+30064771075 | CALL | rt -> u . dst . dev -> mtu
+30064771076 | CALL | rt -> u . dst . dev
+30064771077 | CALL | rt -> u . dst
+30064771078 | CALL | rt -> u
+30064771079 | CALL | ipv6_local_error ( sk , EMSGSIZE , fl , rt -> u . dst . dev -> mtu )
+30064771080 | CALL | rt -> u . dst . dev -> mtu
+30064771081 | CALL | rt -> u . dst . dev
+30064771082 | CALL | rt -> u . dst
+30064771083 | CALL | rt -> u
+30064771084 | CALL | - EMSGSIZE
+30064771085 | CALL | flags & MSG_PROBE
+30064771086 | CALL | 
+        skb = sock_alloc_send_skb ( sk , length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev ) + 15 , flags & MSG_DONTWAIT , & err )
+      
+30064771087 | CALL | 
+        sock_alloc_send_skb ( sk , length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev ) + 15 , flags & MSG_DONTWAIT , & err )
+      
+30064771088 | CALL | length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev ) + 15
+30064771089 | CALL | length + LL_ALLOCATED_SPACE ( rt -> u . dst . dev )
+30064771090 | CALL | LL_ALLOCATED_SPACE ( rt -> u . dst . dev )
+30064771091 | CALL | rt -> u . dst . dev
+30064771092 | CALL | rt -> u . dst
+30064771093 | CALL | rt -> u
+30064771094 | CALL | flags & MSG_DONTWAIT
+30064771095 | CALL | & err
+30064771096 | CALL | skb == NULL
+30064771097 | CALL | skb_reserve ( skb , LL_RESERVED_SPACE ( rt -> u . dst . dev ) )
+30064771098 | CALL | LL_RESERVED_SPACE ( rt -> u . dst . dev )
+30064771099 | CALL | rt -> u . dst . dev
+30064771100 | CALL | rt -> u . dst
+30064771101 | CALL | rt -> u
+30064771102 | CALL | skb -> priority = sk -> sk_priority
+30064771103 | CALL | skb -> priority
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771079 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771091 [REACHING_DEF]
+30064771075 -> 30064771080 [REACHING_DEF]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771099 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771094 [ARGUMENT]
+30064771087 -> 30064771095 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771094 [AST]
+30064771087 -> 30064771095 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771095 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771094 [REACHING_DEF]
+30064771088 -> 30064771095 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,175 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pfkey_release ( struct socket * sock ) {
+ struct sock * sk = sock -> sk ;
+ if ( ! sk ) return 0 ;
+ pfkey_remove ( sk ) ;
+ sock_orphan ( sk ) ;
+ sock -> sk = NULL ;
+ skb_queue_purge ( & sk -> sk_write_queue ) ;
+ synchronize_rcu ( ) ;
+ sock_put ( sk ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct sock * sk = sock -> sk ;
+ if ( ! sk ) return 0 ;
+ pfkey_remove ( sk ) ;
+ sock_orphan ( sk ) ;
+ sock -> sk = NULL ;
+ skb_queue_purge ( & sk -> sk_write_queue ) ;
+ synchronize_rcu ( ) ;
+ sock_put ( sk ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | sk = sock -> sk
+30064771073 | CALL | sock -> sk
+30064771074 | CALL | ! sk
+30064771075 | CALL | pfkey_remove ( sk )
+30064771076 | CALL | sock_orphan ( sk )
+30064771077 | CALL | sock -> sk = NULL
+30064771078 | CALL | sock -> sk
+30064771079 | CALL | skb_queue_purge ( & sk -> sk_write_queue )
+30064771080 | CALL | & sk -> sk_write_queue
+30064771081 | CALL | sk -> sk_write_queue
+30064771082 | CALL | synchronize_rcu ( )
+30064771083 | CALL | sock_put ( sk )
+47244640256 | CONTROL_STRUCTURE | if ( ! sk ) return 0 ;
+55834574848 | FIELD_IDENTIFIER | sk
+55834574849 | FIELD_IDENTIFIER | sk
+55834574850 | FIELD_IDENTIFIER | sk_write_queue
+68719476736 | IDENTIFIER | sk
+68719476737 | IDENTIFIER | sock
+68719476738 | IDENTIFIER | sk
+68719476739 | IDENTIFIER | sk
+68719476740 | IDENTIFIER | sk
+68719476741 | IDENTIFIER | sock
+68719476742 | IDENTIFIER | <unknown> NULL
+68719476743 | IDENTIFIER | sk
+68719476744 | IDENTIFIER | sk
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+94489280512 | LOCAL | struct sock * sk
+94489280513 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static int pfkey_release ( struct socket * sock ) {
+ struct sock * sk = sock -> sk ;
+ if ( ! sk ) return 0 ;
+ pfkey_remove ( sk ) ;
+ sock_orphan ( sk ) ;
+ sock -> sk = NULL ;
+ skb_queue_purge ( & sk -> sk_write_queue ) ;
+ synchronize_rcu ( ) ;
+ sock_put ( sk ) ;
+ return 0 ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | struct socket * sock
+115964116992 | METHOD_PARAMETER_OUT | struct socket * sock
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return 0 ;
+141733920769 | RETURN | return 0 ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 141733920769 [AST]
+25769803776 -> 94489280513 [AST]
+25769803777 -> 141733920768 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 115964116992 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476741 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 141733920769 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 141733920768 [CDG]
+30064771074 -> 90194313217 [CDG]
+30064771074 -> 90194313216 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 90194313216 [CFG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 124554051584 [DOMINATE]
+30064771074 -> 90194313216 [DOMINATE]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int pfkey_can_dump ( const struct sock * sk ) {
+ if ( 3 * atomic_read ( & sk -> sk_rmem_alloc ) <= 2 * sk -> sk_rcvbuf ) return 1 ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

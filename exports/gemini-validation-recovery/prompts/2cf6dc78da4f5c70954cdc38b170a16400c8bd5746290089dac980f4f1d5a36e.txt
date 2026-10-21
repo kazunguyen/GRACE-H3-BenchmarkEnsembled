@@ -1,0 +1,250 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int mpeg4_decode_dc ( MpegEncContext * s , int n , int * dir_ptr ) {
+ int level , code ;
+ if ( n < 4 ) code = get_vlc2 ( & s -> gb , dc_lum . table , DC_VLC_BITS , 1 ) ;
+ else code = get_vlc2 ( & s -> gb , dc_chrom . table , DC_VLC_BITS , 1 ) ;
+ if ( code < 0 || code > 9 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "illegal dc vlc\n" ) ;
+ return - 1 ;
+ }
+ if ( code == 0 ) {
+ level = 0 ;
+ }
+ else {
+ if ( IS_3IV1 ) {
+ if ( code == 1 ) level = 2 * get_bits1 ( & s -> gb ) - 1 ;
+ else {
+ if ( get_bits1 ( & s -> gb ) ) level = get_bits ( & s -> gb , code - 1 ) + ( 1 << ( code - 1 ) ) ;
+ else level = - get_bits ( & s -> gb , code - 1 ) - ( 1 << ( code - 1 ) ) ;
+ }
+ }
+ else {
+ level = get_xbits ( & s -> gb , code ) ;
+ }
+ if ( code > 8 ) {
+ if ( get_bits1 ( & s -> gb ) == 0 ) {
+ if ( s -> err_recognition & AV_EF_BITSTREAM ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+ }
+ }
+ }
+ return ff_mpeg4_pred_dc ( s , n , level , dir_ptr , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int level , code ;
+ if ( n < 4 ) code = get_vlc2 ( & s -> gb , dc_lum . table , DC_VLC_BITS , 1 ) ;
+ else code = get_vlc2 ( & s -> gb , dc_chrom . table , DC_VLC_BITS , 1 ) ;
+ if ( code < 0 || code > 9 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "illegal dc vlc\n" ) ;
+ return - 1 ;
+ }
+ if ( code == 0 ) {
+ level = 0 ;
+ }
+ else {
+ if ( IS_3IV1 ) {
+ if ( code == 1 ) level = 2 * get_bits1 ( & s -> gb ) - 1 ;
+ else {
+ if ( get_bits1 ( & s -> gb ) ) level = get_bits ( & s -> gb , code - 1 ) + ( 1 << ( code - 1 ) ) ;
+ else level = - get_bits ( & s -> gb , code - 1 ) - ( 1 << ( code - 1 ) ) ;
+ }
+ }
+ else {
+ level = get_xbits ( & s -> gb , code ) ;
+ }
+ if ( code > 8 ) {
+ if ( get_bits1 ( & s -> gb ) == 0 ) {
+ if ( s -> err_recognition & AV_EF_BITSTREAM ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+ }
+ }
+ }
+ return ff_mpeg4_pred_dc ( s , n , level , dir_ptr , 0 ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "illegal dc vlc\n" ) ;
+ return - 1 ;
+ }
+      
+25769803780 | BLOCK | { level = 0 ; }
+25769803781 | BLOCK | 
+        {
+ if ( IS_3IV1 ) {
+ if ( code == 1 ) level = 2 * get_bits1 ( & s -> gb ) - 1 ;
+ else {
+ if ( get_bits1 ( & s -> gb ) ) level = get_bits ( & s -> gb , code - 1 ) + ( 1 << ( code - 1 ) ) ;
+ else level = - get_bits ( & s -> gb , code - 1 ) - ( 1 << ( code - 1 ) ) ;
+ }
+ }
+ else {
+ level = get_xbits ( & s -> gb , code ) ;
+ }
+ if ( code > 8 ) {
+ if ( get_bits1 ( & s -> gb ) == 0 ) {
+ if ( s -> err_recognition & AV_EF_BITSTREAM ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+ }
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( code == 1 ) level = 2 * get_bits1 ( & s -> gb ) - 1 ;
+ else {
+ if ( get_bits1 ( & s -> gb ) ) level = get_bits ( & s -> gb , code - 1 ) + ( 1 << ( code - 1 ) ) ;
+ else level = - get_bits ( & s -> gb , code - 1 ) - ( 1 << ( code - 1 ) ) ;
+ }
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( get_bits1 ( & s -> gb ) ) level = get_bits ( & s -> gb , code - 1 ) + ( 1 << ( code - 1 ) ) ;
+ else level = - get_bits ( & s -> gb , code - 1 ) - ( 1 << ( code - 1 ) ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | { level = get_xbits ( & s -> gb , code ) ; }
+25769803788 | BLOCK | 
+        {
+ if ( get_bits1 ( & s -> gb ) == 0 ) {
+ if ( s -> err_recognition & AV_EF_BITSTREAM ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+ }
+ }
+      
+25769803789 | BLOCK | 
+        {
+ if ( s -> err_recognition & AV_EF_BITSTREAM ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+ }
+      
+25769803790 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "dc marker bit missing\n" ) ;
+ return - 1 ;
+ }
+      
+30064771072 | CALL | n < 4
+30064771073 | CALL | code = get_vlc2 ( & s -> gb , dc_lum . table , DC_VLC_BITS , 1 )
+30064771074 | CALL | get_vlc2 ( & s -> gb , dc_lum . table , DC_VLC_BITS , 1 )
+30064771075 | CALL | & s -> gb
+30064771076 | CALL | s -> gb
+30064771077 | CALL | dc_lum . table
+30064771078 | CALL | code = get_vlc2 ( & s -> gb , dc_chrom . table , DC_VLC_BITS , 1 )
+30064771079 | CALL | get_vlc2 ( & s -> gb , dc_chrom . table , DC_VLC_BITS , 1 )
+30064771080 | CALL | & s -> gb
+30064771081 | CALL | s -> gb
+30064771082 | CALL | dc_chrom . table
+30064771083 | CALL | code < 0 || code > 9
+30064771084 | CALL | code < 0
+30064771085 | CALL | code > 9
+30064771086 | CALL | av_log ( s -> avctx , AV_LOG_ERROR , "illegal dc vlc\n" )
+30064771087 | CALL | s -> avctx
+30064771088 | CALL | - 1
+30064771089 | CALL | code == 0
+30064771090 | CALL | level = 0
+30064771091 | CALL | IS_3IV1 != 0
+30064771092 | CALL | code == 1
+30064771093 | CALL | level = 2 * get_bits1 ( & s -> gb ) - 1
+30064771094 | CALL | 2 * get_bits1 ( & s -> gb ) - 1
+30064771095 | CALL | 2 * get_bits1 ( & s -> gb )
+30064771096 | CALL | get_bits1 ( & s -> gb )
+EDGES:
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771078 [AST]
+25769803779 -> 30064771086 [AST]
+25769803780 -> 30064771090 [AST]
+25769803783 -> 30064771093 [AST]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771082 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771082 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771079 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

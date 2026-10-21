@@ -1,0 +1,53 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void spl_ptr_llist_push ( spl_ptr_llist * llist , void * data TSRMLS_DC ) {
+ spl_ptr_llist_element * elem = emalloc ( sizeof ( spl_ptr_llist_element ) ) ;
+ elem -> data = data ;
+ elem -> rc = 1 ;
+ elem -> prev = llist -> tail ;
+ elem -> next = NULL ;
+ if ( llist -> tail ) {
+ llist -> tail -> next = elem ;
+ }
+ else {
+ llist -> head = elem ;
+ }
+ llist -> tail = elem ;
+ llist -> count ++ ;
+ if ( llist -> ctor ) {
+ llist -> ctor ( elem TSRMLS_CC ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void spl_ptr_llist_unshift ( spl_ptr_llist * llist , void * data TSRMLS_DC ) {
+ spl_ptr_llist_element * elem = emalloc ( sizeof ( spl_ptr_llist_element ) ) ;
+ elem -> data = data ;
+ elem -> rc = 1 ;
+ elem -> prev = NULL ;
+ elem -> next = llist -> head ;
+ if ( llist -> head ) {
+ llist -> head -> prev = elem ;
+ }
+ else {
+ llist -> tail = elem ;
+ }
+ llist -> head = elem ;
+ llist -> count ++ ;
+ if ( llist -> ctor ) {
+ llist -> ctor ( elem TSRMLS_CC ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

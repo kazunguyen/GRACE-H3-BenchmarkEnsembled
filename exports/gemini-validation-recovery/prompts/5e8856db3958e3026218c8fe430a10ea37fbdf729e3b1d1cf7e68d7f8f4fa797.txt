@@ -1,0 +1,246 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void EVP_EncodeUpdate ( EVP_ENCODE_CTX * ctx , unsigned char * out , int * outl , const unsigned char * in , int inl ) {
+ int i , j ;
+ unsigned int total = 0 ;
+ * outl = 0 ;
+ if ( inl <= 0 ) return ;
+ OPENSSL_assert ( ctx -> length <= ( int ) sizeof ( ctx -> enc_data ) ) ;
+ if ( ( ctx -> num + inl ) < ctx -> length ) {
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , inl ) ;
+ ctx -> num += inl ;
+ return ;
+ }
+ if ( ctx -> num != 0 ) {
+ i = ctx -> length - ctx -> num ;
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , i ) ;
+ in += i ;
+ inl -= i ;
+ j = EVP_EncodeBlock ( out , ctx -> enc_data , ctx -> length ) ;
+ ctx -> num = 0 ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total = j + 1 ;
+ }
+ while ( inl >= ctx -> length ) {
+ j = EVP_EncodeBlock ( out , in , ctx -> length ) ;
+ in += ctx -> length ;
+ inl -= ctx -> length ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total += j + 1 ;
+ }
+ if ( inl != 0 ) memcpy ( & ( ctx -> enc_data [ 0 ] ) , in , inl ) ;
+ ctx -> num = inl ;
+ * outl = total ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ unsigned int total = 0 ;
+ * outl = 0 ;
+ if ( inl <= 0 ) return ;
+ OPENSSL_assert ( ctx -> length <= ( int ) sizeof ( ctx -> enc_data ) ) ;
+ if ( ( ctx -> num + inl ) < ctx -> length ) {
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , inl ) ;
+ ctx -> num += inl ;
+ return ;
+ }
+ if ( ctx -> num != 0 ) {
+ i = ctx -> length - ctx -> num ;
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , i ) ;
+ in += i ;
+ inl -= i ;
+ j = EVP_EncodeBlock ( out , ctx -> enc_data , ctx -> length ) ;
+ ctx -> num = 0 ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total = j + 1 ;
+ }
+ while ( inl >= ctx -> length ) {
+ j = EVP_EncodeBlock ( out , in , ctx -> length ) ;
+ in += ctx -> length ;
+ inl -= ctx -> length ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total += j + 1 ;
+ }
+ if ( inl != 0 ) memcpy ( & ( ctx -> enc_data [ 0 ] ) , in , inl ) ;
+ ctx -> num = inl ;
+ * outl = total ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , inl ) ;
+ ctx -> num += inl ;
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ i = ctx -> length - ctx -> num ;
+ memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , i ) ;
+ in += i ;
+ inl -= i ;
+ j = EVP_EncodeBlock ( out , ctx -> enc_data , ctx -> length ) ;
+ ctx -> num = 0 ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total = j + 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ j = EVP_EncodeBlock ( out , in , ctx -> length ) ;
+ in += ctx -> length ;
+ inl -= ctx -> length ;
+ out += j ;
+ * ( out ++ ) = '\n' ;
+ * out = '\0' ;
+ total += j + 1 ;
+ }
+      
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | total = 0
+30064771073 | CALL | * outl = 0
+30064771074 | CALL | * outl
+30064771075 | CALL | inl <= 0
+30064771076 | CALL | OPENSSL_assert ( ctx -> length <= ( int ) sizeof ( ctx -> enc_data ) )
+30064771077 | CALL | ctx -> length <= ( int ) sizeof ( ctx -> enc_data )
+30064771078 | CALL | ctx -> length
+30064771079 | CALL | ( int ) sizeof ( ctx -> enc_data )
+30064771080 | CALL | sizeof ( ctx -> enc_data )
+30064771081 | CALL | ctx -> enc_data
+30064771082 | CALL | ( ctx -> num + inl ) < ctx -> length
+30064771083 | CALL | ctx -> num + inl
+30064771084 | CALL | ctx -> num
+30064771085 | CALL | ctx -> length
+30064771086 | CALL | memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , inl )
+30064771087 | CALL | & ( ctx -> enc_data [ ctx -> num ] )
+30064771088 | CALL | ctx -> enc_data [ ctx -> num ]
+30064771089 | CALL | ctx -> enc_data
+30064771090 | CALL | ctx -> num
+30064771091 | CALL | ctx -> num += inl
+30064771092 | CALL | ctx -> num
+30064771093 | CALL | ctx -> num != 0
+30064771094 | CALL | ctx -> num
+30064771095 | CALL | i = ctx -> length - ctx -> num
+30064771096 | CALL | ctx -> length - ctx -> num
+30064771097 | CALL | ctx -> length
+30064771098 | CALL | ctx -> num
+30064771099 | CALL | memcpy ( & ( ctx -> enc_data [ ctx -> num ] ) , in , i )
+30064771100 | CALL | & ( ctx -> enc_data [ ctx -> num ] )
+30064771101 | CALL | ctx -> enc_data [ ctx -> num ]
+30064771102 | CALL | ctx -> enc_data
+30064771103 | CALL | ctx -> num
+30064771104 | CALL | in += i
+30064771105 | CALL | inl -= i
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771095 [AST]
+25769803779 -> 30064771099 [AST]
+25769803779 -> 30064771104 [AST]
+25769803779 -> 30064771105 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771085 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771090 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771092 [REACHING_DEF]
+30064771084 -> 30064771094 [REACHING_DEF]
+30064771085 -> 30064771082 [CFG]
+30064771085 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771097 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void EVP_EncodeUpdate ( EVP_ENCODE_CTX * ctx , unsigned char * out , int * outl , const unsigned char * in , int inl ) {
+ int i , j ;
+ unsigned int total = 0 ;
+ * outl = 0 ;
+ if ( inl <= 0 ) return ;
+ OPENSSL_assert ( ctx -> length <= ( int ) sizeof ( ctx -> en
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

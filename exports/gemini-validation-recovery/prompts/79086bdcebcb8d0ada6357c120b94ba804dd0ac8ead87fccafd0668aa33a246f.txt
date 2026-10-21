@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool message_decode_body ( struct message_decoder_context * ctx , struct message_block * input , struct message_block * output ) {
+ const unsigned char * data = NULL ;
+ size_t pos = 0 , size = 0 ;
+ const char * error ;
+ int ret ;
+ if ( ctx -> encoding_buf -> used != 0 ) buffer_append ( ctx -> encoding_buf , input -> data , input -> size ) ;
+ switch ( ctx -> message_cte ) {
+ case MESSAGE_CTE_UNKNOWN : return FALSE ;
+ case MESSAGE_CTE_78BIT : case MESSAGE_CTE_BINARY : i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ data = input -> data ;
+ size = pos = input -> size ;
+ break ;
+ case MESSAGE_CTE_QP : {
+ i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> qp == NULL ) ctx -> qp = qp_decoder_init ( ctx -> buf ) ;
+ ( void ) qp_decoder_more ( ctx -> qp , input -> data , input -> size , & pos , & error ) ;
+ data = ctx -> buf -> data ;
+ size = ctx -> buf -> used ;
+ pos = input -> size ;
+ break ;
+ }
+ case MESSAGE_CTE_BASE64 : buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> encoding_buf -> used != 0 ) {
+ ret = base64_decode ( ctx -> encoding_buf -> data , ctx -> encoding_buf -> used , & pos , ctx -> buf ) ;
+ }
+ else {
+ ret = base64_decode ( input -> data , input -> size , & pos , ctx -> buf ) ;
+ }
+ if ( ret < 0 ) {
+ return FALSE ;
+ }
+ if ( ret == 0 ) {
+ pos = input -> size ;
+ buffer_set_used_size ( ctx -> encoding_buf , 0 ) ;
+ }
+ data = ctx -> buf -> data ;
+ size = ctx -> buf -> used ;
+ break ;
+ }
+ if ( ctx -> encoding_buf -> used != 0 ) buffer_delete ( ctx -> encoding_buf , 0 , pos ) ;
+ else if ( pos != input -> size ) {
+ buffer_append ( ctx -> encoding_buf , input -> data + pos , input -> size - pos ) ;
+ }
+ if ( ctx -> binary_input ) {
+ output -> data = data ;
+ output -> size = size ;
+ }
+ else {
+ buffer_set_used_size ( ctx -> buf2 , 0 ) ;
+ if ( ctx -> translation_size != 0 ) translation_buf_decode ( ctx , & data , & size ) ;
+ pos = size ;
+ ( void ) charset_to_utf8 ( ctx -> charset_trans , data , & pos , ctx -> buf2 ) ;
+ if ( pos != size ) {
+ ctx -> translation_size = size - pos ;
+ i_assert ( ctx -> translation_size <= sizeof ( ctx -> translation_buf ) ) ;
+ memcpy ( ctx -> translation_buf , data + pos , ctx -> translation_size ) ;
+ }
+ output -> data = ctx -> buf2 -> data ;
+ output -> size = ctx -> buf2 -> used ;
+ }
+ output -> hdr = NULL ;
+ return TRUE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const unsigned char * data = NULL ;
+ size_t pos = 0 , size = 0 ;
+ const char * error ;
+ int ret ;
+ if ( ctx -> encoding_buf -> used != 0 ) buffer_append ( ctx -> encoding_buf , input -> data , input -> size ) ;
+ switch ( ctx -> message_cte ) {
+ case MESSAGE_CTE_UNKNOWN : return FALSE ;
+ case MESSAGE_CTE_78BIT : case MESSAGE_CTE_BINARY : i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ data = input -> data ;
+ size = pos = input -> size ;
+ break ;
+ case MESSAGE_CTE_QP : {
+ i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> qp == NULL ) ctx -> qp = qp_decoder_init ( ctx -> buf ) ;
+ ( void ) qp_decoder_more ( ctx -> qp , input -> data , input -> size , & pos , & error ) ;
+ data = ctx -> buf -> data ;
+ size = ctx -> buf -> used ;
+ pos = input -> size ;
+ break ;
+ }
+ case MESSAGE_CTE_BASE64 : buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> encoding_buf -> used != 0 ) {
+ ret = base64_decode ( ctx -> encoding_buf -> data , ctx ->...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ case MESSAGE_CTE_UNKNOWN : return FALSE ;
+ case MESSAGE_CTE_78BIT : case MESSAGE_CTE_BINARY : i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ data = input -> data ;
+ size = pos = input -> size ;
+ break ;
+ case MESSAGE_CTE_QP : {
+ i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> qp == NULL ) ctx -> qp = qp_decoder_init ( ctx -> buf ) ;
+ ( void ) qp_decoder_more ( ctx -> qp , input -> data , input -> size , & pos , & error ) ;
+ data = ctx -> buf -> data ;
+ size = ctx -> buf -> used ;
+ pos = input -> size ;
+ break ;
+ }
+ case MESSAGE_CTE_BASE64 : buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> encoding_buf -> used != 0 ) {
+ ret = base64_decode ( ctx -> encoding_buf -> data , ctx -> encoding_buf -> used , & pos , ctx -> buf ) ;
+ }
+ else {
+ ret = base64_decode ( input -> data , input -> size , & pos , ctx -> buf ) ;
+ }
+ if ( ret < 0 ) {
+ return FALSE ;
+ }
+ if ( ret == 0 ) {
+ pos = input -> size ;
+ buffer_set_used_size ( ctx...
+      
+25769803779 | BLOCK | 
+        {
+ i_assert ( ctx -> encoding_buf -> used == 0 ) ;
+ buffer_set_used_size ( ctx -> buf , 0 ) ;
+ if ( ctx -> qp == NULL ) ctx -> qp = qp_decoder_init ( ctx -> buf ) ;
+ ( void ) qp_decoder_more ( ctx -> qp , input -> data , input -> size , & pos , & error ) ;
+ data = ctx -> buf -> data ;
+ size = ctx -> buf -> used ;
+ pos = input -> size ;
+ break ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ ret = base64_decode ( ctx -> encoding_buf -> data , ctx -> encoding_buf -> used , & pos , ctx -> buf ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ ret = base64_decode ( input -> data , input -> size , & pos , ctx -> buf ) ;
+ }
+      
+25769803783 | BLOCK | { return FALSE ; }
+25769803784 | BLOCK | { pos = input -> size ; buffer_set_used_size ( ctx -> encoding_buf , 0 ) ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ buffer_append ( ctx -> encoding_buf , input -> data + pos , input -> size - pos ) ;
+ }
+      
+25769803788 | BLOCK | { output -> data = data ; output -> size = size ; }
+25769803789 | BLOCK | 
+        {
+ buffer_set_used_size ( ctx -> buf2 , 0 ) ;
+ if ( ctx -> translation_size != 0 ) translation_buf_decode ( ctx , & data , & size ) ;
+ pos = size ;
+ ( void ) charset_to_utf8 ( ctx -> charset_trans , data , & pos , ctx -> buf2 ) ;
+ if ( pos != size ) {
+ ctx -> translation_size = size - pos ;
+ i_assert ( ctx -> translation_size <= sizeof ( ctx -> translation_buf ) ) ;
+ memcpy ( ctx -> translation_buf , data + pos , ctx -> translation_size ) ;
+ }
+ output -> data = ctx -> buf2 -> data ;
+ output -> size = ctx -> buf2 -> used ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ ctx -> translation_size = size - pos ;
+ i_assert ( ctx -> translation_size <= sizeof ( ctx -> translation_buf ) ) ;
+ memcpy ( ctx -> translation_buf , data + pos , ctx -> translation_size ) ;
+ }
+      
+30064771072 | CALL | data = NULL
+30064771073 | CALL | pos = 0
+30064771074 | CALL | size = 0
+30064771075 | CALL | ctx -> encoding_buf -> used != 0
+30064771076 | CALL | ctx -> encoding_buf -> used
+30064771077 | CALL | ctx -> encoding_buf
+30064771078 | CALL | buffer_append ( ctx -> encoding_buf , input -> data , input -> size )
+30064771079 | CALL | ctx -> encoding_buf
+30064771080 | CALL | input -> data
+30064771081 | CALL | input -> size
+30064771082 | CALL | ctx -> message_cte
+30064771083 | CALL | i_assert ( ctx -> encoding_buf -> used == 0 )
+30064771084 | CALL | ctx -> encoding_buf -> used == 0
+30064771085 | CALL | ctx -> encoding_buf -> used
+30064771086 | CALL | ctx -> encoding_buf
+30064771087 | CALL | data = input -> data
+30064771088 | CALL | input -> data
+30064771089 | CALL | size = pos = input -> size
+30064771090 | CALL | pos = input -> size
+30064771091 | CALL | input -> size
+30064771092 | CALL | i_assert ( ctx -> encoding_buf -> used == 0 )
+30064771093 | CALL | ctx -> encoding_buf
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

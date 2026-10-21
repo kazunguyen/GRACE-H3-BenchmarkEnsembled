@@ -1,0 +1,259 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void activate_files ( ActivateParameters * parameters ) {
+ NautilusFile * file ;
+ NautilusWindow * window ;
+ NautilusWindowOpenFlags flags ;
+ g_autoptr ( GList ) open_in_app_parameters = NULL ;
+ g_autoptr ( GList ) unhandled_open_in_app_uris = NULL ;
+ ApplicationLaunchParameters * one_parameters ;
+ int count ;
+ g_autofree char * old_working_dir = NULL ;
+ GdkScreen * screen ;
+ gint num_apps ;
+ gint num_unhandled ;
+ gint num_files ;
+ gboolean open_files ;
+ gboolean closed_window ;
+ g_autoptr ( GQueue ) launch_desktop_files = NULL ;
+ g_autoptr ( GQueue ) launch_files = NULL ;
+ g_autoptr ( GQueue ) launch_in_terminal_files = NULL ;
+ g_autoptr ( GQueue ) open_in_app_uris = NULL ;
+ g_autoptr ( GQueue ) open_in_view_files = NULL ;
+ GList * l ;
+ ActivationAction action ;
+ LaunchLocation * location ;
+ launch_desktop_files = g_queue_new ( ) ;
+ launch_files = g_queue_new ( ) ;
+ launch_in_terminal_files = g_queue_new ( ) ;
+ open_in_view_files = g_queue_new ( ) ;
+ open_in_app_uris = g_queue_new ( ) ;
+ for ( l = parameters -> locations ;
+ l != NULL ;
+ l = l -> next ) {
+ location = l -> data ;
+ file = location -> file ;
+ if ( file_was_cancelled ( file ) ) {
+ continue ;
+ }
+ action = get_activation_action ( file ) ;
+ if ( action == ACTIVATION_ACTION_ASK ) {
+ pause_activation_timed_cancel ( parameters ) ;
+ action = get_executable_text_file_action ( parameters -> parent_window , file ) ;
+ unpause_activation_timed_cancel ( parameters ) ;
+ }
+ switch ( action ) {
+ case ACTIVATION_ACTION_LAUNCH_DESKTOP_FILE : {
+ g_queue_push_tail ( launch_desktop_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH : {
+ g_queue_push_tail ( launch_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH_IN_TERMINAL : {
+ g_queue_push_tail ( launch_in_terminal_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_VIEW : {
+ g_queue_push_tail ( open_in_view_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_APPLICATION : {
+ g_queue_push_tail ( open_in_app_uris , location -> uri ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_DO_NOTHING : {
+ }
+ break ;
+ case ACTIVATION_ACTION_EXTRACT : {
+ g_assert_not_reached ( ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_ASK : {
+ g_assert_not_reached ( ) ;
+ }
+ break ;
+ }
+ }
+ for ( l = g_queue_peek_head_link ( launch_desktop_files ) ;
+ l != NULL ;
+ l = l -> next ) {
+ file = NAUTILUS_FILE ( l -> data ) ;
+ activate_desktop_file ( parameters , file ) ;
+ }
+ if ( parameters -> activation_directory && ( ! g_queue_is_empty ( launch_files ) || ! g_queue_is_empty ( launch_in_terminal_files ) ) ) {
+ old_working_dir = g_get_current_dir ( ) ;
+ g_chdir ( parameters -> activation_directory ) ;
+ }
+ screen = gtk_widget_get_screen ( GTK_WIDGET ( parameters -> parent_window ) ) ;
+ for ( l = g_queue_peek_head_link ( launch_files ) ;
+ l != NULL ;
+ l = l -> next ) {
+ g_autofree char * uri = NULL ;
+ g_autofree char * executable_path = NULL ;
+ g_autofree char * quoted_path = NULL ;
+ file = NAUTILUS_FILE ( l -> data ) ;
+ uri = nautilus_file_get_activation_uri (
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ NautilusFile * file ;
+ NautilusWindow * window ;
+ NautilusWindowOpenFlags flags ;
+ g_autoptr ( GList ) open_in_app_parameters = NULL ;
+ g_autoptr ( GList ) unhandled_open_in_app_uris = NULL ;
+ ApplicationLaunchParameters * one_parameters ;
+ int count ;
+ g_autofree char * old_working_dir = NULL ;
+ GdkScreen * screen ;
+ gint num_apps ;
+ gint num_unhandled ;
+ gint num_files ;
+ gboolean open_files ;
+ gboolean closed_window ;
+ g_autoptr ( GQueue ) launch_desktop_files = NULL ;
+ g_autoptr ( GQueue ) launch_files = NULL ;
+ g_autoptr ( GQueue ) launch_in_terminal_files = NULL ;
+ g_autoptr ( GQueue ) open_in_app_uris = NULL ;
+ g_autoptr ( GQueue ) open_in_view_files = NULL ;
+ GList * l ;
+ ActivationAction action ;
+ LaunchLocation * location ;
+ launch_desktop_files = g_queue_new ( ) ;
+ launch_files = g_queue_new ( ) ;
+ launch_in_terminal_files = g_queue_new ( ) ;
+ open_in_view_files = g_queue_new ( ) ;
+ open_in_app_uris = g_queue_new ( ) ;
+ for ( l = parameters -> locations ;
+ l != NULL ;
+...
+      
+25769803777 | BLOCK | 
+        {
+ location = l -> data ;
+ file = location -> file ;
+ if ( file_was_cancelled ( file ) ) {
+ continue ;
+ }
+ action = get_activation_action ( file ) ;
+ if ( action == ACTIVATION_ACTION_ASK ) {
+ pause_activation_timed_cancel ( parameters ) ;
+ action = get_executable_text_file_action ( parameters -> parent_window , file ) ;
+ unpause_activation_timed_cancel ( parameters ) ;
+ }
+ switch ( action ) {
+ case ACTIVATION_ACTION_LAUNCH_DESKTOP_FILE : {
+ g_queue_push_tail ( launch_desktop_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH : {
+ g_queue_push_tail ( launch_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH_IN_TERMINAL : {
+ g_queue_push_tail ( launch_in_terminal_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_VIEW : {
+ g_queue_push_tail ( open_in_view_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_APPLICATION : {
+ g_queue_push_tail ( open_in_app_uris , location -> uri ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_DO_NOTHING : {
+ }
+ break ;
+ case...
+      
+25769803778 | BLOCK | { continue ; }
+25769803779 | BLOCK | 
+        {
+ pause_activation_timed_cancel ( parameters ) ;
+ action = get_executable_text_file_action ( parameters -> parent_window , file ) ;
+ unpause_activation_timed_cancel ( parameters ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case ACTIVATION_ACTION_LAUNCH_DESKTOP_FILE : {
+ g_queue_push_tail ( launch_desktop_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH : {
+ g_queue_push_tail ( launch_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_LAUNCH_IN_TERMINAL : {
+ g_queue_push_tail ( launch_in_terminal_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_VIEW : {
+ g_queue_push_tail ( open_in_view_files , file ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_OPEN_IN_APPLICATION : {
+ g_queue_push_tail ( open_in_app_uris , location -> uri ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_DO_NOTHING : {
+ }
+ break ;
+ case ACTIVATION_ACTION_EXTRACT : {
+ g_assert_not_reached ( ) ;
+ }
+ break ;
+ case ACTIVATION_ACTION_ASK : {
+ g_assert_not_reached ( ) ;
+ }
+ break ;
+ }
+      
+25769803781 | BLOCK | { g_queue_push_tail ( launch_desktop_files , file ) ; }
+25769803782 | BLOCK | { g_queue_push_tail ( launch_files , file ) ; }
+25769803783 | BLOCK | { g_queue_push_tail ( launch_in_terminal_files , file ) ; }
+25769803784 | BLOCK | { g_queue_push_tail ( open_in_view_files , file ) ; }
+25769803785 | BLOCK | { g_queue_push_tail ( open_in_app_uris , location -> uri ) ; }
+25769803786 | BLOCK | { }
+25769803787 | BLOCK | { g_assert_not_reached ( ) ; }
+25769803788 | BLOCK | { g_assert_not_reached ( ) ; }
+25769803789 | BLOCK | 
+        {
+ file = NAUTILUS_FILE ( l -> data ) ;
+ activate_desktop_file ( parameters , file ) ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ old_working_dir = g_get_current_dir ( ) ;
+ g_chdir ( parameters -> activation_directory ) ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ g_autofree char * uri = NULL ;
+ g_autofree char * executable_path = NULL ;
+ g_autofree char * quoted_path = NULL ;
+ file = NAUTILUS_FILE ( l -> data ) ;
+ uri = nautilus_file_get_activation_uri ( file ) ;
+ executable_path = g_filename_from_uri ( uri , NULL , NULL ) ;
+ quoted_path = g_shell_quote ( executable_path ) ;
+ DEBUG ( "Launching file path %s" , quoted_path ) ;
+ nautilus_launch_application_from_command ( screen , quoted_path 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

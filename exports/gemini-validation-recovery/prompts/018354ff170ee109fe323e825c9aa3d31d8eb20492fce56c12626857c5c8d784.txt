@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void dissect_q931_high_layer_compat_ie ( tvbuff_t * tvb , int offset , int len , proto_tree * tree ) {
+ guint8 octet ;
+ guint8 coding_standard ;
+ guint8 pres_method ;
+ guint8 characteristics ;
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ coding_standard = octet & 0x60 ;
+ pres_method = octet & 0x03 ;
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_coding_standard , tvb , offset , 1 , octet ) ;
+ proto_tree_add_uint ( tree , hf_q931_interpretation , tvb , offset , 1 , octet ) ;
+ proto_tree_add_uint ( tree , hf_q931_pres_meth_prot_prof , tvb , offset , 1 , octet ) ;
+ offset += 1 ;
+ len -= 1 ;
+ if ( ( coding_standard != Q931_ITU_STANDARDIZED_CODING ) || ( pres_method != Q931_HIGH_LAYER_PROTOCOL_PROFILE ) ) {
+ proto_tree_add_item ( tree , hf_q931_high_layer_compat_data , tvb , offset , len , ENC_NA ) ;
+ return ;
+ }
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ characteristics = octet & 0x7F ;
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_high_layer_characteristics , tvb , offset , 1 , octet ) ;
+ offset += 1 ;
+ len -= 1 ;
+ if ( ! ( octet & Q931_IE_VL_EXTENSION ) ) {
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ if ( ( characteristics == Q931_AUDIOVISUAL ) || ( characteristics == 0x61 ) || ( characteristics == 0x62 ) || ( characteristics == 0x68 ) ) {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_audiovisual_characteristics , tvb , offset , 1 , octet ) ;
+ }
+ else if ( ( characteristics == Q931_MANAGEMENT ) || ( characteristics == Q931_MAINTENANCE ) ) {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_high_layer_characteristics , tvb , offset , 1 , octet ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint8 octet ;
+ guint8 coding_standard ;
+ guint8 pres_method ;
+ guint8 characteristics ;
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ coding_standard = octet & 0x60 ;
+ pres_method = octet & 0x03 ;
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_coding_standard , tvb , offset , 1 , octet ) ;
+ proto_tree_add_uint ( tree , hf_q931_interpretation , tvb , offset , 1 , octet ) ;
+ proto_tree_add_uint ( tree , hf_q931_pres_meth_prot_prof , tvb , offset , 1 , octet ) ;
+ offset += 1 ;
+ len -= 1 ;
+ if ( ( coding_standard != Q931_ITU_STANDARDIZED_CODING ) || ( pres_method != Q931_HIGH_LAYER_PROTOCOL_PROFILE ) ) {
+ proto_tree_add_item ( tree , hf_q931_high_layer_compat_data , tvb , offset , len , ENC_NA ) ;
+ return ;
+ }
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ characteristics = octet & 0x7F ;
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ proto_tree_add_item ( tree , hf_q931_high_layer_compat_data , tvb , offset , len , ENC_NA ) ;
+ return ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ if ( len == 0 ) return ;
+ octet = tvb_get_guint8 ( tvb , offset ) ;
+ if ( ( characteristics == Q931_AUDIOVISUAL ) || ( characteristics == 0x61 ) || ( characteristics == 0x62 ) || ( characteristics == 0x68 ) ) {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_audiovisual_characteristics , tvb , offset , 1 , octet ) ;
+ }
+ else if ( ( characteristics == Q931_MANAGEMENT ) || ( characteristics == Q931_MAINTENANCE ) ) {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_high_layer_characteristics , tvb , offset , 1 , octet ) ;
+ }
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_audiovisual_characteristics , tvb , offset , 1 , octet ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_uint ( tree , hf_q931_extended_high_layer_characteristics , tvb , offset , 1 , octet ) ;
+ }
+      
+30064771072 | CALL | len == 0
+30064771073 | CALL | octet = tvb_get_guint8 ( tvb , offset )
+30064771074 | CALL | tvb_get_guint8 ( tvb , offset )
+30064771075 | CALL | coding_standard = octet & 0x60
+30064771076 | CALL | octet & 0x60
+30064771077 | CALL | pres_method = octet & 0x03
+30064771078 | CALL | octet & 0x03
+30064771079 | CALL | 
+        proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN )
+      
+30064771080 | CALL | proto_tree_add_uint ( tree , hf_q931_coding_standard , tvb , offset , 1 , octet )
+30064771081 | CALL | proto_tree_add_uint ( tree , hf_q931_interpretation , tvb , offset , 1 , octet )
+30064771082 | CALL | 
+        proto_tree_add_uint ( tree , hf_q931_pres_meth_prot_prof , tvb , offset , 1 , octet )
+      
+30064771083 | CALL | offset += 1
+30064771084 | CALL | len -= 1
+30064771085 | CALL | 
+        ( coding_standard != Q931_ITU_STANDARDIZED_CODING ) || ( pres_method != Q931_HIGH_LAYER_PROTOCOL_PROFILE )
+      
+30064771086 | CALL | coding_standard != Q931_ITU_STANDARDIZED_CODING
+30064771087 | CALL | pres_method != Q931_HIGH_LAYER_PROTOCOL_PROFILE
+30064771088 | CALL | 
+        proto_tree_add_item ( tree , hf_q931_high_layer_compat_data , tvb , offset , len , ENC_NA )
+      
+30064771089 | CALL | len == 0
+30064771090 | CALL | octet = tvb_get_guint8 ( tvb , offset )
+30064771091 | CALL | tvb_get_guint8 ( tvb , offset )
+30064771092 | CALL | characteristics = octet & 0x7F
+30064771093 | CALL | octet & 0x7F
+30064771094 | CALL | 
+        proto_tree_add_item ( tree , hf_q931_extension_ind , tvb , offset , 1 , ENC_BIG_ENDIAN )
+      
+30064771095 | CALL | 
+        proto_tree_add_uint ( tree , hf_q931_high_layer_characteristics , tvb , offset , 1 , octet )
+      
+30064771096 | CALL | offset += 1
+30064771097 | CALL | len -= 1
+30064771098 | CALL | ! ( octet & Q931_IE_VL_EXTENSION )
+30064771099 | CALL | octet & Q931_IE_VL_EXTENSION
+30064771100 | CALL | len == 0
+30064771101 | CALL | octet = tvb_get_guint8 ( tvb , offset )
+30064771102 | CALL | tvb_get_guint8 ( tvb , offset )
+EDGES:
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771097 [AST]
+25769803778 -> 30064771088 [AST]
+25769803780 -> 30064771101 [AST]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771083 [CDG]
+3
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

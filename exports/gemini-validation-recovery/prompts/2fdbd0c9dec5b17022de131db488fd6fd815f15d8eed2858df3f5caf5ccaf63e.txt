@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static slurm_addr_t * _build_node_addr ( char * node_list , uint32_t node_cnt , uint32_t pack_job_id ) {
+ hostlist_t host_list = NULL ;
+ struct node_record * node_ptr ;
+ slurm_addr_t * node_addr ;
+ char * this_node_name ;
+ int error_code = SLURM_SUCCESS , node_inx = 0 ;
+ if ( ( host_list = hostlist_create ( node_list ) ) == NULL ) {
+ error ( "%s hostlist_create error for pack job %u (%s): %m" , __func__ , pack_job_id , node_list ) ;
+ return NULL ;
+ }
+ node_addr = xmalloc ( sizeof ( slurm_addr_t ) * node_cnt ) ;
+ while ( ( this_node_name = hostlist_shift ( host_list ) ) ) {
+ if ( ( node_ptr = find_node_record ( this_node_name ) ) ) {
+ memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) ) ;
+ node_inx ++ ;
+ }
+ else {
+ error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id ) ;
+ error_code = SLURM_ERROR ;
+ }
+ free ( this_node_name ) ;
+ if ( error_code != SLURM_SUCCESS ) break ;
+ }
+ hostlist_destroy ( host_list ) ;
+ if ( error_code != SLURM_SUCCESS ) xfree ( node_addr ) ;
+ return node_addr ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ hostlist_t host_list = NULL ;
+ struct node_record * node_ptr ;
+ slurm_addr_t * node_addr ;
+ char * this_node_name ;
+ int error_code = SLURM_SUCCESS , node_inx = 0 ;
+ if ( ( host_list = hostlist_create ( node_list ) ) == NULL ) {
+ error ( "%s hostlist_create error for pack job %u (%s): %m" , __func__ , pack_job_id , node_list ) ;
+ return NULL ;
+ }
+ node_addr = xmalloc ( sizeof ( slurm_addr_t ) * node_cnt ) ;
+ while ( ( this_node_name = hostlist_shift ( host_list ) ) ) {
+ if ( ( node_ptr = find_node_record ( this_node_name ) ) ) {
+ memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) ) ;
+ node_inx ++ ;
+ }
+ else {
+ error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id ) ;
+ error_code = SLURM_ERROR ;
+ }
+ free ( this_node_name ) ;
+ if ( error_code != SLURM_SUCCESS ) break ;
+ }
+ hostlist_destroy ( host_list ) ;
+ if ( error_code != SLURM_SUCCESS ) xfree ( node_addr ) ;
+ return node_addr ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ error ( "%s hostlist_create error for pack job %u (%s): %m" , __func__ , pack_job_id , node_list ) ;
+ return NULL ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( ( node_ptr = find_node_record ( this_node_name ) ) ) {
+ memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) ) ;
+ node_inx ++ ;
+ }
+ else {
+ error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id ) ;
+ error_code = SLURM_ERROR ;
+ }
+ free ( this_node_name ) ;
+ if ( error_code != SLURM_SUCCESS ) break ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) ) ;
+ node_inx ++ ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id ) ;
+ error_code = SLURM_ERROR ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | host_list = NULL
+30064771073 | CALL | error_code = SLURM_SUCCESS
+30064771074 | CALL | node_inx = 0
+30064771075 | CALL | ( host_list = hostlist_create ( node_list ) ) == NULL
+30064771076 | CALL | host_list = hostlist_create ( node_list )
+30064771077 | CALL | hostlist_create ( node_list )
+30064771078 | CALL | 
+        error ( "%s hostlist_create error for pack job %u (%s): %m" , __func__ , pack_job_id , node_list )
+      
+30064771079 | CALL | node_addr = xmalloc ( sizeof ( slurm_addr_t ) * node_cnt )
+30064771080 | CALL | xmalloc ( sizeof ( slurm_addr_t ) * node_cnt )
+30064771081 | CALL | sizeof ( slurm_addr_t ) * node_cnt
+30064771082 | CALL | sizeof ( slurm_addr_t )
+30064771083 | CALL | this_node_name = hostlist_shift ( host_list )
+30064771084 | CALL | hostlist_shift ( host_list )
+30064771085 | CALL | node_ptr = find_node_record ( this_node_name )
+30064771086 | CALL | find_node_record ( this_node_name )
+30064771087 | CALL | 
+        memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) )
+      
+30064771088 | CALL | node_addr + node_inx
+30064771089 | CALL | & node_ptr -> slurm_addr
+30064771090 | CALL | node_ptr -> slurm_addr
+30064771091 | CALL | sizeof ( slurm_addr_t )
+30064771092 | CALL | node_inx ++
+30064771093 | CALL | 
+        error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id )
+      
+30064771094 | CALL | error_code = SLURM_ERROR
+30064771095 | CALL | free ( this_node_name )
+30064771096 | CALL | error_code != SLURM_SUCCESS
+30064771097 | CALL | hostlist_destroy ( host_list )
+30064771098 | CALL | error_code != SLURM_SUCCESS
+30064771099 | CALL | xfree ( node_addr )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( host_list = hostlist_create ( node_list ) ) == NULL ) {
+ error ( "%s hostlist_create error for pack job %u (%s): %m" , __func__ , pack_job_id , node_list ) ;
+ return NULL ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | while (( this_node_name = hostlist_shift ( host_list ) ))
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ( node_ptr = find_node_record ( this_node_name ) ) ) {
+ memcpy ( node_addr + node_inx , & node_ptr -> slurm_addr , sizeof ( slurm_addr_t ) ) ;
+ node_inx ++ ;
+ }
+ else {
+ error ( "%s: Invalid node %s in pack job %u" , __func__ , this_node_name , pack_job_id ) ;
+ error_code = SLURM_ERROR ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | if ( error_code != SLURM_SUCCESS ) break ;
+47244640260 | CONTROL_STRUCTURE | break ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771095 [AST]
+25769803778 -> 47244640259 [AST]
+25769803779 -> 30064771087 [AST]
+25769803779 -> 30064771092 [AST]
+25769803780 -> 30064771093 [AST]
+25769803780 -> 30064771094 [AST]
+25769803781 -> 47244640260 [AST]
+25769803782 -> 30064771099 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771097 [CDG]
+30064771075 -> 30064771098 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771095 [CDG]
+300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

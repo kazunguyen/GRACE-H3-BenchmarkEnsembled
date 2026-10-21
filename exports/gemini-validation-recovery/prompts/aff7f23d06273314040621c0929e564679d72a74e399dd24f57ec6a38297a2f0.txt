@@ -1,0 +1,280 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void handle_notify(EventNotifier *e)
+
+{
+
+    VirtIOBlockDataPlane *s = container_of(e, VirtIOBlockDataPlane,
+
+                                           host_notifier);
+
+
+
+    VirtQueueElement *elem;
+
+    VirtIOBlockReq *req;
+
+    int ret;
+
+    MultiReqBuffer mrb = {
+
+        .num_writes = 0,
+
+    };
+
+
+
+    event_notifier_test_and_clear(&s->host_notifier);
+
+    bdrv_io_plug(s->blk->conf.bs);
+
+    for (;;) {
+
+        /* Disable guest->host notifies to avoid unnecessary vmexits */
+
+        vring_disable_notification(s->vdev, &s->vring);
+
+
+
+        for (;;) {
+
+            ret = vring_pop(s->vdev, &s->vring, &elem);
+
+            if (ret < 0) {
+
+                assert(elem == NULL);
+
+                break; /* no more requests */
+
+            }
+
+
+
+            trace_virtio_blk_data_plane_process_request(s, elem->out_num,
+
+                                                        elem->in_num, elem->index);
+
+
+
+            req = g_slice_new(VirtIOBlockReq);
+
+            req->dev = VIRTIO_BLK(s->vdev);
+
+            req->elem = elem;
+
+            virtio_blk_handle_request(req, &mrb);
+
+        }
+
+
+
+        virtio_submit_multiwrite(s->blk->conf.bs, &mrb);
+
+
+
+        if (likely(ret == -EAGAIN)) { /* vring emptied */
+
+            /* Re-enable guest->host notifies and stop processing the vring.
+
+             * But if the guest has snuck in more descriptors, keep processing.
+
+             */
+
+            if (vring_enable_notification(s->vdev, &s->vring)) {
+
+                break;
+
+            }
+
+        } else { /* fatal error */
+
+            break;
+
+        }
+
+    }
+
+    bdrv_io_unplug(s->blk->conf.bs);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+36 -> 41 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 66 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+73 -> 78 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void handle_notify(EventNotifier *e)
+
+{
+
+    VirtIOBlockDataPlane *s = container_of(e, VirtIOBlockDataPlane,
+
+                                           host_notifier);
+
+    VirtIOBlock *vblk = VIRTIO_BLK(s->vdev);
+
+
+
+    event_notifier_test_and_clear(&s->host_notifier);
+
+    blk_io_plug(s->conf->conf.blk);
+
+    for (;;) {
+
+        MultiReqBuffer mrb = {};
+
+        int ret;
+
+
+
+        /* Disable guest->host notifies to avoid unnecessary vmexits */
+
+        vring_disable_notification(s->vdev, &s->vring);
+
+
+
+        for (;;) {
+
+            VirtIOBlockReq *req = virtio_blk_alloc_request(vblk);
+
+
+
+            ret = vring_pop(s->vdev, &s->vring, &req->elem);
+
+            if (ret < 0) {
+
+                virtio_blk_free_request(req);
+
+                break; /* no more requests */
+
+            }
+
+
+
+            trace_virtio_blk_data_plane_process_request(s, req->elem.out_num,
+
+                                                        req->elem.in_num,
+
+                                                        req->elem.index);
+
+
+
+            virtio_blk_handle_request(req, &mrb);
+
+        }
+
+
+
+        if (mrb.num_reqs) {
+
+            virtio_blk_submit_multireq(s->conf->conf.blk, &mrb);
+
+        }
+
+
+
+        if (likely(ret == -EAGAIN)) { /* vring emptied */
+
+            /* Re-enable guest->host notifies and stop processing the vring.
+
+             * But if the guest has snuck in more descriptors, keep processing.
+
+             */
+
+            if (vring_enable_notification(s->vdev, &s
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

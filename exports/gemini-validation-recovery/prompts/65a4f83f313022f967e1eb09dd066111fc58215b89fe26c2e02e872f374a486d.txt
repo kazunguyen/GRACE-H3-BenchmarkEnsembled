@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_huffman_tree ( AVCodecContext * avctx , GetBitContext * gb ) {
+ Vp3DecodeContext * s = avctx -> priv_data ;
+ if ( get_bits1 ( gb ) ) {
+ int token ;
+ if ( s -> entries >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ token = get_bits ( gb , 5 ) ;
+ av_dlog ( avctx , "hti %d hbits %x token %d entry : %d size %d\n" , s -> hti , s -> hbits , token , s -> entries , s -> huff_code_size ) ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 0 ] = s -> hbits ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 1 ] = s -> huff_code_size ;
+ s -> entries ++ ;
+ }
+ else {
+ if ( s -> huff_code_size >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ s -> huff_code_size ++ ;
+ s -> hbits <<= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits |= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits >>= 1 ;
+ s -> huff_code_size -- ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Vp3DecodeContext * s = avctx -> priv_data ;
+ if ( get_bits1 ( gb ) ) {
+ int token ;
+ if ( s -> entries >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ token = get_bits ( gb , 5 ) ;
+ av_dlog ( avctx , "hti %d hbits %x token %d entry : %d size %d\n" , s -> hti , s -> hbits , token , s -> entries , s -> huff_code_size ) ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 0 ] = s -> hbits ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 1 ] = s -> huff_code_size ;
+ s -> entries ++ ;
+ }
+ else {
+ if ( s -> huff_code_size >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ s -> huff_code_size ++ ;
+ s -> hbits <<= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits |= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits >>= 1 ;
+ s -> huff_code_size -- ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int token ;
+ if ( s -> entries >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ token = get_bits ( gb , 5 ) ;
+ av_dlog ( avctx , "hti %d hbits %x token %d entry : %d size %d\n" , s -> hti , s -> hbits , token , s -> entries , s -> huff_code_size ) ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 0 ] = s -> hbits ;
+ s -> huffman_table [ s -> hti ] [ token ] [ 1 ] = s -> huff_code_size ;
+ s -> entries ++ ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( s -> huff_code_size >= 32 ) {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+ s -> huff_code_size ++ ;
+ s -> hbits <<= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits |= 1 ;
+ if ( read_huffman_tree ( avctx , gb ) ) return - 1 ;
+ s -> hbits >>= 1 ;
+ s -> huff_code_size -- ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" ) ;
+ return - 1 ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | s = avctx -> priv_data
+30064771073 | CALL | avctx -> priv_data
+30064771074 | CALL | get_bits1 ( gb )
+30064771075 | CALL | s -> entries >= 32
+30064771076 | CALL | s -> entries
+30064771077 | CALL | av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" )
+30064771078 | CALL | - 1
+30064771079 | CALL | token = get_bits ( gb , 5 )
+30064771080 | CALL | get_bits ( gb , 5 )
+30064771081 | CALL | 
+        av_dlog ( avctx , "hti %d hbits %x token %d entry : %d size %d\n" , s -> hti , s -> hbits , token , s -> entries , s -> huff_code_size )
+      
+30064771082 | CALL | s -> hti
+30064771083 | CALL | s -> hbits
+30064771084 | CALL | s -> entries
+30064771085 | CALL | s -> huff_code_size
+30064771086 | CALL | s -> huffman_table [ s -> hti ] [ token ] [ 0 ] = s -> hbits
+30064771087 | CALL | s -> huffman_table [ s -> hti ] [ token ] [ 0 ]
+30064771088 | CALL | s -> huffman_table [ s -> hti ] [ token ]
+30064771089 | CALL | s -> huffman_table [ s -> hti ]
+30064771090 | CALL | s -> huffman_table
+30064771091 | CALL | s -> hti
+30064771092 | CALL | s -> hbits
+30064771093 | CALL | s -> huffman_table [ s -> hti ] [ token ] [ 1 ] = s -> huff_code_size
+30064771094 | CALL | s -> huffman_table [ s -> hti ] [ token ] [ 1 ]
+30064771095 | CALL | s -> huffman_table [ s -> hti ] [ token ]
+30064771096 | CALL | s -> huffman_table [ s -> hti ]
+30064771097 | CALL | s -> huffman_table
+30064771098 | CALL | s -> hti
+30064771099 | CALL | s -> huff_code_size
+30064771100 | CALL | s -> entries ++
+30064771101 | CALL | s -> entries
+30064771102 | CALL | s -> huff_code_size >= 32
+30064771103 | CALL | s -> huff_code_size
+30064771104 | CALL | av_log ( avctx , AV_LOG_ERROR , "huffman tree overflow\n" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771100 [AST]
+25769803778 -> 30064771077 [AST]
+25769803780 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771102 [CDG]
+30064771074 -> 30064771103 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771101 [CDG]
+30064771075 -> 30064771099 [CDG]
+30064771075 -> 30064771100 [CDG]
+30064771075 -> 30064771097 [CDG]
+30064771075 -> 30064771098 [CDG]
+30064771075 -> 30064771095 [CDG]
+30064771075 -> 30064771096 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771086 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771093 [CDG]
+30064771075 -> 30064771094 [CDG]
+30064771075 -> 30064771091 [CDG]
+30064771075 -> 30064771092 [CDG]
+30064771075 -> 30064771089 [CDG]
+30064771075 -> 30064771090 [CDG]
+30064771075 -> 30064771087 [CDG]
+30064771075 -> 30064771088 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771084 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771085 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771084 [AST]
+30064771081 -> 30064771085 [AST]
+30064771081 -> 30064771085 [POST_DOMINATE]
+30064771082 -> 30064771091 [REACHING_DEF]
+30064771082 -> 30064771098 [REACHING_DEF]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771084 [REACHING_DEF]
+30064771082 -> 30064771085 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771092 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

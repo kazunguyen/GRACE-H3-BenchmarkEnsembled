@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * create_index ( void ) {
+ const char * tmpfile ;
+ struct pack_idx_entry * * idx , * * c , * * last ;
+ struct object_entry * e ;
+ struct object_entry_pool * o ;
+ idx = xmalloc ( object_count * sizeof ( * idx ) ) ;
+ c = idx ;
+ for ( o = blocks ;
+ o ;
+ o = o -> next_pool ) for ( e = o -> next_free ;
+ e -- != o -> entries ;
+ ) if ( pack_id == e -> pack_id ) * c ++ = & e -> idx ;
+ last = idx + object_count ;
+ if ( c != last ) die ( "internal consistency error creating the index" ) ;
+ tmpfile = write_idx_file ( NULL , idx , object_count , & pack_idx_opts , pack_data -> sha1 ) ;
+ free ( idx ) ;
+ return tmpfile ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * tmpfile ;
+ struct pack_idx_entry * * idx , * * c , * * last ;
+ struct object_entry * e ;
+ struct object_entry_pool * o ;
+ idx = xmalloc ( object_count * sizeof ( * idx ) ) ;
+ c = idx ;
+ for ( o = blocks ;
+ o ;
+ o = o -> next_pool ) for ( e = o -> next_free ;
+ e -- != o -> entries ;
+ ) if ( pack_id == e -> pack_id ) * c ++ = & e -> idx ;
+ last = idx + object_count ;
+ if ( c != last ) die ( "internal consistency error creating the index" ) ;
+ tmpfile = write_idx_file ( NULL , idx , object_count , & pack_idx_opts , pack_data -> sha1 ) ;
+ free ( idx ) ;
+ return tmpfile ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | idx = xmalloc ( object_count * sizeof ( * idx ) )
+30064771073 | CALL | xmalloc ( object_count * sizeof ( * idx ) )
+30064771074 | CALL | object_count * sizeof ( * idx )
+30064771075 | CALL | sizeof ( * idx )
+30064771076 | CALL | * idx
+30064771077 | CALL | c = idx
+30064771078 | CALL | o = blocks
+30064771079 | CALL | o != NULL
+30064771080 | CALL | o = o -> next_pool
+30064771081 | CALL | o -> next_pool
+30064771082 | CALL | e = o -> next_free
+30064771083 | CALL | o -> next_free
+30064771084 | CALL | e -- != o -> entries
+30064771085 | CALL | e --
+30064771086 | CALL | o -> entries
+30064771087 | CALL | pack_id == e -> pack_id
+30064771088 | CALL | e -> pack_id
+30064771089 | CALL | * c ++ = & e -> idx
+30064771090 | CALL | * c ++
+30064771091 | CALL | c ++
+30064771092 | CALL | & e -> idx
+30064771093 | CALL | e -> idx
+30064771094 | CALL | last = idx + object_count
+30064771095 | CALL | idx + object_count
+30064771096 | CALL | c != last
+30064771097 | CALL | die ( "internal consistency error creating the index" )
+30064771098 | CALL | 
+        tmpfile = write_idx_file ( NULL , idx , object_count , & pack_idx_opts , pack_data -> sha1 )
+      
+30064771099 | CALL | 
+        write_idx_file ( NULL , idx , object_count , & pack_idx_opts , pack_data -> sha1 )
+      
+30064771100 | CALL | & pack_idx_opts
+30064771101 | CALL | pack_data -> sha1
+30064771102 | CALL | free ( idx )
+47244640256 | CONTROL_STRUCTURE | for (o = blocks ;o;o = o -> next_pool)
+47244640257 | CONTROL_STRUCTURE | for (e = o -> next_free ;e -- != o -> entries;)
+47244640258 | CONTROL_STRUCTURE | if ( pack_id == e -> pack_id ) * c ++ = & e -> idx ;
+47244640259 | CONTROL_STRUCTURE | 
+        if ( c != last ) die ( "internal consistency error creating the index" ) ;
+      
+55834574848 | FIELD_IDENTIFIER | next_pool
+55834574849 | FIELD_IDENTIFIER | next_free
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771089 [AST]
+25769803778 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 55834574848 [CDG]
+30064771079 -> 55834574849 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 55834574848 [ARGUMENT]
+30064771081 -> 55834574848 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 55834574848 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 55834574849 [ARGUMENT]
+30064771083 -> 55834574849 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 55834574849 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771084 [CDG]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static struct object_entry * new_object ( unsigned char * sha1 ) {
+ struct object_entry * e ;
+ if ( blocks -> next_free == blocks -> end ) alloc_objects ( object_entry_alloc ) ;
+ e = blocks -> next_free ++ ;
+ hashcpy ( e -> idx . sha1 , sha1 ) ;
+ return e ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

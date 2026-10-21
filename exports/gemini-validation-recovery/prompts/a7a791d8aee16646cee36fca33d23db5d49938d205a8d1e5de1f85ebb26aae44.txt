@@ -1,0 +1,169 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int cirrus_post_load ( void * opaque , int version_id ) {
+ CirrusVGAState * s = opaque ;
+ s -> vga . gr [ 0x00 ] = s -> cirrus_shadow_gr0 & 0x0f ;
+ s -> vga . gr [ 0x01 ] = s -> cirrus_shadow_gr1 & 0x0f ;
+ cirrus_update_memory_access ( s ) ;
+ s -> vga . graphic_mode = - 1 ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CirrusVGAState * s = opaque ;
+ s -> vga . gr [ 0x00 ] = s -> cirrus_shadow_gr0 & 0x0f ;
+ s -> vga . gr [ 0x01 ] = s -> cirrus_shadow_gr1 & 0x0f ;
+ cirrus_update_memory_access ( s ) ;
+ s -> vga . graphic_mode = - 1 ;
+ cirrus_update_bank_ptr ( s , 0 ) ;
+ cirrus_update_bank_ptr ( s , 1 ) ;
+ return 0 ;
+ }
+      
+30064771072 | CALL | s = opaque
+30064771073 | CALL | s -> vga . gr [ 0x00 ] = s -> cirrus_shadow_gr0 & 0x0f
+30064771074 | CALL | s -> vga . gr [ 0x00 ]
+30064771075 | CALL | s -> vga . gr
+30064771076 | CALL | s -> vga
+30064771077 | CALL | s -> cirrus_shadow_gr0 & 0x0f
+30064771078 | CALL | s -> cirrus_shadow_gr0
+30064771079 | CALL | s -> vga . gr [ 0x01 ] = s -> cirrus_shadow_gr1 & 0x0f
+30064771080 | CALL | s -> vga . gr [ 0x01 ]
+30064771081 | CALL | s -> vga . gr
+30064771082 | CALL | s -> vga
+30064771083 | CALL | s -> cirrus_shadow_gr1 & 0x0f
+30064771084 | CALL | s -> cirrus_shadow_gr1
+30064771085 | CALL | cirrus_update_memory_access ( s )
+30064771086 | CALL | s -> vga . graphic_mode = - 1
+30064771087 | CALL | s -> vga . graphic_mode
+30064771088 | CALL | s -> vga
+30064771089 | CALL | - 1
+30064771090 | CALL | cirrus_update_bank_ptr ( s , 0 )
+30064771091 | CALL | cirrus_update_bank_ptr ( s , 1 )
+55834574848 | FIELD_IDENTIFIER | vga
+55834574849 | FIELD_IDENTIFIER | gr
+55834574850 | FIELD_IDENTIFIER | cirrus_shadow_gr0
+55834574851 | FIELD_IDENTIFIER | vga
+55834574852 | FIELD_IDENTIFIER | gr
+55834574853 | FIELD_IDENTIFIER | cirrus_shadow_gr1
+55834574854 | FIELD_IDENTIFIER | vga
+55834574855 | FIELD_IDENTIFIER | graphic_mode
+68719476736 | IDENTIFIER | s
+68719476737 | IDENTIFIER | opaque
+68719476738 | IDENTIFIER | s
+68719476739 | IDENTIFIER | s
+68719476740 | IDENTIFIER | s
+68719476741 | IDENTIFIER | s
+68719476742 | IDENTIFIER | s
+68719476743 | IDENTIFIER | s
+68719476744 | IDENTIFIER | s
+68719476745 | IDENTIFIER | s
+90194313216 | LITERAL | 0x00
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771091 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771077 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 90194313216 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 90194313216 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 90194313216 [CFG]
+30064771075 -> 90194313216 [DOMINATE]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574849 [CFG]
+30064771076 -> 55834574849 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771073 [CFG]
+30064771077 -> 30064771073 [DOMINATE]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771078 -> 68719476739 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 68719476739 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 68719476745 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 68719476740 [REACHING_DEF]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 68719476744 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771083 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [AST]
+30064771079 -> 68719476742 [CFG]
+30064771079 -> 68719476742 [DOMINATE]
+30064771079 -> 30064771083 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 68719476741 [CFG]
+30064771080 -> 68719476741 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 55834574852 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 55834574852 [AST]
+30064771081 -> 55834574852 [POST_DOMINATE]
+30064771082 -> 68719476740 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void cirrus_bitblt_reset ( CirrusVGAState * s ) {
+ int need_update ;
+ s -> vga . gr [ 0x31 ] &= ~ ( CIRRUS_BLT_START | CIRRUS_BLT_BUSY | CIRRUS_BLT_FIFOUSED ) ;
+ need_update = s -> cirrus_srcptr != & s -> cirrus_bltbuf [ 0 ] || s -> cirrus_srcptr_end != & s -> cirrus_bltbuf [ 0 ] ;
+ s -> cirrus_srcptr = & s -> cirrus_bltbuf [ 0 ] ;
+ s -> cirrus_srcptr_end = & s -> cirrus_bltbuf [ 0 ] ;
+ s -> cirrus_srccounter = 0 ;
+ if ( ! need_update ) return ;
+ cirrus_update_memory_access ( s ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

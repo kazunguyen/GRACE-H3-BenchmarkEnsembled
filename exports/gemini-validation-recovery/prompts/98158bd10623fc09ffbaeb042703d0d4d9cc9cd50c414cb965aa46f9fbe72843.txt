@@ -1,0 +1,68 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int qemuMonitorSendVNCPassphrase ( qemuMonitorPtr mon ATTRIBUTE_UNUSED , qemuMonitorMessagePtr msg , const char * data ATTRIBUTE_UNUSED , size_t len ATTRIBUTE_UNUSED , void * opaque ) {
+ char * passphrase = opaque ;
+ size_t passphrase_len = strlen ( passphrase ) ;
+ if ( VIR_REALLOC_N ( msg -> txBuffer , msg -> txLength + passphrase_len + 1 + 1 ) < 0 ) {
+ virReportOOMError ( ) ;
+ return - 1 ;
+ }
+ memcpy ( msg -> txBuffer + msg -> txLength , passphrase , passphrase_len ) ;
+ msg -> txLength += passphrase_len ;
+ msg -> txBuffer [ msg -> txLength ] = '\r' ;
+ msg -> txLength ++ ;
+ msg -> txBuffer [ msg -> txLength ] = '\0' ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int qemuMonitorSendDiskPassphrase ( qemuMonitorPtr mon , qemuMonitorMessagePtr msg , const char * data , size_t len ATTRIBUTE_UNUSED , void * opaque ) {
+ virConnectPtr conn = opaque ;
+ char * path ;
+ char * passphrase = NULL ;
+ size_t passphrase_len = 0 ;
+ int res ;
+ const char * pathStart ;
+ const char * pathEnd ;
+ pathStart = strstr ( data , DISK_ENCRYPTION_PREFIX ) ;
+ pathEnd = strstr ( data , DISK_ENCRYPTION_POSTFIX ) ;
+ if ( ! pathStart || ! pathEnd || pathStart >= pathEnd ) {
+ qemuReportError ( VIR_ERR_INTERNAL_ERROR , _ ( "Unable to extract disk path from %s" ) , data ) ;
+ return - 1 ;
+ }
+ pathStart += strlen ( DISK_ENCRYPTION_PREFIX ) ;
+ if ( ! ( path = strndup ( pathStart , pathEnd - pathStart ) ) ) {
+ virReportOOMError ( ) ;
+ return - 1 ;
+ }
+ res = qemuMonitorGetDiskSecret ( mon , conn , path , & passphrase , & passphrase_len ) ;
+ VIR_FREE ( path ) ;
+ if ( res < 0 ) return - 1 ;
+ if ( VIR_REALLOC_N ( msg -> txBuffer , msg -> txLength + passphrase_len + 1 + 1 ) < 0 ) {
+ memset ( passphrase , 0 , passphrase_len ) ;
+ VIR_FREE ( passphrase ) ;
+ virReportOOMError ( ) ;
+ return - 1 ;
+ }
+ memcpy ( msg -> txBuffer + msg -> txLength , passphrase , passphrase_len ) ;
+ msg -> txLength += passphrase_len ;
+ msg -> txBuffer [ msg -> txLength ] = '\r' ;
+ msg -> txLength ++ ;
+ msg -> txBuffer [ msg -> txLength ] = '\0' ;
+ memset ( passphrase , 0 , passphrase_len ) ;
+ VIR_FREE ( passphrase ) ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

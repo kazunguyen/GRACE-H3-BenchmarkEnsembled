@@ -1,0 +1,285 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_i_picture_header(VC9Context *v)
+
+{
+
+  int pqindex, status = 0, ac_pred, condover;
+
+
+
+    /* Prolog common to all frametypes should be done in caller */
+
+    //BF = Buffer Fullness
+
+    if (v->profile <= PROFILE_MAIN && get_bits(&v->gb, 7))
+
+    {
+
+        av_log(v, AV_LOG_DEBUG, "I BufferFullness not 0\n");
+
+    }
+
+
+
+    /* Quantizer stuff */
+
+    pqindex = get_bits(&v->gb, 5);
+
+    if (v->quantizer_mode == QUANT_FRAME_IMPLICIT)
+
+        v->pq = pquant_table[0][pqindex];
+
+    else
+
+    {
+
+        v->pq = pquant_table[v->quantizer_mode-1][pqindex];
+
+    }
+
+    if (pqindex < 9) v->halfpq = get_bits(&v->gb, 1);
+
+    if (v->quantizer_mode == QUANT_FRAME_EXPLICIT)
+
+        v->pquantizer = get_bits(&v->gb, 1);
+
+    av_log(v->avctx, AV_LOG_DEBUG, "I frame: QP=%i (+%i/2)\n",
+
+           v->pq, v->halfpq);
+
+#if HAS_ADVANCED_PROFILE
+
+    if (v->profile <= PROFILE_MAIN)
+
+#endif
+
+    {
+
+        if (v->extended_mv) v->mvrange = get_prefix(&v->gb, 0, 3);
+
+        if (v->multires) v->respic = get_bits(&v->gb, 2);
+
+    }
+
+#if HAS_ADVANCED_PROFILE
+
+    else
+
+    {
+
+        ac_pred = get_bits(&v->gb, 1);
+
+        if (v->postprocflag) v->postproc = get_bits(&v->gb, 1);
+
+        /* 7.1.1.34 + 8.5.2 */
+
+        if (v->overlap && v->pq<9)
+
+        {
+
+            condover = get_bits(&v->gb, 1);
+
+            if (condover)
+
+            {
+
+                condover = 2+get_bits(&v->gb, 1);
+
+                if (condover == 3)
+
+                    status = bitplane_decoding(v->over_flags_plane,
+
+                                                   v->width_mb, v->height_mb, v);
+
+            }
+
+        }
+
+    }
+
+#endif
+
+
+
+    /* Epilog should be done in caller */
+
+    return status;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+9 -> 12 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 28 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+32 -> 39 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+23 -> 29 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+46 -> 51 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+21 -> 41 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+68 -> 75 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int decode_p_picture_primary_header(VC9Context *v)
+
+{
+
+    /* INTERFRM, FRMCNT, RANGEREDFRM read in caller */
+
+    GetBitContext *gb = &v->s.gb;
+
+    int lowquant, pqindex, status = 0;
+
+
+
+    pqindex = get_bits(gb, 5);
+
+    if (v->quantizer_mode == QUANT_FRAME_IMPLICIT)
+
+        v->pq = pquant_table[0][pqindex];
+
+    else
+
+    {
+
+        v->pq = pquant_table[v->quantizer_mode-1][pqindex];
+
+    }
+
+    if (pqindex < 9) v->halfpq = get_bits(gb, 1);
+
+    if (v->quantizer_mode == QUANT_FRAME_EXPLICIT)
+
+        v->pquantizer = get_bits(gb, 1);
+
+    av_log(v->s.avctx, AV_LOG_DEBUG, "P Frame: QP=%i (+%i/2)\n",
+
+           v->pq, v->halfpq);
+
+    if (v->extended_mv == 1) v->mvrange = get_prefix(gb, 0, 3);
+
+#if HAS_ADVANCED_PROFILE
+
+    if (v->profile > PROFILE_MAIN)
+
+    {
+
+        if (v->postprocflag) v->postproc = get_bits(gb, 1);
+
+    }
+
+    else
+
+#endif
+
+        if (v->multires) v->respic = get_bits(gb, 2);
+
+    lowquant = (v->pquantizer>12) ? 0 : 1;
+
+    v->mv_mode = mv_pmode_table[lowquant][get_prefix(gb, 1, 4)];
+
+    if (v->mv_mode == MV_PMODE_INTENSITY_COMP)
+
+    {
+
+        v->mv_mode2 = mv_pmode_table[lowquant][get_prefix(gb, 1, 3)];
+
+        v->lumscale = get_bits(gb, 6);
+
+        v->lumshift = get_bits(gb, 6);
+
+    }
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

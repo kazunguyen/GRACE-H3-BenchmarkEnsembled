@@ -1,0 +1,248 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int tm_poll ( tm_event_t poll_event , tm_event_t * result_event , int wait , int * tm_errno ) {
+ int num , i ;
+ int ret , mtype , nnodes ;
+ int prot , protver ;
+ int * obitvalp ;
+ event_info * ep = NULL ;
+ tm_task_id tid , * tidp ;
+ tm_event_t nevent ;
+ tm_node_id node ;
+ char * jobid = NULL ;
+ char * info = NULL ;
+ struct tm_roots * roots ;
+ struct taskhold * thold ;
+ struct infohold * ihold ;
+ struct reschold * rhold ;
+ extern time_t pbs_tcp_timeout ;
+ if ( ! init_done ) {
+ return ( TM_BADINIT ) ;
+ }
+ if ( result_event == NULL ) return ( TM_EBADENVIRONMENT ) ;
+ * result_event = TM_ERROR_EVENT ;
+ if ( poll_event != TM_NULL_EVENT ) return ( TM_ENOTIMPLEMENTED ) ;
+ if ( tm_errno == NULL ) return ( TM_EBADENVIRONMENT ) ;
+ if ( event_count == 0 ) {
+ TM_DBPRT ( ( "%s: no events waiting\n" , __func__ ) ) return ( TM_ENOTFOUND ) ;
+ }
+ if ( local_conn < 0 ) {
+ TM_DBPRT ( ( "%s: INTERNAL ERROR %d events but no connection (%d)\n" , __func__ , event_count , local_conn ) ) if ( static_chan != NULL ) {
+ DIS_tcp_cleanup ( static_chan ) ;
+ static_chan = NULL ;
+ }
+ return ( TM_ENOTCONNECTED ) ;
+ }
+ if ( ( static_chan == NULL ) && ( ( static_chan = DIS_tcp_setup ( local_conn ) ) == NULL ) ) {
+ TM_DBPRT ( ( "%s: Error allocating memory for sock buffer %d" , __func__ , PBSE_MEM_MALLOC ) ) return TM_BADINIT ;
+ }
+ pbs_tcp_timeout = wait ? FOREVER : 1 ;
+ prot = disrsi ( static_chan , & ret ) ;
+ if ( ret == DIS_EOD ) {
+ * result_event = TM_NULL_EVENT ;
+ DIS_tcp_cleanup ( static_chan ) ;
+ static_chan = NULL ;
+ return TM_SUCCESS ;
+ }
+ else if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: protocol number dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+ if ( prot != TM_PROTOCOL ) {
+ TM_DBPRT ( ( "%s: bad protocol number %d\n" , __func__ , prot ) ) goto tm_poll_error ;
+ }
+ pbs_tcp_timeout = FOREVER ;
+ protver = disrsi ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: protocol version dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+ if ( protver != TM_PROTOCOL_VER ) {
+ TM_DBPRT ( ( "%s: bad protocol version %d\n" , __func__ , protver ) ) goto tm_poll_error ;
+ }
+ mtype = disrsi ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: mtype dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+ nevent = disrsi ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: event dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+ * result_event = nevent ;
+ TM_DBPRT ( ( "%s: got event %d return %d\n" , __func__ , nevent , mtype ) ) if ( ( ep = find_event ( nevent ) ) == NULL ) {
+ TM_DBPRT ( ( "%s: No event found for number %d\n" , __func__ , nevent ) ) ;
+ DIS_tcp_close ( static_chan ) ;
+ static_chan = NULL ;
+ local_conn = - 1 ;
+ return TM_ENOEVENT ;
+ }
+ if ( mtype == TM_ERROR ) {
+ * tm_errno = disrsi ( static_chan , & ret ) ;
+ TM_DBPRT ( ( "%s: event %d error %d\n" , __func__ , nevent , * tm_errno ) ) ;
+ goto tm_poll_done ;
+ }
+ * tm_errno = TM_SUCCESS ;
+ switch ( ep -> e_mtype ) {
+ case
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int num , i ;
+ int ret , mtype , nnodes ;
+ int prot , protver ;
+ int * obitvalp ;
+ event_info * ep = NULL ;
+ tm_task_id tid , * tidp ;
+ tm_event_t nevent ;
+ tm_node_id node ;
+ char * jobid = NULL ;
+ char * info = NULL ;
+ struct tm_roots * roots ;
+ struct taskhold * thold ;
+ struct infohold * ihold ;
+ struct reschold * rhold ;
+ extern time_t pbs_tcp_timeout ;
+ if ( ! init_done ) {
+ return ( TM_BADINIT ) ;
+ }
+ if ( result_event == NULL ) return ( TM_EBADENVIRONMENT ) ;
+ * result_event = TM_ERROR_EVENT ;
+ if ( poll_event != TM_NULL_EVENT ) return ( TM_ENOTIMPLEMENTED ) ;
+ if ( tm_errno == NULL ) return ( TM_EBADENVIRONMENT ) ;
+ if ( event_count == 0 ) {
+ TM_DBPRT ( ( "%s: no events waiting\n" , __func__ ) ) return ( TM_ENOTFOUND ) ;
+ }
+ if ( local_conn < 0 ) {
+ TM_DBPRT ( ( "%s: INTERNAL ERROR %d events but no connection (%d)\n" , __func__ , event_count , local_conn ) ) if ( static_chan != NULL ) {
+ DIS_tcp_cleanup ( static_chan ) ;
+ static_chan = NULL ;
+ }
+ return ( TM_ENOTCONNECTE...
+      
+25769803777 | BLOCK | { return ( TM_BADINIT ) ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: no events waiting\n" , __func__ ) ) return ( TM_ENOTFOUND ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: INTERNAL ERROR %d events but no connection (%d)\n" , __func__ , event_count , local_conn ) ) if ( static_chan != NULL ) {
+ DIS_tcp_cleanup ( static_chan ) ;
+ static_chan = NULL ;
+ }
+ return ( TM_ENOTCONNECTED ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { DIS_tcp_cleanup ( static_chan ) ; static_chan = NULL ; }
+25769803786 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: Error allocating memory for sock buffer %d" , __func__ , PBSE_MEM_MALLOC ) ) return TM_BADINIT ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ * result_event = TM_NULL_EVENT ;
+ DIS_tcp_cleanup ( static_chan ) ;
+ static_chan = NULL ;
+ return TM_SUCCESS ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: protocol number dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: bad protocol number %d\n" , __func__ , prot ) ) goto tm_poll_error ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: protocol version dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+      
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: bad protocol version %d\n" , __func__ , protver ) ) goto tm_poll_error ;
+ }
+      
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: mtype dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+      
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: event dis error %d\n" , __func__ , ret ) ) goto tm_poll_error ;
+ }
+      
+25769803801 | BLOCK | <empty>
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | 
+        {
+ TM_DBPRT ( ( "%s: No event found for number %d\n" , __func__ , nevent ) ) ;
+ DIS_tcp_close ( static_chan ) ;
+ static_chan = NULL ;
+ local_conn = - 1 ;
+ return TM_ENOEVENT ;
+ }
+      
+25769803804 | BLOCK | <empty>
+25769803805 | BLOCK | 
+        {
+ * tm_errno = disrsi ( static_chan , & ret ) ;
+ TM_DBPRT ( ( "%s: event %d error %d\n" , __func__ , nevent , * tm_errno ) ) ;
+ goto tm_poll_done ;
+ }
+      
+25769803806 | BLOCK | <empty>
+25769803807 | BLOCK | 
+        {
+ case TM_INIT : nnodes = disrsi ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: INIT failed nnodes\n" , __func__ ) ) goto tm_poll_error ;
+ }
+ node_table = ( tm_node_id * ) calloc ( nnodes + 1 , sizeof ( tm_node_id ) ) ;
+ if ( node_table == NULL ) {
+ perror ( "Memory allocation failed" ) ;
+ goto tm_poll_error ;
+ }
+ TM_DBPRT ( ( "%s: INIT nodes %d\n" , __func__ , nnodes ) ) for ( i = 0 ;
+ i < nnodes ;
+ i ++ ) {
+ node_table [ i ] = disrsi ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: INIT failed nodeid %d\n" , __func__ , i ) ) goto tm_poll_error ;
+ }
+ }
+ node_table [ nnodes ] = TM_ERROR_NODE ;
+ jobid = disrst ( static_chan , & ret ) ;
+ if ( ret != DIS_SUCCESS ) {
+ TM_DBPRT ( ( "%s: INIT failed jobid\n" , __func__ ) ) goto tm_po
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

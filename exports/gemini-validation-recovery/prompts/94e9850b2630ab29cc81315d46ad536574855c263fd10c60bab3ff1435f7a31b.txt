@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+CharList * pkg_appendUniqueDirToList ( CharList * l , CharList * * end , const char * strAlias ) {
+ char aBuf [ 1024 ] ;
+ char * rPtr ;
+ rPtr = uprv_strrchr ( strAlias , U_FILE_SEP_CHAR ) ;
+ # if ( U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR ) {
+ char * aPtr = uprv_strrchr ( strAlias , U_FILE_ALT_SEP_CHAR ) ;
+ if ( ! rPtr || ( aPtr && ( aPtr > rPtr ) ) ) {
+ rPtr = aPtr ;
+ }
+ }
+ # endif if ( ! rPtr ) {
+ return l ;
+ }
+ if ( ( rPtr - strAlias ) >= UPRV_LENGTHOF ( aBuf ) ) {
+ fprintf ( stderr , "## ERR: Path too long [%d chars]: %s\n" , ( int ) sizeof ( aBuf ) , strAlias ) ;
+ return l ;
+ }
+ strncpy ( aBuf , strAlias , ( rPtr - strAlias ) ) ;
+ aBuf [ rPtr - strAlias ] = 0 ;
+ convertToNativePathSeparators ( aBuf ) ;
+ if ( ! pkg_listContains ( l , aBuf ) ) {
+ return pkg_appendToList ( l , end , uprv_strdup ( aBuf ) ) ;
+ }
+ else {
+ return l ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char aBuf [ 1024 ] ;
+ char * rPtr ;
+ rPtr = uprv_strrchr ( strAlias , U_FILE_SEP_CHAR ) ;
+ # if ( U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR ) {
+ char * aPtr = uprv_strrchr ( strAlias , U_FILE_ALT_SEP_CHAR ) ;
+ if ( ! rPtr || ( aPtr && ( aPtr > rPtr ) ) ) {
+ rPtr = aPtr ;
+ }
+ }
+ # endif if ( ! rPtr ) {
+ return l ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | aBuf [ 1024 ]
+30064771073 | CALL | aBuf [ 1024 ]
+30064771074 | CALL | rPtr = uprv_strrchr ( strAlias , U_FILE_SEP_CHAR )
+30064771075 | CALL | uprv_strrchr ( strAlias , U_FILE_SEP_CHAR )
+68719476736 | IDENTIFIER | aBuf
+68719476737 | IDENTIFIER | char[1024]
+68719476738 | IDENTIFIER | rPtr
+68719476739 | IDENTIFIER | strAlias
+68719476740 | IDENTIFIER | <unknown> U_FILE_SEP_CHAR
+68719476741 | IDENTIFIER | l
+90194313216 | LITERAL | 1024
+94489280512 | LOCAL | char aBuf [ 1024 ]
+94489280513 | LOCAL | char * rPtr
+94489280515 | LOCAL | <unknown> U_FILE_SEP_CHAR
+107374182400 | METHOD | 
+        CharList * pkg_appendUniqueDirToList ( CharList * l , CharList * * end , const char * strAlias ) {
+ char aBuf [ 1024 ] ;
+ char * rPtr ;
+ rPtr = uprv_strrchr ( strAlias , U_FILE_SEP_CHAR ) ;
+ # if ( U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR ) {
+ char * aPtr = uprv_strrchr ( strAlias , U_FILE_ALT_SEP_CHAR ) ;
+ if ( ! rPtr || ( aPtr && ( aPtr > rPtr ) ) ) {
+ rPtr = aPtr ;
+ }
+ }
+ # endif if ( ! rPtr ) {
+ return l ;
+ }
+      
+107374182403 | METHOD | convertToNativePathSeparators ( aBuf ) ;
+111669149696 | METHOD_PARAMETER_IN | CharList * l
+111669149697 | METHOD_PARAMETER_IN | CharList * * end
+111669149698 | METHOD_PARAMETER_IN | const char * strAlias
+111669149699 | METHOD_PARAMETER_IN | aBuf
+115964116992 | METHOD_PARAMETER_OUT | CharList * l
+115964116993 | METHOD_PARAMETER_OUT | CharList * * end
+115964116994 | METHOD_PARAMETER_OUT | const char * strAlias
+115964116995 | METHOD_PARAMETER_OUT | aBuf
+124554051584 | METHOD_RETURN | RET
+124554051587 | METHOD_RETURN | RET
+141733920768 | RETURN | return l ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280515 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+68719476736 -> 68719476737 [CFG]
+68719476736 -> 68719476737 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+68719476736 -> 124554051584 [REACHING_DEF]
+68719476736 -> 94489280512 [REF]
+68719476737 -> 90194313216 [CFG]
+68719476737 -> 90194313216 [DOMINATE]
+68719476737 -> 68719476736 [POST_DOMINATE]
+68719476737 -> 30064771073 [REACHING_DEF]
+68719476737 -> 124554051584 [REACHING_DEF]
+68719476738 -> 68719476739 [CFG]
+68719476738 -> 68719476739 [DOMINATE]
+68719476738 -> 30064771072 [POST_DOMINATE]
+68719476738 -> 30064771074 [REACHING_DEF]
+68719476738 -> 124554051584 [REACHING_DEF]
+68719476738 -> 94489280513 [REF]
+68719476739 -> 68719476740 [CFG]
+68719476739 -> 68719476740 [DOMINATE]
+68719476739 -> 68719476738 [POST_DOMINATE]
+68719476739 -> 115964116994 [REACHING_DEF]
+68719476739 -> 68719476740 [REACHING_DEF]
+68719476739 -> 30064771075 [REACHING_DEF]
+68719476739 -> 124554051584 [REACHING_DEF]
+68719476739 -> 111669149698 [REF]
+68719476740 -> 30064771075 [CFG]
+68719476740 -> 30064771075 [DOMINATE]
+68719476740 -> 68719476739 [POST_DOMINATE]
+68719476740 -> 68719476739 [REACHING_DEF]
+68719476740 -> 30064771075 [REACHING_DEF]
+68719476740 -> 124554051584 [REACHING_DEF]
+68719476740 -> 94489280515 [REF]
+68719476741 -> 141733920768 [CFG]
+68719476741 -> 141733920768 [DOMINATE]
+68719476741 -> 30064771074 [POST_DOMINATE]
+68719476741 -> 141733920768 [REACHING_DEF]
+68719476741 -> 111669149696 [REF]
+90194313216 -> 30064771073 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void get_dirname ( char * dirname , const char * filename ) {
+ const char * lastSlash = uprv_strrchr ( filename , U_FILE_SEP_CHAR ) + 1 ;
+ if ( lastSlash > filename ) {
+ uprv_strncpy ( dirname , filename , ( lastSlash - filename ) ) ;
+ * ( dirname + ( lastSlash - filename ) ) = '\0' ;
+ }
+ else {
+ * dirname = '\0' ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

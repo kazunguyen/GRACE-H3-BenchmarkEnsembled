@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int asf_write_trailer ( AVFormatContext * s ) {
+ ASFContext * asf = s -> priv_data ;
+ int64_t file_size , data_size ;
+ int ret ;
+ if ( asf -> pb . buf_ptr > asf -> pb . buffer ) flush_packet ( s ) ;
+ data_size = avio_tell ( s -> pb ) ;
+ if ( ! asf -> is_streamed && asf -> next_start_sec ) {
+ if ( ( ret = update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 ) ) < 0 ) return ret ;
+ asf_write_index ( s , asf -> index_ptr , asf -> maximum_packet , asf -> next_start_sec ) ;
+ }
+ avio_flush ( s -> pb ) ;
+ if ( asf -> is_streamed || ! s -> pb -> seekable ) {
+ put_chunk ( s , 0x4524 , 0 , 0 ) ;
+ }
+ else {
+ file_size = avio_tell ( s -> pb ) ;
+ avio_seek ( s -> pb , 0 , SEEK_SET ) ;
+ asf_write_header1 ( s , file_size , data_size - asf -> data_offset ) ;
+ }
+ av_freep ( & asf -> index_ptr ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ASFContext * asf = s -> priv_data ;
+ int64_t file_size , data_size ;
+ int ret ;
+ if ( asf -> pb . buf_ptr > asf -> pb . buffer ) flush_packet ( s ) ;
+ data_size = avio_tell ( s -> pb ) ;
+ if ( ! asf -> is_streamed && asf -> next_start_sec ) {
+ if ( ( ret = update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 ) ) < 0 ) return ret ;
+ asf_write_index ( s , asf -> index_ptr , asf -> maximum_packet , asf -> next_start_sec ) ;
+ }
+ avio_flush ( s -> pb ) ;
+ if ( asf -> is_streamed || ! s -> pb -> seekable ) {
+ put_chunk ( s , 0x4524 , 0 , 0 ) ;
+ }
+ else {
+ file_size = avio_tell ( s -> pb ) ;
+ avio_seek ( s -> pb , 0 , SEEK_SET ) ;
+ asf_write_header1 ( s , file_size , data_size - asf -> data_offset ) ;
+ }
+ av_freep ( & asf -> index_ptr ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( ( ret = update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 ) ) < 0 ) return ret ;
+ asf_write_index ( s , asf -> index_ptr , asf -> maximum_packet , asf -> next_start_sec ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { put_chunk ( s , 0x4524 , 0 , 0 ) ; }
+25769803781 | BLOCK | 
+        {
+ file_size = avio_tell ( s -> pb ) ;
+ avio_seek ( s -> pb , 0 , SEEK_SET ) ;
+ asf_write_header1 ( s , file_size , data_size - asf -> data_offset ) ;
+ }
+      
+30064771072 | CALL | asf = s -> priv_data
+30064771073 | CALL | s -> priv_data
+30064771074 | CALL | asf -> pb . buf_ptr > asf -> pb . buffer
+30064771075 | CALL | asf -> pb . buf_ptr
+30064771076 | CALL | asf -> pb
+30064771077 | CALL | asf -> pb . buffer
+30064771078 | CALL | asf -> pb
+30064771079 | CALL | flush_packet ( s )
+30064771080 | CALL | data_size = avio_tell ( s -> pb )
+30064771081 | CALL | avio_tell ( s -> pb )
+30064771082 | CALL | s -> pb
+30064771083 | CALL | ! asf -> is_streamed && asf -> next_start_sec
+30064771084 | CALL | ! asf -> is_streamed
+30064771085 | CALL | asf -> is_streamed
+30064771086 | CALL | asf -> next_start_sec
+30064771087 | CALL | ( ret = update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 ) ) < 0
+30064771088 | CALL | ret = update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 )
+30064771089 | CALL | update_index ( s , asf -> end_sec + 1 , 0 , 0 , 0 )
+30064771090 | CALL | asf -> end_sec + 1
+30064771091 | CALL | asf -> end_sec
+30064771092 | CALL | 
+        asf_write_index ( s , asf -> index_ptr , asf -> maximum_packet , asf -> next_start_sec )
+      
+30064771093 | CALL | asf -> index_ptr
+30064771094 | CALL | asf -> maximum_packet
+30064771095 | CALL | asf -> next_start_sec
+30064771096 | CALL | avio_flush ( s -> pb )
+30064771097 | CALL | s -> pb
+30064771098 | CALL | asf -> is_streamed || ! s -> pb -> seekable
+30064771099 | CALL | asf -> is_streamed
+30064771100 | CALL | ! s -> pb -> seekable
+30064771101 | CALL | s -> pb -> seekable
+30064771102 | CALL | s -> pb
+30064771103 | CALL | put_chunk ( s , 0x4524 , 0 , 0 )
+30064771104 | CALL | file_size = avio_tell ( s -> pb )
+30064771105 | CALL | avio_tell ( s -> pb )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771096 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771092 [AST]
+25769803780 -> 30064771103 [AST]
+25769803781 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771097 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771099 [CDG]
+30064771083 -> 30064771098 [CDG]
+30064771083 -> 30064771097 [CDG]
+30064771083 -> 30064771096 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771086 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771086 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771099 [REACHING_DEF]
+30064771086 -> 30064771083 [CFG]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771095 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771099 [CDG]
+30064771087 -> 30064771098 [CDG]
+30064771087 -> 30064771097 [CDG]
+30064771087 -> 30064771096 [CDG]
+30064771087 -> 30064771095 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int asf_write_header ( AVFormatContext * s ) {
+ ASFContext * asf = s -> priv_data ;
+ s -> packet_size = PACKET_SIZE ;
+ s -> max_interleave_delta = 0 ;
+ asf -> nb_packets = 0 ;
+ asf -> index_ptr = av_malloc ( sizeof ( ASFIndex ) * ASF_INDEX_BLOCK ) ;
+ if ( ! asf -> index_ptr ) return AVERROR ( ENOMEM ) ;
+ asf -> nb_index_memory_alloc = ASF_INDEX_BLOCK ;
+ asf -> maximum_packet = 0 ;
+ if ( asf_write_header1 ( s , 0 , DATA_HEADER_SIZE ) < 0 ) {
+ av_freep ( & asf -> index_ptr ) ;
+ return - 1 ;
+ }
+ avio_flush ( s -> pb ) ;
+ asf -> packet_nb_payloads = 0 ;
+ asf -> packet_timestamp_start = - 1 ;
+ asf -> packet_timestamp_end = - 1 ;
+ ffio_init_context
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

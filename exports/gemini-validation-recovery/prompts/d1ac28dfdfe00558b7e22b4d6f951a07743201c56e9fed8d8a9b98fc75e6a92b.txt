@@ -1,0 +1,38 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_ber ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data _U_ ) {
+ const char * name ;
+ int offset ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "BER" ) ;
+ col_set_str ( pinfo -> cinfo , COL_DEF_SRC , "BER encoded file" ) ;
+ if ( ! decode_as_syntax ) {
+ col_set_str ( pinfo -> cinfo , COL_INFO , "Unknown BER" ) ;
+ offset = dissect_unknown_ber ( pinfo , tvb , 0 , tree ) ;
+ }
+ else {
+ offset = call_ber_syntax_callback ( decode_as_syntax , tvb , 0 , pinfo , tree ) ;
+ name = get_ber_oid_syntax ( decode_as_syntax ) ;
+ col_add_fstr ( pinfo -> cinfo , COL_INFO , "Decoded as %s" , name ? name : decode_as_syntax ) ;
+ }
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_rsvp_e2ei ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data _U_ ) {
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "RSVP-E2EI" ) ;
+ dissect_rsvp_common ( tvb , pinfo , tree , TRUE ) ;
+ return tvb_captured_length ( tvb ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,171 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+MemoryRegionSection *phys_page_find(AddressSpaceDispatch *d, target_phys_addr_t index)
+
+{
+
+    PhysPageEntry lp = d->phys_map;
+
+    PhysPageEntry *p;
+
+    int i;
+
+    uint16_t s_index = phys_section_unassigned;
+
+
+
+    for (i = P_L2_LEVELS - 1; i >= 0 && !lp.is_leaf; i--) {
+
+        if (lp.ptr == PHYS_MAP_NODE_NIL) {
+
+            goto not_found;
+
+        }
+
+        p = phys_map_nodes[lp.ptr];
+
+        lp = p[(index >> (i * L2_BITS)) & (L2_SIZE - 1)];
+
+    }
+
+
+
+    s_index = lp.ptr;
+
+not_found:
+
+    return &phys_sections[s_index];
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+37 -> 41 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+29 -> 36 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+29 -> 46 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+50 -> 57 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+49 -> 60 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+73 -> 79 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+49 -> 68 [IS_AST_PARENT]
+29 -> 49 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+MemoryRegionSection *phys_page_find(AddressSpaceDispatch *d, hwaddr index)
+
+{
+
+    PhysPageEntry lp = d->phys_map;
+
+    PhysPageEntry *p;
+
+    int i;
+
+
+
+    for (i = P_L2_LEVELS - 1; i >= 0 && !lp.is_leaf; i--) {
+
+        if (lp.ptr == PHYS_MAP_NODE_NIL) {
+
+            return &phys_sections[phys_section_unassigned];
+
+        }
+
+        p = phys_map_nodes[lp.ptr];
+
+        lp = p[(index >> (i * L2_BITS)) & (L2_SIZE - 1)];
+
+    }
+
+    return &phys_sections[lp.ptr];
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

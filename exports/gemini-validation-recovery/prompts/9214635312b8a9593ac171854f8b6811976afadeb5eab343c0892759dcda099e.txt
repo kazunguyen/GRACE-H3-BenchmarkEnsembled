@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void lab_to_rgb ( fz_context * ctx , const fz_colorspace * cs , const float * lab , float * rgb ) {
+ float lstar , astar , bstar , l , m , n , x , y , z , r , g , b ;
+ lstar = lab [ 0 ] ;
+ astar = lab [ 1 ] ;
+ bstar = lab [ 2 ] ;
+ m = ( lstar + 16 ) / 116 ;
+ l = m + astar / 500 ;
+ n = m - bstar / 200 ;
+ x = fung ( l ) ;
+ y = fung ( m ) ;
+ z = fung ( n ) ;
+ r = ( 3.240449f * x + - 1.537136f * y + - 0.498531f * z ) * 0.830026f ;
+ g = ( - 0.969265f * x + 1.876011f * y + 0.041556f * z ) * 1.05452f ;
+ b = ( 0.055643f * x + - 0.204026f * y + 1.057229f * z ) * 1.1003f ;
+ rgb [ 0 ] = sqrtf ( fz_clamp ( r , 0 , 1 ) ) ;
+ rgb [ 1 ] = sqrtf ( fz_clamp ( g , 0 , 1 ) ) ;
+ rgb [ 2 ] = sqrtf ( fz_clamp ( b , 0 , 1 ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ float lstar , astar , bstar , l , m , n , x , y , z , r , g , b ;
+ lstar = lab [ 0 ] ;
+ astar = lab [ 1 ] ;
+ bstar = lab [ 2 ] ;
+ m = ( lstar + 16 ) / 116 ;
+ l = m + astar / 500 ;
+ n = m - bstar / 200 ;
+ x = fung ( l ) ;
+ y = fung ( m ) ;
+ z = fung ( n ) ;
+ r = ( 3.240449f * x + - 1.537136f * y + - 0.498531f * z ) * 0.830026f ;
+ g = ( - 0.969265f * x + 1.876011f * y + 0.041556f * z ) * 1.05452f ;
+ b = ( 0.055643f * x + - 0.204026f * y + 1.057229f * z ) * 1.1003f ;
+ rgb [ 0 ] = sqrtf ( fz_clamp ( r , 0 , 1 ) ) ;
+ rgb [ 1 ] = sqrtf ( fz_clamp ( g , 0 , 1 ) ) ;
+ rgb [ 2 ] = sqrtf ( fz_clamp ( b , 0 , 1 ) ) ;
+ }
+      
+30064771072 | CALL | lstar = lab [ 0 ]
+30064771073 | CALL | lab [ 0 ]
+30064771074 | CALL | astar = lab [ 1 ]
+30064771075 | CALL | lab [ 1 ]
+30064771076 | CALL | bstar = lab [ 2 ]
+30064771077 | CALL | lab [ 2 ]
+30064771078 | CALL | m = ( lstar + 16 ) / 116
+30064771079 | CALL | ( lstar + 16 ) / 116
+30064771080 | CALL | lstar + 16
+30064771081 | CALL | l = m + astar / 500
+30064771082 | CALL | m + astar / 500
+30064771083 | CALL | astar / 500
+30064771084 | CALL | n = m - bstar / 200
+30064771085 | CALL | m - bstar / 200
+30064771086 | CALL | bstar / 200
+30064771087 | CALL | x = fung ( l )
+30064771088 | CALL | fung ( l )
+30064771089 | CALL | y = fung ( m )
+30064771090 | CALL | fung ( m )
+30064771091 | CALL | z = fung ( n )
+30064771092 | CALL | fung ( n )
+30064771093 | CALL | r = ( 3.240449f * x + - 1.537136f * y + - 0.498531f * z ) * 0.830026f
+30064771094 | CALL | ( 3.240449f * x + - 1.537136f * y + - 0.498531f * z ) * 0.830026f
+30064771095 | CALL | 3.240449f * x + - 1.537136f * y + - 0.498531f * z
+30064771096 | CALL | 3.240449f * x + - 1.537136f * y
+30064771097 | CALL | 3.240449f * x
+30064771098 | CALL | - 1.537136f * y
+30064771099 | CALL | - 1.537136f
+30064771100 | CALL | - 0.498531f * z
+30064771101 | CALL | - 0.498531f
+30064771102 | CALL | g = ( - 0.969265f * x + 1.876011f * y + 0.041556f * z ) * 1.05452f
+30064771103 | CALL | ( - 0.969265f * x + 1.876011f * y + 0.041556f * z ) * 1.05452f
+30064771104 | CALL | - 0.969265f * x + 1.876011f * y + 0.041556f * z
+30064771105 | CALL | - 0.969265f * x + 1.876011f * y
+30064771106 | CALL | - 0.969265f * x
+30064771107 | CALL | - 0.969265f
+30064771108 | CALL | 1.876011f * y
+30064771109 | CALL | 0.041556f * z
+30064771110 | CALL | b = ( 0.055643f * x + - 0.204026f * y + 1.057229f * z ) * 1.1003f
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771110 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void cmyk2g ( fz_context * ctx , fz_color_converter * cc , float * dv , const float * sv ) {
+ float c = sv [ 0 ] * 0.3f ;
+ float m = sv [ 1 ] * 0.59f ;
+ float y = sv [ 2 ] * 0.11f ;
+ dv [ 0 ] = 1 - fz_min ( c + m + y + sv [ 3 ] , 1 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

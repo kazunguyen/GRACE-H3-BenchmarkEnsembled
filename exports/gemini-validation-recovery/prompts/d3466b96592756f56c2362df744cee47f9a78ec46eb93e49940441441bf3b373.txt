@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void mi_disable_non_unique_index ( MI_INFO * info , ha_rows rows ) {
+ MYISAM_SHARE * share = info -> s ;
+ MI_KEYDEF * key = share -> keyinfo ;
+ uint i ;
+ DBUG_ASSERT ( info -> state -> records == 0 && ( ! rows || rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES ) ) ;
+ for ( i = 0 ;
+ i < share -> base . keys ;
+ i ++ , key ++ ) {
+ if ( ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) ) && ! mi_too_big_key_for_sort ( key , rows ) && info -> s -> base . auto_key != i + 1 ) {
+ mi_clear_key_active ( share -> state . key_map , i ) ;
+ info -> update |= HA_STATE_CHANGED ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYISAM_SHARE * share = info -> s ;
+ MI_KEYDEF * key = share -> keyinfo ;
+ uint i ;
+ DBUG_ASSERT ( info -> state -> records == 0 && ( ! rows || rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES ) ) ;
+ for ( i = 0 ;
+ i < share -> base . keys ;
+ i ++ , key ++ ) {
+ if ( ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) ) && ! mi_too_big_key_for_sort ( key , rows ) && info -> s -> base . auto_key != i + 1 ) {
+ mi_clear_key_active ( share -> state . key_map , i ) ;
+ info -> update |= HA_STATE_CHANGED ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) ) && ! mi_too_big_key_for_sort ( key , rows ) && info -> s -> base . auto_key != i + 1 ) {
+ mi_clear_key_active ( share -> state . key_map , i ) ;
+ info -> update |= HA_STATE_CHANGED ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ mi_clear_key_active ( share -> state . key_map , i ) ;
+ info -> update |= HA_STATE_CHANGED ;
+ }
+      
+30064771072 | CALL | share = info -> s
+30064771073 | CALL | info -> s
+30064771074 | CALL | key = share -> keyinfo
+30064771075 | CALL | share -> keyinfo
+30064771076 | CALL | 
+        DBUG_ASSERT ( info -> state -> records == 0 && ( ! rows || rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES ) )
+      
+30064771077 | CALL | 
+        info -> state -> records == 0 && ( ! rows || rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES )
+      
+30064771078 | CALL | info -> state -> records == 0
+30064771079 | CALL | info -> state -> records
+30064771080 | CALL | info -> state
+30064771081 | CALL | ! rows || rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES
+30064771082 | CALL | ! rows
+30064771083 | CALL | rows >= MI_MIN_ROWS_TO_DISABLE_INDEXES
+30064771084 | CALL | i = 0
+30064771085 | CALL | i < share -> base . keys
+30064771086 | CALL | share -> base . keys
+30064771087 | CALL | share -> base
+30064771088 | CALL | i ++
+30064771089 | CALL | key ++
+30064771090 | CALL | 
+        ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) ) && ! mi_too_big_key_for_sort ( key , rows ) && info -> s -> base . auto_key != i + 1
+      
+30064771091 | CALL | 
+        ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) ) && ! mi_too_big_key_for_sort ( key , rows )
+      
+30064771092 | CALL | ! ( key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY ) )
+30064771093 | CALL | key -> flag & ( HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY )
+30064771094 | CALL | key -> flag
+30064771095 | CALL | HA_NOSAME | HA_SPATIAL | HA_AUTO_KEY
+30064771096 | CALL | HA_NOSAME | HA_SPATIAL
+30064771097 | CALL | ! mi_too_big_key_for_sort ( key , rows )
+30064771098 | CALL | mi_too_big_key_for_sort ( key , rows )
+30064771099 | CALL | info -> s -> base . auto_key != i + 1
+30064771100 | CALL | info -> s -> base . auto_key
+30064771101 | CALL | info -> s -> base
+30064771102 | CALL | info -> s
+30064771103 | CALL | i + 1
+30064771104 | CALL | mi_clear_key_active ( share -> state . key_map , i )
+30064771105 | CALL | share -> state . key_map
+30064771106 | CALL | share -> state
+30064771107 | CALL | info -> update |= HA_STATE_CHANGED
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771089 [AST]
+25769803779 -> 30064771104 [AST]
+25769803779 -> 30064771107 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771102 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771081 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771081 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771077 [CFG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771077 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+my_bool mi_test_if_sort_rep ( MI_INFO * info , ha_rows rows , ulonglong key_map , my_bool force ) {
+ MYISAM_SHARE * share = info -> s ;
+ MI_KEYDEF * key = share -> keyinfo ;
+ uint i ;
+ if ( ! mi_is_any_key_active ( key_map ) ) return FALSE ;
+ for ( i = 0 ;
+ i < share -> base . keys ;
+ i ++ , key ++ ) {
+ if ( ! force && mi_too_big_key_for_sort ( key , rows ) ) return FALSE ;
+ }
+ return TRUE ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

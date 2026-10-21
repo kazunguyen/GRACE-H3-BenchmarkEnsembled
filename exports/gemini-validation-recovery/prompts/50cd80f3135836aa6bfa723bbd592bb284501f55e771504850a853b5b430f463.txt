@@ -1,0 +1,213 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void virtio_ioport_write ( void * opaque , uint32_t addr , uint32_t val ) {
+ VirtIOPCIProxy * proxy = opaque ;
+ VirtIODevice * vdev = proxy -> vdev ;
+ target_phys_addr_t pa ;
+ switch ( addr ) {
+ case VIRTIO_PCI_GUEST_FEATURES : if ( val & ( 1 << VIRTIO_F_BAD_FEATURE ) ) {
+ if ( vdev -> bad_features ) val = proxy -> host_features & vdev -> bad_features ( vdev ) ;
+ else val = 0 ;
+ }
+ if ( vdev -> set_features ) vdev -> set_features ( vdev , val ) ;
+ vdev -> guest_features = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : pa = ( target_phys_addr_t ) val << VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ if ( pa == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+ else virtio_queue_set_addr ( vdev , vdev -> queue_sel , pa ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : if ( val < VIRTIO_PCI_QUEUE_MAX ) vdev -> queue_sel = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NOTIFY : virtio_queue_notify ( vdev , val ) ;
+ break ;
+ case VIRTIO_PCI_STATUS : vdev -> status = val & 0xFF ;
+ if ( vdev -> status == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : msix_vector_unuse ( & proxy -> pci_dev , vdev -> config_vector ) ;
+ if ( msix_vector_use ( & proxy -> pci_dev , val ) < 0 ) val = VIRTIO_NO_VECTOR ;
+ vdev -> config_vector = val ;
+ break ;
+ case VIRTIO_MSI_QUEUE_VECTOR : msix_vector_unuse ( & proxy -> pci_dev , virtio_queue_vector ( vdev , vdev -> queue_sel ) ) ;
+ if ( msix_vector_use ( & proxy -> pci_dev , val ) < 0 ) val = VIRTIO_NO_VECTOR ;
+ virtio_queue_set_vector ( vdev , vdev -> queue_sel , val ) ;
+ break ;
+ default : fprintf ( stderr , "%s: unexpected address 0x%x value 0x%x\n" , __func__ , addr , val ) ;
+ break ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VirtIOPCIProxy * proxy = opaque ;
+ VirtIODevice * vdev = proxy -> vdev ;
+ target_phys_addr_t pa ;
+ switch ( addr ) {
+ case VIRTIO_PCI_GUEST_FEATURES : if ( val & ( 1 << VIRTIO_F_BAD_FEATURE ) ) {
+ if ( vdev -> bad_features ) val = proxy -> host_features & vdev -> bad_features ( vdev ) ;
+ else val = 0 ;
+ }
+ if ( vdev -> set_features ) vdev -> set_features ( vdev , val ) ;
+ vdev -> guest_features = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : pa = ( target_phys_addr_t ) val << VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ if ( pa == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+ else virtio_queue_set_addr ( vdev , vdev -> queue_sel , pa ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : if ( val < VIRTIO_PCI_QUEUE_MAX ) vdev -> queue_sel = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NOTIFY : virtio_queue_notify ( vdev , val ) ;
+ break ;
+ case VIRTIO_PCI_STATUS : vdev -> status = val & 0xFF ;
+ if ( vdev -> status == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_...
+      
+25769803777 | BLOCK | 
+        {
+ case VIRTIO_PCI_GUEST_FEATURES : if ( val & ( 1 << VIRTIO_F_BAD_FEATURE ) ) {
+ if ( vdev -> bad_features ) val = proxy -> host_features & vdev -> bad_features ( vdev ) ;
+ else val = 0 ;
+ }
+ if ( vdev -> set_features ) vdev -> set_features ( vdev , val ) ;
+ vdev -> guest_features = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_PFN : pa = ( target_phys_addr_t ) val << VIRTIO_PCI_QUEUE_ADDR_SHIFT ;
+ if ( pa == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+ else virtio_queue_set_addr ( vdev , vdev -> queue_sel , pa ) ;
+ break ;
+ case VIRTIO_PCI_QUEUE_SEL : if ( val < VIRTIO_PCI_QUEUE_MAX ) vdev -> queue_sel = val ;
+ break ;
+ case VIRTIO_PCI_QUEUE_NOTIFY : virtio_queue_notify ( vdev , val ) ;
+ break ;
+ case VIRTIO_PCI_STATUS : vdev -> status = val & 0xFF ;
+ if ( vdev -> status == 0 ) {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+ break ;
+ case VIRTIO_MSI_CONFIG_VECTOR : msix_vector_unuse ( & proxy -> pci_d...
+      
+25769803778 | BLOCK | 
+        {
+ if ( vdev -> bad_features ) val = proxy -> host_features & vdev -> bad_features ( vdev ) ;
+ else val = 0 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ virtio_reset ( proxy -> vdev ) ;
+ msix_unuse_all_vectors ( & proxy -> pci_dev ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+30064771072 | CALL | proxy = opaque
+30064771073 | CALL | vdev = proxy -> vdev
+30064771074 | CALL | proxy -> vdev
+30064771075 | CALL | val & ( 1 << VIRTIO_F_BAD_FEATURE )
+30064771076 | CALL | 1 << VIRTIO_F_BAD_FEATURE
+30064771077 | CALL | vdev -> bad_features
+30064771078 | CALL | val = proxy -> host_features & vdev -> bad_features ( vdev )
+30064771079 | CALL | proxy -> host_features & vdev -> bad_features ( vdev )
+30064771080 | CALL | proxy -> host_features
+30064771081 | CALL | vdev -> bad_features ( vdev )
+30064771082 | CALL | vdev -> bad_features
+30064771083 | CALL | val = 0
+30064771084 | CALL | vdev -> set_features
+30064771085 | CALL | vdev -> set_features ( vdev , val )
+30064771086 | CALL | vdev -> set_features
+30064771087 | CALL | vdev -> guest_features = val
+30064771088 | CALL | vdev -> guest_features
+30064771089 | CALL | pa = ( target_phys_addr_t ) val << VIRTIO_PCI_QUEUE_ADDR_SHIFT
+30064771090 | CALL | ( target_phys_addr_t ) val << VIRTIO_PCI_QUEUE_ADDR_SHIFT
+30064771091 | CALL | ( target_phys_addr_t ) val
+30064771092 | CALL | pa == 0
+30064771093 | CALL | virtio_reset ( proxy -> vdev )
+30064771094 | CALL | proxy -> vdev
+30064771095 | CALL | msix_unuse_all_vectors ( & proxy -> pci_dev )
+30064771096 | CALL | & proxy -> pci_dev
+30064771097 | CALL | proxy -> pci_dev
+30064771098 | CALL | virtio_queue_set_addr ( vdev , vdev -> queue_sel , pa )
+30064771099 | CALL | vdev -> queue_sel
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803779 -> 30064771078 [AST]
+25769803780 -> 30064771083 [AST]
+25769803781 -> 30064771085 [AST]
+25769803782 -> 30064771093 [AST]
+25769803782 -> 30064771095 [AST]
+25769803783 -> 30064771098 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771094 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int selinux_sb_remount ( struct super_block * sb , void * data ) {
+ int rc , i , * flags ;
+ struct security_mnt_opts opts ;
+ char * secdata , * * mount_options ;
+ struct superblock_security_struct * sbsec = sb -> s_security ;
+ if ( ! ( sbsec -> flags & SE_SBINITIALIZED ) ) return 0 ;
+ if ( ! data ) return 0 ;
+ if ( sb -> s_type -> fs_flags & FS_BINARY_MOUNTDATA ) return 0 ;
+ security_init_mnt_opts ( & opts ) ;
+ secdata = alloc_secdata ( ) ;
+ if ( ! secdata ) return - ENOMEM ;
+ rc = selinux_sb_copy_data ( data , secdata ) ;
+ if ( rc ) goto out_free_secdata ;
+ rc = selinux_parse_opts_str ( secdata , & opts ) ;
+ if ( rc ) goto out_free_secdata ;
+ mount_options = opts . mnt_opts ;
+ flags = opts . mnt_opts_flags ;
+ for ( i = 0 ;
+ i < opts . num_mnt_opts ;
+ i ++ ) {
+ u32 sid ;
+ if ( flags [ i ] == SBLABEL_MNT ) continue ;
+ rc = security_context_str_to_sid ( mount_options [ i ] , & sid , GFP_KERNEL ) ;
+ if ( rc ) {
+ printk ( KERN_WARNING "SELinux: security_context_str_to_sid" "(%s) failed for (dev %s, type %s) errno=%d\n" , mount_options [ i ] , sb -> s_id , sb -> s_type -> name , rc ) ;
+ goto out_free_opts ;
+ }
+ rc = - EINVAL ;
+ switch ( flags [ i ] ) {
+ case FSCONTEXT_MNT : if ( bad_option ( sbsec , FSCONTEXT_MNT , sbsec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ case CONTEXT_MNT : if ( bad_option ( sbsec , CONTEXT_MNT , sbsec -> mntpoint_sid , sid ) ) goto out_bad_option ;
+ break ;
+ case ROOTCONTEXT_MNT : {
+ struct inode_security_struct * root_isec ;
+ root_isec = backing_inode_security ( sb -> s_root ) ;
+ if ( bad_option ( sbsec , ROOTCONTEXT_MNT , root_isec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ }
+ case DEFCONTEXT_MNT : if ( bad_option ( sbsec , DEFCONTEXT_MNT , sbsec -> def_sid , sid ) ) goto out_bad_option ;
+ break ;
+ default : goto out_free_opts ;
+ }
+ }
+ rc = 0 ;
+ out_free_opts : security_free_mnt_opts ( & opts ) ;
+ out_free_secdata : free_secdata ( secdata ) ;
+ return rc ;
+ out_bad_option : printk ( KERN_WARNING "SELinux: unable to change security options " "during remount (dev %s, type=%s)\n" , sb -> s_id , sb -> s_type -> name ) ;
+ goto out_free_opts ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int rc , i , * flags ;
+ struct security_mnt_opts opts ;
+ char * secdata , * * mount_options ;
+ struct superblock_security_struct * sbsec = sb -> s_security ;
+ if ( ! ( sbsec -> flags & SE_SBINITIALIZED ) ) return 0 ;
+ if ( ! data ) return 0 ;
+ if ( sb -> s_type -> fs_flags & FS_BINARY_MOUNTDATA ) return 0 ;
+ security_init_mnt_opts ( & opts ) ;
+ secdata = alloc_secdata ( ) ;
+ if ( ! secdata ) return - ENOMEM ;
+ rc = selinux_sb_copy_data ( data , secdata ) ;
+ if ( rc ) goto out_free_secdata ;
+ rc = selinux_parse_opts_str ( secdata , & opts ) ;
+ if ( rc ) goto out_free_secdata ;
+ mount_options = opts . mnt_opts ;
+ flags = opts . mnt_opts_flags ;
+ for ( i = 0 ;
+ i < opts . num_mnt_opts ;
+ i ++ ) {
+ u32 sid ;
+ if ( flags [ i ] == SBLABEL_MNT ) continue ;
+ rc = security_context_str_to_sid ( mount_options [ i ] , & sid , GFP_KERNEL ) ;
+ if ( rc ) {
+ printk ( KERN_WARNING "SELinux: security_context_str_to_sid" "(%s) failed for (dev %s, type %s) errno=%d\n" , mount_options [ i ] , sb -> s...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ u32 sid ;
+ if ( flags [ i ] == SBLABEL_MNT ) continue ;
+ rc = security_context_str_to_sid ( mount_options [ i ] , & sid , GFP_KERNEL ) ;
+ if ( rc ) {
+ printk ( KERN_WARNING "SELinux: security_context_str_to_sid" "(%s) failed for (dev %s, type %s) errno=%d\n" , mount_options [ i ] , sb -> s_id , sb -> s_type -> name , rc ) ;
+ goto out_free_opts ;
+ }
+ rc = - EINVAL ;
+ switch ( flags [ i ] ) {
+ case FSCONTEXT_MNT : if ( bad_option ( sbsec , FSCONTEXT_MNT , sbsec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ case CONTEXT_MNT : if ( bad_option ( sbsec , CONTEXT_MNT , sbsec -> mntpoint_sid , sid ) ) goto out_bad_option ;
+ break ;
+ case ROOTCONTEXT_MNT : {
+ struct inode_security_struct * root_isec ;
+ root_isec = backing_inode_security ( sb -> s_root ) ;
+ if ( bad_option ( sbsec , ROOTCONTEXT_MNT , root_isec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ }
+ case DEFCONTEXT_MNT : if ( bad_option ( sbsec , DEFCONTEXT_MNT , sbsec -> def_sid , sid ) ) goto out_bad_option ;
+ break ;
+ def...
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ printk ( KERN_WARNING "SELinux: security_context_str_to_sid" "(%s) failed for (dev %s, type %s) errno=%d\n" , mount_options [ i ] , sb -> s_id , sb -> s_type -> name , rc ) ;
+ goto out_free_opts ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ case FSCONTEXT_MNT : if ( bad_option ( sbsec , FSCONTEXT_MNT , sbsec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ case CONTEXT_MNT : if ( bad_option ( sbsec , CONTEXT_MNT , sbsec -> mntpoint_sid , sid ) ) goto out_bad_option ;
+ break ;
+ case ROOTCONTEXT_MNT : {
+ struct inode_security_struct * root_isec ;
+ root_isec = backing_inode_security ( sb -> s_root ) ;
+ if ( bad_option ( sbsec , ROOTCONTEXT_MNT , root_isec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ }
+ case DEFCONTEXT_MNT : if ( bad_option ( sbsec , DEFCONTEXT_MNT , sbsec -> def_sid , sid ) ) goto out_bad_option ;
+ break ;
+ default : goto out_free_opts ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ struct inode_security_struct * root_isec ;
+ root_isec = backing_inode_security ( sb -> s_root ) ;
+ if ( bad_option ( sbsec , ROOTCONTEXT_MNT , root_isec -> sid , sid ) ) goto out_bad_option ;
+ break ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+30064771072 | CALL | sbsec = sb -> s_security
+30064771073 | CALL | sb -> s_security
+30064771074 | CALL | ! ( sbsec -> flags & SE_SBINITIALIZED )
+30064771075 | CALL | sbsec -> flags & SE_SBINITIALIZED
+30064771076 | CALL | sbsec -> flags
+30064771077 | CALL | ! data
+30064771078 | CALL | sb -> s_type -> fs_flags & FS_BINARY_MOUNTDATA
+30064771079 | CALL | sb -> s_type -> fs_flags
+30064771080 | CALL | sb -> s_type
+30064771081 | CALL | security_init_mnt_opts ( & opts )
+30064771082 | CALL | & opts
+30064771083 | CALL | secdata = alloc_secdata ( )
+30064771084 | CALL | alloc_secdata ( )
+30064771085 | CALL | ! secdata
+30064771086 | CALL | - ENOMEM
+30064771087 | CALL | rc = selinux_sb_copy_data ( data , secdata )
+30064771088 | CALL | selinux_sb_copy_data ( data , secdata )
+30064771089 | CALL | rc != 0
+30064771090 | CALL | rc = selinux_parse_opts_str ( secdata , & opts )
+30064771091 | CALL | selinux_parse_opts_str ( secdata , & opts )
+30064771092 | CALL | & opts
+30064771093 | CALL | rc != 0
+30064771094 | CALL | mount_options = opts . mnt_opts
+30064771095 | CALL | opts . mnt_opts
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771094 [AST]
+25769803786 -> 25769803789 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

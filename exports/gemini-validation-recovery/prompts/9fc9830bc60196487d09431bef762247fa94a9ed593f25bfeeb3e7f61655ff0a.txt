@@ -1,0 +1,167 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline MagickBooleanType IsPixelInfoGray ( const PixelInfo * restrict pixel_info ) {
+ if ( ( pixel_info -> colorspace != GRAYColorspace ) && ( pixel_info -> colorspace != RGBColorspace ) ) return ( MagickFalse ) ;
+ if ( ( AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon ) && ( AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon ) ) return ( MagickTrue ) ;
+ return ( MagickFalse ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ( pixel_info -> colorspace != GRAYColorspace ) && ( pixel_info -> colorspace != RGBColorspace ) ) return ( MagickFalse ) ;
+ if ( ( AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon ) && ( AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon ) ) return ( MagickTrue ) ;
+ return ( MagickFalse ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | 
+        ( pixel_info -> colorspace != GRAYColorspace ) && ( pixel_info -> colorspace != RGBColorspace )
+      
+30064771073 | CALL | pixel_info -> colorspace != GRAYColorspace
+30064771074 | CALL | pixel_info -> colorspace
+30064771075 | CALL | pixel_info -> colorspace != RGBColorspace
+30064771076 | CALL | pixel_info -> colorspace
+30064771077 | CALL | 
+        ( AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon ) && ( AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon )
+      
+30064771078 | CALL | 
+        AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon
+      
+30064771079 | CALL | AbsolutePixelValue ( pixel_info -> red - pixel_info -> green )
+30064771080 | CALL | pixel_info -> red - pixel_info -> green
+30064771081 | CALL | pixel_info -> red
+30064771082 | CALL | pixel_info -> green
+30064771083 | CALL | 
+        AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon
+      
+30064771084 | CALL | AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue )
+30064771085 | CALL | pixel_info -> green - pixel_info -> blue
+30064771086 | CALL | pixel_info -> green
+30064771087 | CALL | pixel_info -> blue
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( pixel_info -> colorspace != GRAYColorspace ) && ( pixel_info -> colorspace != RGBColorspace ) ) return ( MagickFalse ) ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ( AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon ) && ( AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon ) ) return ( MagickTrue ) ;
+      
+55834574848 | FIELD_IDENTIFIER | colorspace
+55834574849 | FIELD_IDENTIFIER | colorspace
+55834574850 | FIELD_IDENTIFIER | red
+55834574851 | FIELD_IDENTIFIER | green
+55834574852 | FIELD_IDENTIFIER | green
+55834574853 | FIELD_IDENTIFIER | blue
+68719476736 | IDENTIFIER | pixel_info
+68719476737 | IDENTIFIER | <unknown> GRAYColorspace
+68719476738 | IDENTIFIER | pixel_info
+68719476739 | IDENTIFIER | <unknown> RGBColorspace
+68719476740 | IDENTIFIER | <unknown> MagickFalse
+68719476741 | IDENTIFIER | pixel_info
+68719476742 | IDENTIFIER | pixel_info
+68719476743 | IDENTIFIER | <unknown> MagickEpsilon
+68719476744 | IDENTIFIER | pixel_info
+68719476745 | IDENTIFIER | pixel_info
+68719476746 | IDENTIFIER | <unknown> MagickEpsilon
+68719476747 | IDENTIFIER | <unknown> MagickTrue
+68719476748 | IDENTIFIER | <unknown> MagickFalse
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 68719476740 [CFG]
+30064771072 -> 68719476741 [CFG]
+30064771072 -> 68719476740 [DOMINATE]
+30064771072 -> 68719476741 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574849 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 68719476738 [CDG]
+30064771073 -> 68719476739 [CDG]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476737 [CFG]
+30064771074 -> 68719476737 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476741 [REACHING_DEF]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 68719476742 [REACHING_DEF]
+30064771074 -> 68719476744 [REACHING_DEF]
+30064771074 -> 68719476745 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771072 [CFG]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 68719476739 [CFG]
+30064771076 -> 68719476739 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 68719476744 [REACHING_DEF]
+30064771076 -> 68719476745 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771083 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771083 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline MagickBooleanType IsPixelInfoMonochrome ( const PixelInfo * restrict pixel_info ) {
+ if ( ( pixel_info -> colorspace != GRAYColorspace ) && ( pixel_info -> colorspace != RGBColorspace ) ) return ( MagickFalse ) ;
+ if ( ( AbsolutePixelValue ( pixel_info -> red ) >= MagickEpsilon ) || ( AbsolutePixelValue ( pixel_info -> red - QuantumRange ) >= MagickEpsilon ) ) return ( MagickFalse ) ;
+ if ( ( AbsolutePixelValue ( pixel_info -> red - pixel_info -> green ) < MagickEpsilon ) && ( AbsolutePixelValue ( pixel_info -> green - pixel_info -> blue ) < MagickEpsilon ) ) return ( MagickTrue ) ;
+ return ( MagickFalse ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

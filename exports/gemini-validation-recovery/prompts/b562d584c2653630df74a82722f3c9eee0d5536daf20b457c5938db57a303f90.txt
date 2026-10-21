@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void set_roi_map ( const vpx_codec_enc_cfg_t * cfg , vpx_codec_ctx_t * codec ) {
+ unsigned int i ;
+ vpx_roi_map_t roi ;
+ memset ( & roi , 0 , sizeof ( roi ) ) ;
+ roi . rows = ( cfg -> g_h + 15 ) / 16 ;
+ roi . cols = ( cfg -> g_w + 15 ) / 16 ;
+ roi . delta_q [ 0 ] = 0 ;
+ roi . delta_q [ 1 ] = - 2 ;
+ roi . delta_q [ 2 ] = - 4 ;
+ roi . delta_q [ 3 ] = - 6 ;
+ roi . delta_lf [ 0 ] = 0 ;
+ roi . delta_lf [ 1 ] = 1 ;
+ roi . delta_lf [ 2 ] = 2 ;
+ roi . delta_lf [ 3 ] = 3 ;
+ roi . static_threshold [ 0 ] = 1500 ;
+ roi . static_threshold [ 1 ] = 1000 ;
+ roi . static_threshold [ 2 ] = 500 ;
+ roi . static_threshold [ 3 ] = 0 ;
+ roi . roi_map = ( uint8_t * ) malloc ( roi . rows * roi . cols ) ;
+ for ( i = 0 ;
+ i < roi . rows * roi . cols ;
+ ++ i ) roi . roi_map [ i ] = i % 4 ;
+ if ( vpx_codec_control ( codec , VP8E_SET_ROI_MAP , & roi ) ) die_codec ( codec , "Failed to set ROI map" ) ;
+ free ( roi . roi_map ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int i ;
+ vpx_roi_map_t roi ;
+ memset ( & roi , 0 , sizeof ( roi ) ) ;
+ roi . rows = ( cfg -> g_h + 15 ) / 16 ;
+ roi . cols = ( cfg -> g_w + 15 ) / 16 ;
+ roi . delta_q [ 0 ] = 0 ;
+ roi . delta_q [ 1 ] = - 2 ;
+ roi . delta_q [ 2 ] = - 4 ;
+ roi . delta_q [ 3 ] = - 6 ;
+ roi . delta_lf [ 0 ] = 0 ;
+ roi . delta_lf [ 1 ] = 1 ;
+ roi . delta_lf [ 2 ] = 2 ;
+ roi . delta_lf [ 3 ] = 3 ;
+ roi . static_threshold [ 0 ] = 1500 ;
+ roi . static_threshold [ 1 ] = 1000 ;
+ roi . static_threshold [ 2 ] = 500 ;
+ roi . static_threshold [ 3 ] = 0 ;
+ roi . roi_map = ( uint8_t * ) malloc ( roi . rows * roi . cols ) ;
+ for ( i = 0 ;
+ i < roi . rows * roi . cols ;
+ ++ i ) roi . roi_map [ i ] = i % 4 ;
+ if ( vpx_codec_control ( codec , VP8E_SET_ROI_MAP , & roi ) ) die_codec ( codec , "Failed to set ROI map" ) ;
+ free ( roi . roi_map ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | memset ( & roi , 0 , sizeof ( roi ) )
+30064771073 | CALL | & roi
+30064771074 | CALL | sizeof ( roi )
+30064771075 | CALL | roi . rows = ( cfg -> g_h + 15 ) / 16
+30064771076 | CALL | roi . rows
+30064771077 | CALL | ( cfg -> g_h + 15 ) / 16
+30064771078 | CALL | cfg -> g_h + 15
+30064771079 | CALL | cfg -> g_h
+30064771080 | CALL | roi . cols = ( cfg -> g_w + 15 ) / 16
+30064771081 | CALL | roi . cols
+30064771082 | CALL | ( cfg -> g_w + 15 ) / 16
+30064771083 | CALL | cfg -> g_w + 15
+30064771084 | CALL | cfg -> g_w
+30064771085 | CALL | roi . delta_q [ 0 ] = 0
+30064771086 | CALL | roi . delta_q [ 0 ]
+30064771087 | CALL | roi . delta_q
+30064771088 | CALL | roi . delta_q [ 1 ] = - 2
+30064771089 | CALL | roi . delta_q [ 1 ]
+30064771090 | CALL | roi . delta_q
+30064771091 | CALL | - 2
+30064771092 | CALL | roi . delta_q [ 2 ] = - 4
+30064771093 | CALL | roi . delta_q [ 2 ]
+30064771094 | CALL | roi . delta_q
+30064771095 | CALL | - 4
+30064771096 | CALL | roi . delta_q [ 3 ] = - 6
+30064771097 | CALL | roi . delta_q [ 3 ]
+30064771098 | CALL | roi . delta_q
+30064771099 | CALL | - 6
+30064771100 | CALL | roi . delta_lf [ 0 ] = 0
+30064771101 | CALL | roi . delta_lf [ 0 ]
+30064771102 | CALL | roi . delta_lf
+30064771103 | CALL | roi . delta_lf [ 1 ] = 1
+30064771104 | CALL | roi . delta_lf [ 1 ]
+30064771105 | CALL | roi . delta_lf
+30064771106 | CALL | roi . delta_lf [ 2 ] = 2
+30064771107 | CALL | roi . delta_lf [ 2 ]
+30064771108 | CALL | roi . delta_lf
+30064771109 | CALL | roi . delta_lf [ 3 ] = 3
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771098 [REACHING_DEF]
+30064771086 -> 30064771094 [REACHING_DEF]
+30064771086 -> 30064771090 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771091 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771091 [AST]
+30064771088 -> 30064771091 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771098 [REACHING_DEF]
+30064771089 -> 30064771094 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771088 [CFG]
+30064771091 -> 30064771088 [DOMINATE]
+30064771091 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771088 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771095 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771095 [AST]
+30064771092 -> 30064771095 [POST_DOMINATE]
+30064771093 -> 30064771094 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void set_active_map ( const vpx_codec_enc_cfg_t * cfg , vpx_codec_ctx_t * codec ) {
+ unsigned int i ;
+ vpx_active_map_t map = {
+ 0 , 0 , 0 }
+ ;
+ map . rows = ( cfg -> g_h + 15 ) / 16 ;
+ map . cols = ( cfg -> g_w + 15 ) / 16 ;
+ map . active_map = ( uint8_t * ) malloc ( map . rows * map . cols ) ;
+ for ( i = 0 ;
+ i < map . rows * map . cols ;
+ ++ i ) map . active_map [ i ] = i % 2 ;
+ if ( vpx_codec_control ( codec , VP8E_SET_ACTIVEMAP , & map ) ) die_codec ( codec , "Failed to set active map" ) ;
+ free ( map . active_map ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

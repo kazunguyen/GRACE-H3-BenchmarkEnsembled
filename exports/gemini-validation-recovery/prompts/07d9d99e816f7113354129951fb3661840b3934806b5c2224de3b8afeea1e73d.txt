@@ -1,0 +1,325 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int blkdebug_open(BlockDriverState *bs, QDict *options, int flags,
+
+                         Error **errp)
+
+{
+
+    BDRVBlkdebugState *s = bs->opaque;
+
+    QemuOpts *opts;
+
+    Error *local_err = NULL;
+
+    const char *config;
+
+    uint64_t align;
+
+    int ret;
+
+
+
+    opts = qemu_opts_create(&runtime_opts, NULL, 0, &error_abort);
+
+    qemu_opts_absorb_qdict(opts, options, &local_err);
+
+    if (error_is_set(&local_err)) {
+
+        error_propagate(errp, local_err);
+
+        ret = -EINVAL;
+
+        goto fail;
+
+    }
+
+
+
+    /* Read rules from config file or command line options */
+
+    config = qemu_opt_get(opts, "config");
+
+    ret = read_config(s, config, options, errp);
+
+    if (ret) {
+
+        goto fail;
+
+    }
+
+
+
+    /* Set initial state */
+
+    s->state = 1;
+
+
+
+    /* Open the backing file */
+
+    ret = bdrv_open_image(&bs->file, qemu_opt_get(opts, "x-image"), options, "image",
+
+                          flags, true, false, &local_err);
+
+    if (ret < 0) {
+
+        error_propagate(errp, local_err);
+
+        goto fail;
+
+    }
+
+
+
+    /* Set request alignment */
+
+    align = qemu_opt_get_size(opts, "align", bs->request_alignment);
+
+    if (align > 0 && align < INT_MAX && !(align & (align - 1))) {
+
+        bs->request_alignment = align;
+
+    } else {
+
+        error_setg(errp, "Invalid alignment");
+
+        ret = -EINVAL;
+
+        goto fail;
+
+    }
+
+
+
+    ret = 0;
+
+fail:
+
+    qemu_opts_del(opts);
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+43 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+43 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+43 -> 52 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+60 -> 65 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+84 -> 87 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int raw_open_common(BlockDriverState *bs, QDict *options,
+
+                           int bdrv_flags, int open_flags, Error **errp)
+
+{
+
+    BDRVRawState *s = bs->opaque;
+
+    QemuOpts *opts;
+
+    Error *local_err = NULL;
+
+    const char *filename;
+
+    int fd, ret;
+
+
+
+    opts = qemu_opts_create_nofail(&raw_runtime_opts);
+
+    qemu_opts_absorb_qdict(opts, options, &local_err);
+
+    if (error_is_set(&local_err)) {
+
+        error_propagate(errp, local_err);
+
+        ret = -EINVAL;
+
+        goto fail;
+
+    }
+
+
+
+    filename = qemu_opt_get(opts, "filename");
+
+
+
+    ret = raw_normalize_devicepath(&filename);
+
+    if (ret != 0) {
+
+        error_setg_errno(errp, -ret, "Could not normalize device path");
+
+        goto fail;
+
+    }
+
+
+
+    s->open_flags = open_flags;
+
+    raw_parse_flags(bdrv_flags, &s->open_flags);
+
+
+
+    s->fd = -1;
+
+    fd = qemu_open(filename, s->open_flags, 0644);
+
+    if (fd < 0) {
+
+        ret = -errno;
+
+        if (ret == -EROFS) {
+
+            ret = -EACCES;
+
+        }
+
+        goto fail;
+
+    }
+
+    s->fd = fd;
+
+
+
+#ifdef CONFIG_LINUX_AIO
+
+    if (raw_set_aio(&s->aio_ctx, &s->use_aio, bdrv_flags)) {
+
+        qemu_close(fd);
+
+        ret = -errno;
+
+        error_setg_errno(errp, -ret, "Could not set AIO state");
+
+        goto fail;
+
+    }
+
+#endif
+
+
+
+    s->has_discard = 1;
+
+#ifdef CONFIG_XFS
+
+    if (platform_test_xfs_fd(s->fd)) {
+
+        s->is_xfs = 1;
+
+    }
+
+#endif
+
+
+
+    ret = 0;
+
+fail:
+
+    qemu_opts_del(opts);
+
+    return ret;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,260 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static AVBufferRef *vaapi_encode_alloc_output_buffer(void *opaque,
+
+                                                     int size)
+
+{
+
+    AVCodecContext   *avctx = opaque;
+
+    VAAPIEncodeContext *ctx = avctx->priv_data;
+
+    VABufferID buffer_id;
+
+    VAStatus vas;
+
+    AVBufferRef *ref;
+
+
+
+    // The output buffer size is fixed, so it needs to be large enough
+
+    // to hold the largest possible compressed frame.  We assume here
+
+    // that the uncompressed frame plus some header data is an upper
+
+    // bound on that.
+
+    vas = vaCreateBuffer(ctx->hwctx->display, ctx->va_context,
+
+                         VAEncCodedBufferType,
+
+                         3 * ctx->aligned_width * ctx->aligned_height +
+
+                         (1 << 16), 1, 0, &buffer_id);
+
+    if (vas != VA_STATUS_SUCCESS) {
+
+        av_log(avctx, AV_LOG_ERROR, "Failed to create bitstream "
+
+               "output buffer: %d (%s).\n", vas, vaErrorStr(vas));
+
+        return NULL;
+
+    }
+
+
+
+    av_log(avctx, AV_LOG_DEBUG, "Allocated output buffer %#x\n", buffer_id);
+
+
+
+    ref = av_buffer_create((uint8_t*)(uintptr_t)buffer_id,
+
+                           sizeof(buffer_id),
+
+                           &vaapi_encode_free_output_buffer,
+
+                           avctx, AV_BUFFER_FLAG_READONLY);
+
+    if (!ref) {
+
+        vaDestroyBuffer(ctx->hwctx->display, buffer_id);
+
+        return NULL;
+
+    }
+
+
+
+    return ref;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+39 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+56 -> 60 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+53 -> 63 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+39 -> 52 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+39 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+39 -> 68 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+39 -> 70 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+79 -> 82 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+79 -> 84 [IS_AST_PARENT]
+79 -> 85 [IS_AST_PARENT]
+79 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int scale_vaapi_filter_frame(AVFilterLink *inlink, AVFrame *input_frame)
+
+{
+
+    AVFilterContext *avctx = inlink->dst;
+
+    AVFilterLink *outlink = avctx->outputs[0];
+
+    ScaleVAAPIContext *ctx = avctx->priv;
+
+    AVFrame *output_frame = NULL;
+
+    VASurfaceID input_surface, output_surface;
+
+    VAProcPipelineParameterBuffer params;
+
+    VABufferID params_id;
+
+    VAStatus vas;
+
+    int err;
+
+
+
+    av_log(ctx, AV_LOG_DEBUG, "Filter input: %s, %ux%u (%"PRId64").\n",
+
+           av_get_pix_fmt_name(input_frame->format),
+
+           input_frame->width, input_frame->height, input_frame->pts);
+
+
+
+    if (ctx->va_context == VA_INVALID_ID)
+
+        return AVERROR(EINVAL);
+
+
+
+    input_surface = (VASurfaceID)(uintptr_t)input_frame->data[3];
+
+    av_log(ctx, AV_LOG_DEBUG, "Using surface %#x for scale input.\n",
+
+           input_surface);
+
+
+
+    output_frame = av_frame_alloc();
+
+    if (!output_frame) {
+
+        av_log(ctx, AV_LOG_ERROR, "Failed to allocate output frame.");
+
+        err = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+
+
+    err = av_hwframe_get_buffer(ctx->output_frames_ref, output_frame, 0);
+
+    if (err < 0) {
+
+        av_log(ctx, AV_LOG_ERROR, "Failed to get surface for "
+
+               "output: %d\n.", err);
+
+    }
+
+
+
+    output_surface = (VASurfaceID)(uintptr_t)output_frame->data[3];
+
+    av_log(ctx, AV_LOG_DEBUG, "Using surface %#x for scale output.\n",
+
+           output_surface);
+
+
+
+    memset(&params, 0, sizeof(params));
+
+
+
+    params.surface = input_s
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

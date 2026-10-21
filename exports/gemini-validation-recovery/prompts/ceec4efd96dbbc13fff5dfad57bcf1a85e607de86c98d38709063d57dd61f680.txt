@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_usb_vid_control ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ gboolean is_request = ( pinfo -> srcport == NO_ENDPOINT ) ;
+ usb_conv_info_t * usb_conv_info ;
+ usb_trans_info_t * usb_trans_info ;
+ int offset = 0 ;
+ usb_setup_dissector dissector = NULL ;
+ const usb_setup_dissector_table_t * tmp ;
+ if ( data == NULL || ( ( usb_conv_info_t * ) data ) -> usb_trans_info == NULL ) return 0 ;
+ usb_conv_info = ( usb_conv_info_t * ) data ;
+ usb_trans_info = usb_conv_info -> usb_trans_info ;
+ for ( tmp = setup_dissectors ;
+ tmp -> dissector ;
+ tmp ++ ) {
+ if ( tmp -> request == usb_trans_info -> setup . request ) {
+ dissector = tmp -> dissector ;
+ break ;
+ }
+ }
+ if ( ! dissector ) return 0 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "USBVIDEO" ) ;
+ col_add_fstr ( pinfo -> cinfo , COL_INFO , "%s %s" , val_to_str ( usb_trans_info -> setup . request , setup_request_names_vals , "Unknown type %x" ) , is_request ? "Request " : "Response" ) ;
+ if ( is_request ) {
+ proto_tree_add_item ( tree , hf_usb_vid_request , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ }
+ offset = dissector ( pinfo , tree , tvb , offset , is_request , usb_trans_info , usb_conv_info ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gboolean is_request = ( pinfo -> srcport == NO_ENDPOINT ) ;
+ usb_conv_info_t * usb_conv_info ;
+ usb_trans_info_t * usb_trans_info ;
+ int offset = 0 ;
+ usb_setup_dissector dissector = NULL ;
+ const usb_setup_dissector_table_t * tmp ;
+ if ( data == NULL || ( ( usb_conv_info_t * ) data ) -> usb_trans_info == NULL ) return 0 ;
+ usb_conv_info = ( usb_conv_info_t * ) data ;
+ usb_trans_info = usb_conv_info -> usb_trans_info ;
+ for ( tmp = setup_dissectors ;
+ tmp -> dissector ;
+ tmp ++ ) {
+ if ( tmp -> request == usb_trans_info -> setup . request ) {
+ dissector = tmp -> dissector ;
+ break ;
+ }
+ }
+ if ( ! dissector ) return 0 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "USBVIDEO" ) ;
+ col_add_fstr ( pinfo -> cinfo , COL_INFO , "%s %s" , val_to_str ( usb_trans_info -> setup . request , setup_request_names_vals , "Unknown type %x" ) , is_request ? "Request " : "Response" ) ;
+ if ( is_request ) {
+ proto_tree_add_item ( tree , hf_usb_vid_request , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( tmp -> request == usb_trans_info -> setup . request ) {
+ dissector = tmp -> dissector ;
+ break ;
+ }
+ }
+      
+25769803779 | BLOCK | { dissector = tmp -> dissector ; break ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ proto_tree_add_item ( tree , hf_usb_vid_request , tvb , offset , 1 , ENC_LITTLE_ENDIAN ) ;
+ offset += 1 ;
+ }
+      
+30064771072 | CALL | is_request = ( pinfo -> srcport == NO_ENDPOINT )
+30064771073 | CALL | pinfo -> srcport == NO_ENDPOINT
+30064771074 | CALL | pinfo -> srcport
+30064771075 | CALL | offset = 0
+30064771076 | CALL | dissector = NULL
+30064771077 | CALL | data == NULL || ( ( usb_conv_info_t * ) data ) -> usb_trans_info == NULL
+30064771078 | CALL | data == NULL
+30064771079 | CALL | ( ( usb_conv_info_t * ) data ) -> usb_trans_info == NULL
+30064771080 | CALL | ( ( usb_conv_info_t * ) data ) -> usb_trans_info
+30064771081 | CALL | ( usb_conv_info_t * ) data
+30064771082 | CALL | usb_conv_info = ( usb_conv_info_t * ) data
+30064771083 | CALL | ( usb_conv_info_t * ) data
+30064771084 | CALL | usb_trans_info = usb_conv_info -> usb_trans_info
+30064771085 | CALL | usb_conv_info -> usb_trans_info
+30064771086 | CALL | tmp = setup_dissectors
+30064771087 | CALL | tmp -> dissector
+30064771088 | CALL | tmp ++
+30064771089 | CALL | tmp -> request == usb_trans_info -> setup . request
+30064771090 | CALL | tmp -> request
+30064771091 | CALL | usb_trans_info -> setup . request
+30064771092 | CALL | usb_trans_info -> setup
+30064771093 | CALL | dissector = tmp -> dissector
+30064771094 | CALL | tmp -> dissector
+30064771095 | CALL | ! dissector
+30064771096 | CALL | col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "USBVIDEO" )
+30064771097 | CALL | pinfo -> cinfo
+30064771098 | CALL | 
+        col_add_fstr ( pinfo -> cinfo , COL_INFO , "%s %s" , val_to_str ( usb_trans_info -> setup . request , setup_request_names_vals , "Unknown type %x" ) , is_request ? "Request " : "Response" )
+      
+30064771099 | CALL | pinfo -> cinfo
+30064771100 | CALL | 
+        val_to_str ( usb_trans_info -> setup . request , setup_request_names_vals , "Unknown type %x" )
+      
+30064771101 | CALL | usb_trans_info -> setup . request
+30064771102 | CALL | usb_trans_info -> setup
+30064771103 | CALL | is_request ? "Request " : "Response"
+30064771104 | CALL | is_request != 0
+30064771105 | CALL | 
+        proto_tree_add_item ( tree , hf_usb_vid_request , tvb , offset , 1 , ENC_LITTLE_ENDIAN )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803779 -> 30064771093 [AST]
+25769803781 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771095 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771091 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771091 [AST]
+30064771089 -> 30064771088 [CDG]
+30064771089 -> 30064771087 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771091 [POST_DOMINATE]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

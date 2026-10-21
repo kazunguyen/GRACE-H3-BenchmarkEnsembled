@@ -1,0 +1,226 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Datum ExecEvalNullTest ( NullTestState * nstate , ExprContext * econtext , bool * isNull , ExprDoneCond * isDone ) {
+ NullTest * ntest = ( NullTest * ) nstate -> xprstate . expr ;
+ Datum result ;
+ result = ExecEvalExpr ( nstate -> arg , econtext , isNull , isDone ) ;
+ if ( isDone && * isDone == ExprEndResult ) return result ;
+ if ( ntest -> argisrow && ! ( * isNull ) ) {
+ HeapTupleHeader tuple ;
+ Oid tupType ;
+ int32 tupTypmod ;
+ TupleDesc tupDesc ;
+ HeapTupleData tmptup ;
+ int att ;
+ tuple = DatumGetHeapTupleHeader ( result ) ;
+ tupType = HeapTupleHeaderGetTypeId ( tuple ) ;
+ tupTypmod = HeapTupleHeaderGetTypMod ( tuple ) ;
+ tupDesc = get_cached_rowtype ( tupType , tupTypmod , & nstate -> argdesc , econtext ) ;
+ tmptup . t_len = HeapTupleHeaderGetDatumLength ( tuple ) ;
+ tmptup . t_data = tuple ;
+ for ( att = 1 ;
+ att <= tupDesc -> natts ;
+ att ++ ) {
+ if ( tupDesc -> attrs [ att - 1 ] -> attisdropped ) continue ;
+ if ( heap_attisnull ( & tmptup , att ) ) {
+ if ( ntest -> nulltesttype == IS_NOT_NULL ) return BoolGetDatum ( false ) ;
+ }
+ else {
+ if ( ntest -> nulltesttype == IS_NULL ) return BoolGetDatum ( false ) ;
+ }
+ }
+ return BoolGetDatum ( true ) ;
+ }
+ else {
+ switch ( ntest -> nulltesttype ) {
+ case IS_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( true ) ;
+ }
+ else return BoolGetDatum ( false ) ;
+ case IS_NOT_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( false ) ;
+ }
+ else return BoolGetDatum ( true ) ;
+ default : elog ( ERROR , "unrecognized nulltesttype: %d" , ( int ) ntest -> nulltesttype ) ;
+ return ( Datum ) 0 ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ NullTest * ntest = ( NullTest * ) nstate -> xprstate . expr ;
+ Datum result ;
+ result = ExecEvalExpr ( nstate -> arg , econtext , isNull , isDone ) ;
+ if ( isDone && * isDone == ExprEndResult ) return result ;
+ if ( ntest -> argisrow && ! ( * isNull ) ) {
+ HeapTupleHeader tuple ;
+ Oid tupType ;
+ int32 tupTypmod ;
+ TupleDesc tupDesc ;
+ HeapTupleData tmptup ;
+ int att ;
+ tuple = DatumGetHeapTupleHeader ( result ) ;
+ tupType = HeapTupleHeaderGetTypeId ( tuple ) ;
+ tupTypmod = HeapTupleHeaderGetTypMod ( tuple ) ;
+ tupDesc = get_cached_rowtype ( tupType , tupTypmod , & nstate -> argdesc , econtext ) ;
+ tmptup . t_len = HeapTupleHeaderGetDatumLength ( tuple ) ;
+ tmptup . t_data = tuple ;
+ for ( att = 1 ;
+ att <= tupDesc -> natts ;
+ att ++ ) {
+ if ( tupDesc -> attrs [ att - 1 ] -> attisdropped ) continue ;
+ if ( heap_attisnull ( & tmptup , att ) ) {
+ if ( ntest -> nulltesttype == IS_NOT_NULL ) return BoolGetDatum ( false ) ;
+ }
+ else {
+ if ( ntest -> nulltesttype == IS_NULL ) return Boo...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ HeapTupleHeader tuple ;
+ Oid tupType ;
+ int32 tupTypmod ;
+ TupleDesc tupDesc ;
+ HeapTupleData tmptup ;
+ int att ;
+ tuple = DatumGetHeapTupleHeader ( result ) ;
+ tupType = HeapTupleHeaderGetTypeId ( tuple ) ;
+ tupTypmod = HeapTupleHeaderGetTypMod ( tuple ) ;
+ tupDesc = get_cached_rowtype ( tupType , tupTypmod , & nstate -> argdesc , econtext ) ;
+ tmptup . t_len = HeapTupleHeaderGetDatumLength ( tuple ) ;
+ tmptup . t_data = tuple ;
+ for ( att = 1 ;
+ att <= tupDesc -> natts ;
+ att ++ ) {
+ if ( tupDesc -> attrs [ att - 1 ] -> attisdropped ) continue ;
+ if ( heap_attisnull ( & tmptup , att ) ) {
+ if ( ntest -> nulltesttype == IS_NOT_NULL ) return BoolGetDatum ( false ) ;
+ }
+ else {
+ if ( ntest -> nulltesttype == IS_NULL ) return BoolGetDatum ( false ) ;
+ }
+ }
+ return BoolGetDatum ( true ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( tupDesc -> attrs [ att - 1 ] -> attisdropped ) continue ;
+ if ( heap_attisnull ( & tmptup , att ) ) {
+ if ( ntest -> nulltesttype == IS_NOT_NULL ) return BoolGetDatum ( false ) ;
+ }
+ else {
+ if ( ntest -> nulltesttype == IS_NULL ) return BoolGetDatum ( false ) ;
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { if ( ntest -> nulltesttype == IS_NOT_NULL ) return BoolGetDatum ( false ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { if ( ntest -> nulltesttype == IS_NULL ) return BoolGetDatum ( false ) ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ switch ( ntest -> nulltesttype ) {
+ case IS_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( true ) ;
+ }
+ else return BoolGetDatum ( false ) ;
+ case IS_NOT_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( false ) ;
+ }
+ else return BoolGetDatum ( true ) ;
+ default : elog ( ERROR , "unrecognized nulltesttype: %d" , ( int ) ntest -> nulltesttype ) ;
+ return ( Datum ) 0 ;
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ case IS_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( true ) ;
+ }
+ else return BoolGetDatum ( false ) ;
+ case IS_NOT_NULL : if ( * isNull ) {
+ * isNull = false ;
+ return BoolGetDatum ( false ) ;
+ }
+ else return BoolGetDatum ( true ) ;
+ default : elog ( ERROR , "unrecognized nulltesttype: %d" , ( int ) ntest -> nulltesttype ) ;
+ return ( Datum ) 0 ;
+ }
+      
+25769803787 | BLOCK | { * isNull = false ; return BoolGetDatum ( true ) ; }
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | { * isNull = false ; return BoolGetDatum ( false ) ; }
+25769803790 | BLOCK | <empty>
+30064771072 | CALL | ntest = ( NullTest * ) nstate -> xprstate . expr
+30064771073 | CALL | ( NullTest * ) nstate -> xprstate . expr
+30064771074 | CALL | nstate -> xprstate . expr
+30064771075 | CALL | nstate -> xprstate
+30064771076 | CALL | result = ExecEvalExpr ( nstate -> arg , econtext , isNull , isDone )
+30064771077 | CALL | ExecEvalExpr ( nstate -> arg , econtext , isNull , isDone )
+30064771078 | CALL | nstate -> arg
+30064771079 | CALL | isDone && * isDone == ExprEndResult
+30064771080 | CALL | * isDone == ExprEndResult
+30064771081 | CALL | * isDone
+30064771082 | CALL | ntest -> argisrow && ! ( * isNull )
+30064771083 | CALL | ntest -> argisrow
+30064771084 | CALL | ! ( * isNull )
+30064771085 | CALL | * isNull
+30064771086 | CALL | tuple = DatumGetHeapTupleHeader ( result )
+30064771087 | CALL | DatumGetHeapTupleHeader ( result )
+30064771088 | CALL | tupType = HeapTupleHeaderGetTypeId ( tuple )
+30064771089 | CALL | HeapTupleHeaderGetTypeId ( tuple )
+30064771090 | CALL | tupTypmod = HeapTupleHeaderGetTypMod ( tuple )
+30064771091 | CALL | HeapTupleHeaderGetTypMod ( tuple )
+30064771092 | CALL | 
+        tupDesc = get_cached_rowtype ( tupType , tupTypmod , & nstate -> argdesc , econtext )
+      
+30064771093 | CALL | get_cached_rowtype ( tupType , tupTypmod , & nstate -> argdesc , econtext )
+30064771094 | CALL | & nstate -> argdesc
+30064771095 | CALL | nstate -> argdesc
+30064771096 | CALL | tmptup . t_len = HeapTupleHeaderGetDatumLength ( tuple )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771088 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 3006477107
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

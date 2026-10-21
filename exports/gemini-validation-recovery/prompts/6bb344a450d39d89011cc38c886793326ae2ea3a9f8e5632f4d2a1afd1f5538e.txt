@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PK11SymKey * import_symmetric_key ( struct crypto_instance * instance , enum sym_key_type key_type ) {
+ SECItem key_item ;
+ PK11SlotInfo * slot ;
+ PK11SymKey * res_key ;
+ CK_MECHANISM_TYPE cipher ;
+ CK_ATTRIBUTE_TYPE operation ;
+ CK_MECHANISM_TYPE wrap_mechanism ;
+ int wrap_key_len ;
+ PK11SymKey * wrap_key ;
+ PK11Context * wrap_key_crypt_context ;
+ SECItem tmp_sec_item ;
+ SECItem wrapped_key ;
+ int wrapped_key_len ;
+ unsigned char wrapped_key_data [ MAX_WRAPPED_KEY_LEN ] ;
+ int case_processed ;
+ memset ( & key_item , 0 , sizeof ( key_item ) ) ;
+ slot = NULL ;
+ wrap_key = NULL ;
+ res_key = NULL ;
+ wrap_key_crypt_context = NULL ;
+ key_item . type = siBuffer ;
+ key_item . data = instance -> private_key ;
+ case_processed = 0 ;
+ switch ( key_type ) {
+ case SYM_KEY_TYPE_CRYPT : key_item . len = cipher_key_len [ instance -> crypto_cipher_type ] ;
+ cipher = cipher_to_nss [ instance -> crypto_cipher_type ] ;
+ operation = CKA_ENCRYPT | CKA_DECRYPT ;
+ case_processed = 1 ;
+ break ;
+ case SYM_KEY_TYPE_HASH : key_item . len = instance -> private_key_len ;
+ cipher = hash_to_nss [ instance -> crypto_hash_type ] ;
+ operation = CKA_SIGN ;
+ case_processed = 1 ;
+ break ;
+ }
+ if ( ! case_processed ) {
+ log_printf ( instance -> log_level_error , "Unknown key_type" ) ;
+ goto exit_res_key ;
+ }
+ slot = PK11_GetBestSlot ( cipher , NULL ) ;
+ if ( slot == NULL ) {
+ log_printf ( instance -> log_level_security , "Unable to find security slot (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+ wrap_mechanism = PK11_GetBestWrapMechanism ( slot ) ;
+ wrap_key_len = PK11_GetBestKeyLength ( slot , wrap_mechanism ) ;
+ wrap_key = PK11_KeyGen ( slot , wrap_mechanism , NULL , wrap_key_len , NULL ) ;
+ if ( wrap_key == NULL ) {
+ log_printf ( instance -> log_level_security , "Unable to generate wrapping key (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+ memset ( & tmp_sec_item , 0 , sizeof ( tmp_sec_item ) ) ;
+ wrap_key_crypt_context = PK11_CreateContextBySymKey ( wrap_mechanism , CKA_ENCRYPT , wrap_key , & tmp_sec_item ) ;
+ if ( wrap_key_crypt_context == NULL ) {
+ log_printf ( instance -> log_level_security , "Unable to create encrypt context (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+ wrapped_key_len = ( int ) sizeof ( wrapped_key_data ) ;
+ if ( PK11_CipherOp ( wrap_key_crypt_context , wrapped_key_data , & wrapped_key_len , sizeof ( wrapped_key_data ) , key_item . data , key_item . len ) != SECSuccess ) {
+ log_printf ( instance -> log_level_security , "Unable to encrypt authkey (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+ if ( PK11_Finalize ( wrap_key_crypt_context ) != SECSuccess ) {
+ log_printf ( instance -> log_level_security , "Unable to finalize encryption of authkey (%d): %s" , PR_GetErr
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ SECItem key_item ;
+ PK11SlotInfo * slot ;
+ PK11SymKey * res_key ;
+ CK_MECHANISM_TYPE cipher ;
+ CK_ATTRIBUTE_TYPE operation ;
+ CK_MECHANISM_TYPE wrap_mechanism ;
+ int wrap_key_len ;
+ PK11SymKey * wrap_key ;
+ PK11Context * wrap_key_crypt_context ;
+ SECItem tmp_sec_item ;
+ SECItem wrapped_key ;
+ int wrapped_key_len ;
+ unsigned char wrapped_key_data [ MAX_WRAPPED_KEY_LEN ] ;
+ int case_processed ;
+ memset ( & key_item , 0 , sizeof ( key_item ) ) ;
+ slot = NULL ;
+ wrap_key = NULL ;
+ res_key = NULL ;
+ wrap_key_crypt_context = NULL ;
+ key_item . type = siBuffer ;
+ key_item . data = instance -> private_key ;
+ case_processed = 0 ;
+ switch ( key_type ) {
+ case SYM_KEY_TYPE_CRYPT : key_item . len = cipher_key_len [ instance -> crypto_cipher_type ] ;
+ cipher = cipher_to_nss [ instance -> crypto_cipher_type ] ;
+ operation = CKA_ENCRYPT | CKA_DECRYPT ;
+ case_processed = 1 ;
+ break ;
+ case SYM_KEY_TYPE_HASH : key_item . len = instance -> private_key_len ;
+ cipher = hash_to_nss [ instance -> cryp...
+      
+25769803777 | BLOCK | 
+        {
+ case SYM_KEY_TYPE_CRYPT : key_item . len = cipher_key_len [ instance -> crypto_cipher_type ] ;
+ cipher = cipher_to_nss [ instance -> crypto_cipher_type ] ;
+ operation = CKA_ENCRYPT | CKA_DECRYPT ;
+ case_processed = 1 ;
+ break ;
+ case SYM_KEY_TYPE_HASH : key_item . len = instance -> private_key_len ;
+ cipher = hash_to_nss [ instance -> crypto_hash_type ] ;
+ operation = CKA_SIGN ;
+ case_processed = 1 ;
+ break ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_error , "Unknown key_type" ) ;
+ goto exit_res_key ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Unable to find security slot (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Unable to generate wrapping key (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Unable to create encrypt context (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Unable to encrypt authkey (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Unable to finalize encryption of authkey (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ log_printf ( instance -> log_level_security , "Failure to import key into NSS (%d): %s" , PR_GetError ( ) , PR_ErrorToString ( PR_GetError ( ) , PR_LANGUAGE_I_DEFAULT ) ) ;
+ goto exit_res_key ;
+ }
+      
+25769803785 | BLOCK | { PK11_DestroyContext ( wrap_key_crypt_context , PR_TRUE ) ; }
+25769803786 | BLOCK | { PK11_FreeSymKey ( wrap_key ) ; }
+25769803787 | BLOCK | { PK11_FreeSlot ( slot ) ; }
+30064771072 | CALL | wrapped_key_data [ MAX_WRAPPED_KEY_LEN ]
+30064771073 | CALL | wrapped_key_data [ MAX_WRAPPED_KEY_LEN ]
+30064771074 | CALL | memset ( & key_item , 0 , sizeof ( key_item ) )
+30064771075 | CALL | & key_item
+30064771076 | CALL | sizeof ( key_item )
+30064771077 | CALL | slot = NULL
+30064771078 | CALL | wrap_key = NULL
+30064771079 | CALL | res_key = NULL
+30064771080 | CALL | wrap_key_crypt_context = NULL
+30064771081 | CALL | key_item . type = siBuffer
+30064771082 | CALL | key_item . type
+30064771083 | CALL | key_item . data = instance -> private_key
+30064771084 | CALL | key_item . data
+30064771085 | CALL | instance -> private_key
+30064771086 | CALL | case_processed = 0
+30064771087 | CALL | key_item . len = cipher_key_len [ instance -> crypto_cipher_type ]
+30064771088 | CALL | key_item . len
+30064771089 | CALL | cipher_key_len [ instance -> crypto_cipher_type ]
+30064771090 | CALL | instance -> crypto_cipher_type
+30064771091 | CALL | cipher = cipher_to_nss [ instance -> crypto_cipher_type ]
+30064771092 | CALL | cipher_to_nss [ instance -> crypto_cipher_type ]
+30064771093 | CALL | instance -> crypto
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

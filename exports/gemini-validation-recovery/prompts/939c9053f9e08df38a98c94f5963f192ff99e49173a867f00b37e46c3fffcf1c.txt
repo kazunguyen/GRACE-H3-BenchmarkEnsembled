@@ -1,0 +1,258 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int net_slirp_redir(const char *redir_str)
+
+{
+
+    struct slirp_config_str *config;
+
+
+
+    if (QTAILQ_EMPTY(&slirp_stacks)) {
+
+        config = g_malloc(sizeof(*config));
+
+        pstrcpy(config->str, sizeof(config->str), redir_str);
+
+        config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY;
+
+        config->next = slirp_configs;
+
+        slirp_configs = config;
+
+        return 0;
+
+    }
+
+
+
+    return slirp_hostfwd(QTAILQ_FIRST(&slirp_stacks), redir_str, 1);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    struct slirp_config_str *config;
+
+
+
+    if (QTAILQ_EMPTY(&slirp_stacks)) {
+
+        config = g_malloc(sizeof(*config));
+
+        pstrcpy(config->str, sizeof(config->str), redir_str);
+
+        config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY;
+
+        config->next = slirp_configs;
+
+        slirp_configs = config;
+
+        return 0;
+
+    }
+
+
+
+    return slirp_hostfwd(QTAILQ_FIRST(&slirp_stacks), redir_str, 1);
+
+}
+      
+25769803777 | BLOCK | 
+        {
+
+        config = g_malloc(sizeof(*config));
+
+        pstrcpy(config->str, sizeof(config->str), redir_str);
+
+        config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY;
+
+        config->next = slirp_configs;
+
+        slirp_configs = config;
+
+        return 0;
+
+    }
+      
+30064771072 | CALL | QTAILQ_EMPTY(&slirp_stacks)
+30064771073 | CALL | &slirp_stacks
+30064771074 | CALL | config = g_malloc(sizeof(*config))
+30064771075 | CALL | g_malloc(sizeof(*config))
+30064771076 | CALL | sizeof(*config)
+30064771077 | CALL | *config
+30064771078 | CALL | pstrcpy(config->str, sizeof(config->str), redir_str)
+30064771079 | CALL | config->str
+30064771080 | CALL | sizeof(config->str)
+30064771081 | CALL | config->str
+30064771082 | CALL | config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY
+30064771083 | CALL | config->flags
+30064771084 | CALL | SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY
+30064771085 | CALL | config->next = slirp_configs
+30064771086 | CALL | config->next
+30064771087 | CALL | slirp_configs = config
+30064771088 | CALL | slirp_hostfwd(QTAILQ_FIRST(&slirp_stacks), redir_str, 1)
+30064771089 | CALL | QTAILQ_FIRST(&slirp_stacks)
+30064771090 | CALL | &slirp_stacks
+47244640256 | CONTROL_STRUCTURE | 
+        if (QTAILQ_EMPTY(&slirp_stacks)) {
+
+        config = g_malloc(sizeof(*config));
+
+        pstrcpy(config->str, sizeof(config->str), redir_str);
+
+        config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY;
+
+        config->next = slirp_configs;
+
+        slirp_configs = config;
+
+        return 0;
+
+    }
+      
+55834574848 | FIELD_IDENTIFIER | str
+55834574849 | FIELD_IDENTIFIER | str
+55834574850 | FIELD_IDENTIFIER | flags
+55834574851 | FIELD_IDENTIFIER | next
+68719476736 | IDENTIFIER | <unknown> slirp_stacks
+68719476737 | IDENTIFIER | config
+68719476738 | IDENTIFIER | config
+68719476739 | IDENTIFIER | config
+68719476740 | IDENTIFIER | config
+68719476741 | IDENTIFIER | redir_str
+68719476742 | IDENTIFIER | config
+68719476743 | IDENTIFIER | <unknown> SLIRP_CFG_HOSTFWD
+68719476744 | IDENTIFIER | <unknown> SLIRP_CFG_LEGACY
+68719476745 | IDENTIFIER | config
+68719476746 | IDENTIFIER | <unknown> slirp_configs
+68719476747 | IDENTIFIER | <unknown> slirp_configs
+68719476748 | IDENTIFIER | config
+68719476749 | IDENTIFIER | <unknown> slirp_stacks
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771087 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476748 [CDG]
+30064771072 -> 68719476749 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 68719476747 [CDG]
+30064771072 -> 68719476744 [CDG]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476749 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476749 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771090 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476738 [ARGUMENT]
+30064771077 -> 68719476738 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476738 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void net_slirp_redir(const char *redir_str)
+
+{
+
+    struct slirp_config_str *config;
+
+
+
+    if (QTAILQ_EMPTY(&slirp_stacks)) {
+
+        config = qemu_malloc(sizeof(*config));
+
+        pstrcpy(config->str, sizeof(config->str), redir_str);
+
+        config->flags = SLIRP_CFG_HOSTFWD | SLIRP_CFG_LEGACY;
+
+        config->next = slirp_configs;
+
+        slirp_configs = config;
+
+        return;
+
+    }
+
+
+
+    slirp_hostfwd(QTAILQ_FIRST(&slirp_stacks), NULL, redir_str, 1);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,149 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void celt_search_for_dual_stereo(OpusPsyContext *s, CeltFrame *f)
+{
+    float td1, td2;
+    f->dual_stereo = 0;
+    bands_dist(s, f, &td1);
+    f->dual_stereo = 1;
+    bands_dist(s, f, &td2);
+    f->dual_stereo = td2 < td1;
+    s->dual_stereo_used += td2 < td1;
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 17 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+22 -> 27 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+41 -> 46 [IS_AST_PARENT]
+38 -> 41 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+51 -> 55 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 66 [IS_AST_PARENT]
+3 -> 67 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+68 -> 72 [IS_AST_PARENT]
+3 -> 68 [IS_AST_PARENT]
+75 -> 69 [FLOWS_TO]
+69 -> 72 [FLOWS_TO]
+72 -> 5 [FLOWS_TO]
+5 -> 12 [FLOWS_TO]
+12 -> 18 [FLOWS_TO]
+18 -> 31 [FLOWS_TO]
+31 -> 37 [FLOWS_TO]
+37 -> 50 [FLOWS_TO]
+50 -> 58 [FLOWS_TO]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int bands_dist(OpusPsyContext *s, CeltFrame *f, float *total_dist)
+
+{
+
+    int i, tdist = 0.0f;
+
+    OpusRangeCoder dump;
+
+
+
+    ff_opus_rc_enc_init(&dump);
+
+    ff_celt_enc_bitalloc(f, &dump);
+
+
+
+    for (i = 0; i < CELT_MAX_BANDS; i++) {
+
+        float bits = 0.0f;
+
+        float dist = f->pvq->band_cost(f->pvq, f, &dump, i, &bits, s->lambda);
+
+        tdist += dist;
+
+    }
+
+
+
+    *total_dist = tdist;
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int transform_hook_handler ( TSCont contp , TSEvent event , void * edata ) {
+ TSHttpTxn txnp = nullptr ;
+ TransformTestData * data = nullptr ;
+ CHECK_SPURIOUS_EVENT ( contp , event , edata ) ;
+ data = ( TransformTestData * ) TSContDataGet ( contp ) ;
+ switch ( event ) {
+ case TS_EVENT_HTTP_READ_REQUEST_HDR : txnp = ( TSHttpTxn ) edata ;
+ TSSkipRemappingSet ( txnp , 1 ) ;
+ TSHttpTxnReenable ( txnp , TS_EVENT_HTTP_CONTINUE ) ;
+ break ;
+ case TS_EVENT_HTTP_READ_RESPONSE_HDR : txnp = ( TSHttpTxn ) edata ;
+ if ( transformable ( txnp , data ) ) {
+ transform_add ( txnp , data ) ;
+ }
+ {
+ TSMBuffer bufp ;
+ TSMLoc hdr ;
+ TSMLoc field ;
+ if ( TSHttpTxnClientReqGet ( txnp , & bufp , & hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "TSHttpTxnClientReqGet returns 0" ) ;
+ }
+ else {
+ if ( TS_NULL_MLOC == ( field = TSMimeHdrFieldFind ( bufp , hdr , "Request" , - 1 ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Didn't find field request" ) ;
+ }
+ else {
+ int reqid = TSMimeHdrFieldValueIntGet ( bufp , hdr , field , 0 ) ;
+ if ( reqid == 1 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 0 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 1 ) ;
+ }
+ if ( reqid == 2 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 1 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 0 ) ;
+ }
+ if ( TSHandleMLocRelease ( bufp , hdr , field ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Unable to release handle to field in Client request" ) ;
+ }
+ }
+ if ( TSHandleMLocRelease ( bufp , TS_NULL_MLOC , hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Unable to release handle to Client request" ) ;
+ }
+ }
+ }
+ TSHttpTxnHookAdd ( txnp , TS_HTTP_SEND_RESPONSE_HDR_HOOK , contp ) ;
+ TSHttpTxnReenable ( txnp , TS_EVENT_HTTP_CONTINUE ) ;
+ break ;
+ case TS_EVENT_HTTP_SEND_RESPONSE_HDR : {
+ TSMBuffer bufp ;
+ TSMLoc hdr ;
+ txnp = ( TSHttpTxn ) edata ;
+ if ( TSHttpTxnTransformRespGet ( txnp , & bufp , & hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransformRespGet" , "TestCase" , TC_FAIL , "TSHttpTxnTransformRespGet returns 0" ) ;
+ data -> test_passed_txn_transform_resp_get = false ;
+ }
+ else {
+ if ( ( bufp == reinterpret_cast < TSMBuffer > ( & ( ( ( HttpSM * ) txnp ) -> t_state . hdr_info . transform_response ) ) ) && ( hdr == reinterpret_cast < TSMLoc > ( ( & ( ( ( HttpSM * ) txnp ) -> t_state . hdr_info . transform_response ) ) -> m_http ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransformRespGet" , "TestCase" , TC_PASS , "ok" ) ;
+ }
+ else {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransformRespGet" , "TestCase" , TC_FAIL , "Value's Mismatch" ) ;
+ data -> test_passed_txn_transform_resp_get = false ;
+ }
+ if ( TSHandleMLocRelease ( bufp , TS_NULL_MLOC , hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransformRespGet" , "TestCase" , TC_FAIL , "Unable to release handle to Transform header handle" ) 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ TSHttpTxn txnp = nullptr ;
+ TransformTestData * data = nullptr ;
+ CHECK_SPURIOUS_EVENT ( contp , event , edata ) ;
+ data = ( TransformTestData * ) TSContDataGet ( contp ) ;
+ switch ( event ) {
+ case TS_EVENT_HTTP_READ_REQUEST_HDR : txnp = ( TSHttpTxn ) edata ;
+ TSSkipRemappingSet ( txnp , 1 ) ;
+ TSHttpTxnReenable ( txnp , TS_EVENT_HTTP_CONTINUE ) ;
+ break ;
+ case TS_EVENT_HTTP_READ_RESPONSE_HDR : txnp = ( TSHttpTxn ) edata ;
+ if ( transformable ( txnp , data ) ) {
+ transform_add ( txnp , data ) ;
+ }
+ {
+ TSMBuffer bufp ;
+ TSMLoc hdr ;
+ TSMLoc field ;
+ if ( TSHttpTxnClientReqGet ( txnp , & bufp , & hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "TSHttpTxnClientReqGet returns 0" ) ;
+ }
+ else {
+ if ( TS_NULL_MLOC == ( field = TSMimeHdrFieldFind ( bufp , hdr , "Request" , - 1 ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Didn't find field request" ) ;
+ }
+ else {
+ int reqid = TSMimeHdrFieldValueIn...
+      
+25769803777 | BLOCK | 
+        {
+ case TS_EVENT_HTTP_READ_REQUEST_HDR : txnp = ( TSHttpTxn ) edata ;
+ TSSkipRemappingSet ( txnp , 1 ) ;
+ TSHttpTxnReenable ( txnp , TS_EVENT_HTTP_CONTINUE ) ;
+ break ;
+ case TS_EVENT_HTTP_READ_RESPONSE_HDR : txnp = ( TSHttpTxn ) edata ;
+ if ( transformable ( txnp , data ) ) {
+ transform_add ( txnp , data ) ;
+ }
+ {
+ TSMBuffer bufp ;
+ TSMLoc hdr ;
+ TSMLoc field ;
+ if ( TSHttpTxnClientReqGet ( txnp , & bufp , & hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "TSHttpTxnClientReqGet returns 0" ) ;
+ }
+ else {
+ if ( TS_NULL_MLOC == ( field = TSMimeHdrFieldFind ( bufp , hdr , "Request" , - 1 ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Didn't find field request" ) ;
+ }
+ else {
+ int reqid = TSMimeHdrFieldValueIntGet ( bufp , hdr , field , 0 ) ;
+ if ( reqid == 1 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 0 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 1 ) ;
+ }
+ if ( reqid == 2 ) {
+ TSHttpTxnTransformed...
+      
+25769803778 | BLOCK | { transform_add ( txnp , data ) ; }
+25769803779 | BLOCK | 
+        {
+ TSMBuffer bufp ;
+ TSMLoc hdr ;
+ TSMLoc field ;
+ if ( TSHttpTxnClientReqGet ( txnp , & bufp , & hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "TSHttpTxnClientReqGet returns 0" ) ;
+ }
+ else {
+ if ( TS_NULL_MLOC == ( field = TSMimeHdrFieldFind ( bufp , hdr , "Request" , - 1 ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Didn't find field request" ) ;
+ }
+ else {
+ int reqid = TSMimeHdrFieldValueIntGet ( bufp , hdr , field , 0 ) ;
+ if ( reqid == 1 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 0 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 1 ) ;
+ }
+ if ( reqid == 2 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 1 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 0 ) ;
+ }
+ if ( TSHandleMLocRelease ( bufp , hdr , field ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Unable to release handle to field in Client request" ) ;
+ }
+ }
+ if ( TSHandleMLocRelease ( bufp ...
+      
+25769803780 | BLOCK | 
+        {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "TSHttpTxnClientReqGet returns 0" ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( TS_NULL_MLOC == ( field = TSMimeHdrFieldFind ( bufp , hdr , "Request" , - 1 ) ) ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Didn't find field request" ) ;
+ }
+ else {
+ int reqid = TSMimeHdrFieldValueIntGet ( bufp , hdr , field , 0 ) ;
+ if ( reqid == 1 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 0 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 1 ) ;
+ }
+ if ( reqid == 2 ) {
+ TSHttpTxnTransformedRespCache ( txnp , 1 ) ;
+ TSHttpTxnUntransformedRespCache ( txnp , 0 ) ;
+ }
+ if ( TSHandleMLocRelease ( bufp , hdr , field ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Unable to release handle to field in Client request" ) ;
+ }
+ }
+ if ( TSHandleMLocRelease ( bufp , TS_NULL_MLOC , hdr ) != TS_SUCCESS ) {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "TestCase" , TC_FAIL , "Unable to release handle to Client request" ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ SDK_RPRINT ( data -> test , "TSHttpTxnTransform" , "Tes
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

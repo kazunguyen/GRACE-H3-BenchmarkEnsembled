@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline uint8_t quant ( G726Context * c , int d ) {
+ int sign , exp , i , dln ;
+ sign = i = 0 ;
+ if ( d < 0 ) {
+ sign = 1 ;
+ d = - d ;
+ }
+ exp = av_log2_16bit ( d ) ;
+ dln = ( ( exp << 7 ) + ( ( ( d << 7 ) >> exp ) & 0x7f ) ) - ( c -> y >> 2 ) ;
+ while ( c -> tbls . quant [ i ] < INT_MAX && c -> tbls . quant [ i ] < dln ) ++ i ;
+ if ( sign ) i = ~ i ;
+ if ( c -> code_size != 2 && i == 0 ) i = 0xff ;
+ return i ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int sign , exp , i , dln ;
+ sign = i = 0 ;
+ if ( d < 0 ) {
+ sign = 1 ;
+ d = - d ;
+ }
+ exp = av_log2_16bit ( d ) ;
+ dln = ( ( exp << 7 ) + ( ( ( d << 7 ) >> exp ) & 0x7f ) ) - ( c -> y >> 2 ) ;
+ while ( c -> tbls . quant [ i ] < INT_MAX && c -> tbls . quant [ i ] < dln ) ++ i ;
+ if ( sign ) i = ~ i ;
+ if ( c -> code_size != 2 && i == 0 ) i = 0xff ;
+ return i ;
+ }
+      
+25769803777 | BLOCK | { sign = 1 ; d = - d ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | sign = i = 0
+30064771073 | CALL | i = 0
+30064771074 | CALL | d < 0
+30064771075 | CALL | sign = 1
+30064771076 | CALL | d = - d
+30064771077 | CALL | - d
+30064771078 | CALL | exp = av_log2_16bit ( d )
+30064771079 | CALL | av_log2_16bit ( d )
+30064771080 | CALL | 
+        dln = ( ( exp << 7 ) + ( ( ( d << 7 ) >> exp ) & 0x7f ) ) - ( c -> y >> 2 )
+      
+30064771081 | CALL | 
+        ( ( exp << 7 ) + ( ( ( d << 7 ) >> exp ) & 0x7f ) ) - ( c -> y >> 2 )
+      
+30064771082 | CALL | ( exp << 7 ) + ( ( ( d << 7 ) >> exp ) & 0x7f )
+30064771083 | CALL | exp << 7
+30064771084 | CALL | ( ( d << 7 ) >> exp ) & 0x7f
+30064771085 | CALL | ( d << 7 ) >> exp
+30064771086 | CALL | d << 7
+30064771087 | CALL | c -> y >> 2
+30064771088 | CALL | c -> y
+30064771089 | CALL | 
+        c -> tbls . quant [ i ] < INT_MAX && c -> tbls . quant [ i ] < dln
+      
+30064771090 | CALL | c -> tbls . quant [ i ] < INT_MAX
+30064771091 | CALL | c -> tbls . quant [ i ]
+30064771092 | CALL | c -> tbls . quant
+30064771093 | CALL | c -> tbls
+30064771094 | CALL | c -> tbls . quant [ i ] < dln
+30064771095 | CALL | c -> tbls . quant [ i ]
+30064771096 | CALL | c -> tbls . quant
+30064771097 | CALL | c -> tbls
+30064771098 | CALL | ++ i
+30064771099 | CALL | sign != 0
+30064771100 | CALL | i = ~ i
+30064771101 | CALL | ~ i
+30064771102 | CALL | c -> code_size != 2 && i == 0
+30064771103 | CALL | c -> code_size != 2
+30064771104 | CALL | c -> code_size
+30064771105 | CALL | i == 0
+30064771106 | CALL | i = 0xff
+47244640256 | CONTROL_STRUCTURE | if ( d < 0 ) { sign = 1 ; d = - d ; }
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771076 [AST]
+25769803778 -> 30064771100 [AST]
+25769803779 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771087 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771087 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771087 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771087 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771081 [CFG]
+30064771087 -> 30064771081 [DOMINATE]
+30064771087 -> 30064771082 [REACHING_DEF]
+30064771087 -> 30064771081 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771094 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771094 [AST]
+30064771089 -> 30064771089 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771098 [CDG]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771094 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771095 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline Float11 * i2f ( int i , Float11 * f ) {
+ f -> sign = ( i < 0 ) ;
+ if ( f -> sign ) i = - i ;
+ f -> exp = av_log2_16bit ( i ) + ! ! i ;
+ f -> mant = i ? ( i << 6 ) >> f -> exp : 1 << 5 ;
+ return f ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

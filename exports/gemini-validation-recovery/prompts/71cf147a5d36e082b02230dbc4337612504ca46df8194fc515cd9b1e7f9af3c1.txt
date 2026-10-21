@@ -1,0 +1,229 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void parse_keyUsage ( chunk_t blob , private_x509_cert_t * this ) {
+ enum {
+ KU_DIGITAL_SIGNATURE = 0 , KU_NON_REPUDIATION = 1 , KU_KEY_ENCIPHERMENT = 2 , KU_DATA_ENCIPHERMENT = 3 , KU_KEY_AGREEMENT = 4 , KU_KEY_CERT_SIGN = 5 , KU_CRL_SIGN = 6 , KU_ENCIPHER_ONLY = 7 , KU_DECIPHER_ONLY = 8 , }
+ ;
+ if ( asn1_unwrap ( & blob , & blob ) == ASN1_BIT_STRING && blob . len ) {
+ int bit , byte , unused = blob . ptr [ 0 ] ;
+ blob = chunk_skip ( blob , 1 ) ;
+ for ( byte = 0 ;
+ byte < blob . len ;
+ byte ++ ) {
+ for ( bit = 0 ;
+ bit < 8 ;
+ bit ++ ) {
+ if ( byte == blob . len - 1 && bit > ( 7 - unused ) ) {
+ break ;
+ }
+ if ( blob . ptr [ byte ] & 1 << ( 7 - bit ) ) {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ enum {
+ KU_DIGITAL_SIGNATURE = 0 , KU_NON_REPUDIATION = 1 , KU_KEY_ENCIPHERMENT = 2 , KU_DATA_ENCIPHERMENT = 3 , KU_KEY_AGREEMENT = 4 , KU_KEY_CERT_SIGN = 5 , KU_CRL_SIGN = 6 , KU_ENCIPHER_ONLY = 7 , KU_DECIPHER_ONLY = 8 , }
+ ;
+ if ( asn1_unwrap ( & blob , & blob ) == ASN1_BIT_STRING && blob . len ) {
+ int bit , byte , unused = blob . ptr [ 0 ] ;
+ blob = chunk_skip ( blob , 1 ) ;
+ for ( byte = 0 ;
+ byte < blob . len ;
+ byte ++ ) {
+ for ( bit = 0 ;
+ bit < 8 ;
+ bit ++ ) {
+ if ( byte == blob . len - 1 && bit > ( 7 - unused ) ) {
+ break ;
+ }
+ if ( blob . ptr [ byte ] & 1 << ( 7 - bit ) ) {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+ }
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int bit , byte , unused = blob . ptr [ 0 ] ;
+ blob = chunk_skip ( blob , 1 ) ;
+ for ( byte = 0 ;
+ byte < blob . len ;
+ byte ++ ) {
+ for ( bit = 0 ;
+ bit < 8 ;
+ bit ++ ) {
+ if ( byte == blob . len - 1 && bit > ( 7 - unused ) ) {
+ break ;
+ }
+ if ( blob . ptr [ byte ] & 1 << ( 7 - bit ) ) {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ for ( bit = 0 ;
+ bit < 8 ;
+ bit ++ ) {
+ if ( byte == blob . len - 1 && bit > ( 7 - unused ) ) {
+ break ;
+ }
+ if ( blob . ptr [ byte ] & 1 << ( 7 - bit ) ) {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( byte == blob . len - 1 && bit > ( 7 - unused ) ) {
+ break ;
+ }
+ if ( blob . ptr [ byte ] & 1 << ( 7 - bit ) ) {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+ }
+      
+25769803780 | BLOCK | { break ; }
+25769803781 | BLOCK | 
+        {
+ switch ( byte * 8 + bit ) {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ case KU_CRL_SIGN : this -> flags |= X509_CRL_SIGN ;
+ break ;
+ case KU_KEY_CERT_SIGN : case KU_DIGITAL_SIGNATURE : case KU_NON_REPUDIATION : case KU_KEY_ENCIPHERMENT : case KU_DATA_ENCIPHERMENT : case KU_KEY_AGREEMENT : case KU_ENCIPHER_ONLY : case KU_DECIPHER_ONLY : break ;
+ }
+      
+30064771072 | CALL | asn1_unwrap ( & blob , & blob ) == ASN1_BIT_STRING && blob . len
+30064771073 | CALL | asn1_unwrap ( & blob , & blob ) == ASN1_BIT_STRING
+30064771074 | CALL | asn1_unwrap ( & blob , & blob )
+30064771075 | CALL | & blob
+30064771076 | CALL | & blob
+30064771077 | CALL | blob . len
+30064771078 | CALL | unused = blob . ptr [ 0 ]
+30064771079 | CALL | blob . ptr [ 0 ]
+30064771080 | CALL | blob . ptr
+30064771081 | CALL | blob = chunk_skip ( blob , 1 )
+30064771082 | CALL | chunk_skip ( blob , 1 )
+30064771083 | CALL | byte = 0
+30064771084 | CALL | byte < blob . len
+30064771085 | CALL | blob . len
+30064771086 | CALL | byte ++
+30064771087 | CALL | bit = 0
+30064771088 | CALL | bit < 8
+30064771089 | CALL | bit ++
+30064771090 | CALL | byte == blob . len - 1 && bit > ( 7 - unused )
+30064771091 | CALL | byte == blob . len - 1
+30064771092 | CALL | blob . len - 1
+30064771093 | CALL | blob . len
+30064771094 | CALL | bit > ( 7 - unused )
+30064771095 | CALL | 7 - unused
+30064771096 | CALL | blob . ptr [ byte ] & 1 << ( 7 - bit )
+30064771097 | CALL | blob . ptr [ byte ]
+30064771098 | CALL | blob . ptr
+30064771099 | CALL | 1 << ( 7 - bit )
+30064771100 | CALL | 7 - bit
+30064771101 | CALL | byte * 8 + bit
+30064771102 | CALL | byte * 8
+30064771103 | CALL | this -> flags |= X509_CRL_SIGN
+30064771104 | CALL | this -> flags
+EDGES:
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803782 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771077 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771077 [AST]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771077 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771077 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771072 [CFG]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771072 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

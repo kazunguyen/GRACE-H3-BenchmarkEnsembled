@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ CamtasiaContext * const c = avctx -> priv_data ;
+ const unsigned char * encoded = buf ;
+ int zret ;
+ int ret , len = buf_size ;
+ if ( c -> pic . data [ 0 ] ) avctx -> release_buffer ( avctx , & c -> pic ) ;
+ c -> pic . reference = 1 ;
+ c -> pic . buffer_hints = FF_BUFFER_HINTS_VALID ;
+ if ( ( ret = ff_get_buffer ( avctx , & c -> pic ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ zret = inflateReset ( & c -> zstream ) ;
+ if ( zret != Z_OK ) {
+ av_log ( avctx , AV_LOG_ERROR , "Inflate reset error: %d\n" , zret ) ;
+ return AVERROR_UNKNOWN ;
+ }
+ c -> zstream . next_in = encoded ;
+ c -> zstream . avail_in = len ;
+ c -> zstream . next_out = c -> decomp_buf ;
+ c -> zstream . avail_out = c -> decomp_size ;
+ zret = inflate ( & c -> zstream , Z_FINISH ) ;
+ if ( ( zret != Z_OK ) && ( zret != Z_STREAM_END ) && ( zret != Z_DATA_ERROR ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "Inflate error: %d\n" , zret ) ;
+ return AVERROR_UNKNOWN ;
+ }
+ if ( zret != Z_DATA_ERROR ) {
+ bytestream2_init ( & c -> gb , c -> decomp_buf , c -> decomp_size - c -> zstream . avail_out ) ;
+ ff_msrle_decode ( avctx , ( AVPicture * ) & c -> pic , c -> bpp , & c -> gb ) ;
+ }
+ if ( c -> avctx -> pix_fmt == AV_PIX_FMT_PAL8 ) {
+ const uint8_t * pal = av_packet_get_side_data ( avpkt , AV_PKT_DATA_PALETTE , NULL ) ;
+ if ( pal ) {
+ c -> pic . palette_has_changed = 1 ;
+ memcpy ( c -> pal , pal , AVPALETTE_SIZE ) ;
+ }
+ memcpy ( c -> pic . data [ 1 ] , c -> pal , AVPALETTE_SIZE ) ;
+ }
+ * got_frame = 1 ;
+ * ( AVFrame * ) data = c -> pic ;
+ return buf_size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ CamtasiaContext * const c = avctx -> priv_data ;
+ const unsigned char * encoded = buf ;
+ int zret ;
+ int ret , len = buf_size ;
+ if ( c -> pic . data [ 0 ] ) avctx -> release_buffer ( avctx , & c -> pic ) ;
+ c -> pic . reference = 1 ;
+ c -> pic . buffer_hints = FF_BUFFER_HINTS_VALID ;
+ if ( ( ret = ff_get_buffer ( avctx , & c -> pic ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ zret = inflateReset ( & c -> zstream ) ;
+ if ( zret != Z_OK ) {
+ av_log ( avctx , AV_LOG_ERROR , "Inflate reset error: %d\n" , zret ) ;
+ return AVERROR_UNKNOWN ;
+ }
+ c -> zstream . next_in = encoded ;
+ c -> zstream . avail_in = len ;
+ c -> zstream . next_out = c -> decomp_buf ;
+ c -> zstream . avail_out = c -> decomp_size ;
+ zret = inflate ( & c -> zstream , Z_FINISH ) ;
+ if ( ( zret != Z_OK ) && ( zret != Z_STREAM_END ) && ( zret != Z_DATA_ERROR ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "Inflat...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Inflate reset error: %d\n" , zret ) ;
+ return AVERROR_UNKNOWN ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Inflate error: %d\n" , zret ) ;
+ return AVERROR_UNKNOWN ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ bytestream2_init ( & c -> gb , c -> decomp_buf , c -> decomp_size - c -> zstream . avail_out ) ;
+ ff_msrle_decode ( avctx , ( AVPicture * ) & c -> pic , c -> bpp , & c -> gb ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ const uint8_t * pal = av_packet_get_side_data ( avpkt , AV_PKT_DATA_PALETTE , NULL ) ;
+ if ( pal ) {
+ c -> pic . palette_has_changed = 1 ;
+ memcpy ( c -> pal , pal , AVPALETTE_SIZE ) ;
+ }
+ memcpy ( c -> pic . data [ 1 ] , c -> pal , AVPALETTE_SIZE ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ c -> pic . palette_has_changed = 1 ;
+ memcpy ( c -> pal , pal , AVPALETTE_SIZE ) ;
+ }
+      
+30064771072 | CALL | buf = avpkt -> data
+30064771073 | CALL | avpkt -> data
+30064771074 | CALL | buf_size = avpkt -> size
+30064771075 | CALL | avpkt -> size
+30064771076 | CALL | const c = avctx -> priv_data
+30064771077 | CALL | avctx -> priv_data
+30064771078 | CALL | encoded = buf
+30064771079 | CALL | len = buf_size
+30064771080 | CALL | c -> pic . data [ 0 ]
+30064771081 | CALL | c -> pic . data
+30064771082 | CALL | c -> pic
+30064771083 | CALL | avctx -> release_buffer ( avctx , & c -> pic )
+30064771084 | CALL | avctx -> release_buffer
+30064771085 | CALL | & c -> pic
+30064771086 | CALL | c -> pic
+30064771087 | CALL | c -> pic . reference = 1
+30064771088 | CALL | c -> pic . reference
+30064771089 | CALL | c -> pic
+30064771090 | CALL | c -> pic . buffer_hints = FF_BUFFER_HINTS_VALID
+30064771091 | CALL | c -> pic . buffer_hints
+30064771092 | CALL | c -> pic
+30064771093 | CALL | ( ret = ff_get_buffer ( avctx , & c -> pic ) ) < 0
+30064771094 | CALL | ret = ff_get_buffer ( avctx , & c -> pic )
+30064771095 | CALL | ff_get_buffer ( avctx , & c -> pic )
+30064771096 | CALL | & c -> pic
+30064771097 | CALL | c -> pic
+30064771098 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771099 | CALL | zret = inflateReset ( & c -> zstream )
+30064771100 | CALL | inflateReset ( & c -> zstream )
+30064771101 | CALL | & c -> zstream
+30064771102 | CALL | c -> zstream
+30064771103 | CALL | zret != Z_OK
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771099 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [RECEIVER]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771097 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771089 [REACHING_DEF]
+30064771085 -> 30064771092 [REACHING_DEF]
+30064771085 -> 30064771096 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771097 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771089 [REACHING_DE
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

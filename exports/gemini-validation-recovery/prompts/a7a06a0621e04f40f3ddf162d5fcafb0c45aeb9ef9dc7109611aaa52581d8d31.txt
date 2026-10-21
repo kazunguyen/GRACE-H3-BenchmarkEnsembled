@@ -1,0 +1,209 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void write_uncompressed_header ( VP9_COMP * cpi , struct vp9_write_bit_buffer * wb ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ vp9_wb_write_literal ( wb , VP9_FRAME_MARKER , 2 ) ;
+ write_profile ( cm -> profile , wb ) ;
+ vp9_wb_write_bit ( wb , 0 ) ;
+ vp9_wb_write_bit ( wb , cm -> frame_type ) ;
+ vp9_wb_write_bit ( wb , cm -> show_frame ) ;
+ vp9_wb_write_bit ( wb , cm -> error_resilient_mode ) ;
+ if ( cm -> frame_type == KEY_FRAME ) {
+ write_sync_code ( wb ) ;
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+ else {
+ if ( ! cm -> show_frame || ( is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0 ) ) vp9_wb_write_bit ( wb , cm -> intra_only ) ;
+ if ( ! cm -> error_resilient_mode ) vp9_wb_write_literal ( wb , cm -> reset_frame_context , 2 ) ;
+ if ( cm -> intra_only ) {
+ write_sync_code ( wb ) ;
+ if ( cm -> profile > PROFILE_0 ) {
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ }
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+ else {
+ MV_REFERENCE_FRAME ref_frame ;
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ for ( ref_frame = LAST_FRAME ;
+ ref_frame <= ALTREF_FRAME ;
+ ++ ref_frame ) {
+ vp9_wb_write_literal ( wb , get_ref_frame_idx ( cpi , ref_frame ) , REF_FRAMES_LOG2 ) ;
+ vp9_wb_write_bit ( wb , cm -> ref_frame_sign_bias [ ref_frame ] ) ;
+ }
+ write_frame_size_with_refs ( cpi , wb ) ;
+ vp9_wb_write_bit ( wb , cm -> allow_high_precision_mv ) ;
+ fix_interp_filter ( cm ) ;
+ write_interp_filter ( cm -> interp_filter , wb ) ;
+ }
+ }
+ if ( ! cm -> error_resilient_mode ) {
+ vp9_wb_write_bit ( wb , cm -> refresh_frame_context ) ;
+ vp9_wb_write_bit ( wb , cm -> frame_parallel_decoding_mode ) ;
+ }
+ vp9_wb_write_literal ( wb , cm -> frame_context_idx , FRAME_CONTEXTS_LOG2 ) ;
+ encode_loopfilter ( & cm -> lf , wb ) ;
+ encode_quantization ( cm , wb ) ;
+ encode_segmentation ( cm , & cpi -> mb . e_mbd , wb ) ;
+ write_tile_info ( cm , wb ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & cpi -> common ;
+ vp9_wb_write_literal ( wb , VP9_FRAME_MARKER , 2 ) ;
+ write_profile ( cm -> profile , wb ) ;
+ vp9_wb_write_bit ( wb , 0 ) ;
+ vp9_wb_write_bit ( wb , cm -> frame_type ) ;
+ vp9_wb_write_bit ( wb , cm -> show_frame ) ;
+ vp9_wb_write_bit ( wb , cm -> error_resilient_mode ) ;
+ if ( cm -> frame_type == KEY_FRAME ) {
+ write_sync_code ( wb ) ;
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+ else {
+ if ( ! cm -> show_frame || ( is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0 ) ) vp9_wb_write_bit ( wb , cm -> intra_only ) ;
+ if ( ! cm -> error_resilient_mode ) vp9_wb_write_literal ( wb , cm -> reset_frame_context , 2 ) ;
+ if ( cm -> intra_only ) {
+ write_sync_code ( wb ) ;
+ if ( cm -> profile > PROFILE_0 ) {
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ }
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+ else {
+ MV_REFERENCE_FRAME ref_fra...
+      
+25769803777 | BLOCK | 
+        {
+ write_sync_code ( wb ) ;
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( ! cm -> show_frame || ( is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0 ) ) vp9_wb_write_bit ( wb , cm -> intra_only ) ;
+ if ( ! cm -> error_resilient_mode ) vp9_wb_write_literal ( wb , cm -> reset_frame_context , 2 ) ;
+ if ( cm -> intra_only ) {
+ write_sync_code ( wb ) ;
+ if ( cm -> profile > PROFILE_0 ) {
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ }
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+ else {
+ MV_REFERENCE_FRAME ref_frame ;
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ for ( ref_frame = LAST_FRAME ;
+ ref_frame <= ALTREF_FRAME ;
+ ++ ref_frame ) {
+ vp9_wb_write_literal ( wb , get_ref_frame_idx ( cpi , ref_frame ) , REF_FRAMES_LOG2 ) ;
+ vp9_wb_write_bit ( wb , cm -> ref_frame_sign_bias [ ref_frame ] ) ;
+ }
+ write_frame_size_with_refs ( cpi , wb ) ;
+ vp9_wb_write_bit ( wb , cm -> allow_high_precision_mv ) ;
+ fix_interp_filter ( cm ) ;
+ write_interp_filter ( cm -> ...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ write_sync_code ( wb ) ;
+ if ( cm -> profile > PROFILE_0 ) {
+ write_bitdepth_colorspace_sampling ( cm , wb ) ;
+ }
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ write_frame_size ( cm , wb ) ;
+ }
+      
+25769803782 | BLOCK | { write_bitdepth_colorspace_sampling ( cm , wb ) ; }
+25769803783 | BLOCK | 
+        {
+ MV_REFERENCE_FRAME ref_frame ;
+ vp9_wb_write_literal ( wb , get_refresh_mask ( cpi ) , REF_FRAMES ) ;
+ for ( ref_frame = LAST_FRAME ;
+ ref_frame <= ALTREF_FRAME ;
+ ++ ref_frame ) {
+ vp9_wb_write_literal ( wb , get_ref_frame_idx ( cpi , ref_frame ) , REF_FRAMES_LOG2 ) ;
+ vp9_wb_write_bit ( wb , cm -> ref_frame_sign_bias [ ref_frame ] ) ;
+ }
+ write_frame_size_with_refs ( cpi , wb ) ;
+ vp9_wb_write_bit ( wb , cm -> allow_high_precision_mv ) ;
+ fix_interp_filter ( cm ) ;
+ write_interp_filter ( cm -> interp_filter , wb ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ vp9_wb_write_literal ( wb , get_ref_frame_idx ( cpi , ref_frame ) , REF_FRAMES_LOG2 ) ;
+ vp9_wb_write_bit ( wb , cm -> ref_frame_sign_bias [ ref_frame ] ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ vp9_wb_write_bit ( wb , cm -> refresh_frame_context ) ;
+ vp9_wb_write_bit ( wb , cm -> frame_parallel_decoding_mode ) ;
+ }
+      
+30064771072 | CALL | const cm = & cpi -> common
+30064771073 | CALL | & cpi -> common
+30064771074 | CALL | cpi -> common
+30064771075 | CALL | vp9_wb_write_literal ( wb , VP9_FRAME_MARKER , 2 )
+30064771076 | CALL | write_profile ( cm -> profile , wb )
+30064771077 | CALL | cm -> profile
+30064771078 | CALL | vp9_wb_write_bit ( wb , 0 )
+30064771079 | CALL | vp9_wb_write_bit ( wb , cm -> frame_type )
+30064771080 | CALL | cm -> frame_type
+30064771081 | CALL | vp9_wb_write_bit ( wb , cm -> show_frame )
+30064771082 | CALL | cm -> show_frame
+30064771083 | CALL | vp9_wb_write_bit ( wb , cm -> error_resilient_mode )
+30064771084 | CALL | cm -> error_resilient_mode
+30064771085 | CALL | cm -> frame_type == KEY_FRAME
+30064771086 | CALL | cm -> frame_type
+30064771087 | CALL | write_sync_code ( wb )
+30064771088 | CALL | write_bitdepth_colorspace_sampling ( cm , wb )
+30064771089 | CALL | write_frame_size ( cm , wb )
+30064771090 | CALL | 
+        ! cm -> show_frame || ( is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0 )
+      
+30064771091 | CALL | ! cm -> show_frame
+30064771092 | CALL | cm -> show_frame
+30064771093 | CALL | is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0
+30064771094 | CALL | is_two_pass_svc ( cpi )
+30064771095 | CALL | cm -> error_resilient_mode == 0
+30064771096 | CALL | cm -> error_resilient_mode
+30064771097 | CALL | vp9_wb_write_bit ( wb , cm -> intra_only )
+30064771098 | CALL | cm -> intra_only
+30064771099 | CALL | ! cm -> error_resilient_mode
+30064771100 | CALL | cm -> error_resilient_mode
+30064771101 | CALL | vp9_wb_write_literal ( wb , cm -> reset_frame_context , 2 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

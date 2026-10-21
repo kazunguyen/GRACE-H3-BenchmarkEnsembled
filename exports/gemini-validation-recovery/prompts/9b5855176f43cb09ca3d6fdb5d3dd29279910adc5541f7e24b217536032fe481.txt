@@ -1,0 +1,223 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gpg_err_code_t octet_string_from_mpi ( unsigned char * * r_frame , void * space , gcry_mpi_t value , size_t nbytes ) {
+ gpg_err_code_t rc ;
+ size_t nframe , noff , n ;
+ unsigned char * frame ;
+ if ( ! r_frame == ! space ) return GPG_ERR_INV_ARG ;
+ if ( r_frame ) * r_frame = NULL ;
+ rc = gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , NULL , 0 , & nframe , value ) ) ;
+ if ( rc ) return rc ;
+ if ( nframe > nbytes ) return GPG_ERR_TOO_LARGE ;
+ noff = ( nframe < nbytes ) ? nbytes - nframe : 0 ;
+ n = nframe + noff ;
+ if ( space ) frame = space ;
+ else {
+ frame = mpi_is_secure ( value ) ? gcry_malloc_secure ( n ) : gcry_malloc ( n ) ;
+ if ( ! frame ) {
+ rc = gpg_err_code_from_syserror ( ) ;
+ return rc ;
+ }
+ }
+ if ( noff ) memset ( frame , 0 , noff ) ;
+ nframe += noff ;
+ rc = gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , frame + noff , nframe - noff , NULL , value ) ) ;
+ if ( rc ) {
+ gcry_free ( frame ) ;
+ return rc ;
+ }
+ if ( r_frame ) * r_frame = frame ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gpg_err_code_t rc ;
+ size_t nframe , noff , n ;
+ unsigned char * frame ;
+ if ( ! r_frame == ! space ) return GPG_ERR_INV_ARG ;
+ if ( r_frame ) * r_frame = NULL ;
+ rc = gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , NULL , 0 , & nframe , value ) ) ;
+ if ( rc ) return rc ;
+ if ( nframe > nbytes ) return GPG_ERR_TOO_LARGE ;
+ noff = ( nframe < nbytes ) ? nbytes - nframe : 0 ;
+ n = nframe + noff ;
+ if ( space ) frame = space ;
+ else {
+ frame = mpi_is_secure ( value ) ? gcry_malloc_secure ( n ) : gcry_malloc ( n ) ;
+ if ( ! frame ) {
+ rc = gpg_err_code_from_syserror ( ) ;
+ return rc ;
+ }
+ }
+ if ( noff ) memset ( frame , 0 , noff ) ;
+ nframe += noff ;
+ rc = gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , frame + noff , nframe - noff , NULL , value ) ) ;
+ if ( rc ) {
+ gcry_free ( frame ) ;
+ return rc ;
+ }
+ if ( r_frame ) * r_frame = frame ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ frame = mpi_is_secure ( value ) ? gcry_malloc_secure ( n ) : gcry_malloc ( n ) ;
+ if ( ! frame ) {
+ rc = gpg_err_code_from_syserror ( ) ;
+ return rc ;
+ }
+ }
+      
+25769803783 | BLOCK | { rc = gpg_err_code_from_syserror ( ) ; return rc ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { gcry_free ( frame ) ; return rc ; }
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | ! r_frame == ! space
+30064771073 | CALL | ! r_frame
+30064771074 | CALL | ! space
+30064771075 | CALL | r_frame != NULL
+30064771076 | CALL | * r_frame = NULL
+30064771077 | CALL | * r_frame
+30064771078 | CALL | 
+        rc = gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , NULL , 0 , & nframe , value ) )
+      
+30064771079 | CALL | 
+        gcry_err_code ( gcry_mpi_print ( GCRYMPI_FMT_USG , NULL , 0 , & nframe , value ) )
+      
+30064771080 | CALL | gcry_mpi_print ( GCRYMPI_FMT_USG , NULL , 0 , & nframe , value )
+30064771081 | CALL | & nframe
+30064771082 | CALL | rc != 0
+30064771083 | CALL | nframe > nbytes
+30064771084 | CALL | noff = ( nframe < nbytes ) ? nbytes - nframe : 0
+30064771085 | CALL | ( nframe < nbytes ) ? nbytes - nframe : 0
+30064771086 | CALL | nframe < nbytes
+30064771087 | CALL | nbytes - nframe
+30064771088 | CALL | n = nframe + noff
+30064771089 | CALL | nframe + noff
+30064771090 | CALL | space != NULL
+30064771091 | CALL | frame = space
+30064771092 | CALL | frame = mpi_is_secure ( value ) ? gcry_malloc_secure ( n ) : gcry_malloc ( n )
+30064771093 | CALL | mpi_is_secure ( value ) ? gcry_malloc_secure ( n ) : gcry_malloc ( n )
+30064771094 | CALL | mpi_is_secure ( value )
+30064771095 | CALL | gcry_malloc_secure ( n )
+30064771096 | CALL | gcry_malloc ( n )
+30064771097 | CALL | ! frame
+30064771098 | CALL | rc = gpg_err_code_from_syserror ( )
+30064771099 | CALL | gpg_err_code_from_syserror ( )
+30064771100 | CALL | noff != 0
+EDGES:
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803778 -> 30064771076 [AST]
+25769803781 -> 30064771091 [AST]
+25769803782 -> 30064771092 [AST]
+25769803783 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771100 [CDG]
+30064771090 -> 30064771097 [CDG]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771093 [CDG]
+30064771090 -> 30064771092 [CDG]
+30064771090 -> 30064771091 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+gcry_error_t gcry_mpi_aprint ( enum gcry_mpi_format format , unsigned char * * buffer , size_t * nwritten , struct gcry_mpi * a ) {
+ size_t n ;
+ gcry_error_t rc ;
+ * buffer = NULL ;
+ rc = gcry_mpi_print ( format , NULL , 0 , & n , a ) ;
+ if ( rc ) return rc ;
+ * buffer = mpi_is_secure ( a ) ? gcry_malloc_secure ( n ? n : 1 ) : gcry_malloc ( n ? n : 1 ) ;
+ if ( ! * buffer ) return gpg_error_from_syserror ( ) ;
+ rc = gcry_mpi_print ( format , * buffer , n , & n , a ) ;
+ if ( rc ) {
+ gcry_free ( * buffer ) ;
+ * buffer = NULL ;
+ }
+ else if ( nwritten ) *
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,209 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dwarf_elf_object_access_get_section_info ( void * obj_in , Dwarf_Half section_index , Dwarf_Obj_Access_Section * ret_scn , int * error ) {
+ dwarf_elf_object_access_internals_t * obj = ( dwarf_elf_object_access_internals_t * ) obj_in ;
+ Elf32_Shdr * shdr32 = 0 ;
+ # ifdef HAVE_ELF64_GETSHDR Elf64_Shdr * shdr64 = 0 ;
+ # endif Elf_Scn * scn = 0 ;
+ scn = elf_getscn ( obj -> elf , section_index ) ;
+ if ( scn == NULL ) {
+ * error = DW_DLE_MDE ;
+ return DW_DLV_ERROR ;
+ }
+ if ( obj -> is_64bit ) {
+ # ifdef HAVE_ELF64_GETSHDR shdr64 = elf64_getshdr ( scn ) ;
+ if ( shdr64 == NULL ) {
+ * error = DW_DLE_ELF_GETSHDR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ ret_scn -> type = shdr64 -> sh_type ;
+ ret_scn -> size = shdr64 -> sh_size ;
+ ret_scn -> addr = shdr64 -> sh_addr ;
+ ret_scn -> link = shdr64 -> sh_link ;
+ ret_scn -> info = shdr64 -> sh_info ;
+ ret_scn -> entrysize = shdr64 -> sh_entsize ;
+ ret_scn -> name = elf_strptr ( obj -> elf , obj -> ehdr64 -> e_shstrndx , shdr64 -> sh_name ) ;
+ if ( ret_scn -> name == NULL ) {
+ * error = DW_DLE_ELF_STRPTR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ return DW_DLV_OK ;
+ # else * error = DW_DLE_MISSING_ELF64_SUPPORT ;
+ return DW_DLV_ERROR ;
+ # endif }
+ if ( ( shdr32 = elf32_getshdr ( scn ) ) == NULL ) {
+ * error = DW_DLE_ELF_GETSHDR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ ret_scn -> type = shdr32 -> sh_type ;
+ ret_scn -> size = shdr32 -> sh_size ;
+ ret_scn -> addr = shdr32 -> sh_addr ;
+ ret_scn -> link = shdr32 -> sh_link ;
+ ret_scn -> info = shdr32 -> sh_info ;
+ ret_scn -> entrysize = shdr32 -> sh_entsize ;
+ ret_scn -> name = elf_strptr ( obj -> elf , obj -> ehdr32 -> e_shstrndx , shdr32 -> sh_name ) ;
+ if ( ret_scn -> name == NULL ) {
+ * error = DW_DLE_ELF_STRPTR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ return DW_DLV_OK ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ dwarf_elf_object_access_internals_t * obj = ( dwarf_elf_object_access_internals_t * ) obj_in ;
+ Elf32_Shdr * shdr32 = 0 ;
+ # ifdef HAVE_ELF64_GETSHDR Elf64_Shdr * shdr64 = 0 ;
+ # endif Elf_Scn * scn = 0 ;
+ scn = elf_getscn ( obj -> elf , section_index ) ;
+ if ( scn == NULL ) {
+ * error = DW_DLE_MDE ;
+ return DW_DLV_ERROR ;
+ }
+ if ( obj -> is_64bit ) {
+ # ifdef HAVE_ELF64_GETSHDR shdr64 = elf64_getshdr ( scn ) ;
+ if ( shdr64 == NULL ) {
+ * error = DW_DLE_ELF_GETSHDR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ ret_scn -> type = shdr64 -> sh_type ;
+ ret_scn -> size = shdr64 -> sh_size ;
+ ret_scn -> addr = shdr64 -> sh_addr ;
+ ret_scn -> link = shdr64 -> sh_link ;
+ ret_scn -> info = shdr64 -> sh_info ;
+ ret_scn -> entrysize = shdr64 -> sh_entsize ;
+ ret_scn -> name = elf_strptr ( obj -> elf , obj -> ehdr64 -> e_shstrndx , shdr64 -> sh_name ) ;
+ if ( ret_scn -> name == NULL ) {
+ * error = DW_DLE_ELF_STRPTR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ return DW_DLV_OK ;
+ # else * error = DW_DLE_MISSING_E...
+      
+25769803777 | BLOCK | { * error = DW_DLE_MDE ; return DW_DLV_ERROR ; }
+30064771072 | CALL | obj = ( dwarf_elf_object_access_internals_t * ) obj_in
+30064771073 | CALL | ( dwarf_elf_object_access_internals_t * ) obj_in
+30064771074 | CALL | shdr32 = 0
+30064771075 | CALL | scn = elf_getscn ( obj -> elf , section_index )
+30064771076 | CALL | elf_getscn ( obj -> elf , section_index )
+30064771077 | CALL | obj -> elf
+30064771078 | CALL | scn == NULL
+30064771079 | CALL | * error = DW_DLE_MDE
+30064771080 | CALL | * error
+47244640256 | CONTROL_STRUCTURE | if ( scn == NULL ) { * error = DW_DLE_MDE ; return DW_DLV_ERROR ; }
+55834574848 | FIELD_IDENTIFIER | elf
+68719476736 | IDENTIFIER | obj
+68719476737 | IDENTIFIER | obj_in
+68719476738 | IDENTIFIER | shdr32
+68719476739 | IDENTIFIER | <unknown> scn
+68719476740 | IDENTIFIER | obj
+68719476741 | IDENTIFIER | section_index
+68719476742 | IDENTIFIER | <unknown> scn
+68719476743 | IDENTIFIER | <unknown> NULL
+68719476744 | IDENTIFIER | error
+68719476745 | IDENTIFIER | <unknown> DW_DLE_MDE
+68719476746 | IDENTIFIER | <unknown> DW_DLV_ERROR
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | dwarf_elf_object_access_internals_t * obj
+94489280513 | LOCAL | Elf32_Shdr * shdr32
+94489280514 | LOCAL | <unknown> DW_DLV_ERROR
+94489280515 | LOCAL | <unknown> DW_DLE_MDE
+94489280516 | LOCAL | <unknown> NULL
+94489280517 | LOCAL | <unknown> scn
+107374182400 | METHOD | 
+        static int dwarf_elf_object_access_get_section_info ( void * obj_in , Dwarf_Half section_index , Dwarf_Obj_Access_Section * ret_scn , int * error ) {
+ dwarf_elf_object_access_internals_t * obj = ( dwarf_elf_object_access_internals_t * ) obj_in ;
+ Elf32_Shdr * shdr32 = 0 ;
+ # ifdef HAVE_ELF64_GETSHDR Elf64_Shdr * shdr64 = 0 ;
+ # endif Elf_Scn * scn = 0 ;
+ scn = elf_getscn ( obj -> elf , section_index ) ;
+ if ( scn == NULL ) {
+ * error = DW_DLE_MDE ;
+ return DW_DLV_ERROR ;
+ }
+ if ( obj -> is_64bit ) {
+ # ifdef HAVE_ELF64_GETSHDR shdr64 = elf64_getshdr ( scn ) ;
+ if ( shdr64 == NULL ) {
+ * error = DW_DLE_ELF_GETSHDR_ERROR ;
+ return DW_DLV_ERROR ;
+ }
+ ret_scn -> type = shdr64 -> sh_type ;
+ ret_scn -> size = shdr64 -> sh_size ;
+ ret_scn -> addr = shdr64 -> sh_addr ;
+ ret_scn -> link = shdr64 -> sh_link ;
+ ret_scn -> info = shdr64 -> sh_info ;
+ ret_scn -> entrysize = shdr64 -> sh_entsize ;
+ ret_scn -> name = elf_strptr ( obj -> elf , obj -> ehdr64 -> e_shstrndx , shdr64 -> sh_name ) ;
+ if...
+      
+111669149696 | METHOD_PARAMETER_IN | void * obj_in
+111669149697 | METHOD_PARAMETER_IN | Dwarf_Half section_index
+111669149698 | METHOD_PARAMETER_IN | Dwarf_Obj_Access_Section * ret_scn
+111669149699 | METHOD_PARAMETER_IN | int * error
+115964116992 | METHOD_PARAMETER_OUT | void * obj_in
+115964116993 | METHOD_PARAMETER_OUT | Dwarf_Half section_index
+115964116994 | METHOD_PARAMETER_OUT | Dwarf_Obj_Access_Section * ret_scn
+115964116995 | METHOD_PARAMETER_OUT | int * error
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+25769803777 -> 30064771079 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 90194313216 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 90194313216 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 90194313216 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 68719476739 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

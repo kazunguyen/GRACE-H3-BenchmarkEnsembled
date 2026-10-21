@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pnm_get ( PNMContext * sc , char * str , int buf_size ) {
+ char * s ;
+ int c ;
+ for ( ;
+ ;
+ ) {
+ c = * sc -> bytestream ++ ;
+ if ( c == '#' ) {
+ do {
+ c = * sc -> bytestream ++ ;
+ }
+ while ( c != '\n' && sc -> bytestream < sc -> bytestream_end ) ;
+ }
+ else if ( ! pnm_space ( c ) ) {
+ break ;
+ }
+ }
+ s = str ;
+ while ( sc -> bytestream < sc -> bytestream_end && ! pnm_space ( c ) ) {
+ if ( ( s - str ) < buf_size - 1 ) * s ++ = c ;
+ c = * sc -> bytestream ++ ;
+ }
+ * s = '\0' ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * s ;
+ int c ;
+ for ( ;
+ ;
+ ) {
+ c = * sc -> bytestream ++ ;
+ if ( c == '#' ) {
+ do {
+ c = * sc -> bytestream ++ ;
+ }
+ while ( c != '\n' && sc -> bytestream < sc -> bytestream_end ) ;
+ }
+ else if ( ! pnm_space ( c ) ) {
+ break ;
+ }
+ }
+ s = str ;
+ while ( sc -> bytestream < sc -> bytestream_end && ! pnm_space ( c ) ) {
+ if ( ( s - str ) < buf_size - 1 ) * s ++ = c ;
+ c = * sc -> bytestream ++ ;
+ }
+ * s = '\0' ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ c = * sc -> bytestream ++ ;
+ if ( c == '#' ) {
+ do {
+ c = * sc -> bytestream ++ ;
+ }
+ while ( c != '\n' && sc -> bytestream < sc -> bytestream_end ) ;
+ }
+ else if ( ! pnm_space ( c ) ) {
+ break ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ do {
+ c = * sc -> bytestream ++ ;
+ }
+ while ( c != '\n' && sc -> bytestream < sc -> bytestream_end ) ;
+ }
+      
+25769803780 | BLOCK | { c = * sc -> bytestream ++ ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { break ; }
+25769803783 | BLOCK | 
+        {
+ if ( ( s - str ) < buf_size - 1 ) * s ++ = c ;
+ c = * sc -> bytestream ++ ;
+ }
+      
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | c = * sc -> bytestream ++
+30064771073 | CALL | * sc -> bytestream ++
+30064771074 | CALL | sc -> bytestream ++
+30064771075 | CALL | sc -> bytestream
+30064771076 | CALL | c == '#'
+30064771077 | CALL | c = * sc -> bytestream ++
+30064771078 | CALL | * sc -> bytestream ++
+30064771079 | CALL | sc -> bytestream ++
+30064771080 | CALL | sc -> bytestream
+30064771081 | CALL | c != '\n' && sc -> bytestream < sc -> bytestream_end
+30064771082 | CALL | c != '\n'
+30064771083 | CALL | sc -> bytestream < sc -> bytestream_end
+30064771084 | CALL | sc -> bytestream
+30064771085 | CALL | sc -> bytestream_end
+30064771086 | CALL | ! pnm_space ( c )
+30064771087 | CALL | pnm_space ( c )
+30064771088 | CALL | s = str
+30064771089 | CALL | sc -> bytestream < sc -> bytestream_end && ! pnm_space ( c )
+30064771090 | CALL | sc -> bytestream < sc -> bytestream_end
+30064771091 | CALL | sc -> bytestream
+30064771092 | CALL | sc -> bytestream_end
+30064771093 | CALL | ! pnm_space ( c )
+30064771094 | CALL | pnm_space ( c )
+30064771095 | CALL | ( s - str ) < buf_size - 1
+30064771096 | CALL | s - str
+30064771097 | CALL | buf_size - 1
+30064771098 | CALL | * s ++ = c
+30064771099 | CALL | * s ++
+30064771100 | CALL | s ++
+30064771101 | CALL | c = * sc -> bytestream ++
+30064771102 | CALL | * sc -> bytestream ++
+EDGES:
+25769803776 -> 30064771088 [AST]
+25769803778 -> 30064771072 [AST]
+25769803780 -> 30064771077 [AST]
+25769803783 -> 30064771101 [AST]
+25769803784 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771079 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771091 [REACHING_DEF]
+30064771075 -> 30064771080 [REACHING_DEF]
+30064771076 -> 30064771072 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771075 [CDG]
+30064771076 -> 30064771074 [CDG]
+30064771076 -> 30064771073 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771080 [CDG]
+30064771081 -> 30064771079 [CDG]
+30064771081 -> 30064771078 [CDG]
+30064771081 -> 30064771077 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771081 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771085 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * strsep_quotes ( char * * stringp , const char delim ) {
+ char * s ;
+ int c ;
+ char * tok ;
+ if ( ( s = * stringp ) == NULL ) return ( NULL ) ;
+ for ( tok = s ;
+ ;
+ ) {
+ if ( * s == '\"' ) while ( * ( ++ s ) != '\"' && * s != '\0' ) ;
+ c = * s ++ ;
+ if ( c == delim || c == 0 ) {
+ if ( c == 0 ) s = NULL ;
+ else s [ - 1 ] = 0 ;
+ * stringp = s ;
+ return ( tok ) ;
+ }
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

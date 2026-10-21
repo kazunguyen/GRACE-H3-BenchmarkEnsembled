@@ -1,0 +1,301 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rtsp_read_packet(AVFormatContext *s,
+
+                            AVPacket *pkt)
+
+{
+
+    RTSPState *rt = s->priv_data;
+
+    RTSPStream *rtsp_st;
+
+    int ret, len;
+
+    uint8_t buf[RTP_MAX_PACKET_LENGTH];
+
+
+
+    /* get next frames from the same RTP packet */
+
+    if (rt->cur_rtp) {
+
+        ret = rtp_parse_packet(rt->cur_rtp, pkt, NULL, 0);
+
+        if (ret == 0) {
+
+            rt->cur_rtp = NULL;
+
+            return 0;
+
+        } else if (ret == 1) {
+
+            return 0;
+
+        } else {
+
+            rt->cur_rtp = NULL;
+
+        }
+
+    }
+
+
+
+    /* read next RTP packet */
+
+ redo:
+
+    switch(rt->protocol) {
+
+    default:
+
+    case RTSP_PROTOCOL_RTP_TCP:
+
+        len = tcp_read_packet(s, &rtsp_st, buf, sizeof(buf));
+
+        break;
+
+    case RTSP_PROTOCOL_RTP_UDP:
+
+    case RTSP_PROTOCOL_RTP_UDP_MULTICAST:
+
+        len = udp_read_packet(s, &rtsp_st, buf, sizeof(buf));
+
+        if (rtsp_st->rtp_ctx)
+
+            rtp_check_and_send_back_rr(rtsp_st->rtp_ctx, len);
+
+        break;
+
+    }
+
+    if (len < 0)
+
+        return AVERROR_IO;
+
+    ret = rtp_parse_packet(rtsp_st->rtp_ctx, pkt, buf, len);
+
+    if (ret < 0)
+
+        goto redo;
+
+    if (ret == 1) {
+
+        /* more packets may follow, so we save the RTP context */
+
+        rt->cur_rtp = rtsp_st->rtp_ctx;
+
+    }
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+18 -> 22 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+42 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+42 -> 51 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 64 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+58 -> 65 [IS_AST_PARENT]
+53 -> 58 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+68 -> 73 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+68 -> 76 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+53 -> 67 [IS_AST_PARENT]
+35 -> 53 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int tcp_read_packet(AVFormatContext *s, RTSPStream **prtsp_st,
+
+                           uint8_t *buf, int buf_size)
+
+{
+
+    RTSPState *rt = s->priv_data;
+
+    int id, len, i, ret;
+
+    RTSPStream *rtsp_st;
+
+
+
+#ifdef DEBUG_RTP_TCP
+
+    dprintf(s, "tcp_read_packet:\n");
+
+#endif
+
+ redo:
+
+    for(;;) {
+
+        RTSPMessageHeader reply;
+
+
+
+        ret = rtsp_read_reply(s, &reply, NULL, 1);
+
+        if (ret == -1)
+
+            return -1;
+
+        if (ret == 1) /* received '$' */
+
+            break;
+
+        /* XXX: parse message */
+
+        if (rt->state != RTSP_STATE_PLAYING)
+
+            return 0;
+
+    }
+
+    ret = url_read_complete(rt->rtsp_hd, buf, 3);
+
+    if (ret != 3)
+
+        return -1;
+
+    id = buf[0];
+
+    len = AV_RB16(buf + 1);
+
+#ifdef DEBUG_RTP_TCP
+
+    dprintf(s, "id=%d len=%d\n", id, len);
+
+#endif
+
+    if (len > buf_size || len < 12)
+
+        goto redo;
+
+    /* get the data */
+
+    ret = url_read_complete(rt->rtsp_hd, buf, len);
+
+    if (ret != len)
+
+        return -1;
+
+    if (rt->transport == RTSP_TRANSPORT_RDT &&
+
+        ff_rdt_parse_header(buf, len, &id, NULL, NULL, NULL, NULL) < 0)
+
+        return -1;
+
+
+
+    /* find the matching stream */
+
+    for(i = 0; i < rt->nb_rtsp_streams; i++) {
+
+        rtsp_st = rt->rtsp_streams[i];
+
+        if (id >= rtsp_st->interleaved_min &&
+
+            id <= rtsp_st->interleaved_max)
+
+            goto found;
+
+    }
+
+    goto redo;
+
+ found:
+
+    *prtsp_st = rtsp_st;
+
+    return len;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

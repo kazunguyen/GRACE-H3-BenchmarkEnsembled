@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int aes_ocb_ctrl ( EVP_CIPHER_CTX * c , int type , int arg , void * ptr ) {
+ EVP_AES_OCB_CTX * octx = EVP_C_DATA ( EVP_AES_OCB_CTX , c ) ;
+ EVP_CIPHER_CTX * newc ;
+ EVP_AES_OCB_CTX * new_octx ;
+ switch ( type ) {
+ case EVP_CTRL_INIT : octx -> key_set = 0 ;
+ octx -> iv_set = 0 ;
+ octx -> ivlen = EVP_CIPHER_CTX_iv_length ( c ) ;
+ octx -> iv = EVP_CIPHER_CTX_iv_noconst ( c ) ;
+ octx -> taglen = 16 ;
+ octx -> data_buf_len = 0 ;
+ octx -> aad_buf_len = 0 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_IVLEN : if ( arg <= 0 || arg > 15 ) return 0 ;
+ octx -> ivlen = arg ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_TAG : if ( ! ptr ) {
+ if ( arg < 0 || arg > 16 ) return 0 ;
+ octx -> taglen = arg ;
+ return 1 ;
+ }
+ if ( arg != octx -> taglen || EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( octx -> tag , ptr , arg ) ;
+ return 1 ;
+ case EVP_CTRL_AEAD_GET_TAG : if ( arg != octx -> taglen || ! EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( ptr , octx -> tag , arg ) ;
+ return 1 ;
+ case EVP_CTRL_COPY : newc = ( EVP_CIPHER_CTX * ) ptr ;
+ new_octx = EVP_C_DATA ( EVP_AES_OCB_CTX , newc ) ;
+ return CRYPTO_ocb128_copy_ctx ( & new_octx -> ocb , & octx -> ocb , & new_octx -> ksenc . ks , & new_octx -> ksdec . ks ) ;
+ default : return - 1 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ EVP_AES_OCB_CTX * octx = EVP_C_DATA ( EVP_AES_OCB_CTX , c ) ;
+ EVP_CIPHER_CTX * newc ;
+ EVP_AES_OCB_CTX * new_octx ;
+ switch ( type ) {
+ case EVP_CTRL_INIT : octx -> key_set = 0 ;
+ octx -> iv_set = 0 ;
+ octx -> ivlen = EVP_CIPHER_CTX_iv_length ( c ) ;
+ octx -> iv = EVP_CIPHER_CTX_iv_noconst ( c ) ;
+ octx -> taglen = 16 ;
+ octx -> data_buf_len = 0 ;
+ octx -> aad_buf_len = 0 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_IVLEN : if ( arg <= 0 || arg > 15 ) return 0 ;
+ octx -> ivlen = arg ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_TAG : if ( ! ptr ) {
+ if ( arg < 0 || arg > 16 ) return 0 ;
+ octx -> taglen = arg ;
+ return 1 ;
+ }
+ if ( arg != octx -> taglen || EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( octx -> tag , ptr , arg ) ;
+ return 1 ;
+ case EVP_CTRL_AEAD_GET_TAG : if ( arg != octx -> taglen || ! EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( ptr , octx -> tag , arg ) ;
+ return 1 ;
+ case EVP_CTRL_COPY : newc = ( EVP_CIPHER_CTX * ) ptr ;
+ new_octx = EVP_C_DATA ( EVP_AES_OCB...
+      
+25769803777 | BLOCK | 
+        {
+ case EVP_CTRL_INIT : octx -> key_set = 0 ;
+ octx -> iv_set = 0 ;
+ octx -> ivlen = EVP_CIPHER_CTX_iv_length ( c ) ;
+ octx -> iv = EVP_CIPHER_CTX_iv_noconst ( c ) ;
+ octx -> taglen = 16 ;
+ octx -> data_buf_len = 0 ;
+ octx -> aad_buf_len = 0 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_IVLEN : if ( arg <= 0 || arg > 15 ) return 0 ;
+ octx -> ivlen = arg ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_TAG : if ( ! ptr ) {
+ if ( arg < 0 || arg > 16 ) return 0 ;
+ octx -> taglen = arg ;
+ return 1 ;
+ }
+ if ( arg != octx -> taglen || EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( octx -> tag , ptr , arg ) ;
+ return 1 ;
+ case EVP_CTRL_AEAD_GET_TAG : if ( arg != octx -> taglen || ! EVP_CIPHER_CTX_encrypting ( c ) ) return 0 ;
+ memcpy ( ptr , octx -> tag , arg ) ;
+ return 1 ;
+ case EVP_CTRL_COPY : newc = ( EVP_CIPHER_CTX * ) ptr ;
+ new_octx = EVP_C_DATA ( EVP_AES_OCB_CTX , newc ) ;
+ return CRYPTO_ocb128_copy_ctx ( & new_octx -> ocb , & octx -> ocb , & new_octx -> ksenc . ks , & new_octx -> ksdec . ks ...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( arg < 0 || arg > 16 ) return 0 ;
+ octx -> taglen = arg ;
+ return 1 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | octx = EVP_C_DATA ( EVP_AES_OCB_CTX , c )
+30064771073 | CALL | EVP_C_DATA ( EVP_AES_OCB_CTX , c )
+30064771074 | CALL | octx -> key_set = 0
+30064771075 | CALL | octx -> key_set
+30064771076 | CALL | octx -> iv_set = 0
+30064771077 | CALL | octx -> iv_set
+30064771078 | CALL | octx -> ivlen = EVP_CIPHER_CTX_iv_length ( c )
+30064771079 | CALL | octx -> ivlen
+30064771080 | CALL | EVP_CIPHER_CTX_iv_length ( c )
+30064771081 | CALL | octx -> iv = EVP_CIPHER_CTX_iv_noconst ( c )
+30064771082 | CALL | octx -> iv
+30064771083 | CALL | EVP_CIPHER_CTX_iv_noconst ( c )
+30064771084 | CALL | octx -> taglen = 16
+30064771085 | CALL | octx -> taglen
+30064771086 | CALL | octx -> data_buf_len = 0
+30064771087 | CALL | octx -> data_buf_len
+30064771088 | CALL | octx -> aad_buf_len = 0
+30064771089 | CALL | octx -> aad_buf_len
+30064771090 | CALL | arg <= 0 || arg > 15
+30064771091 | CALL | arg <= 0
+30064771092 | CALL | arg > 15
+30064771093 | CALL | octx -> ivlen = arg
+30064771094 | CALL | octx -> ivlen
+30064771095 | CALL | ! ptr
+30064771096 | CALL | arg < 0 || arg > 16
+30064771097 | CALL | arg < 0
+30064771098 | CALL | arg > 16
+30064771099 | CALL | octx -> taglen = arg
+30064771100 | CALL | octx -> taglen
+30064771101 | CALL | arg != octx -> taglen || EVP_CIPHER_CTX_encrypting ( c )
+30064771102 | CALL | arg != octx -> taglen
+30064771103 | CALL | octx -> taglen
+30064771104 | CALL | EVP_CIPHER_CTX_encrypting ( c )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771093 [AST]
+25769803779 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771092 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771092 [AST]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771093 [CDG]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771090 -> 30064771092 [POST_DOMINATE]
+30064771091 -> 30064771092 [CDG]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771092 [REACHING_DEF]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 300647710
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

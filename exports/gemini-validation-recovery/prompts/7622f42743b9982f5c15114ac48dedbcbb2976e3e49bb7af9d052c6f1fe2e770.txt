@@ -1,0 +1,242 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rm_read_multi ( AVFormatContext * s , AVIOContext * pb , AVStream * st , char * mime ) {
+ int number_of_streams = avio_rb16 ( pb ) ;
+ int number_of_mdpr ;
+ int i , ret ;
+ unsigned size2 ;
+ for ( i = 0 ;
+ i < number_of_streams ;
+ i ++ ) avio_rb16 ( pb ) ;
+ number_of_mdpr = avio_rb16 ( pb ) ;
+ if ( number_of_mdpr != 1 ) {
+ avpriv_request_sample ( s , "MLTI with multiple (%d) MDPR" , number_of_mdpr ) ;
+ }
+ for ( i = 0 ;
+ i < number_of_mdpr ;
+ i ++ ) {
+ AVStream * st2 ;
+ if ( i > 0 ) {
+ st2 = avformat_new_stream ( s , NULL ) ;
+ if ( ! st2 ) {
+ ret = AVERROR ( ENOMEM ) ;
+ return ret ;
+ }
+ st2 -> id = st -> id + ( i << 16 ) ;
+ st2 -> codecpar -> bit_rate = st -> codecpar -> bit_rate ;
+ st2 -> start_time = st -> start_time ;
+ st2 -> duration = st -> duration ;
+ st2 -> codecpar -> codec_type = AVMEDIA_TYPE_DATA ;
+ st2 -> priv_data = ff_rm_alloc_rmstream ( ) ;
+ if ( ! st2 -> priv_data ) return AVERROR ( ENOMEM ) ;
+ }
+ else st2 = st ;
+ size2 = avio_rb32 ( pb ) ;
+ ret = ff_rm_read_mdpr_codecdata ( s , s -> pb , st2 , st2 -> priv_data , size2 , mime ) ;
+ if ( ret < 0 ) return ret ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int number_of_streams = avio_rb16 ( pb ) ;
+ int number_of_mdpr ;
+ int i , ret ;
+ unsigned size2 ;
+ for ( i = 0 ;
+ i < number_of_streams ;
+ i ++ ) avio_rb16 ( pb ) ;
+ number_of_mdpr = avio_rb16 ( pb ) ;
+ if ( number_of_mdpr != 1 ) {
+ avpriv_request_sample ( s , "MLTI with multiple (%d) MDPR" , number_of_mdpr ) ;
+ }
+ for ( i = 0 ;
+ i < number_of_mdpr ;
+ i ++ ) {
+ AVStream * st2 ;
+ if ( i > 0 ) {
+ st2 = avformat_new_stream ( s , NULL ) ;
+ if ( ! st2 ) {
+ ret = AVERROR ( ENOMEM ) ;
+ return ret ;
+ }
+ st2 -> id = st -> id + ( i << 16 ) ;
+ st2 -> codecpar -> bit_rate = st -> codecpar -> bit_rate ;
+ st2 -> start_time = st -> start_time ;
+ st2 -> duration = st -> duration ;
+ st2 -> codecpar -> codec_type = AVMEDIA_TYPE_DATA ;
+ st2 -> priv_data = ff_rm_alloc_rmstream ( ) ;
+ if ( ! st2 -> priv_data ) return AVERROR ( ENOMEM ) ;
+ }
+ else st2 = st ;
+ size2 = avio_rb32 ( pb ) ;
+ ret = ff_rm_read_mdpr_codecdata ( s , s -> pb , st2 , st2 -> priv_data , size2 , mime ) ;
+ if ( ret < 0 ) return ret...
+      
+25769803777 | BLOCK | 
+        {
+ avpriv_request_sample ( s , "MLTI with multiple (%d) MDPR" , number_of_mdpr ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ AVStream * st2 ;
+ if ( i > 0 ) {
+ st2 = avformat_new_stream ( s , NULL ) ;
+ if ( ! st2 ) {
+ ret = AVERROR ( ENOMEM ) ;
+ return ret ;
+ }
+ st2 -> id = st -> id + ( i << 16 ) ;
+ st2 -> codecpar -> bit_rate = st -> codecpar -> bit_rate ;
+ st2 -> start_time = st -> start_time ;
+ st2 -> duration = st -> duration ;
+ st2 -> codecpar -> codec_type = AVMEDIA_TYPE_DATA ;
+ st2 -> priv_data = ff_rm_alloc_rmstream ( ) ;
+ if ( ! st2 -> priv_data ) return AVERROR ( ENOMEM ) ;
+ }
+ else st2 = st ;
+ size2 = avio_rb32 ( pb ) ;
+ ret = ff_rm_read_mdpr_codecdata ( s , s -> pb , st2 , st2 -> priv_data , size2 , mime ) ;
+ if ( ret < 0 ) return ret ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ st2 = avformat_new_stream ( s , NULL ) ;
+ if ( ! st2 ) {
+ ret = AVERROR ( ENOMEM ) ;
+ return ret ;
+ }
+ st2 -> id = st -> id + ( i << 16 ) ;
+ st2 -> codecpar -> bit_rate = st -> codecpar -> bit_rate ;
+ st2 -> start_time = st -> start_time ;
+ st2 -> duration = st -> duration ;
+ st2 -> codecpar -> codec_type = AVMEDIA_TYPE_DATA ;
+ st2 -> priv_data = ff_rm_alloc_rmstream ( ) ;
+ if ( ! st2 -> priv_data ) return AVERROR ( ENOMEM ) ;
+ }
+      
+25769803780 | BLOCK | { ret = AVERROR ( ENOMEM ) ; return ret ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | number_of_streams = avio_rb16 ( pb )
+30064771073 | CALL | avio_rb16 ( pb )
+30064771074 | CALL | i = 0
+30064771075 | CALL | i < number_of_streams
+30064771076 | CALL | i ++
+30064771077 | CALL | avio_rb16 ( pb )
+30064771078 | CALL | number_of_mdpr = avio_rb16 ( pb )
+30064771079 | CALL | avio_rb16 ( pb )
+30064771080 | CALL | number_of_mdpr != 1
+30064771081 | CALL | 
+        avpriv_request_sample ( s , "MLTI with multiple (%d) MDPR" , number_of_mdpr )
+      
+30064771082 | CALL | i = 0
+30064771083 | CALL | i < number_of_mdpr
+30064771084 | CALL | i ++
+30064771085 | CALL | i > 0
+30064771086 | CALL | st2 = avformat_new_stream ( s , NULL )
+30064771087 | CALL | avformat_new_stream ( s , NULL )
+30064771088 | CALL | ! st2
+30064771089 | CALL | ret = AVERROR ( ENOMEM )
+30064771090 | CALL | AVERROR ( ENOMEM )
+30064771091 | CALL | st2 -> id = st -> id + ( i << 16 )
+30064771092 | CALL | st2 -> id
+30064771093 | CALL | st -> id + ( i << 16 )
+30064771094 | CALL | st -> id
+30064771095 | CALL | i << 16
+30064771096 | CALL | st2 -> codecpar -> bit_rate = st -> codecpar -> bit_rate
+30064771097 | CALL | st2 -> codecpar -> bit_rate
+30064771098 | CALL | st2 -> codecpar
+30064771099 | CALL | st -> codecpar -> bit_rate
+30064771100 | CALL | st -> codecpar
+30064771101 | CALL | st2 -> start_time = st -> start_time
+30064771102 | CALL | st2 -> start_time
+30064771103 | CALL | st -> start_time
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771091 [AST]
+25769803779 -> 30064771096 [AST]
+25769803779 -> 30064771101 [AST]
+25769803780 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771098 [CDG]
+30064771088 -> 30064771101 [CDG]
+30064771088 -> 30064771100 [CDG]
+30064771088 -> 30064771103 [CDG]
+30064771088 -> 30064771102 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771094 [CDG]
+30064771088 -> 30064771097 [CDG]
+30064771088 -> 30064771096 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771093 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771093 [AST]
+30064771091 -> 30064771093 [POST_DOMINATE]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771095 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771095 [AST]
+30064771093 -> 30064771091 [CFG]
+30064771093 -> 30064771091 [DOMINATE]
+30064771093 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,144 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_visitor_out_empty(TestOutputVisitorData *data,
+
+                                   const void *unused)
+
+{
+
+    QObject *arg;
+
+
+
+    arg = qmp_output_get_qobject(data->qov);
+
+    g_assert(qobject_type(arg) == QTYPE_QNULL);
+
+
+
+    qobject_decref(arg);
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 33 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+21 -> 24 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 41 [IS_AST_PARENT]
+3 -> 42 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+43 -> 47 [IS_AST_PARENT]
+3 -> 43 [IS_AST_PARENT]
+50 -> 44 [FLOWS_TO]
+44 -> 47 [FLOWS_TO]
+47 -> 5 [FLOWS_TO]
+5 -> 9 [FLOWS_TO]
+9 -> 20 [FLOWS_TO]
+20 -> 34 [FLOWS_TO]
+34 -> 51 [FLOWS_TO]
+20 -> 52 [USE]
+25 -> 52 [USE]
+44 -> 53 [DEF]
+9 -> 53 [USE]
+17 -> 53 [USE]
+9 -> 54 [USE]
+16 -> 54 [USE]
+20 -> 55 [USE]
+25 -> 55 [USE]
+5 -> 56 [DEF]
+6 -> 56 [DEF]
+9 -> 56 [DEF]
+10 -> 56 [DEF]
+20 -> 56 [USE]
+31 -> 56 [USE]
+34 -> 56 [USE]
+39 -> 56 [USE]
+9 -> 57 [USE]
+10 -> 57 [USE]
+47 -> 58 [DEF]
+9 -> 59 [USE]
+16 -> 59 [USE]
+44 -> 9 [REACHES]
+9 -> 20 [REACHES]
+9 -> 34 [REACHES]
+50 -> 44 [CONTROLS]
+50 -> 47 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_visitor_out_empty(TestOutputVisitorData *data,
+
+                                   const void *unused)
+
+{
+
+    QObject *arg;
+
+
+
+    arg = qmp_output_get_qobject(data->qov);
+
+    g_assert(qobject_type(arg) == QTYPE_QNULL);
+
+    /* Check that qnull reference counting is sane */
+
+    g_assert(arg->refcnt == 2);
+
+    qobject_decref(arg);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

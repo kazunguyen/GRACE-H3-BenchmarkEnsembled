@@ -1,0 +1,259 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+DECLARE_WEIGHT(sse2)
+
+DECLARE_WEIGHT(ssse3)
+
+
+
+/** @{ */
+
+/**
+
+ * Define one qpel function.
+
+ * LOOPSIZE must be already set to the number of pixels processed per
+
+ * iteration in the inner loop of the called functions.
+
+ * COFF(x) must be already defined so as to provide the offset into any
+
+ * array of coeffs used by the called function for the qpel position x.
+
+ */
+
+#define QPEL_FUNC_DECL(OP, SIZE, PH, PV, OPT)                           \
+
+static void OP ## rv40_qpel ##SIZE ##_mc ##PH ##PV ##OPT(uint8_t *dst,  \
+
+                                                         uint8_t *src,  \
+
+                                                         int stride)    \
+
+{                                                                       \
+
+    int i;                                                              \
+
+    if (PH && PV) {                                                     \
+
+        DECLARE_ALIGNED(16, uint8_t, tmp)[SIZE * (SIZE + 5)];           \
+
+        uint8_t *tmpptr = tmp + SIZE * 2;                               \
+
+        src -= stride * 2;                                              \
+
+                                                                        \
+
+        for (i = 0; i < SIZE; i += LOOPSIZE)                            \
+
+            ff_put_rv40_qpel_h ##OPT(tmp + i, SIZE, src + i, stride,    \
+
+                                     SIZE + 5, HCOFF(PH));              \
+
+        for (i = 0; i < SIZE; i += LOOPSIZE)                            \
+
+            ff_ ##OP ##rv40_qpel_v ##OPT(dst + i, stride, tmpptr + i,   \
+
+                                         SIZE, SIZE, VCOFF(PV));        \
+
+    } else if (PV) {                                                    \
+
+        for (i = 0; i < SIZE; i += LOOPSIZE)                            \
+
+            ff_ ##OP ##rv40_qpel_v ## OPT(dst + i, stride, src + i,     \
+
+                                          stride, SIZE, VCOFF(PV));     \
+
+    } else {                                                            \
+
+        for (i = 0; i < SIZE; i += LOOPSIZE)                            \
+
+            ff_ ##OP ##rv40_qpel_h ## OPT(dst + i, stride, src + i,     \
+
+                                          stride, SIZE, HCOFF(PH));     \
+
+    }                                                                   \
+
+};
+
+
+
+/** Declare functions for sizes 8 and 16 and given operations
+
+ *  and qpel position. */
+
+#define QPEL_FUNCS_DECL(OP, PH, PV, OPT) \
+
+    QPEL_FUNC_DECL(OP,  8, PH, PV, OPT)  \
+
+    QPEL_FUNC_DECL(OP, 16, PH, PV, OPT)
+
+
+
+/** Declare all functions for all sizes and qpel positions */
+
+#define QPEL_MC_DECL(OP, OPT)                                           \
+
+void ff_ ##OP ##rv40_qpel_h ##OPT(uint8_t *dst, ptrdiff_t dstStride,    \
+
+                                  const uint8_t *src,                   \
+
+                                  ptrdiff_t srcStride,                  \
+
+                                  int len, int m);                      \
+
+void ff_ ##OP
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+20 -> 25 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+16 -> 27 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+14 -> 32 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+14 -> 43 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+49 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+49 -> 58 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+71 -> 75 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+65 -> 69 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+49 -> 61 [IS_AST_PARENT]
+14 -> 49 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+DECLARE_LOOP_FILTER(mmxext)
+
+DECLARE_LOOP_FILTER(sse2)
+
+DECLARE_LOOP_FILTER(ssse3)
+
+DECLARE_LOOP_FILTER(sse4)
+
+
+
+#endif /* HAVE_YASM */
+
+
+
+#define VP8_LUMA_MC_FUNC(IDX, SIZE, OPT) \
+
+    c->put_vp8_epel_pixels_tab[IDX][0][2] = ff_put_vp8_epel ## SIZE ## _h6_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][2][0] = ff_put_vp8_epel ## SIZE ## _v6_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][2][2] = ff_put_vp8_epel ## SIZE ## _h6v6_ ## OPT
+
+
+
+#define VP8_MC_FUNC(IDX, SIZE, OPT) \
+
+    c->put_vp8_epel_pixels_tab[IDX][0][1] = ff_put_vp8_epel ## SIZE ## _h4_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][1][0] = ff_put_vp8_epel ## SIZE ## _v4_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][1][1] = ff_put_vp8_epel ## SIZE ## _h4v4_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][1][2] = ff_put_vp8_epel ## SIZE ## _h6v4_ ## OPT; \
+
+    c->put_vp8_epel_pixels_tab[IDX][2][1] = ff_put_vp8_epel ## SIZE ## _h4v6_ ## OPT; \
+
+    VP8_LUMA_MC_FUNC(IDX, SIZE, OPT)
+
+
+
+#define VP8_BILINEAR_MC_FUNC(IDX, SIZE, OPT) \
+
+    c->put_vp8_bilinear_pixels_tab[IDX][0][1] = ff_put_vp8_bilinear ## SIZE ## _h_ ## OPT; \
+
+    c->put_vp8_bilinear_pixels_tab[IDX][0][2] = ff_put_vp8_bilinear ## SIZE ## _h_ ## OPT; \
+
+    c->put_vp8_bilinear_pixels_tab[IDX][1][0] = ff_put_vp8_bilinear ## SIZE ## _v_ ## OPT; \
+
+    c->put_vp8_bilinear_pixels_tab[IDX][1][1] = ff_put_vp8_bilinear ## SIZE ## _hv_ ## OPT; \
+
+    c->put_vp8_bilinear_pixels_tab[IDX][1][2] = ff_put_vp8_bilinear ## SIZE ## _hv_ ## OPT; \
+
+    c->put_vp8_
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

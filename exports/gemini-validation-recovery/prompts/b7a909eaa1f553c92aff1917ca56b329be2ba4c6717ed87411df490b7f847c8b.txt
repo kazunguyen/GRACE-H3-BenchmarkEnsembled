@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void process_downstream_ack ( int userid , int down_seq , int down_frag ) {
+ if ( users [ userid ] . outpacket . len <= 0 ) return ;
+ if ( users [ userid ] . outpacket . seqno != down_seq || users [ userid ] . outpacket . fragment != down_frag ) return ;
+ users [ userid ] . outpacket . offset += users [ userid ] . outpacket . sentlen ;
+ users [ userid ] . outpacket . sentlen = 0 ;
+ users [ userid ] . outpacket . fragment ++ ;
+ users [ userid ] . outfragresent = 0 ;
+ if ( users [ userid ] . outpacket . offset >= users [ userid ] . outpacket . len ) {
+ users [ userid ] . outpacket . len = 0 ;
+ users [ userid ] . outpacket . offset = 0 ;
+ users [ userid ] . outpacket . fragment -- ;
+ # ifdef OUTPACKETQ_LEN get_from_outpacketq ( userid ) ;
+ # endif }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( users [ userid ] . outpacket . len <= 0 ) return ;
+ if ( users [ userid ] . outpacket . seqno != down_seq || users [ userid ] . outpacket . fragment != down_frag ) return ;
+ users [ userid ] . outpacket . offset += users [ userid ] . outpacket . sentlen ;
+ users [ userid ] . outpacket . sentlen = 0 ;
+ users [ userid ] . outpacket . fragment ++ ;
+ users [ userid ] . outfragresent = 0 ;
+ if ( users [ userid ] . outpacket . offset >= users [ userid ] . outpacket . len ) {
+ users [ userid ] . outpacket . len = 0 ;
+ users [ userid ] . outpacket . offset = 0 ;
+ users [ userid ] . outpacket . fragment -- ;
+ # ifdef OUTPACKETQ_LEN get_from_outpacketq ( userid ) ;
+ # endif }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | users [ userid ] . outpacket . len <= 0
+30064771073 | CALL | users [ userid ] . outpacket . len
+30064771074 | CALL | users [ userid ] . outpacket
+30064771075 | CALL | users [ userid ]
+30064771076 | CALL | 
+        users [ userid ] . outpacket . seqno != down_seq || users [ userid ] . outpacket . fragment != down_frag
+      
+30064771077 | CALL | users [ userid ] . outpacket . seqno != down_seq
+30064771078 | CALL | users [ userid ] . outpacket . seqno
+30064771079 | CALL | users [ userid ] . outpacket
+30064771080 | CALL | users [ userid ]
+30064771081 | CALL | users [ userid ] . outpacket . fragment != down_frag
+30064771082 | CALL | users [ userid ] . outpacket . fragment
+30064771083 | CALL | users [ userid ] . outpacket
+30064771084 | CALL | users [ userid ]
+30064771085 | CALL | users [ userid ] . outpacket . offset += users [ userid ] . outpacket . sentlen
+30064771086 | CALL | users [ userid ] . outpacket . offset
+30064771087 | CALL | users [ userid ] . outpacket
+30064771088 | CALL | users [ userid ]
+30064771089 | CALL | users [ userid ] . outpacket . sentlen
+30064771090 | CALL | users [ userid ] . outpacket
+30064771091 | CALL | users [ userid ]
+30064771092 | CALL | users [ userid ] . outpacket . sentlen = 0
+30064771093 | CALL | users [ userid ] . outpacket . sentlen
+30064771094 | CALL | users [ userid ] . outpacket
+30064771095 | CALL | users [ userid ]
+30064771096 | CALL | users [ userid ] . outpacket . fragment ++
+30064771097 | CALL | users [ userid ] . outpacket . fragment
+30064771098 | CALL | users [ userid ] . outpacket
+30064771099 | CALL | users [ userid ]
+30064771100 | CALL | users [ userid ] . outfragresent = 0
+30064771101 | CALL | users [ userid ] . outfragresent
+30064771102 | CALL | users [ userid ]
+47244640256 | CONTROL_STRUCTURE | if ( users [ userid ] . outpacket . len <= 0 ) return ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( users [ userid ] . outpacket . seqno != down_seq || users [ userid ] . outpacket . fragment != down_frag ) return ;
+      
+55834574848 | FIELD_IDENTIFIER | outpacket
+55834574849 | FIELD_IDENTIFIER | len
+55834574850 | FIELD_IDENTIFIER | outpacket
+55834574851 | FIELD_IDENTIFIER | seqno
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 55834574849 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 55834574849 [AST]
+30064771073 -> 55834574849 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771079 [REACHING_DEF]
+30064771073 -> 30064771090 [REACHING_DEF]
+30064771073 -> 30064771087 [REACHING_DEF]
+30064771073 -> 30064771098 [REACHING_DEF]
+30064771073 -> 30064771083 [REACHING_DEF]
+30064771073 -> 30064771094 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 55834574849 [CFG]
+30064771074 -> 55834574849 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771081 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771081 [AST]
+30064771076 -> 30064771102 [CDG]
+30064771076 -> 30064771100 [CDG]
+30064771076 -> 30064771101 [CDG]
+30064771076 -> 30064771098 [CDG]
+30064771076 -> 30064771099 [CDG]
+30064771076 -> 30064771096 [CDG]
+30064771076 -> 30064771097 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771094 [CDG]
+30064771076 -> 30064771095 [CDG]
+30064771076 -> 30064771092 [CDG]
+30064771076 -> 30064771093 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771081 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771081 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574851 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574851 [AST]
+30064771078 -> 55834574851 [POST_DOMINATE]
+30064771078 -> 30064771090 [REACHING_DEF]
+30064771078 -> 30064771087 [REACHING_DEF]
+30064771078 -> 30064771098 [REACHING_DEF]
+30064771078 -> 30064771083 [REACHING_DEF]
+30064771078 -> 30064771094 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void start_new_outpacket ( int userid , char * data , int datalen ) {
+ datalen = MIN ( datalen , sizeof ( users [ userid ] . outpacket . data ) ) ;
+ memcpy ( users [ userid ] . outpacket . data , data , datalen ) ;
+ users [ userid ] . outpacket . len = datalen ;
+ users [ userid ] . outpacket . offset = 0 ;
+ users [ userid ] . outpacket . sentlen = 0 ;
+ users [ userid ] . outpacket . seqno = ( users [ userid ] . outpacket . seqno + 1 ) & 7 ;
+ users [ userid ] . outpacket . fragment = 0 ;
+ users [ userid ] . outfragresent = 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

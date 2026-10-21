@@ -1,0 +1,350 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int parse_fragment(AVFormatContext *s, const char *filename, int64_t *start_ts, int64_t *duration, int64_t *moof_size, int64_t size)
+
+{
+
+    AVIOContext *in;
+
+    int ret;
+
+    uint32_t len;
+
+    if ((ret = avio_open2(&in, filename, AVIO_FLAG_READ, &s->interrupt_callback, NULL)) < 0)
+
+        return ret;
+
+    ret = AVERROR(EIO);
+
+    *moof_size = avio_rb32(in);
+
+    if (*moof_size < 8 || *moof_size > size)
+
+        goto fail;
+
+    if (avio_rl32(in) != MKTAG('m','o','o','f'))
+
+        goto fail;
+
+    len = avio_rb32(in);
+
+    if (len > *moof_size)
+
+        goto fail;
+
+    if (avio_rl32(in) != MKTAG('m','f','h','d'))
+
+        goto fail;
+
+    avio_seek(in, len - 8, SEEK_CUR);
+
+    avio_rb32(in); /* traf size */
+
+    if (avio_rl32(in) != MKTAG('t','r','a','f'))
+
+        goto fail;
+
+    while (avio_tell(in) < *moof_size) {
+
+        uint32_t len = avio_rb32(in);
+
+        uint32_t tag = avio_rl32(in);
+
+        int64_t end = avio_tell(in) + len - 8;
+
+        if (len < 8 || len >= *moof_size)
+
+            goto fail;
+
+        if (tag == MKTAG('u','u','i','d')) {
+
+            const uint8_t tfxd[] = {
+
+                0x6d, 0x1d, 0x9b, 0x05, 0x42, 0xd5, 0x44, 0xe6,
+
+                0x80, 0xe2, 0x14, 0x1d, 0xaf, 0xf7, 0x57, 0xb2
+
+            };
+
+            uint8_t uuid[16];
+
+            avio_read(in, uuid, 16);
+
+            if (!memcmp(uuid, tfxd, 16) && len >= 8 + 16 + 4 + 16) {
+
+                avio_seek(in, 4, SEEK_CUR);
+
+                *start_ts = avio_rb64(in);
+
+                *duration = avio_rb64(in);
+
+                ret = 0;
+
+                break;
+
+            }
+
+        }
+
+        avio_seek(in, end, SEEK_SET);
+
+    }
+
+fail:
+
+    avio_close(in);
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    AVIOContext *in;
+
+    int ret;
+
+    uint32_t len;
+
+    if ((ret = avio_open2(&in, filename, AVIO_FLAG_READ, &s->interrupt_callback, NULL)) < 0)
+
+        return ret;
+
+    ret = AVERROR(EIO);
+
+    *moof_size = avio_rb32(in);
+
+    if (*moof_size < 8 || *moof_size > size)
+
+        goto fail;
+
+    if (avio_rl32(in) != MKTAG('m','o','o','f'))
+
+        goto fail;
+
+    len = avio_rb32(in);
+
+    if (len > *moof_size)
+
+        goto fail;
+
+    if (avio_rl32(in) != MKTAG('m','f','h','d'))
+
+        goto fail;
+
+    avio_seek(in, len - 8, SEEK_CUR);
+
+    avio_rb32(in); /* traf size */
+
+    if (avio_rl32(in) != MKTAG('t','r','a','f'))
+
+        goto fail;
+
+    while (avio_tell(in) < *moof_size) {
+
+        uint32_t len = avio_rb32(in);
+
+        uint32_t tag = avio_rl32(in);
+
+        int64_t end = avio_tell(in) + len - 8;
+
+        if (len < 8 || len >= *moof_size)
+
+            goto fail;
+
+        if (tag == MKTAG('u','u','i','d')) {
+
+            const uint8_t tfxd[] = {
+
+                0x6d, 0...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+
+        uint32_t len = avio_rb32(in);
+
+        uint32_t tag = avio_rl32(in);
+
+        int64_t end = avio_tell(in) + len - 8;
+
+        if (len < 8 || len >= *moof_size)
+
+            goto fail;
+
+        if (tag == MKTAG('u','u','i','d')) {
+
+            const uint8_t tfxd[] = {
+
+                0x6d, 0x1d, 0x9b, 0x05, 0x42, 0xd5, 0x44, 0xe6,
+
+                0x80, 0xe2, 0x14, 0x1d, 0xaf, 0xf7, 0x57, 0xb2
+
+            };
+
+            uint8_t uuid[16];
+
+            avio_read(in, uuid, 16);
+
+            if (!memcmp(uuid, tfxd, 16) && len >= 8 + 16 + 4 + 16) {
+
+                avio_seek(in, 4, SEEK_CUR);
+
+                *start_ts = avio_rb64(in);
+
+                *duration = avio_rb64(in);
+
+                ret = 0;
+
+                break;
+
+            }
+
+        }
+
+        avio_seek(in, end, SEEK_SET);
+
+    }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+
+            const uint8_t tfxd[] = {
+
+                0x6d, 0x1d, 0x9b, 0x05, 0x42, 0xd5, 0x44, 0xe6,
+
+                0x80, 0xe2, 0x14, 0x1d, 0xaf, 0xf7, 0x57, 0xb2
+
+            };
+
+            uint8_t uuid[16];
+
+            avio_read(in, uuid, 16);
+
+            if (!memcmp(uuid, tfxd, 16) && len >= 8 + 16 + 4 + 16) {
+
+                avio_seek(in, 4, SEEK_CUR);
+
+                *start_ts = avio_rb64(in);
+
+                *duration = avio_rb64(in);
+
+                ret = 0;
+
+                break;
+
+            }
+
+        }
+      
+25769803786 | BLOCK | 
+        {
+
+                avio_seek(in, 4, SEEK_CUR);
+
+                *start_ts = avio_rb64(in);
+
+                *duration = avio_rb64(in);
+
+                ret = 0;
+
+                break;
+
+            }
+      
+30064771072 | CALL | 
+        (ret = avio_open2(&in, filename, AVIO_FLAG_READ, &s->interrupt_callback, NULL)) < 0
+      
+30064771073 | CALL | 
+        ret = avio_open2(&in, filename, AVIO_FLAG_READ, &s->interrupt_callback, NULL)
+      
+30064771074 | CALL | avio_open2(&in, filename, AVIO_FLAG_READ, &s->interrupt_callback, NULL)
+30064771075 | CALL | &in
+30064771076 | CALL | &s->interrupt_callback
+30064771077 | CALL | s->interrupt_callback
+30064771078 | CALL | ret = AVERROR(EIO)
+30064771079 | CALL | AVERROR(EIO)
+30064771080 | CALL | *moof_size = avio_rb32(in)
+30064771081 | CALL | *moof_size
+30064771082 | CALL | avio_rb32(in)
+30064771083 | CALL | *moof_size < 8 || *moof_size > size
+30064771084 | CALL | *moof_size < 8
+30064771085 | CALL | *moof_size
+30064771086 | CALL | *moof_size > size
+30064771087 | CALL | *moof_size
+30064771088 | CALL | avio_rl32(in) != MKTAG('m','o','o','f')
+30064771089 | CALL | avio_rl32(in)
+30064771090 | CALL | MKTAG('m','o','o','f')
+30064771091 | CALL | len = avio_rb32(in)
+30064771092 | CALL | avio_rb32(in)
+30064771093 | CALL | len > *moof_size
+30064771094 | CALL | *moof_size
+30064771095 | CALL | avio_rl32(in) != MKTAG('m','f','h','d')
+30064771096 | CALL | avio_rl32(in)
+30064771097 | CALL | MKTAG('m','f','h','d')
+30064771098 | CALL | avio_seek(in, len - 8, SEEK_CUR)
+30064771099 | CALL | len - 8
+30064771100 | CALL | avio_rb32(in)
+EDGES:
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_rtmpt ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , rtmpt_conv_t * rconv , int cdir , rtmpt_packet_t * tp ) {
+ gint offset = 0 ;
+ gchar * sDesc = NULL ;
+ gint deschasopcode = FALSE ;
+ gboolean haveETS = FALSE ;
+ guint32 iBodyOffset = 0 ;
+ guint32 iBodyRemain = 0 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "RTMP" ) ;
+ RTMPT_DEBUG ( "Dissect: frame=%u visited=%d len=%d tree=%p\n" , pinfo -> num , pinfo -> fd -> flags . visited , tvb_reported_length_remaining ( tvb , offset ) , tree ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ if ( tvb_reported_length_remaining ( tvb , offset ) < 1 ) return ;
+ if ( tp -> id <= RTMPT_ID_MAX ) {
+ if ( tp -> fmt < 3 && tvb_reported_length_remaining ( tvb , offset ) >= tp -> bhlen + 3 && tvb_get_ntoh24 ( tvb , offset + tp -> bhlen ) == 0xffffff ) {
+ haveETS = TRUE ;
+ }
+ iBodyOffset = offset + tp -> bhlen + tp -> mhlen ;
+ iBodyRemain = tvb_reported_length_remaining ( tvb , iBodyOffset ) ;
+ if ( tp -> cmd == RTMPT_TYPE_CHUNK_SIZE && tp -> len >= 4 && iBodyRemain >= 4 ) {
+ guint32 newchunksize = tvb_get_ntohl ( tvb , iBodyOffset ) ;
+ if ( newchunksize < rtmpt_max_packet_size ) {
+ wmem_tree_insert32 ( rconv -> chunksize [ cdir ] , tp -> lastseq , GINT_TO_POINTER ( newchunksize ) ) ;
+ }
+ }
+ if ( ! PINFO_FD_VISITED ( pinfo ) ) {
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF0 || tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF0 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ guint32 soff = 0 ;
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ soff = 1 ;
+ }
+ tp -> txid = rtmpt_get_amf_txid ( tvb , iBodyOffset + soff ) ;
+ if ( tp -> txid != 0 ) {
+ RTMPT_DEBUG ( "got txid=%d\n" , tp -> txid ) ;
+ wmem_tree_insert32 ( rconv -> txids [ cdir ] , tp -> txid , GINT_TO_POINTER ( pinfo -> num ) ) ;
+ }
+ }
+ }
+ }
+ if ( tp -> id <= RTMPT_ID_MAX ) {
+ sDesc = rtmpt_get_packet_desc ( tvb , iBodyOffset , iBodyRemain , rconv , cdir , tp , & deschasopcode ) ;
+ }
+ if ( tp -> id > RTMPT_ID_MAX ) {
+ col_append_sep_fstr ( pinfo -> cinfo , COL_INFO , "|" , "%s" , val_to_str ( tp -> id , rtmpt_handshake_vals , "Unknown (0x%01x)" ) ) ;
+ col_set_fence ( pinfo -> cinfo , COL_INFO ) ;
+ }
+ else if ( sDesc ) {
+ col_append_sep_fstr ( pinfo -> cinfo , COL_INFO , "|" , "%s" , sDesc ) ;
+ col_set_fence ( pinfo -> cinfo , COL_INFO ) ;
+ }
+ else {
+ col_append_sep_fstr ( pinfo -> cinfo , COL_INFO , "|" , "%s" , val_to_str ( tp -> cmd , rtmpt_opcode_vals , "Unknown (0x%01x)" ) ) ;
+ col_set_fence ( pinfo -> cinfo , COL_INFO ) ;
+ }
+ if ( tree ) {
+ proto_tree * rtmpt_tree = NULL ;
+ proto_tree * rtmptroot_tree = NULL ;
+ proto_item * ti ;
+ ti = proto_tree_add_item ( tree , proto_rtmpt , tvb , offset , - 1 , ENC_NA ) ;
+ if ( tp -> id > RTMPT_ID_MAX ) {
+ proto_item_append_text ( ti , " (%s)" , val_to_str ( tp -> id , rtmpt_handshake_vals , "Unknown (0x%01x)" ) ) ;
+ rtmptroot_tree = proto_item_add_subtree ( ti , ett_rtmpt ) ;
+ rtmpt_tree = proto_tree_add_subtree ( rtmptroot_tree , tvb ,
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gint offset = 0 ;
+ gchar * sDesc = NULL ;
+ gint deschasopcode = FALSE ;
+ gboolean haveETS = FALSE ;
+ guint32 iBodyOffset = 0 ;
+ guint32 iBodyRemain = 0 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "RTMP" ) ;
+ RTMPT_DEBUG ( "Dissect: frame=%u visited=%d len=%d tree=%p\n" , pinfo -> num , pinfo -> fd -> flags . visited , tvb_reported_length_remaining ( tvb , offset ) , tree ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ if ( tvb_reported_length_remaining ( tvb , offset ) < 1 ) return ;
+ if ( tp -> id <= RTMPT_ID_MAX ) {
+ if ( tp -> fmt < 3 && tvb_reported_length_remaining ( tvb , offset ) >= tp -> bhlen + 3 && tvb_get_ntoh24 ( tvb , offset + tp -> bhlen ) == 0xffffff ) {
+ haveETS = TRUE ;
+ }
+ iBodyOffset = offset + tp -> bhlen + tp -> mhlen ;
+ iBodyRemain = tvb_reported_length_remaining ( tvb , iBodyOffset ) ;
+ if ( tp -> cmd == RTMPT_TYPE_CHUNK_SIZE && tp -> len >= 4 && iBodyRemain >= 4 ) {
+ guint32 newchunksize = tvb_get_ntohl ( tvb , iBodyOffset ) ;
+ if ( newchunksize < rtm...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( tp -> fmt < 3 && tvb_reported_length_remaining ( tvb , offset ) >= tp -> bhlen + 3 && tvb_get_ntoh24 ( tvb , offset + tp -> bhlen ) == 0xffffff ) {
+ haveETS = TRUE ;
+ }
+ iBodyOffset = offset + tp -> bhlen + tp -> mhlen ;
+ iBodyRemain = tvb_reported_length_remaining ( tvb , iBodyOffset ) ;
+ if ( tp -> cmd == RTMPT_TYPE_CHUNK_SIZE && tp -> len >= 4 && iBodyRemain >= 4 ) {
+ guint32 newchunksize = tvb_get_ntohl ( tvb , iBodyOffset ) ;
+ if ( newchunksize < rtmpt_max_packet_size ) {
+ wmem_tree_insert32 ( rconv -> chunksize [ cdir ] , tp -> lastseq , GINT_TO_POINTER ( newchunksize ) ) ;
+ }
+ }
+ if ( ! PINFO_FD_VISITED ( pinfo ) ) {
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF0 || tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF0 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ guint32 soff = 0 ;
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ soff = 1 ;
+ }
+ tp -> txid = rtmpt_get_amf_txid ( tvb , iBodyOffset + soff ) ;
+ if ( tp -> t...
+      
+25769803779 | BLOCK | { haveETS = TRUE ; }
+25769803780 | BLOCK | 
+        {
+ guint32 newchunksize = tvb_get_ntohl ( tvb , iBodyOffset ) ;
+ if ( newchunksize < rtmpt_max_packet_size ) {
+ wmem_tree_insert32 ( rconv -> chunksize [ cdir ] , tp -> lastseq , GINT_TO_POINTER ( newchunksize ) ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ wmem_tree_insert32 ( rconv -> chunksize [ cdir ] , tp -> lastseq , GINT_TO_POINTER ( newchunksize ) ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF0 || tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF0 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ guint32 soff = 0 ;
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ soff = 1 ;
+ }
+ tp -> txid = rtmpt_get_amf_txid ( tvb , iBodyOffset + soff ) ;
+ if ( tp -> txid != 0 ) {
+ RTMPT_DEBUG ( "got txid=%d\n" , tp -> txid ) ;
+ wmem_tree_insert32 ( rconv -> txids [ cdir ] , tp -> txid , GINT_TO_POINTER ( pinfo -> num ) ) ;
+ }
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ guint32 soff = 0 ;
+ if ( tp -> cmd == RTMPT_TYPE_COMMAND_AMF3 || tp -> cmd == RTMPT_TYPE_DATA_AMF3 ) {
+ soff = 1 ;
+ }
+ tp -> txid = rtmpt_get_amf_txid ( tvb , iBodyOffset + soff ) ;
+ if ( tp -> txid != 0 ) {
+ RTMPT_DEBUG ( "got txid=%d\n" , tp -> txid ) ;
+ wmem_tree_insert32 ( rconv -> txids [ cdir ] , tp -> txid , GINT_TO_POINTER ( pinfo -> num ) ) ;
+ }
+ }
+      
+25769803784 | BLOCK | { soff = 1 ; }
+25769803785 | BLOCK | 
+        {
+ RTMPT_DEBUG ( "got txid=%d\n" , tp -> txid ) ;
+ wmem_tree_insert32 ( rconv -> txids [ cdir ] , tp -> txid , GINT_TO_POINTER ( pinfo -> num ) ) ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ sDesc = rtmpt_get_packet_desc ( tvb , iBodyOffset , iBodyRemain , rconv , cdir , tp , & deschasopcode ) ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ col_append_sep_fstr ( pinfo -> cinfo , COL_INFO , "|" , "%s" , val_to_str ( tp -> id , rtmpt_handshake_vals , "Unknown (0x%01x)" ) ) ;
+ col_set_fence ( pinfo -> cinfo , COL_INFO ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ col_append_sep_fstr ( pinfo -> cinfo , COL_INFO , "|" , "%s" , sDesc ) ;
+ col_set_fence ( pinfo -> cinfo , COL_INFO ) ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ col_append_sep_fstr ( pinfo -> 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

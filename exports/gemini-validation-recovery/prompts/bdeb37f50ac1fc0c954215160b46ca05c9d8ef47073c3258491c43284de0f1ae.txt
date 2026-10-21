@@ -1,0 +1,258 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void revert_acfilter ( WmallDecodeCtx * s , int tile_size ) {
+ int ich , pred , i , j ;
+ int64_t * filter_coeffs = s -> acfilter_coeffs ;
+ int scaling = s -> acfilter_scaling ;
+ int order = s -> acfilter_order ;
+ for ( ich = 0 ;
+ ich < s -> num_channels ;
+ ich ++ ) {
+ int * prevvalues = s -> acfilter_prevvalues [ ich ] ;
+ for ( i = 0 ;
+ i < order ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) {
+ if ( i <= j ) pred += filter_coeffs [ j ] * prevvalues [ j - i ] ;
+ else pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ }
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( i = order ;
+ i < tile_size ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) prevvalues [ j ] = s -> channel_residues [ ich ] [ tile_size - j - 1 ] ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ich , pred , i , j ;
+ int64_t * filter_coeffs = s -> acfilter_coeffs ;
+ int scaling = s -> acfilter_scaling ;
+ int order = s -> acfilter_order ;
+ for ( ich = 0 ;
+ ich < s -> num_channels ;
+ ich ++ ) {
+ int * prevvalues = s -> acfilter_prevvalues [ ich ] ;
+ for ( i = 0 ;
+ i < order ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) {
+ if ( i <= j ) pred += filter_coeffs [ j ] * prevvalues [ j - i ] ;
+ else pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ }
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( i = order ;
+ i < tile_size ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) prevvalues [ j ] = s -> channel_residues [ ich ] [ tile_size - j - 1 ] ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int * prevvalues = s -> acfilter_prevvalues [ ich ] ;
+ for ( i = 0 ;
+ i < order ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) {
+ if ( i <= j ) pred += filter_coeffs [ j ] * prevvalues [ j - i ] ;
+ else pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ }
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( i = order ;
+ i < tile_size ;
+ i ++ ) {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) prevvalues [ j ] = s -> channel_residues [ ich ] [ tile_size - j - 1 ] ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) {
+ if ( i <= j ) pred += filter_coeffs [ j ] * prevvalues [ j - i ] ;
+ else pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ }
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( i <= j ) pred += filter_coeffs [ j ] * prevvalues [ j - i ] ;
+ else pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ pred = 0 ;
+ for ( j = 0 ;
+ j < order ;
+ j ++ ) pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ] ;
+ pred >>= scaling ;
+ s -> channel_residues [ ich ] [ i ] += pred ;
+ }
+      
+30064771072 | CALL | filter_coeffs = s -> acfilter_coeffs
+30064771073 | CALL | s -> acfilter_coeffs
+30064771074 | CALL | scaling = s -> acfilter_scaling
+30064771075 | CALL | s -> acfilter_scaling
+30064771076 | CALL | order = s -> acfilter_order
+30064771077 | CALL | s -> acfilter_order
+30064771078 | CALL | ich = 0
+30064771079 | CALL | ich < s -> num_channels
+30064771080 | CALL | s -> num_channels
+30064771081 | CALL | ich ++
+30064771082 | CALL | prevvalues = s -> acfilter_prevvalues [ ich ]
+30064771083 | CALL | s -> acfilter_prevvalues [ ich ]
+30064771084 | CALL | s -> acfilter_prevvalues
+30064771085 | CALL | i = 0
+30064771086 | CALL | i < order
+30064771087 | CALL | i ++
+30064771088 | CALL | pred = 0
+30064771089 | CALL | j = 0
+30064771090 | CALL | j < order
+30064771091 | CALL | j ++
+30064771092 | CALL | i <= j
+30064771093 | CALL | pred += filter_coeffs [ j ] * prevvalues [ j - i ]
+30064771094 | CALL | filter_coeffs [ j ] * prevvalues [ j - i ]
+30064771095 | CALL | filter_coeffs [ j ]
+30064771096 | CALL | prevvalues [ j - i ]
+30064771097 | CALL | j - i
+30064771098 | CALL | pred += s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ]
+30064771099 | CALL | s -> channel_residues [ ich ] [ i - j - 1 ] * filter_coeffs [ j ]
+30064771100 | CALL | s -> channel_residues [ ich ] [ i - j - 1 ]
+30064771101 | CALL | s -> channel_residues [ ich ]
+30064771102 | CALL | s -> channel_residues
+30064771103 | CALL | i - j - 1
+30064771104 | CALL | i - j
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771082 [AST]
+25769803778 -> 30064771088 [AST]
+25769803780 -> 30064771093 [AST]
+25769803781 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771086 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771090 [CDG]
+30064771090 -> 30064771092 [CDG]
+30064771090 -> 30064771090 [CDG]
+30064771090 -> 30064771091 [CDG]
+30064771092 -> 30064771093 [CDG]
+30064771092 -> 30064771096 [CDG]
+30064771092 -> 30064771097 [CDG]
+30064771092 -> 30064771094 [CDG]
+30064771092 -> 30064771095 [CDG]
+30064771092 -> 30064771100 [CDG]
+30064771092 -> 30064771101 [CDG]
+30064771092 -> 30064771098 [CDG]
+30064771092 -> 30064771099 [CDG]
+30064771092 -> 30064771104 [CDG]
+30064771092 -> 30064771102 [CDG]
+30064771092 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

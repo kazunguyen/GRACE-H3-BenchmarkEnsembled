@@ -1,0 +1,226 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const float * anti_sparseness ( AMRContext * p , AMRFixed * fixed_sparse , const float * fixed_vector , float fixed_gain , float * out ) {
+ int ir_filter_nr ;
+ if ( p -> pitch_gain [ 4 ] < 0.6 ) {
+ ir_filter_nr = 0 ;
+ }
+ else if ( p -> pitch_gain [ 4 ] < 0.9 ) {
+ ir_filter_nr = 1 ;
+ }
+ else ir_filter_nr = 2 ;
+ if ( fixed_gain > 2.0 * p -> prev_sparse_fixed_gain ) {
+ p -> ir_filter_onset = 2 ;
+ }
+ else if ( p -> ir_filter_onset ) p -> ir_filter_onset -- ;
+ if ( ! p -> ir_filter_onset ) {
+ int i , count = 0 ;
+ for ( i = 0 ;
+ i < 5 ;
+ i ++ ) if ( p -> pitch_gain [ i ] < 0.6 ) count ++ ;
+ if ( count > 2 ) ir_filter_nr = 0 ;
+ if ( ir_filter_nr > p -> prev_ir_filter_nr + 1 ) ir_filter_nr -- ;
+ }
+ else if ( ir_filter_nr < 2 ) ir_filter_nr ++ ;
+ if ( fixed_gain < 5.0 ) ir_filter_nr = 2 ;
+ if ( p -> cur_frame_mode != MODE_7k4 && p -> cur_frame_mode < MODE_10k2 && ir_filter_nr < 2 ) {
+ apply_ir_filter ( out , fixed_sparse , ( p -> cur_frame_mode == MODE_7k95 ? ir_filters_lookup_MODE_7k95 : ir_filters_lookup ) [ ir_filter_nr ] ) ;
+ fixed_vector = out ;
+ }
+ p -> prev_ir_filter_nr = ir_filter_nr ;
+ p -> prev_sparse_fixed_gain = fixed_gain ;
+ return fixed_vector ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ir_filter_nr ;
+ if ( p -> pitch_gain [ 4 ] < 0.6 ) {
+ ir_filter_nr = 0 ;
+ }
+ else if ( p -> pitch_gain [ 4 ] < 0.9 ) {
+ ir_filter_nr = 1 ;
+ }
+ else ir_filter_nr = 2 ;
+ if ( fixed_gain > 2.0 * p -> prev_sparse_fixed_gain ) {
+ p -> ir_filter_onset = 2 ;
+ }
+ else if ( p -> ir_filter_onset ) p -> ir_filter_onset -- ;
+ if ( ! p -> ir_filter_onset ) {
+ int i , count = 0 ;
+ for ( i = 0 ;
+ i < 5 ;
+ i ++ ) if ( p -> pitch_gain [ i ] < 0.6 ) count ++ ;
+ if ( count > 2 ) ir_filter_nr = 0 ;
+ if ( ir_filter_nr > p -> prev_ir_filter_nr + 1 ) ir_filter_nr -- ;
+ }
+ else if ( ir_filter_nr < 2 ) ir_filter_nr ++ ;
+ if ( fixed_gain < 5.0 ) ir_filter_nr = 2 ;
+ if ( p -> cur_frame_mode != MODE_7k4 && p -> cur_frame_mode < MODE_10k2 && ir_filter_nr < 2 ) {
+ apply_ir_filter ( out , fixed_sparse , ( p -> cur_frame_mode == MODE_7k95 ? ir_filters_lookup_MODE_7k95 : ir_filters_lookup ) [ ir_filter_nr ] ) ;
+ fixed_vector = out ;
+ }
+ p -> prev_ir_filter_nr = ir_filter_nr ;
+ p -> prev_sparse_fixed_gain = f...
+      
+25769803777 | BLOCK | { ir_filter_nr = 0 ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { ir_filter_nr = 1 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { p -> ir_filter_onset = 2 ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ int i , count = 0 ;
+ for ( i = 0 ;
+ i < 5 ;
+ i ++ ) if ( p -> pitch_gain [ i ] < 0.6 ) count ++ ;
+ if ( count > 2 ) ir_filter_nr = 0 ;
+ if ( ir_filter_nr > p -> prev_ir_filter_nr + 1 ) ir_filter_nr -- ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ apply_ir_filter ( out , fixed_sparse , ( p -> cur_frame_mode == MODE_7k95 ? ir_filters_lookup_MODE_7k95 : ir_filters_lookup ) [ ir_filter_nr ] ) ;
+ fixed_vector = out ;
+ }
+      
+30064771072 | CALL | p -> pitch_gain [ 4 ] < 0.6
+30064771073 | CALL | p -> pitch_gain [ 4 ]
+30064771074 | CALL | p -> pitch_gain
+30064771075 | CALL | ir_filter_nr = 0
+30064771076 | CALL | p -> pitch_gain [ 4 ] < 0.9
+30064771077 | CALL | p -> pitch_gain [ 4 ]
+30064771078 | CALL | p -> pitch_gain
+30064771079 | CALL | ir_filter_nr = 1
+30064771080 | CALL | ir_filter_nr = 2
+30064771081 | CALL | fixed_gain > 2.0 * p -> prev_sparse_fixed_gain
+30064771082 | CALL | 2.0 * p -> prev_sparse_fixed_gain
+30064771083 | CALL | p -> prev_sparse_fixed_gain
+30064771084 | CALL | p -> ir_filter_onset = 2
+30064771085 | CALL | p -> ir_filter_onset
+30064771086 | CALL | p -> ir_filter_onset
+30064771087 | CALL | p -> ir_filter_onset --
+30064771088 | CALL | p -> ir_filter_onset
+30064771089 | CALL | ! p -> ir_filter_onset
+30064771090 | CALL | p -> ir_filter_onset
+30064771091 | CALL | count = 0
+30064771092 | CALL | i = 0
+30064771093 | CALL | i < 5
+30064771094 | CALL | i ++
+30064771095 | CALL | p -> pitch_gain [ i ] < 0.6
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803779 -> 30064771079 [AST]
+25769803780 -> 30064771080 [AST]
+25769803781 -> 30064771084 [AST]
+25769803783 -> 30064771087 [AST]
+25769803784 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771090 [REACHING_DEF]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771090 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771093 -> 30064771094 [CDG]
+30064771093 -> 30064771093 [CDG]
+30064771093 -> 30064771095 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static float * anti_sparseness ( AMRWBContext * ctx , float * fixed_vector , float * buf ) {
+ int ir_filter_nr ;
+ if ( ctx -> fr_cur_mode > MODE_8k85 ) return fixed_vector ;
+ if ( ctx -> pitch_gain [ 0 ] < 0.6 ) {
+ ir_filter_nr = 0 ;
+ }
+ else if ( ctx -> pitch_gain [ 0 ] < 0.9 ) {
+ ir_filter_nr = 1 ;
+ }
+ else ir_filter_nr = 2 ;
+ if ( ctx -> fixed_gain [ 0 ] > 3.0 * ctx -> fixed_gain [ 1 ] ) {
+ if ( ir_filter_nr < 2 ) ir_filter_nr ++ ;
+ }
+ else {
+ int i , count = 0 ;
+ for ( i = 0 ;
+ i < 6 ;
+ i ++ ) if ( ctx -> pitch_gain [ i ] < 0.6 ) count ++ ;
+ if ( count > 2 ) ir_filter_nr = 0 ;
+ if ( ir_filter_nr > ctx -> prev_ir_filter_nr + 1 ) ir_filter_nr -- ;
+ }
+ ctx -> prev_ir_filter_nr = ir_filter_nr ;
+ ir_filter_nr += ( ctx -> fr_cur_mode == MODE_8k85 ) ;
+ if ( ir_filter_nr < 2 ) {
+ int i ;
+ const float * coef = ir_filters_lookup [ ir_filter_nr ] ;
+ memset ( buf , 0 , sizeof ( float ) * AMRWB_SFR_SIZE ) ;
+ for ( i = 0 ;
+ i < A
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

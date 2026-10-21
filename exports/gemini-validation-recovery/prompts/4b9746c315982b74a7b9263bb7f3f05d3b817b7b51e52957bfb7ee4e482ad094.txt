@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pxa2xx_rtc_init ( SysBusDevice * dev ) {
+ PXA2xxRTCState * s = FROM_SYSBUS ( PXA2xxRTCState , dev ) ;
+ struct tm tm ;
+ int wom ;
+ s -> rttr = 0x7fff ;
+ s -> rtsr = 0 ;
+ qemu_get_timedate ( & tm , 0 ) ;
+ wom = ( ( tm . tm_mday - 1 ) / 7 ) + 1 ;
+ s -> last_rcnr = ( uint32_t ) mktimegm ( & tm ) ;
+ s -> last_rdcr = ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 ) | ( tm . tm_min << 6 ) | tm . tm_sec ;
+ s -> last_rycr = ( ( tm . tm_year + 1900 ) << 9 ) | ( ( tm . tm_mon + 1 ) << 5 ) | tm . tm_mday ;
+ s -> last_swcr = ( tm . tm_hour << 19 ) | ( tm . tm_min << 13 ) | ( tm . tm_sec << 7 ) ;
+ s -> last_rtcpicr = 0 ;
+ s -> last_hz = s -> last_sw = s -> last_pi = qemu_get_clock_ms ( rtc_clock ) ;
+ s -> rtc_hz = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_hz_tick , s ) ;
+ s -> rtc_rdal1 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_rdal1_tick , s ) ;
+ s -> rtc_rdal2 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_rdal2_tick , s ) ;
+ s -> rtc_swal1 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_swal1_tick , s ) ;
+ s -> rtc_swal2 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_swal2_tick , s ) ;
+ s -> rtc_pi = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_pi_tick , s ) ;
+ sysbus_init_irq ( dev , & s -> rtc_irq ) ;
+ memory_region_init_io ( & s -> iomem , OBJECT ( s ) , & pxa2xx_rtc_ops , s , "pxa2xx-rtc" , 0x10000 ) ;
+ sysbus_init_mmio ( dev , & s -> iomem ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PXA2xxRTCState * s = FROM_SYSBUS ( PXA2xxRTCState , dev ) ;
+ struct tm tm ;
+ int wom ;
+ s -> rttr = 0x7fff ;
+ s -> rtsr = 0 ;
+ qemu_get_timedate ( & tm , 0 ) ;
+ wom = ( ( tm . tm_mday - 1 ) / 7 ) + 1 ;
+ s -> last_rcnr = ( uint32_t ) mktimegm ( & tm ) ;
+ s -> last_rdcr = ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 ) | ( tm . tm_min << 6 ) | tm . tm_sec ;
+ s -> last_rycr = ( ( tm . tm_year + 1900 ) << 9 ) | ( ( tm . tm_mon + 1 ) << 5 ) | tm . tm_mday ;
+ s -> last_swcr = ( tm . tm_hour << 19 ) | ( tm . tm_min << 13 ) | ( tm . tm_sec << 7 ) ;
+ s -> last_rtcpicr = 0 ;
+ s -> last_hz = s -> last_sw = s -> last_pi = qemu_get_clock_ms ( rtc_clock ) ;
+ s -> rtc_hz = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_hz_tick , s ) ;
+ s -> rtc_rdal1 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_rdal1_tick , s ) ;
+ s -> rtc_rdal2 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_rdal2_tick , s ) ;
+ s -> rtc_swal1 = qemu_new_timer_ms ( rtc_clock , pxa2xx_rtc_swal1_tick , s ) ;
+ s -...
+      
+30064771072 | CALL | s = FROM_SYSBUS ( PXA2xxRTCState , dev )
+30064771073 | CALL | FROM_SYSBUS ( PXA2xxRTCState , dev )
+30064771074 | CALL | s -> rttr = 0x7fff
+30064771075 | CALL | s -> rttr
+30064771076 | CALL | s -> rtsr = 0
+30064771077 | CALL | s -> rtsr
+30064771078 | CALL | qemu_get_timedate ( & tm , 0 )
+30064771079 | CALL | & tm
+30064771080 | CALL | wom = ( ( tm . tm_mday - 1 ) / 7 ) + 1
+30064771081 | CALL | ( ( tm . tm_mday - 1 ) / 7 ) + 1
+30064771082 | CALL | ( tm . tm_mday - 1 ) / 7
+30064771083 | CALL | tm . tm_mday - 1
+30064771084 | CALL | tm . tm_mday
+30064771085 | CALL | s -> last_rcnr = ( uint32_t ) mktimegm ( & tm )
+30064771086 | CALL | s -> last_rcnr
+30064771087 | CALL | ( uint32_t ) mktimegm ( & tm )
+30064771088 | CALL | mktimegm ( & tm )
+30064771089 | CALL | & tm
+30064771090 | CALL | 
+        s -> last_rdcr = ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 ) | ( tm . tm_min << 6 ) | tm . tm_sec
+      
+30064771091 | CALL | s -> last_rdcr
+30064771092 | CALL | 
+        ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 ) | ( tm . tm_min << 6 ) | tm . tm_sec
+      
+30064771093 | CALL | 
+        ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 ) | ( tm . tm_min << 6 )
+      
+30064771094 | CALL | 
+        ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 ) | ( tm . tm_hour << 12 )
+      
+30064771095 | CALL | ( wom << 20 ) | ( ( tm . tm_wday + 1 ) << 17 )
+30064771096 | CALL | wom << 20
+30064771097 | CALL | ( tm . tm_wday + 1 ) << 17
+30064771098 | CALL | tm . tm_wday + 1
+30064771099 | CALL | tm . tm_wday
+30064771100 | CALL | tm . tm_hour << 12
+30064771101 | CALL | tm . tm_hour
+30064771102 | CALL | tm . tm_min << 6
+30064771103 | CALL | tm . tm_min
+30064771104 | CALL | tm . tm_sec
+30064771105 | CALL | 
+        s -> last_rycr = ( ( tm . tm_year + 1900 ) << 9 ) | ( ( tm . tm_mon + 1 ) << 5 ) | tm . tm_mday
+      
+30064771106 | CALL | s -> last_rycr
+30064771107 | CALL | 
+        ( ( tm . tm_year + 1900 ) << 9 ) | ( ( tm . tm_mon + 1 ) << 5 ) | tm . tm_mday
+      
+30064771108 | CALL | ( ( tm . tm_year + 1900 ) << 9 ) | ( ( tm . tm_mon + 1 ) << 5 )
+30064771109 | CALL | ( tm . tm_year + 1900 ) << 9
+30064771110 | CALL | tm . tm_year + 1900
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771079 -> 30064771089 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771092 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771092 [AST]
+30064771090 -> 30064771092 [POST_DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771104 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771104 [AST]
+30064771092 -> 30064771090 [CFG]
+30064771092 -> 300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

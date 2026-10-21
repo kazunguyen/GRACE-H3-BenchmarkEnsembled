@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_unknown_extension ( Gif_Context * gfc , Gif_Reader * grr , int kind , char * appname , int applength ) {
+ uint8_t block_len = gifgetbyte ( grr ) ;
+ uint8_t * data = 0 ;
+ int data_len = 0 ;
+ Gif_Extension * gfex = 0 ;
+ while ( block_len > 0 ) {
+ Gif_ReArray ( data , uint8_t , data_len + block_len + 2 ) ;
+ if ( ! data ) goto done ;
+ data [ data_len ] = block_len ;
+ gifgetblock ( data + data_len + 1 , block_len , grr ) ;
+ data_len += block_len + 1 ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+ if ( data ) gfex = Gif_NewExtension ( kind , appname , applength ) ;
+ if ( gfex ) {
+ gfex -> data = data ;
+ gfex -> free_data = Gif_Free ;
+ gfex -> length = data_len ;
+ gfex -> packetized = 1 ;
+ data [ data_len ] = 0 ;
+ Gif_AddExtension ( gfc -> stream , gfc -> gfi , gfex ) ;
+ }
+ done : if ( ! gfex ) Gif_DeleteArray ( data ) ;
+ while ( block_len > 0 ) {
+ uint8_t buffer [ GIF_MAX_BLOCK ] ;
+ gifgetblock ( buffer , block_len , grr ) ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+ return gfex != 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t block_len = gifgetbyte ( grr ) ;
+ uint8_t * data = 0 ;
+ int data_len = 0 ;
+ Gif_Extension * gfex = 0 ;
+ while ( block_len > 0 ) {
+ Gif_ReArray ( data , uint8_t , data_len + block_len + 2 ) ;
+ if ( ! data ) goto done ;
+ data [ data_len ] = block_len ;
+ gifgetblock ( data + data_len + 1 , block_len , grr ) ;
+ data_len += block_len + 1 ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+ if ( data ) gfex = Gif_NewExtension ( kind , appname , applength ) ;
+ if ( gfex ) {
+ gfex -> data = data ;
+ gfex -> free_data = Gif_Free ;
+ gfex -> length = data_len ;
+ gfex -> packetized = 1 ;
+ data [ data_len ] = 0 ;
+ Gif_AddExtension ( gfc -> stream , gfc -> gfi , gfex ) ;
+ }
+ done : if ( ! gfex ) Gif_DeleteArray ( data ) ;
+ while ( block_len > 0 ) {
+ uint8_t buffer [ GIF_MAX_BLOCK ] ;
+ gifgetblock ( buffer , block_len , grr ) ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+ return gfex != 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ Gif_ReArray ( data , uint8_t , data_len + block_len + 2 ) ;
+ if ( ! data ) goto done ;
+ data [ data_len ] = block_len ;
+ gifgetblock ( data + data_len + 1 , block_len , grr ) ;
+ data_len += block_len + 1 ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ gfex -> data = data ;
+ gfex -> free_data = Gif_Free ;
+ gfex -> length = data_len ;
+ gfex -> packetized = 1 ;
+ data [ data_len ] = 0 ;
+ Gif_AddExtension ( gfc -> stream , gfc -> gfi , gfex ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ uint8_t buffer [ GIF_MAX_BLOCK ] ;
+ gifgetblock ( buffer , block_len , grr ) ;
+ block_len = gifgetbyte ( grr ) ;
+ }
+      
+30064771072 | CALL | block_len = gifgetbyte ( grr )
+30064771073 | CALL | gifgetbyte ( grr )
+30064771074 | CALL | data = 0
+30064771075 | CALL | data_len = 0
+30064771076 | CALL | gfex = 0
+30064771077 | CALL | block_len > 0
+30064771078 | CALL | Gif_ReArray ( data , uint8_t , data_len + block_len + 2 )
+30064771079 | CALL | data_len + block_len + 2
+30064771080 | CALL | data_len + block_len
+30064771081 | CALL | ! data
+30064771082 | CALL | data [ data_len ] = block_len
+30064771083 | CALL | data [ data_len ]
+30064771084 | CALL | gifgetblock ( data + data_len + 1 , block_len , grr )
+30064771085 | CALL | data + data_len + 1
+30064771086 | CALL | data + data_len
+30064771087 | CALL | data_len += block_len + 1
+30064771088 | CALL | block_len + 1
+30064771089 | CALL | block_len = gifgetbyte ( grr )
+30064771090 | CALL | gifgetbyte ( grr )
+30064771091 | CALL | data != NULL
+30064771092 | CALL | gfex = Gif_NewExtension ( kind , appname , applength )
+30064771093 | CALL | Gif_NewExtension ( kind , appname , applength )
+30064771094 | CALL | gfex != NULL
+30064771095 | CALL | gfex -> data = data
+30064771096 | CALL | gfex -> data
+30064771097 | CALL | gfex -> free_data = Gif_Free
+30064771098 | CALL | gfex -> free_data
+30064771099 | CALL | gfex -> length = data_len
+30064771100 | CALL | gfex -> length
+30064771101 | CALL | gfex -> packetized = 1
+30064771102 | CALL | gfex -> packetized
+30064771103 | CALL | data [ data_len ] = 0
+30064771104 | CALL | data [ data_len ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803779 -> 30064771092 [AST]
+25769803780 -> 30064771095 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771099 [AST]
+25769803780 -> 30064771101 [AST]
+25769803780 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771094 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771077 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [CDG]
+30064771091 -> 30064771093 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771093 [POST_DOMINATE]
+30064771093 -> 30064771092 [CFG]
+30064771093 -> 30064771092 [DOMINATE]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 30064771098 [CDG]
+30064771094 -> 30064771099 [CDG]
+30064771094 -> 30064771096 [CDG]
+30064771094 -> 30064771097 [CDG]
+30064771094 -> 30064771095 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int read_application_extension ( Gif_Context * gfc , Gif_Reader * grr ) {
+ Gif_Stream * gfs = gfc -> stream ;
+ uint8_t buffer [ GIF_MAX_BLOCK + 1 ] ;
+ uint8_t len = gifgetbyte ( grr ) ;
+ gifgetblock ( buffer , len , grr ) ;
+ if ( len == 11 && ( memcmp ( buffer , "NETSCAPE2.0" , 11 ) == 0 || memcmp ( buffer , "ANIMEXTS1.0" , 11 ) == 0 ) ) {
+ len = gifgetbyte ( grr ) ;
+ if ( len ==
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

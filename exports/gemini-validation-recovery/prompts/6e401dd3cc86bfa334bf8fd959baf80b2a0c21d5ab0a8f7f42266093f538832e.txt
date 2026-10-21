@@ -1,0 +1,286 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int vdpau_mpeg4_start_frame(AVCodecContext *avctx,
+
+                                   const uint8_t *buffer, uint32_t size)
+
+{
+
+    Mpeg4DecContext *ctx = avctx->priv_data;
+
+    MpegEncContext * const s = &ctx->m;
+
+    Picture *pic             = s->current_picture_ptr;
+
+    struct vdpau_picture_context *pic_ctx = pic->hwaccel_picture_private;
+
+    VdpPictureInfoMPEG4Part2 *info = &pic_ctx->info.mpeg4;
+
+    VdpVideoSurface ref;
+
+    int i;
+
+
+
+    /* fill VdpPictureInfoMPEG4Part2 struct */
+
+    info->forward_reference  = VDP_INVALID_HANDLE;
+
+    info->backward_reference = VDP_INVALID_HANDLE;
+
+    info->vop_coding_type    = 0;
+
+
+
+    switch (s->pict_type) {
+
+    case AV_PICTURE_TYPE_B:
+
+        ref = ff_vdpau_get_surface_id(&s->next_picture.f);
+
+        assert(ref != VDP_INVALID_HANDLE);
+
+        info->backward_reference = ref;
+
+        info->vop_coding_type    = 2;
+
+        /* fall-through */
+
+    case AV_PICTURE_TYPE_P:
+
+        ref = ff_vdpau_get_surface_id(&s->last_picture.f);
+
+        assert(ref != VDP_INVALID_HANDLE);
+
+        info->forward_reference  = ref;
+
+    }
+
+
+
+    info->trd[0]                            = s->pp_time;
+
+    info->trb[0]                            = s->pb_time;
+
+    info->trd[1]                            = s->pp_field_time >> 1;
+
+    info->trb[1]                            = s->pb_field_time >> 1;
+
+    info->vop_time_increment_resolution     = s->avctx->time_base.den;
+
+    info->vop_fcode_forward                 = s->f_code;
+
+    info->vop_fcode_backward                = s->b_code;
+
+    info->resync_marker_disable             = !ctx->resync_marker;
+
+    info->interlaced                        = !s->progressive_sequence;
+
+    info->quant_type                        = s->mpeg_quant;
+
+    info->quarter_sample                    = s->quarter_sample;
+
+    info->short_video_header                = avctx->codec->id == AV_CODEC_ID_H263;
+
+    info->rounding_control                  = s->no_rounding;
+
+    info->alternate_vertical_scan_flag      = s->alternate_scan;
+
+    info->top_field_first                   = s->top_field_first;
+
+    for (i = 0; i < 64; ++i) {
+
+        info->intra_quantizer_matrix[i]     = s->intra_matrix[i];
+
+        info->non_intra_quantizer_matrix[i] = s->inter_matrix[i];
+
+    }
+
+
+
+    ff_vdpau_common_start_frame(pic_ctx, buffer, size);
+
+    return ff_vdpau_add_buffer(pic_ctx, buffer, size);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 55 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 69 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 75 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int vdpau_vc1_start_frame(AVCodecContext *avctx,
+
+                                 const uint8_t *buffer, uint32_t size)
+
+{
+
+    VC1Context * const v  = avctx->priv_data;
+
+    MpegEncContext * const s = &v->s;
+
+    Picture *pic          = s->current_picture_ptr;
+
+    struct vdpau_picture_context *pic_ctx = pic->hwaccel_picture_private;
+
+    VdpPictureInfoVC1 *info = &pic_ctx->info.vc1;
+
+    VdpVideoSurface ref;
+
+
+
+    /*  fill LvPictureInfoVC1 struct */
+
+    info->forward_reference  = VDP_INVALID_HANDLE;
+
+    info->backward_reference = VDP_INVALID_HANDLE;
+
+
+
+    switch (s->pict_type) {
+
+    case AV_PICTURE_TYPE_B:
+
+        ref = ff_vdpau_get_surface_id(&s->next_picture.f);
+
+        assert(ref != VDP_INVALID_HANDLE);
+
+        info->backward_reference = ref;
+
+        /* fall-through */
+
+    case AV_PICTURE_TYPE_P:
+
+        ref = ff_vdpau_get_surface_id(&s->last_picture.f);
+
+        assert(ref != VDP_INVALID_HANDLE);
+
+        info->forward_reference  = ref;
+
+    }
+
+
+
+    info->slice_count       = 0;
+
+    if (v->bi_type)
+
+        info->picture_type  = 4;
+
+    else
+
+        info->picture_type  = s->pict_type - 1 + s->pict_type / 3;
+
+
+
+    info->frame_coding_mode = v->fcm ? (v->fcm + 1) : 0;
+
+    info->postprocflag      = v->postprocflag;
+
+    info->pulldown          = v->broadcast;
+
+    info->interlace         = v->interlace;
+
+    info->tfcntrflag        = v->tfcntrflag;
+
+    info->finterpflag       = v->finterpflag;
+
+    info->psf               = v->psf;
+
+    info->dquant 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

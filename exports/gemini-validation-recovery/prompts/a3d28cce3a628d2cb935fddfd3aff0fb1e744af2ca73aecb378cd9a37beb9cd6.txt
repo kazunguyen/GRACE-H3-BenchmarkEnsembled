@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static USBEndpoint * xhci_epid_to_usbep ( XHCIEPContext * epctx ) {
+ USBPort * uport ;
+ uint32_t token ;
+ if ( ! epctx ) {
+ return NULL ;
+ }
+ uport = epctx -> xhci -> slots [ epctx -> slotid - 1 ] . uport ;
+ token = ( epctx -> epid & 1 ) ? USB_TOKEN_IN : USB_TOKEN_OUT ;
+ if ( ! uport ) {
+ return NULL ;
+ }
+ return usb_ep_get ( uport -> dev , token , epctx -> epid >> 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ USBPort * uport ;
+ uint32_t token ;
+ if ( ! epctx ) {
+ return NULL ;
+ }
+ uport = epctx -> xhci -> slots [ epctx -> slotid - 1 ] . uport ;
+ token = ( epctx -> epid & 1 ) ? USB_TOKEN_IN : USB_TOKEN_OUT ;
+ if ( ! uport ) {
+ return NULL ;
+ }
+ return usb_ep_get ( uport -> dev , token , epctx -> epid >> 1 ) ;
+ }
+      
+25769803777 | BLOCK | { return NULL ; }
+25769803778 | BLOCK | { return NULL ; }
+30064771072 | CALL | ! epctx
+30064771073 | CALL | uport = epctx -> xhci -> slots [ epctx -> slotid - 1 ] . uport
+30064771074 | CALL | epctx -> xhci -> slots [ epctx -> slotid - 1 ] . uport
+30064771075 | CALL | epctx -> xhci -> slots [ epctx -> slotid - 1 ]
+30064771076 | CALL | epctx -> xhci -> slots
+30064771077 | CALL | epctx -> xhci
+30064771078 | CALL | epctx -> slotid - 1
+30064771079 | CALL | epctx -> slotid
+30064771080 | CALL | token = ( epctx -> epid & 1 ) ? USB_TOKEN_IN : USB_TOKEN_OUT
+30064771081 | CALL | ( epctx -> epid & 1 ) ? USB_TOKEN_IN : USB_TOKEN_OUT
+30064771082 | CALL | epctx -> epid & 1
+30064771083 | CALL | epctx -> epid
+30064771084 | CALL | ! uport
+30064771085 | CALL | usb_ep_get ( uport -> dev , token , epctx -> epid >> 1 )
+30064771086 | CALL | uport -> dev
+30064771087 | CALL | epctx -> epid >> 1
+30064771088 | CALL | epctx -> epid
+47244640256 | CONTROL_STRUCTURE | if ( ! epctx ) { return NULL ; }
+47244640257 | CONTROL_STRUCTURE | if ( ! uport ) { return NULL ; }
+55834574848 | FIELD_IDENTIFIER | xhci
+55834574849 | FIELD_IDENTIFIER | slots
+55834574850 | FIELD_IDENTIFIER | slotid
+55834574851 | FIELD_IDENTIFIER | uport
+55834574852 | FIELD_IDENTIFIER | epid
+55834574853 | FIELD_IDENTIFIER | dev
+55834574854 | FIELD_IDENTIFIER | epid
+68719476736 | IDENTIFIER | epctx
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | uport
+68719476739 | IDENTIFIER | epctx
+68719476740 | IDENTIFIER | epctx
+68719476741 | IDENTIFIER | token
+68719476742 | IDENTIFIER | epctx
+68719476743 | IDENTIFIER | <unknown> USB_TOKEN_IN
+68719476744 | IDENTIFIER | <unknown> USB_TOKEN_OUT
+68719476745 | IDENTIFIER | uport
+68719476746 | IDENTIFIER | <unknown> NULL
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640257 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 55834574852 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574851 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574851 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574851 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 55834574851 [CFG]
+30064771075 -> 55834574851 [DOMINATE]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 55834574849 [CFG]
+30064771077 -> 55834574849 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771075 [CFG]
+30064771078 -> 30064771075 [DOMINATE]
+30064771079 -> 68719476740 [ARGUMENT]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 68719476740 [AST]
+30064771079 -> 55834574850 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void xhci_wakeup_endpoint ( USBBus * bus , USBEndpoint * ep , unsigned int stream ) {
+ XHCIState * xhci = container_of ( bus , XHCIState , bus ) ;
+ int slotid ;
+ DPRINTF ( "%s\n" , __func__ ) ;
+ slotid = ep -> dev -> addr ;
+ if ( slotid == 0 || ! xhci -> slots [ slotid - 1 ] . enabled ) {
+ DPRINTF ( "%s: oops, no slot for dev %d\n" , __func__ , ep -> dev -> addr ) ;
+ return ;
+ }
+ xhci_kick_ep ( xhci , slotid , xhci_find_epid ( ep ) , stream ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

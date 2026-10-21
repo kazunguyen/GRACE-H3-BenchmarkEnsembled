@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int for_pos_int_continue ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ register es_ptr ep = esp ;
+ int var = ep [ - 3 ] . value . intval ;
+ if ( var > ep [ - 1 ] . value . intval ) {
+ esp -= 5 ;
+ return o_pop_estack ;
+ }
+ push ( 1 ) ;
+ make_int ( op , var ) ;
+ ep [ - 3 ] . value . intval = var + ep [ - 2 ] . value . intval ;
+ ref_assign_inline ( ep + 2 , ep ) ;
+ esp = ep + 2 ;
+ return o_push_estack ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ os_ptr op = osp ;
+ register es_ptr ep = esp ;
+ int var = ep [ - 3 ] . value . intval ;
+ if ( var > ep [ - 1 ] . value . intval ) {
+ esp -= 5 ;
+ return o_pop_estack ;
+ }
+ push ( 1 ) ;
+ make_int ( op , var ) ;
+ ep [ - 3 ] . value . intval = var + ep [ - 2 ] . value . intval ;
+ ref_assign_inline ( ep + 2 , ep ) ;
+ esp = ep + 2 ;
+ return o_push_estack ;
+ }
+      
+25769803777 | BLOCK | { esp -= 5 ; return o_pop_estack ; }
+30064771072 | CALL | op = osp
+30064771073 | CALL | ep = esp
+30064771074 | CALL | var = ep [ - 3 ] . value . intval
+30064771075 | CALL | ep [ - 3 ] . value . intval
+30064771076 | CALL | ep [ - 3 ] . value
+30064771077 | CALL | ep [ - 3 ]
+30064771078 | CALL | - 3
+30064771079 | CALL | var > ep [ - 1 ] . value . intval
+30064771080 | CALL | ep [ - 1 ] . value . intval
+30064771081 | CALL | ep [ - 1 ] . value
+30064771082 | CALL | ep [ - 1 ]
+30064771083 | CALL | - 1
+30064771084 | CALL | esp -= 5
+30064771085 | CALL | push ( 1 )
+30064771086 | CALL | make_int ( op , var )
+30064771087 | CALL | ep [ - 3 ] . value . intval = var + ep [ - 2 ] . value . intval
+30064771088 | CALL | ep [ - 3 ] . value . intval
+30064771089 | CALL | ep [ - 3 ] . value
+30064771090 | CALL | ep [ - 3 ]
+30064771091 | CALL | - 3
+30064771092 | CALL | var + ep [ - 2 ] . value . intval
+30064771093 | CALL | ep [ - 2 ] . value . intval
+30064771094 | CALL | ep [ - 2 ] . value
+30064771095 | CALL | ep [ - 2 ]
+30064771096 | CALL | - 2
+30064771097 | CALL | ref_assign_inline ( ep + 2 , ep )
+30064771098 | CALL | ep + 2
+30064771099 | CALL | esp = ep + 2
+30064771100 | CALL | ep + 2
+47244640256 | CONTROL_STRUCTURE | 
+        if ( var > ep [ - 1 ] . value . intval ) {
+ esp -= 5 ;
+ return o_pop_estack ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | value
+55834574849 | FIELD_IDENTIFIER | intval
+55834574850 | FIELD_IDENTIFIER | value
+55834574851 | FIELD_IDENTIFIER | intval
+55834574852 | FIELD_IDENTIFIER | value
+55834574853 | FIELD_IDENTIFIER | intval
+55834574854 | FIELD_IDENTIFIER | value
+55834574855 | FIELD_IDENTIFIER | intval
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803777 -> 30064771084 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771089 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574849 [CFG]
+30064771076 -> 55834574849 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574848 [CFG]
+30064771077 -> 55834574848 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 55834574855 [CDG]
+30064771079 -> 55834574852 [CDG]
+30064771079 -> 55834574854 [CDG]
+30064771079 -> 55834574853 [CDG]
+30064771079 -> 30064771098 [CDG]
+30064771079 -> 30064771097 [CDG]
+30064771079 -> 30064771100 [CDG]
+30064771079 -> 30064771099 [CDG]
+30064771079 -> 30064771094 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771096 [CDG]
+30064771079 -> 30064771095 [CDG]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 55834574851 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 55834574851 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 55834574851 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 55834574850 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 55834574850 [AST]
+30064771081 -> 55834574851 [CFG]
+30064771081 -> 55834574851 [DOMINATE]
+30064771081 -> 55834574850 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 55834574850 [CFG]
+30064771082 -> 55834574850 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int for_samples_continue ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ es_ptr ep = esp ;
+ int var = ep [ - 4 ] . value . intval ;
+ float a = ep [ - 3 ] . value . realval ;
+ int n = ep [ - 2 ] . value . intval ;
+ float b = ep [ - 1 ] . value . realval ;
+ if ( var > n ) {
+ esp -= 6 ;
+ return o_pop_estack ;
+ }
+ push ( 1 ) ;
+ make_real ( op , ( ( n - var ) * a + var * b ) / n ) ;
+ ep [ - 4 ] . value . intval = var + 1 ;
+ ref_assign_inline ( ep + 2 , ep ) ;
+ esp = ep + 2 ;
+ return o_push_estack ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

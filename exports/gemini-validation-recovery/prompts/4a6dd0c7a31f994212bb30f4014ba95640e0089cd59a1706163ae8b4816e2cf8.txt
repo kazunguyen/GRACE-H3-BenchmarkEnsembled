@@ -1,0 +1,140 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void e1000e_set_ims ( E1000ECore * core , int index , uint32_t val ) {
+ static const uint32_t ims_ext_mask = E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER ;
+ static const uint32_t ims_valid_mask = E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER ;
+ uint32_t valid_val = val & ims_valid_mask ;
+ trace_e1000e_irq_set_ims ( val , core -> mac [ IMS ] , core -> mac [ IMS ] | valid_val ) ;
+ core -> mac [ IMS ] |= valid_val ;
+ if ( ( valid_val & ims_ext_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_PBA_CLR ) && msix_enabled ( core -> owner ) ) {
+ e1000e_msix_clear ( core , valid_val ) ;
+ }
+ if ( ( valid_val == ims_valid_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_INT_TIMERS_CLEAR_ENA ) ) {
+ trace_e1000e_irq_fire_all_timers ( val ) ;
+ e1000e_intrmgr_fire_all_timers ( core ) ;
+ }
+ e1000e_update_interrupt_state ( core ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static const uint32_t ims_ext_mask = E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER ;
+ static const uint32_t ims_valid_mask = E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER ;
+ uint32_t valid_val = val & ims_valid_mask ;
+ trace_e1000e_irq_set_ims ( val , core -> mac [ IMS ] , core -> mac [ IMS ] | valid_val ) ;
+ core -> mac [ IMS ] |= valid_val ;
+ if ( ( valid_val & ims_ext_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_PBA_CLR ) && msix_enabled ( core -> owner ) ) {
+ e1000e_msix_clear ( core , valid_val ) ;
+ }
+ if ( ( valid_val == ims_valid_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_INT_TIMERS_CLEAR_ENA ) ) {
+ trace_e1000e_irq_fire_all_timers ( val ) ;
+ e1000e_intrmgr_fire_all_timers ( core ) ;
+ }
+ e1000e...
+      
+25769803777 | BLOCK | { e1000e_msix_clear ( core , valid_val ) ; }
+25769803778 | BLOCK | 
+        {
+ trace_e1000e_irq_fire_all_timers ( val ) ;
+ e1000e_intrmgr_fire_all_timers ( core ) ;
+ }
+      
+30064771072 | CALL | 
+        ims_ext_mask = E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER
+      
+30064771073 | CALL | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER
+30064771074 | CALL | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1
+30064771075 | CALL | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0
+30064771076 | CALL | E1000_IMS_RXQ0 | E1000_IMS_RXQ1
+30064771077 | CALL | 
+        ims_valid_mask = E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER
+      
+30064771078 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1 | E1000_IMS_OTHER
+      
+30064771079 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0 | E1000_IMS_TXQ1
+      
+30064771080 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1 | E1000_IMS_TXQ0
+      
+30064771081 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0 | E1000_IMS_RXQ1
+      
+30064771082 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG | E1000_IMS_RXQ0
+      
+30064771083 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK | E1000_IMS_MNG
+      
+30064771084 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD | E1000_IMS_ACK
+      
+30064771085 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW | E1000_IMS_SRPD
+      
+30064771086 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC | E1000_IMS_TXD_LOW
+      
+30064771087 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0 | E1000_IMS_MDAC
+      
+30064771088 | CALL | 
+        E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO | E1000_IMS_RXT0
+      
+30064771089 | CALL | E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0 | E1000_IMS_RXO
+30064771090 | CALL | E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC | E1000_IMS_RXDMT0
+30064771091 | CALL | E1000_IMS_TXDW | E1000_IMS_TXQE | E1000_IMS_LSC
+30064771092 | CALL | E1000_IMS_TXDW | E1000_IMS_TXQE
+30064771093 | CALL | valid_val = val & ims_valid_mask
+30064771094 | CALL | val & ims_valid_mask
+30064771095 | CALL | 
+        trace_e1000e_irq_set_ims ( val , core -> mac [ IMS ] , core -> mac [ IMS ] | valid_val )
+      
+30064771096 | CALL | core -> mac [ IMS ]
+30064771097 | CALL | core -> mac
+30064771098 | CALL | core -> mac [ IMS ] | valid_val
+30064771099 | CALL | core -> mac [ IMS ]
+30064771100 | CALL | core -> mac
+30064771101 | CALL | core -> mac [ IMS ] |= valid_val
+30064771102 | CALL | core -> mac [ IMS ]
+30064771103 | CALL | core -> mac
+30064771104 | CALL | 
+        ( valid_val & ims_ext_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_PBA_CLR ) && msix_enabled ( core -> owner )
+      
+30064771105 | CALL | 
+        ( valid_val & ims_ext_mask ) && ( core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_PBA_CLR )
+      
+30064771106 | CALL | valid_val & ims_ext_mask
+30064771107 | CALL | core -> mac [ CTRL_EXT ] & E1000_CTRL_EXT_PBA_CLR
+30064771108 | CALL | core -> mac [ CTRL_EXT ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,409 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int32_t scsi_send_command(SCSIRequest *req, uint8_t *buf)
+
+{
+
+    SCSIDiskReq *r = DO_UPCAST(SCSIDiskReq, req, req);
+
+    SCSIDiskState *s = DO_UPCAST(SCSIDiskState, qdev, req->dev);
+
+    int32_t len;
+
+    uint8_t command;
+
+    uint8_t *outbuf;
+
+    int rc;
+
+
+
+    command = buf[0];
+
+    outbuf = (uint8_t *)r->iov.iov_base;
+
+    DPRINTF("Command: lun=%d tag=0x%x data=0x%02x", req->lun, req->tag, buf[0]);
+
+
+
+    if (scsi_req_parse(&r->req, buf) != 0) {
+
+        BADF("Unsupported command length, command %x\n", command);
+
+        scsi_command_complete(r, CHECK_CONDITION, SENSE_CODE(INVALID_OPCODE));
+
+        return 0;
+
+    }
+
+#ifdef DEBUG_SCSI
+
+    {
+
+        int i;
+
+        for (i = 1; i < r->req.cmd.len; i++) {
+
+            printf(" 0x%02x", buf[i]);
+
+        }
+
+        printf("\n");
+
+    }
+
+#endif
+
+
+
+    if (req->lun) {
+
+        /* Only LUN 0 supported.  */
+
+        DPRINTF("Unimplemented LUN %d\n", req->lun);
+
+        if (command != REQUEST_SENSE && command != INQUIRY) {
+
+            scsi_command_complete(r, CHECK_CONDITION,
+
+                                  SENSE_CODE(LUN_NOT_SUPPORTED));
+
+            return 0;
+
+        }
+
+    }
+
+    switch (command) {
+
+    case TEST_UNIT_READY:
+
+    case REQUEST_SENSE:
+
+    case INQUIRY:
+
+    case MODE_SENSE:
+
+    case MODE_SENSE_10:
+
+    case RESERVE:
+
+    case RESERVE_10:
+
+    case RELEASE:
+
+    case RELEASE_10:
+
+    case START_STOP:
+
+    case ALLOW_MEDIUM_REMOVAL:
+
+    case READ_CAPACITY:
+
+    case SYNCHRONIZE_CACHE:
+
+    case READ_TOC:
+
+    case GET_CONFIGURATION:
+
+    case SERVICE_ACTION_IN:
+
+    case REPORT_LUNS:
+
+    case VERIFY:
+
+        rc = scsi_disk_emulate_command(r, outbuf);
+
+        if (rc < 0) {
+
+            return 0;
+
+        }
+
+
+
+        r->iov.iov_len = rc;
+
+        break;
+
+    case READ_6:
+
+    case READ_10:
+
+    case READ_12:
+
+    case READ_16:
+
+        len = r->req.cmd.xfer / s->qdev.blocksize;
+
+        DPRINTF("Read (sector %" PRId64 ", count %d)\n", r->req.cmd.lba, len);
+
+        if (r->req.cmd.lba > s->max_lba)
+
+            goto illegal_lba;
+
+        r->sector = r->req.cmd.lba * s->cluster_size;
+
+        r->sector_count = len * s->cluster_size;
+
+        break;
+
+    case WRITE_6:
+
+    case WRITE_10:
+
+    case WRITE_12:
+
+    case WRITE_16:
+
+    case WRITE_VERIFY:
+
+    case WRITE_VERIFY_12:
+
+    case WRITE_VERIFY_16:
+
+        len = r->req.cmd.xfer / s->qdev.blocksize;
+
+        DPRINTF("Write %s(sector %" PRId64 ", count %d)\n",
+
+                (command & 0xe) == 0xe ? "And Verify " : "",
+
+                r->req.cmd.lba, len);
+
+        if (r->req.cmd.lba > s->max_lba)
+
+            goto illegal_lba;
+
+        r->sector = r->req.cmd.lba * s->cluster_size;
+
+        r->sector_count = len * s->cluster_size;
+
+        break;
+
+    case MODE_SELECT:
+
+        DPRINTF("Mode Select(6) (len %lu)\n", (long)r->req.cmd.xfer);
+
+        /* We don't support mode parameter changes.
+
+           Allow the mode parameter header + block descriptors only. */
+
+        if (r->req.cmd.xfer > 12) {
+
+            
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+75 -> 82 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int32_t scsi_send_command(SCSIRequest *req, uint8_t *buf)
+
+{
+
+    SCSIDiskReq *r = DO_UPCAST(SCSIDiskReq, req, req);
+
+    SCSIDiskState *s = DO_UPCAST(SCSIDiskState, qdev, req->dev);
+
+    int32_t len;
+
+    uint8_t command;
+
+    uint8_t *outbuf;
+
+    int rc;
+
+
+
+    command = buf[0];
+
+    outbuf = (uint8_t *)r->iov.iov_base;
+
+    DPRINTF("Command: lun=%d tag=0x%x data=0x%02x", req->lun, req->tag, buf[0]);
+
+
+
+#ifdef DEBUG_SCSI
+
+    {
+
+        int i;
+
+        for (i = 1; i < r->req.cmd.len; i++) {
+
+            printf(" 0x%02x", buf[i]);
+
+        }
+
+        printf("\n");
+
+    }
+
+#endif
+
+
+
+    if (req->lun) {
+
+        /* Only LUN 0 supported.  */
+
+        DPRINTF("Unimplemented LUN %d\n", req->lun);
+
+        if (command != REQUEST_SENSE && command != INQUIRY) {
+
+            scsi_check_condition(r, SENSE_CODE(LUN_NOT_SUPPORTED));
+
+            return 0;
+
+        }
+
+    }
+
+    switch (command) {
+
+    case TEST_UNIT_READY:
+
+    case REQUEST_SENSE:
+
+    case INQUIRY:
+
+    case MODE_SENSE:
+
+    case MODE_SENSE_10:
+
+    case RESERVE:
+
+    case RESERVE_10:
+
+    case RELEASE:
+
+    case RELEASE_10:
+
+    case START_STOP:
+
+    case ALLOW_MEDIUM_REMOVAL:
+
+    case READ_CAPACITY_10:
+
+    case SYNCHRONIZE_CACHE:
+
+    case READ_TOC:
+
+    case GET_CONFIGURATION:
+
+    case SERVICE_ACTION_IN:
+
+    case REPORT_LUNS:
+
+    case VERIFY_10:
+
+        rc = scsi_disk_emulate_command(r, outbuf);
+
+        if (rc < 0) {
+
+            return 0;
+
+        }
+
+
+
+        r->iov.iov_len = rc;
+
+        break;
+
+  
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

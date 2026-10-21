@@ -1,0 +1,97 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_bug8378 ( ) {
+ # if defined ( HAVE_CHARSET_gbk ) && ! defined ( EMBEDDED_LIBRARY ) MYSQL * lmysql ;
+ char out [ 9 ] ;
+ char buf [ 256 ] ;
+ int len , rc ;
+ myheader ( "test_bug8378" ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\n Establishing a test connection ..." ) ;
+ if ( ! ( lmysql = mysql_client_init ( NULL ) ) ) {
+ myerror ( "mysql_client_init() failed" ) ;
+ exit ( 1 ) ;
+ }
+ if ( mysql_options ( lmysql , MYSQL_SET_CHARSET_NAME , "gbk" ) ) {
+ myerror ( "mysql_options() failed" ) ;
+ exit ( 1 ) ;
+ }
+ if ( ! ( mysql_real_connect ( lmysql , opt_host , opt_user , opt_password , current_db , opt_port , opt_unix_socket , 0 ) ) ) {
+ myerror ( "connection failed" ) ;
+ exit ( 1 ) ;
+ }
+ if ( ! opt_silent ) fprintf ( stdout , "OK" ) ;
+ rc = mysql_query ( lmysql , "SET SQL_MODE=''" ) ;
+ myquery ( rc ) ;
+ len = mysql_real_escape_string ( lmysql , out , TEST_BUG8378_IN , 4 ) ;
+ DIE_UNLESS ( memcmp ( out , TEST_BUG8378_OUT , len ) == 0 ) ;
+ sprintf ( buf , "SELECT '%s'" , out ) ;
+ rc = mysql_real_query ( lmysql , buf , strlen ( buf ) ) ;
+ myquery ( rc ) ;
+ mysql_close ( lmysql ) ;
+ # endif }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+107374182400 | METHOD | static void test_bug8378 ( ) 
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 124554051584 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 124554051584 [DOMINATE]
+124554051584 -> 107374182400 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_stmt_close ( ) {
+ MYSQL * lmysql ;
+ MYSQL_STMT * stmt1 , * stmt2 , * stmt3 , * stmt_x ;
+ MYSQL_BIND my_bind [ 1 ] ;
+ MYSQL_RES * result ;
+ unsigned int count ;
+ int rc ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_stmt_close" ) ;
+ if ( ! opt_silent ) fprintf ( stdout , "\n Establishing a test connection ..." ) ;
+ if ( ! ( lmysql = mysql_client_init ( NULL ) ) ) {
+ myerror ( "mysql_client_init() failed" ) ;
+ exit ( 1 ) ;
+ }
+ if ( ! ( mysql_real_connect ( lmysql , opt_host , opt_user , opt_password , current_db , opt_port , opt_unix_socket , 0 ) ) ) {
+ myerror ( "connection failed" ) ;
+ exit ( 1 ) ;
+ }
+ lmysql -> reconnect = 1 ;
+ if ( ! opt_silent ) fprintf ( stdout , "OK" ) ;
+ mysql_autocommit ( lmysql , TRUE ) ;
+ rc = mysql_query ( lmysql , "SET SQL_MODE = ''" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( lmysql , "DROP TABLE IF EXISTS test_stmt_close" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( lmysql , "CREATE TABLE test_stmt_close(id int)" ) ;
+ myquery ( rc ) ;
+ strmov ( query , "DO \"nothing\"" ) ;
+ stmt1 = mysql_simple_prepare ( lmysql , query ) ;
+ check_stmt ( stmt1 ) ;
+ verify_param_count ( stmt1 , 0 ) ;
+ strmov ( query , "INSERT INTO test_stmt_close(id) VALUES(?)" ) ;
+ stmt_x = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt_x ) ;
+ verify_param_count ( stmt_x , 1 ) ;
+ strmov ( query , "UPDATE test_stmt_close SET id= ? WHERE id= ?" ) ;
+ stmt3 = mysql_simple_prepare ( lmysql , query ) ;
+ check_stmt ( stmt3 ) ;
+ verify_param_count ( s
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

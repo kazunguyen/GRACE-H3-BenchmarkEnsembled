@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void sbr_hf_inverse_filter ( SBRDSPContext * dsp , float ( * alpha0 ) [ 2 ] , float ( * alpha1 ) [ 2 ] , const float X_low [ 32 ] [ 40 ] [ 2 ] , int k0 ) {
+ int k ;
+ for ( k = 0 ;
+ k < k0 ;
+ k ++ ) {
+ LOCAL_ALIGNED_16 ( float , phi , [ 3 ] , [ 2 ] [ 2 ] ) ;
+ float dk ;
+ dsp -> autocorrelate ( X_low [ k ] , phi ) ;
+ dk = phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] - ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f ;
+ if ( ! dk ) {
+ alpha1 [ k ] [ 0 ] = 0 ;
+ alpha1 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] - phi [ 0 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] + phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha1 [ k ] [ 0 ] = temp_real / dk ;
+ alpha1 [ k ] [ 1 ] = temp_im / dk ;
+ }
+ if ( ! phi [ 1 ] [ 0 ] [ 0 ] ) {
+ alpha0 [ k ] [ 0 ] = 0 ;
+ alpha0 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] + alpha1 [ k ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + alpha1 [ k ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 1 ] + alpha1 [ k ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - alpha1 [ k ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] ;
+ alpha0 [ k ] [ 0 ] = - temp_real / phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha0 [ k ] [ 1 ] = - temp_im / phi [ 1 ] [ 0 ] [ 0 ] ;
+ }
+ if ( alpha1 [ k ] [ 0 ] * alpha1 [ k ] [ 0 ] + alpha1 [ k ] [ 1 ] * alpha1 [ k ] [ 1 ] >= 16.0f || alpha0 [ k ] [ 0 ] * alpha0 [ k ] [ 0 ] + alpha0 [ k ] [ 1 ] * alpha0 [ k ] [ 1 ] >= 16.0f ) {
+ alpha1 [ k ] [ 0 ] = 0 ;
+ alpha1 [ k ] [ 1 ] = 0 ;
+ alpha0 [ k ] [ 0 ] = 0 ;
+ alpha0 [ k ] [ 1 ] = 0 ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int k ;
+ for ( k = 0 ;
+ k < k0 ;
+ k ++ ) {
+ LOCAL_ALIGNED_16 ( float , phi , [ 3 ] , [ 2 ] [ 2 ] ) ;
+ float dk ;
+ dsp -> autocorrelate ( X_low [ k ] , phi ) ;
+ dk = phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] - ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f ;
+ if ( ! dk ) {
+ alpha1 [ k ] [ 0 ] = 0 ;
+ alpha1 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] - phi [ 0 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] + phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha1 [ k ] [ 0 ] = temp_real / dk ;
+ alpha1 [ k ] [ 1 ] = temp_im / dk ;
+ }
+ if ( ! phi [ 1 ] [ 0 ] [ 0 ] ) {
+ alpha0 [ k ] [ 0 ] = 0 ;
+ alpha0 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] + alpha1 [...
+      
+25769803777 | BLOCK | 
+        {
+ LOCAL_ALIGNED_16 ( float , phi , [ 3 ] , [ 2 ] [ 2 ] ) ;
+ float dk ;
+ dsp -> autocorrelate ( X_low [ k ] , phi ) ;
+ dk = phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] - ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f ;
+ if ( ! dk ) {
+ alpha1 [ k ] [ 0 ] = 0 ;
+ alpha1 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] - phi [ 0 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] + phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha1 [ k ] [ 0 ] = temp_real / dk ;
+ alpha1 [ k ] [ 1 ] = temp_im / dk ;
+ }
+ if ( ! phi [ 1 ] [ 0 ] [ 0 ] ) {
+ alpha0 [ k ] [ 0 ] = 0 ;
+ alpha0 [ k ] [ 1 ] = 0 ;
+ }
+ else {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] + alpha1 [ k ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + alpha1 ...
+      
+25769803778 | BLOCK | { alpha1 [ k ] [ 0 ] = 0 ; alpha1 [ k ] [ 1 ] = 0 ; }
+25769803779 | BLOCK | 
+        {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] - phi [ 0 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] + phi [ 0 ] [ 0 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - phi [ 0 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha1 [ k ] [ 0 ] = temp_real / dk ;
+ alpha1 [ k ] [ 1 ] = temp_im / dk ;
+ }
+      
+25769803780 | BLOCK | { alpha0 [ k ] [ 0 ] = 0 ; alpha0 [ k ] [ 1 ] = 0 ; }
+25769803781 | BLOCK | 
+        {
+ float temp_real , temp_im ;
+ temp_real = phi [ 0 ] [ 0 ] [ 0 ] + alpha1 [ k ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + alpha1 [ k ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ;
+ temp_im = phi [ 0 ] [ 0 ] [ 1 ] + alpha1 [ k ] [ 1 ] * phi [ 1 ] [ 1 ] [ 0 ] - alpha1 [ k ] [ 0 ] * phi [ 1 ] [ 1 ] [ 1 ] ;
+ alpha0 [ k ] [ 0 ] = - temp_real / phi [ 1 ] [ 0 ] [ 0 ] ;
+ alpha0 [ k ] [ 1 ] = - temp_im / phi [ 1 ] [ 0 ] [ 0 ] ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ alpha1 [ k ] [ 0 ] = 0 ;
+ alpha1 [ k ] [ 1 ] = 0 ;
+ alpha0 [ k ] [ 0 ] = 0 ;
+ alpha0 [ k ] [ 1 ] = 0 ;
+ }
+      
+30064771072 | CALL | k = 0
+30064771073 | CALL | k < k0
+30064771074 | CALL | k ++
+30064771075 | CALL | dsp -> autocorrelate ( X_low [ k ] , phi )
+30064771076 | CALL | dsp -> autocorrelate
+30064771077 | CALL | X_low [ k ]
+30064771078 | CALL | 
+        dk = phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] - ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f
+      
+30064771079 | CALL | 
+        phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ] - ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f
+      
+30064771080 | CALL | phi [ 2 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 0 ] [ 0 ]
+30064771081 | CALL | phi [ 2 ] [ 1 ] [ 0 ]
+30064771082 | CALL | phi [ 2 ] [ 1 ]
+30064771083 | CALL | phi [ 2 ]
+30064771084 | CALL | phi [ 1 ] [ 0 ] [ 0 ]
+30064771085 | CALL | phi [ 1 ] [ 0 ]
+30064771086 | CALL | phi [ 1 ]
+30064771087 | CALL | 
+        ( phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ] ) / 1.000001f
+      
+30064771088 | CALL | 
+        phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ] + phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ]
+      
+30064771089 | CALL | phi [ 1 ] [ 1 ] [ 0 ] * phi [ 1 ] [ 1 ] [ 0 ]
+30064771090 | CALL | phi [ 1 ] [ 1 ] [ 0 ]
+30064771091 | CALL | phi [ 1 ] [ 1 ]
+30064771092 | CALL | phi [ 1 ]
+30064771093 | CALL | phi [ 1 ] [ 1 ] [ 0 ]
+30064771094 | CALL | phi [ 1 ] [ 1 ]
+30064771095 | CALL | phi [ 1 ]
+30064771096 | CALL | phi [ 1 ] [ 1 ] [ 1 ] * phi [ 1 ] [ 1 ] [ 1 ]
+30064771097 | CALL | phi [ 1 ] [ 1 ] [ 1 ]
+30064771098 | CALL | phi [ 1 ] [ 1 ]
+30064771099 | CALL | phi [ 1 ]
+30064771100 | CALL | phi [ 1 ] [ 1 ] [ 1 ]
+30064771101 | CALL | phi [ 1 ] [ 1 ]
+30064771102 | CALL | phi [ 1 ]
+30064771103 | CALL | ! dk
+30064771104 | CALL | alpha1 [ k ] [ 0 ] = 0
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771104 [AST]
+30064771073 -> 30064771095 [CDG]
+30064771073 -> 30064771096 [CDG]
+30064771073 -> 30064771093 [CDG]
+30064771073 -> 30064771094 [CDG]
+30064771073 -> 30064771091 [CDG]
+30064771073 -> 30064771092 [CDG]
+30064771073 -> 30064771089 [CDG]
+30064771073 -> 30064771090 [CDG]
+30064771073 -> 30064771103 [CDG]
+30064771073 -> 30064771101 [CDG]
+30064771073 -> 30064771102 [CDG]
+30064771073
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,174 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void send_random_tag_value ( int indx ) {
+ int noise ;
+ char buf [ 32 ] ;
+ noise = rand ( ) ^ ( rand ( ) << 16 ) ;
+ buf [ 0 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 1 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 2 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 3 ] = '.' ;
+ snprintf ( & buf [ 4 ] , sizeof ( buf ) - 4 , "%d" , indx ) ;
+ ctl_putuint ( buf , noise ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int noise ;
+ char buf [ 32 ] ;
+ noise = rand ( ) ^ ( rand ( ) << 16 ) ;
+ buf [ 0 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 1 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 2 ] = 'a' + noise % 26 ;
+ noise >>= 5 ;
+ buf [ 3 ] = '.' ;
+ snprintf ( & buf [ 4 ] , sizeof ( buf ) - 4 , "%d" , indx ) ;
+ ctl_putuint ( buf , noise ) ;
+ }
+      
+30064771072 | CALL | buf [ 32 ]
+30064771073 | CALL | buf [ 32 ]
+30064771074 | CALL | noise = rand ( ) ^ ( rand ( ) << 16 )
+30064771075 | CALL | rand ( ) ^ ( rand ( ) << 16 )
+30064771076 | CALL | rand ( )
+30064771077 | CALL | rand ( ) << 16
+30064771078 | CALL | rand ( )
+30064771079 | CALL | buf [ 0 ] = 'a' + noise % 26
+30064771080 | CALL | buf [ 0 ]
+30064771081 | CALL | 'a' + noise % 26
+30064771082 | CALL | noise % 26
+30064771083 | CALL | noise >>= 5
+30064771084 | CALL | buf [ 1 ] = 'a' + noise % 26
+30064771085 | CALL | buf [ 1 ]
+30064771086 | CALL | 'a' + noise % 26
+30064771087 | CALL | noise % 26
+30064771088 | CALL | noise >>= 5
+30064771089 | CALL | buf [ 2 ] = 'a' + noise % 26
+30064771090 | CALL | buf [ 2 ]
+30064771091 | CALL | 'a' + noise % 26
+30064771092 | CALL | noise % 26
+30064771093 | CALL | noise >>= 5
+30064771094 | CALL | buf [ 3 ] = '.'
+30064771095 | CALL | buf [ 3 ]
+30064771096 | CALL | snprintf ( & buf [ 4 ] , sizeof ( buf ) - 4 , "%d" , indx )
+30064771097 | CALL | & buf [ 4 ]
+30064771098 | CALL | buf [ 4 ]
+30064771099 | CALL | sizeof ( buf ) - 4
+30064771100 | CALL | sizeof ( buf )
+30064771101 | CALL | ctl_putuint ( buf , noise )
+68719476736 | IDENTIFIER | buf
+68719476737 | IDENTIFIER | char[32]
+68719476738 | IDENTIFIER | noise
+68719476739 | IDENTIFIER | buf
+68719476740 | IDENTIFIER | noise
+68719476741 | IDENTIFIER | noise
+68719476742 | IDENTIFIER | buf
+68719476743 | IDENTIFIER | noise
+68719476744 | IDENTIFIER | noise
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771101 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771078 [CFG]
+30064771076 -> 30064771078 [DOMINATE]
+30064771076 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771076 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 68719476741 [CFG]
+30064771079 -> 68719476741 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 68719476739 [ARGUMENT]
+30064771080 -> 68719476739 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 68719476742 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 68719476740 [ARGUMENT]
+30064771082 -> 68719476740 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 68719476741 [ARGUMENT]
+30064771083 -> 68719476741 [AST]
+30064771083 -> 68719476742 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void unicode_escape ( char * buf , UTF16 character ) {
+ const char * digits = "0123456789abcdef" ;
+ buf [ 2 ] = digits [ character >> 12 ] ;
+ buf [ 3 ] = digits [ ( character >> 8 ) & 0xf ] ;
+ buf [ 4 ] = digits [ ( character >> 4 ) & 0xf ] ;
+ buf [ 5 ] = digits [ character & 0xf ] ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

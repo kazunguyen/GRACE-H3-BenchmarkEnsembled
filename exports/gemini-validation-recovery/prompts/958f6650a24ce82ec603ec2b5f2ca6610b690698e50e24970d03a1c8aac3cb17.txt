@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int cpu_exec ( CPUArchState * env ) {
+ CPUState * cpu = ENV_GET_CPU ( env ) ;
+ # if ! ( defined ( CONFIG_USER_ONLY ) && ( defined ( TARGET_M68K ) || defined ( TARGET_PPC ) || defined ( TARGET_S390X ) ) ) CPUClass * cc = CPU_GET_CLASS ( cpu ) ;
+ # endif int ret , interrupt_request ;
+ TranslationBlock * tb ;
+ uint8_t * tc_ptr ;
+ tcg_target_ulong next_tb ;
+ if ( cpu -> halted ) {
+ if ( ! cpu_has_work ( cpu ) ) {
+ return EXCP_HALTED ;
+ }
+ cpu -> halted = 0 ;
+ }
+ current_cpu = cpu ;
+ smp_mb ( ) ;
+ if ( unlikely ( exit_request ) ) {
+ cpu -> exit_request = 1 ;
+ }
+ # if defined ( TARGET_I386 ) CC_SRC = env -> eflags & ( CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C ) ;
+ env -> df = 1 - ( 2 * ( ( env -> eflags >> 10 ) & 1 ) ) ;
+ CC_OP = CC_OP_EFLAGS ;
+ env -> eflags &= ~ ( DF_MASK | CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C ) ;
+ # elif defined ( TARGET_SPARC ) # elif defined ( TARGET_M68K ) env -> cc_op = CC_OP_FLAGS ;
+ env -> cc_dest = env -> sr & 0xf ;
+ env -> cc_x = ( env -> sr >> 4 ) & 1 ;
+ # elif defined ( TARGET_ALPHA ) # elif defined ( TARGET_ARM ) # elif defined ( TARGET_UNICORE32 ) # elif defined ( TARGET_PPC ) env -> reserve_addr = - 1 ;
+ # elif defined ( TARGET_LM32 ) # elif defined ( TARGET_MICROBLAZE ) # elif defined ( TARGET_MIPS ) # elif defined ( TARGET_MOXIE ) # elif defined ( TARGET_OPENRISC ) # elif defined ( TARGET_SH4 ) # elif defined ( TARGET_CRIS ) # elif defined ( TARGET_S390X ) # elif defined ( TARGET_XTENSA ) # else # error unsupported target CPU # endif env -> exception_index = - 1 ;
+ for ( ;
+ ;
+ ) {
+ if ( sigsetjmp ( env -> jmp_env , 0 ) == 0 ) {
+ if ( env -> exception_index >= 0 ) {
+ if ( env -> exception_index >= EXCP_INTERRUPT ) {
+ ret = env -> exception_index ;
+ if ( ret == EXCP_DEBUG ) {
+ cpu_handle_debug_exception ( env ) ;
+ }
+ break ;
+ }
+ else {
+ # if defined ( CONFIG_USER_ONLY ) # if defined ( TARGET_I386 ) cc -> do_interrupt ( cpu ) ;
+ # endif ret = env -> exception_index ;
+ break ;
+ # else cc -> do_interrupt ( cpu ) ;
+ env -> exception_index = - 1 ;
+ # endif }
+ }
+ next_tb = 0 ;
+ for ( ;
+ ;
+ ) {
+ interrupt_request = cpu -> interrupt_request ;
+ if ( unlikely ( interrupt_request ) ) {
+ if ( unlikely ( env -> singlestep_enabled & SSTEP_NOIRQ ) ) {
+ interrupt_request &= ~ CPU_INTERRUPT_SSTEP_MASK ;
+ }
+ if ( interrupt_request & CPU_INTERRUPT_DEBUG ) {
+ cpu -> interrupt_request &= ~ CPU_INTERRUPT_DEBUG ;
+ env -> exception_index = EXCP_DEBUG ;
+ cpu_loop_exit ( env ) ;
+ }
+ # if defined ( TARGET_ARM ) || defined ( TARGET_SPARC ) || defined ( TARGET_MIPS ) || defined ( TARGET_PPC ) || defined ( TARGET_ALPHA ) || defined ( TARGET_CRIS ) || defined ( TARGET_MICROBLAZE ) || defined ( TARGET_LM32 ) || defined ( TARGET_UNICORE32 ) if ( interrupt_request & CPU_INTERRUPT_HALT ) {
+ cpu -> interrupt_request &= ~ CPU_INTERRUPT_HALT ;
+ cpu -> halted = 1 ;
+ env -> exception_index = EXCP_HLT ;
+ cpu_loop_exit ( env ) ;
+ }
+ # endif # if defined ( TARGET_I386 ) # if ! defined ( CONFIG_USER_ONLY ) if ( interrupt_request & CPU_INTERRUPT_POLL ) {
+ cpu -> 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CPUState * cpu = ENV_GET_CPU ( env ) ;
+ # if ! ( defined ( CONFIG_USER_ONLY ) && ( defined ( TARGET_M68K ) || defined ( TARGET_PPC ) || defined ( TARGET_S390X ) ) ) CPUClass * cc = CPU_GET_CLASS ( cpu ) ;
+ # endif int ret , interrupt_request ;
+ TranslationBlock * tb ;
+ uint8_t * tc_ptr ;
+ tcg_target_ulong next_tb ;
+ if ( cpu -> halted ) {
+ if ( ! cpu_has_work ( cpu ) ) {
+ return EXCP_HALTED ;
+ }
+ cpu -> halted = 0 ;
+ }
+ current_cpu = cpu ;
+ smp_mb ( ) ;
+ if ( unlikely ( exit_request ) ) {
+ cpu -> exit_request = 1 ;
+ }
+ # if defined ( TARGET_I386 ) CC_SRC = env -> eflags & ( CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C ) ;
+ env -> df = 1 - ( 2 * ( ( env -> eflags >> 10 ) & 1 ) ) ;
+ CC_OP = CC_OP_EFLAGS ;
+ env -> eflags &= ~ ( DF_MASK | CC_O | CC_S | CC_Z | CC_A | CC_P | CC_C ) ;
+ # elif defined ( TARGET_SPARC ) # elif defined ( TARGET_M68K ) env -> cc_op = CC_OP_FLAGS ;
+ env -> cc_dest = env -> sr & 0xf ;
+ env -> cc_x = ( env -> sr >> 4 ) & 1 ;
+ # elif defined ( TARGET_ALPHA ) # elif d...
+      
+25769803777 | BLOCK | { if ( ! cpu_has_work ( cpu ) ) { return EXCP_HALTED ; } cpu -> halted = 0 ; }
+25769803778 | BLOCK | { return EXCP_HALTED ; }
+25769803779 | BLOCK | { cpu -> exit_request = 1 ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | cpu = ENV_GET_CPU ( env )
+30064771073 | CALL | ENV_GET_CPU ( env )
+30064771074 | CALL | cpu -> halted
+30064771075 | CALL | ! cpu_has_work ( cpu )
+30064771076 | CALL | cpu_has_work ( cpu )
+30064771077 | CALL | cpu -> halted = 0
+30064771078 | CALL | cpu -> halted
+30064771079 | CALL | current_cpu = cpu
+30064771080 | CALL | smp_mb ( )
+30064771081 | CALL | unlikely ( exit_request )
+30064771082 | CALL | cpu -> exit_request = 1
+30064771083 | CALL | cpu -> exit_request
+30064771084 | CALL | env -> exception_index = - 1
+30064771085 | CALL | env -> exception_index
+30064771086 | CALL | - 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( cpu -> halted ) {
+ if ( ! cpu_has_work ( cpu ) ) {
+ return EXCP_HALTED ;
+ }
+ cpu -> halted = 0 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | if ( ! cpu_has_work ( cpu ) ) { return EXCP_HALTED ; }
+47244640258 | CONTROL_STRUCTURE | if ( unlikely ( exit_request ) ) { cpu -> exit_request = 1 ; }
+55834574848 | FIELD_IDENTIFIER | halted
+55834574849 | FIELD_IDENTIFIER | halted
+55834574850 | FIELD_IDENTIFIER | exit_request
+55834574851 | FIELD_IDENTIFIER | exception_index
+68719476736 | IDENTIFIER | cpu
+68719476737 | IDENTIFIER | env
+68719476738 | IDENTIFIER | cpu
+68719476739 | IDENTIFIER | cpu
+68719476740 | IDENTIFIER | <unknown> EXCP_HALTED
+68719476741 | IDENTIFIER | cpu
+68719476742 | IDENTIFIER | <unknown> current_cpu
+68719476743 | IDENTIFIER | cpu
+68719476744 | IDENTIFIER | <unknown> exit_request
+68719476745 | IDENTIFIER | cpu
+68719476746 | IDENTIFIER | env
+90194313216 | LITERAL | 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771084 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771077 [AST]
+25769803779 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476746 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476742 [CFG]
+30064771074 -> 68719476742 [DOMINATE]
+300647
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

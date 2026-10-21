@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int selinux_genfs_get_sid ( struct dentry * dentry , u16 tclass , u16 flags , u32 * sid ) {
+ int rc ;
+ struct super_block * sb = dentry -> d_sb ;
+ char * buffer , * path ;
+ buffer = ( char * ) __get_free_page ( GFP_KERNEL ) ;
+ if ( ! buffer ) return - ENOMEM ;
+ path = dentry_path_raw ( dentry , buffer , PAGE_SIZE ) ;
+ if ( IS_ERR ( path ) ) rc = PTR_ERR ( path ) ;
+ else {
+ if ( flags & SE_SBPROC ) {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+ rc = security_genfs_sid ( sb -> s_type -> name , path , tclass , sid ) ;
+ }
+ free_page ( ( unsigned long ) buffer ) ;
+ return rc ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int rc ;
+ struct super_block * sb = dentry -> d_sb ;
+ char * buffer , * path ;
+ buffer = ( char * ) __get_free_page ( GFP_KERNEL ) ;
+ if ( ! buffer ) return - ENOMEM ;
+ path = dentry_path_raw ( dentry , buffer , PAGE_SIZE ) ;
+ if ( IS_ERR ( path ) ) rc = PTR_ERR ( path ) ;
+ else {
+ if ( flags & SE_SBPROC ) {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+ rc = security_genfs_sid ( sb -> s_type -> name , path , tclass , sid ) ;
+ }
+ free_page ( ( unsigned long ) buffer ) ;
+ return rc ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( flags & SE_SBPROC ) {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+ rc = security_genfs_sid ( sb -> s_type -> name , path , tclass , sid ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+      
+25769803781 | BLOCK | { path [ 1 ] = '/' ; path ++ ; }
+30064771072 | CALL | sb = dentry -> d_sb
+30064771073 | CALL | dentry -> d_sb
+30064771074 | CALL | buffer = ( char * ) __get_free_page ( GFP_KERNEL )
+30064771075 | CALL | ( char * ) __get_free_page ( GFP_KERNEL )
+30064771076 | CALL | __get_free_page ( GFP_KERNEL )
+30064771077 | CALL | ! buffer
+30064771078 | CALL | - ENOMEM
+30064771079 | CALL | path = dentry_path_raw ( dentry , buffer , PAGE_SIZE )
+30064771080 | CALL | dentry_path_raw ( dentry , buffer , PAGE_SIZE )
+30064771081 | CALL | IS_ERR ( path )
+30064771082 | CALL | rc = PTR_ERR ( path )
+30064771083 | CALL | PTR_ERR ( path )
+30064771084 | CALL | flags & SE_SBPROC
+30064771085 | CALL | path [ 1 ] >= '0' && path [ 1 ] <= '9'
+30064771086 | CALL | path [ 1 ] >= '0'
+30064771087 | CALL | path [ 1 ]
+30064771088 | CALL | path [ 1 ] <= '9'
+30064771089 | CALL | path [ 1 ]
+30064771090 | CALL | path [ 1 ] = '/'
+30064771091 | CALL | path [ 1 ]
+30064771092 | CALL | path ++
+30064771093 | CALL | rc = security_genfs_sid ( sb -> s_type -> name , path , tclass , sid )
+30064771094 | CALL | security_genfs_sid ( sb -> s_type -> name , path , tclass , sid )
+30064771095 | CALL | sb -> s_type -> name
+30064771096 | CALL | sb -> s_type
+30064771097 | CALL | free_page ( ( unsigned long ) buffer )
+30064771098 | CALL | ( unsigned long ) buffer
+47244640256 | CONTROL_STRUCTURE | if ( ! buffer ) return - ENOMEM ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( IS_ERR ( path ) ) rc = PTR_ERR ( path ) ;
+ else {
+ if ( flags & SE_SBPROC ) {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+ rc = security_genfs_sid ( sb -> s_type -> name , path , tclass , sid ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( flags & SE_SBPROC ) {
+ while ( path [ 1 ] >= '0' && path [ 1 ] <= '9' ) {
+ path [ 1 ] = '/' ;
+ path ++ ;
+ }
+ }
+      
+47244640259 | CONTROL_STRUCTURE | while (path [ 1 ] >= '0' && path [ 1 ] <= '9')
+55834574848 | FIELD_IDENTIFIER | d_sb
+55834574849 | FIELD_IDENTIFIER | s_type
+55834574850 | FIELD_IDENTIFIER | name
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771097 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 47244640258 [AST]
+25769803779 -> 30064771093 [AST]
+25769803780 -> 47244640259 [AST]
+25769803781 -> 30064771090 [AST]
+25769803781 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771097 [CDG]
+30064771077 -> 30064771098 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 55834574849 [CDG]
+30064771081 -> 55834574850 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771088 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771088 [AST]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771088 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771085 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int selinux_sb_copy_data ( char * orig , char * copy ) {
+ int fnosec , fsec , rc = 0 ;
+ char * in_save , * in_curr , * in_end ;
+ char * sec_curr , * nosec_save , * nosec ;
+ int open_quote = 0 ;
+ in_curr = orig ;
+ sec_curr = copy ;
+ nosec = ( char * ) get_zeroed_page ( GFP_KERNEL ) ;
+ if ( ! nosec ) {
+ rc = - ENOMEM ;
+ goto out ;
+ }
+ nosec_save = nosec ;
+ fnosec = fsec = 1 ;
+ in_save = in_end = orig ;
+ do {
+ if ( * in_end == '"' ) open_quote = ! open_quote ;
+ if ( ( * in_end == ',' && open_quote == 0 ) || * in_end == '\0' ) {
+ int len = in_end - in_curr ;
+ if ( selinux_option ( in_curr , len ) ) take_selinux_option ( & sec_curr , in_curr , & fsec , len ) ;
+ else take_option ( & nosec , in_curr , & fnosec , len ) ;
+ in_curr = in_end + 1 ;
+ }
+ }
+ while ( * in_end ++ ) ;
+ strcpy ( in_save , nosec_save ) ;
+ free_page ( ( un
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

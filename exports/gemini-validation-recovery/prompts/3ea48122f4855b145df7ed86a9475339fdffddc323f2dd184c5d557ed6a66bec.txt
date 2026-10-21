@@ -1,0 +1,234 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void show_query ( MYSQL * mysql , const char * query ) {
+ MYSQL_RES * res ;
+ DBUG_ENTER ( "show_query" ) ;
+ if ( ! mysql ) DBUG_VOID_RETURN ;
+ if ( mysql_query ( mysql , query ) ) {
+ log_msg ( "Error running query '%s': %d %s" , query , mysql_errno ( mysql ) , mysql_error ( mysql ) ) ;
+ DBUG_VOID_RETURN ;
+ }
+ if ( ( res = mysql_store_result ( mysql ) ) == NULL ) {
+ DBUG_VOID_RETURN ;
+ }
+ {
+ MYSQL_ROW row ;
+ unsigned int i ;
+ unsigned int row_num = 0 ;
+ unsigned int num_fields = mysql_num_fields ( res ) ;
+ MYSQL_FIELD * fields = mysql_fetch_fields ( res ) ;
+ fprintf ( stderr , "=== %s ===\n" , query ) ;
+ while ( ( row = mysql_fetch_row ( res ) ) ) {
+ unsigned long * lengths = mysql_fetch_lengths ( res ) ;
+ row_num ++ ;
+ fprintf ( stderr , "---- %d. ----\n" , row_num ) ;
+ for ( i = 0 ;
+ i < num_fields ;
+ i ++ ) {
+ fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < strlen ( query ) + 8 ;
+ i ++ ) fprintf ( stderr , "=" ) ;
+ fprintf ( stderr , "\n\n" ) ;
+ }
+ mysql_free_result ( res ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_RES * res ;
+ DBUG_ENTER ( "show_query" ) ;
+ if ( ! mysql ) DBUG_VOID_RETURN ;
+ if ( mysql_query ( mysql , query ) ) {
+ log_msg ( "Error running query '%s': %d %s" , query , mysql_errno ( mysql ) , mysql_error ( mysql ) ) ;
+ DBUG_VOID_RETURN ;
+ }
+ if ( ( res = mysql_store_result ( mysql ) ) == NULL ) {
+ DBUG_VOID_RETURN ;
+ }
+ {
+ MYSQL_ROW row ;
+ unsigned int i ;
+ unsigned int row_num = 0 ;
+ unsigned int num_fields = mysql_num_fields ( res ) ;
+ MYSQL_FIELD * fields = mysql_fetch_fields ( res ) ;
+ fprintf ( stderr , "=== %s ===\n" , query ) ;
+ while ( ( row = mysql_fetch_row ( res ) ) ) {
+ unsigned long * lengths = mysql_fetch_lengths ( res ) ;
+ row_num ++ ;
+ fprintf ( stderr , "---- %d. ----\n" , row_num ) ;
+ for ( i = 0 ;
+ i < num_fields ;
+ i ++ ) {
+ fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < strlen ( query ) + 8 ;
+ i ++ ) fprintf ( stderr , "=" ) ;
+ fprintf ( stderr , "\n\n" ) ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ log_msg ( "Error running query '%s': %d %s" , query , mysql_errno ( mysql ) , mysql_error ( mysql ) ) ;
+ DBUG_VOID_RETURN ;
+ }
+      
+25769803779 | BLOCK | { DBUG_VOID_RETURN ; }
+25769803780 | BLOCK | 
+        {
+ MYSQL_ROW row ;
+ unsigned int i ;
+ unsigned int row_num = 0 ;
+ unsigned int num_fields = mysql_num_fields ( res ) ;
+ MYSQL_FIELD * fields = mysql_fetch_fields ( res ) ;
+ fprintf ( stderr , "=== %s ===\n" , query ) ;
+ while ( ( row = mysql_fetch_row ( res ) ) ) {
+ unsigned long * lengths = mysql_fetch_lengths ( res ) ;
+ row_num ++ ;
+ fprintf ( stderr , "---- %d. ----\n" , row_num ) ;
+ for ( i = 0 ;
+ i < num_fields ;
+ i ++ ) {
+ fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < strlen ( query ) + 8 ;
+ i ++ ) fprintf ( stderr , "=" ) ;
+ fprintf ( stderr , "\n\n" ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ unsigned long * lengths = mysql_fetch_lengths ( res ) ;
+ row_num ++ ;
+ fprintf ( stderr , "---- %d. ----\n" , row_num ) ;
+ for ( i = 0 ;
+ i < num_fields ;
+ i ++ ) {
+ fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" ) ;
+ }
+      
+30064771072 | CALL | DBUG_ENTER ( "show_query" )
+30064771073 | CALL | ! mysql
+30064771074 | CALL | mysql_query ( mysql , query )
+30064771075 | CALL | 
+        log_msg ( "Error running query '%s': %d %s" , query , mysql_errno ( mysql ) , mysql_error ( mysql ) )
+      
+30064771076 | CALL | mysql_errno ( mysql )
+30064771077 | CALL | mysql_error ( mysql )
+30064771078 | CALL | ( res = mysql_store_result ( mysql ) ) == NULL
+30064771079 | CALL | res = mysql_store_result ( mysql )
+30064771080 | CALL | mysql_store_result ( mysql )
+30064771081 | CALL | row_num = 0
+30064771082 | CALL | num_fields = mysql_num_fields ( res )
+30064771083 | CALL | mysql_num_fields ( res )
+30064771084 | CALL | fields = mysql_fetch_fields ( res )
+30064771085 | CALL | mysql_fetch_fields ( res )
+30064771086 | CALL | fprintf ( stderr , "=== %s ===\n" , query )
+30064771087 | CALL | row = mysql_fetch_row ( res )
+30064771088 | CALL | mysql_fetch_row ( res )
+30064771089 | CALL | lengths = mysql_fetch_lengths ( res )
+30064771090 | CALL | mysql_fetch_lengths ( res )
+30064771091 | CALL | row_num ++
+30064771092 | CALL | fprintf ( stderr , "---- %d. ----\n" , row_num )
+30064771093 | CALL | i = 0
+30064771094 | CALL | i < num_fields
+30064771095 | CALL | i ++
+30064771096 | CALL | 
+        fprintf ( stderr , "%s\t%.*s\n" , fields [ i ] . name , ( int ) lengths [ i ] , row [ i ] ? row [ i ] : "NULL" )
+      
+30064771097 | CALL | fields [ i ] . name
+30064771098 | CALL | fields [ i ]
+30064771099 | CALL | ( int ) lengths [ i ]
+30064771100 | CALL | lengths [ i ]
+30064771101 | CALL | row [ i ] ? row [ i ] : "NULL"
+30064771102 | CALL | row [ i ]
+30064771103 | CALL | row [ i ]
+30064771104 | CALL | i = 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 25769803780 [AST]
+25769803778 -> 30064771075 [AST]
+25769803780 -> 30064771081 [AST]
+25769803780 -> 30064771082 [AST]
+25769803780 -> 30064771084 [AST]
+25769803780 -> 30064771086 [AST]
+25769803781 -> 30064771089 [AST]
+25769803781 -> 30064771091 [AST]
+25769803781 -> 30064771092 [AST]
+25769803782 -> 30064771096 [AST]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771094 [CDG]
+30064771087 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

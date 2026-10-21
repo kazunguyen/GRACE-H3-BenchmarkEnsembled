@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint dump_events_for_db ( char * db ) {
+ char query_buff [ QUERY_LENGTH ] ;
+ char db_name_buff [ NAME_LEN * 2 + 3 ] , name_buff [ NAME_LEN * 2 + 3 ] ;
+ char * event_name ;
+ char delimiter [ QUERY_LENGTH ] ;
+ FILE * sql_file = md_result_file ;
+ MYSQL_RES * event_res , * event_list_res ;
+ MYSQL_ROW row , event_list_row ;
+ char db_cl_name [ MY_CS_NAME_SIZE ] ;
+ int db_cl_altered = FALSE ;
+ DBUG_ENTER ( "dump_events_for_db" ) ;
+ DBUG_PRINT ( "enter" , ( "db: '%s'" , db ) ) ;
+ mysql_real_escape_string ( mysql , db_name_buff , db , ( ulong ) strlen ( db ) ) ;
+ print_comment ( sql_file , 0 , "\n--\n-- Dumping events for database '%s'\n--\n" , db ) ;
+ if ( lock_tables ) mysql_query ( mysql , "LOCK TABLES mysql.event READ" ) ;
+ if ( mysql_query_with_error_report ( mysql , & event_list_res , "show events" ) ) DBUG_RETURN ( 0 ) ;
+ strcpy ( delimiter , ";
+" ) ;
+ if ( mysql_num_rows ( event_list_res ) > 0 ) {
+ if ( opt_xml ) fputs ( "\t<events>\n" , sql_file ) ;
+ else {
+ fprintf ( sql_file , "/*!50106 SET @save_time_zone= @@TIME_ZONE */ ;
+\n" ) ;
+ if ( fetch_db_collation ( db_name_buff , db_cl_name , sizeof ( db_cl_name ) ) ) DBUG_RETURN ( 1 ) ;
+ }
+ if ( switch_character_set_results ( mysql , "binary" ) ) DBUG_RETURN ( 1 ) ;
+ while ( ( event_list_row = mysql_fetch_row ( event_list_res ) ) != NULL ) {
+ event_name = quote_name ( event_list_row [ 1 ] , name_buff , 0 ) ;
+ DBUG_PRINT ( "info" , ( "retrieving CREATE EVENT for %s" , name_buff ) ) ;
+ my_snprintf ( query_buff , sizeof ( query_buff ) , "SHOW CREATE EVENT %s" , event_name ) ;
+ if ( mysql_query_with_error_report ( mysql , & event_res , query_buff ) ) DBUG_RETURN ( 1 ) ;
+ while ( ( row = mysql_fetch_row ( event_res ) ) != NULL ) {
+ if ( opt_xml ) {
+ print_xml_row ( sql_file , "event" , event_res , & row , "Create Event" ) ;
+ continue ;
+ }
+ if ( strlen ( row [ 3 ] ) != 0 ) {
+ char * query_str ;
+ if ( opt_drop ) fprintf ( sql_file , "/*!50106 DROP EVENT IF EXISTS %s */%s\n" , event_name , delimiter ) ;
+ if ( create_delimiter ( row [ 3 ] , delimiter , sizeof ( delimiter ) ) == NULL ) {
+ fprintf ( stderr , "%s: Warning: Can't create delimiter for event '%s'\n" , my_progname_short , event_name ) ;
+ DBUG_RETURN ( 1 ) ;
+ }
+ fprintf ( sql_file , "DELIMITER %s\n" , delimiter ) ;
+ if ( mysql_num_fields ( event_res ) >= 7 ) {
+ if ( switch_db_collation ( sql_file , db_name_buff , delimiter , db_cl_name , row [ 6 ] , & db_cl_altered ) ) {
+ DBUG_RETURN ( 1 ) ;
+ }
+ switch_cs_variables ( sql_file , delimiter , row [ 4 ] , row [ 4 ] , row [ 5 ] ) ;
+ }
+ else {
+ fprintf ( sql_file , "--\n" "-- WARNING: old server version. " "The following dump may be incomplete.\n" "--\n" ) ;
+ }
+ switch_sql_mode ( sql_file , delimiter , row [ 1 ] ) ;
+ switch_time_zone ( sql_file , delimiter , row [ 2 ] ) ;
+ query_str = cover_definer_clause ( row [ 3 ] , strlen ( row [ 3 ] ) , C_STRING_WITH_LEN ( "50117" ) , C_STRING_WITH_LEN ( "50106" ) , C_STRING_WITH_LEN ( " EVENT" ) ) ;
+ fprintf ( sql_file , "/*!50106 %s */ %s\n" , ( const char * 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char query_buff [ QUERY_LENGTH ] ;
+ char db_name_buff [ NAME_LEN * 2 + 3 ] , name_buff [ NAME_LEN * 2 + 3 ] ;
+ char * event_name ;
+ char delimiter [ QUERY_LENGTH ] ;
+ FILE * sql_file = md_result_file ;
+ MYSQL_RES * event_res , * event_list_res ;
+ MYSQL_ROW row , event_list_row ;
+ char db_cl_name [ MY_CS_NAME_SIZE ] ;
+ int db_cl_altered = FALSE ;
+ DBUG_ENTER ( "dump_events_for_db" ) ;
+ DBUG_PRINT ( "enter" , ( "db: '%s'" , db ) ) ;
+ mysql_real_escape_string ( mysql , db_name_buff , db , ( ulong ) strlen ( db ) ) ;
+ print_comment ( sql_file , 0 , "\n--\n-- Dumping events for database '%s'\n--\n" , db ) ;
+ if ( lock_tables ) mysql_query ( mysql , "LOCK TABLES mysql.event READ" ) ;
+ if ( mysql_query_with_error_report ( mysql , & event_list_res , "show events" ) ) DBUG_RETURN ( 0 ) ;
+ strcpy ( delimiter , ";
+" ) ;
+ if ( mysql_num_rows ( event_list_res ) > 0 ) {
+ if ( opt_xml ) fputs ( "\t<events>\n" , sql_file ) ;
+ else {
+ fprintf ( sql_file , "/*!50106 SET @save_time_zone= @@TIME_ZON...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | query_buff [ QUERY_LENGTH ]
+30064771073 | CALL | query_buff [ QUERY_LENGTH ]
+30064771074 | CALL | db_name_buff [ NAME_LEN * 2 + 3 ]
+30064771075 | CALL | db_name_buff [ NAME_LEN * 2 + 3 ]
+30064771076 | CALL | NAME_LEN * 2 + 3
+30064771077 | CALL | NAME_LEN * 2
+30064771078 | CALL | name_buff [ NAME_LEN * 2 + 3 ]
+30064771079 | CALL | name_buff [ NAME_LEN * 2 + 3 ]
+30064771080 | CALL | NAME_LEN * 2 + 3
+30064771081 | CALL | NAME_LEN * 2
+30064771082 | CALL | delimiter [ QUERY_LENGTH ]
+30064771083 | CALL | delimiter [ QUERY_LENGTH ]
+30064771084 | CALL | sql_file = md_result_file
+30064771085 | CALL | db_cl_name [ MY_CS_NAME_SIZE ]
+30064771086 | CALL | db_cl_name [ MY_CS_NAME_SIZE ]
+30064771087 | CALL | db_cl_altered = FALSE
+30064771088 | CALL | DBUG_ENTER ( "dump_events_for_db" )
+30064771089 | CALL | DBUG_PRINT ( "enter" , ( "db: '%s'" , db ) )
+30064771090 | CALL | mysql_real_escape_string ( mysql , db_name_buff , db , ( ulong ) strlen ( db ) )
+30064771091 | CALL | ( ulong ) strlen ( db )
+30064771092 | CALL | strlen ( db )
+30064771093 | CALL | 
+        print_comment ( sql_file , 0 , "\n--\n-- Dumping events for database '%s'\n--\n" , db )
+      
+30064771094 | CALL | lock_tables != 0
+30064771095 | CALL | mysql_query ( mysql , "LOCK TABLES mysql.event READ" )
+30064771096 | CALL | 
+        mysql_query_with_error_report ( mysql , & event_list_res , "show events" )
+      
+30064771097 | CALL | & event_list_res
+30064771098 | CALL | DBUG_RETURN ( 0 )
+30064771099 | CALL | mysql_free_result ( event_list_res )
+30064771100 | CALL | lock_tables != 0
+30064771101 | CALL | ( void ) mysql_query_with_error_report ( mysql , 0 , "UNLOCK TABLES" )
+30064771102 | CALL | mysql_query_with_error_report ( mysql , 0 , "UNLOCK TABLES" )
+30064771103 | CALL | DBUG_RETURN ( 0 )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( lock_tables ) mysql_query ( mysql , "LOCK TABLES mysql.event READ" ) ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( mysql_query_with_error_report ( mysql , & event_list_res , "show events" ) ) DBUG_RETURN ( 0 ) ;
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( lock_tables ) ( void ) mysql_query_with_error_report ( mysql , 0 , "UNLOCK TABLES" ) ;
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771089 [CFG]
+25769803777 -> 30064771089 [DOMINATE]
+25769803777 -> 30064771089 [REACHING_DEF]
+25769803778 -> 30064771095 [AST]
+25769803779 -> 30064771098 [AST]
+25769803780 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

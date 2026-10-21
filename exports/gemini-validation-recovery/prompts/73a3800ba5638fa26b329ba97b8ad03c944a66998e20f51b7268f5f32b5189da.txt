@@ -1,0 +1,147 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void cirrus_mmio_write(void *opaque, target_phys_addr_t addr,
+
+                              uint64_t val, unsigned size)
+
+{
+
+    CirrusVGAState *s = opaque;
+
+
+
+    if (addr >= 0x100) {
+
+	cirrus_mmio_blt_write(s, addr - 0x100, val);
+
+    } else {
+
+        cirrus_vga_ioport_write(s, addr + 0x3c0, val);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+22 -> 29 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+12 -> 17 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+37 -> 44 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+12 -> 31 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 46 [IS_AST_PARENT]
+3 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+48 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+48 -> 55 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+48 -> 58 [IS_AST_PARENT]
+3 -> 48 [IS_AST_PARENT]
+61 -> 49 [FLOWS_TO]
+49 -> 52 [FLOWS_TO]
+52 -> 55 [FLOWS_TO]
+55 -> 58 [FLOWS_TO]
+58 -> 5 [FLOWS_TO]
+5 -> 13 [FLOWS_TO]
+13 -> 18 [FLOWS_TO]
+13 -> 33 [FLOWS_TO]
+18 -> 62 [FLOWS_TO]
+33 -> 62 [FLOWS_TO]
+55 -> 63 [DEF]
+18 -> 63 [USE]
+29 -> 63 [USE]
+33 -> 63 [USE]
+44 -> 63 [USE]
+49 -> 64 [DEF]
+5 -> 64 [USE]
+9 -> 64 [USE]
+5 -> 64 [DEF]
+9 -> 64 [DEF]
+5 -> 65 [DEF]
+6 -> 65 [DEF]
+18 -> 65 [USE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static uint64_t cirrus_mmio_read(void *opaque, target_phys_addr_t addr,
+
+                                 unsigned size)
+
+{
+
+    CirrusVGAState *s = opaque;
+
+
+
+    if (addr >= 0x100) {
+
+        return cirrus_mmio_blt_read(s, addr - 0x100);
+
+    } else {
+
+        return cirrus_vga_ioport_read(s, addr + 0x3c0);
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

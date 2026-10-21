@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+proto_item * proto_tree_add_time_item ( proto_tree * tree , int hfindex , tvbuff_t * tvb , const gint start , gint length , const guint encoding , nstime_t * retval , gint * endoff , gint * err ) {
+ field_info * new_fi ;
+ nstime_t time_stamp ;
+ gint saved_err = 0 ;
+ header_field_info * hfinfo ;
+ PROTO_REGISTRAR_GET_NTH ( hfindex , hfinfo ) ;
+ DISSECTOR_ASSERT_HINT ( hfinfo != NULL , "Not passed hfi!" ) ;
+ DISSECTOR_ASSERT_FIELD_TYPE_IS_TIME ( hfinfo ) ;
+ if ( length < - 1 || length == 0 ) {
+ REPORT_DISSECTOR_BUG ( wmem_strdup_printf ( wmem_packet_scope ( ) , "Invalid length %d passed to proto_tree_add_time_item" , length ) ) ;
+ }
+ time_stamp . secs = 0 ;
+ time_stamp . nsecs = 0 ;
+ if ( encoding & ENC_STR_TIME_MASK ) {
+ tvb_get_string_time ( tvb , start , length , encoding , & time_stamp , endoff ) ;
+ saved_err = errno ;
+ }
+ else {
+ const gboolean is_relative = ( hfinfo -> type == FT_RELATIVE_TIME ) ? TRUE : FALSE ;
+ if ( length != 8 && length != 4 ) {
+ const gboolean length_error = length < 4 ? TRUE : FALSE ;
+ if ( is_relative ) report_type_length_mismatch ( tree , "a relative time value" , length , length_error ) ;
+ else report_type_length_mismatch ( tree , "an absolute time value" , length , length_error ) ;
+ }
+ tvb_ensure_bytes_exist ( tvb , start , length ) ;
+ get_time_value ( tvb , start , length , encoding , & time_stamp , is_relative ) ;
+ if ( endoff ) * endoff = length ;
+ }
+ if ( err ) * err = saved_err ;
+ if ( retval ) {
+ retval -> secs = time_stamp . secs ;
+ retval -> nsecs = time_stamp . nsecs ;
+ }
+ CHECK_FOR_NULL_TREE ( tree ) ;
+ TRY_TO_FAKE_THIS_ITEM ( tree , hfinfo -> id , hfinfo ) ;
+ new_fi = new_field_info ( tree , hfinfo , tvb , start , length ) ;
+ proto_tree_set_time ( new_fi , & time_stamp ) ;
+ if ( encoding & ENC_STRING ) {
+ if ( saved_err == ERANGE ) expert_add_info ( NULL , tree , & ei_number_string_decoding_erange_error ) ;
+ else if ( saved_err == EDOM ) expert_add_info ( NULL , tree , & ei_number_string_decoding_failed_error ) ;
+ }
+ else {
+ FI_SET_FLAG ( new_fi , ( encoding & ENC_LITTLE_ENDIAN ) ? FI_LITTLE_ENDIAN : FI_BIG_ENDIAN ) ;
+ }
+ return proto_tree_add_node ( tree , new_fi ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ field_info * new_fi ;
+ nstime_t time_stamp ;
+ gint saved_err = 0 ;
+ header_field_info * hfinfo ;
+ PROTO_REGISTRAR_GET_NTH ( hfindex , hfinfo ) ;
+ DISSECTOR_ASSERT_HINT ( hfinfo != NULL , "Not passed hfi!" ) ;
+ DISSECTOR_ASSERT_FIELD_TYPE_IS_TIME ( hfinfo ) ;
+ if ( length < - 1 || length == 0 ) {
+ REPORT_DISSECTOR_BUG ( wmem_strdup_printf ( wmem_packet_scope ( ) , "Invalid length %d passed to proto_tree_add_time_item" , length ) ) ;
+ }
+ time_stamp . secs = 0 ;
+ time_stamp . nsecs = 0 ;
+ if ( encoding & ENC_STR_TIME_MASK ) {
+ tvb_get_string_time ( tvb , start , length , encoding , & time_stamp , endoff ) ;
+ saved_err = errno ;
+ }
+ else {
+ const gboolean is_relative = ( hfinfo -> type == FT_RELATIVE_TIME ) ? TRUE : FALSE ;
+ if ( length != 8 && length != 4 ) {
+ const gboolean length_error = length < 4 ? TRUE : FALSE ;
+ if ( is_relative ) report_type_length_mismatch ( tree , "a relative time value" , length , length_error ) ;
+ else report_type_length_mismatch ( tree , "an absolute tim...
+      
+25769803777 | BLOCK | 
+        {
+ REPORT_DISSECTOR_BUG ( wmem_strdup_printf ( wmem_packet_scope ( ) , "Invalid length %d passed to proto_tree_add_time_item" , length ) ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ tvb_get_string_time ( tvb , start , length , encoding , & time_stamp , endoff ) ;
+ saved_err = errno ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ const gboolean is_relative = ( hfinfo -> type == FT_RELATIVE_TIME ) ? TRUE : FALSE ;
+ if ( length != 8 && length != 4 ) {
+ const gboolean length_error = length < 4 ? TRUE : FALSE ;
+ if ( is_relative ) report_type_length_mismatch ( tree , "a relative time value" , length , length_error ) ;
+ else report_type_length_mismatch ( tree , "an absolute time value" , length , length_error ) ;
+ }
+ tvb_ensure_bytes_exist ( tvb , start , length ) ;
+ get_time_value ( tvb , start , length , encoding , & time_stamp , is_relative ) ;
+ if ( endoff ) * endoff = length ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ const gboolean length_error = length < 4 ? TRUE : FALSE ;
+ if ( is_relative ) report_type_length_mismatch ( tree , "a relative time value" , length , length_error ) ;
+ else report_type_length_mismatch ( tree , "an absolute time value" , length , length_error ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ retval -> secs = time_stamp . secs ;
+ retval -> nsecs = time_stamp . nsecs ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ if ( saved_err == ERANGE ) expert_add_info ( NULL , tree , & ei_number_string_decoding_erange_error ) ;
+ else if ( saved_err == EDOM ) expert_add_info ( NULL , tree , & ei_number_string_decoding_failed_error ) ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ FI_SET_FLAG ( new_fi , ( encoding & ENC_LITTLE_ENDIAN ) ? FI_LITTLE_ENDIAN : FI_BIG_ENDIAN ) ;
+ }
+      
+30064771072 | CALL | saved_err = 0
+30064771073 | CALL | PROTO_REGISTRAR_GET_NTH ( hfindex , hfinfo )
+30064771074 | CALL | DISSECTOR_ASSERT_HINT ( hfinfo != NULL , "Not passed hfi!" )
+30064771075 | CALL | hfinfo != NULL
+30064771076 | CALL | DISSECTOR_ASSERT_FIELD_TYPE_IS_TIME ( hfinfo )
+30064771077 | CALL | length < - 1 || length == 0
+30064771078 | CALL | length < - 1
+30064771079 | CALL | - 1
+30064771080 | CALL | length == 0
+30064771081 | CALL | 
+        REPORT_DISSECTOR_BUG ( wmem_strdup_printf ( wmem_packet_scope ( ) , "Invalid length %d passed to proto_tree_add_time_item" , length ) )
+      
+30064771082 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "Invalid length %d passed to proto_tree_add_time_item" , length )
+      
+30064771083 | CALL | wmem_packet_scope ( )
+30064771084 | CALL | time_stamp . secs = 0
+30064771085 | CALL | time_stamp . secs
+30064771086 | CALL | time_stamp . nsecs = 0
+30064771087 | CALL | time_stamp . nsecs
+30064771088 | CALL | encoding & ENC_STR_TIME_MASK
+30064771089 | CALL | tvb_get_string_time ( tvb , start , length , encoding , & time_stamp , endoff )
+30064771090 | CALL | & time_stamp
+30064771091 | CALL | saved_err = errno
+30064771092 | CALL | is_relative = ( hfinfo -> type == FT_RELATIVE_TIME ) ? TRUE : FALSE
+30064771093 | CALL | ( hfinfo -> type == FT_RELATIVE_TIME ) ? TRUE : FALSE
+30064771094 | CALL | hfinfo -> type == FT_RELATIVE_TIME
+30064771095 | CALL | hfinfo -> type
+30064771096 | CALL | length != 8 && length != 4
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803777 -> 30064771081 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771092 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771083 [CFG]
+30064771077 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+PHP_FUNCTION ( locale_lookup ) {
+ char * fallback_loc = NULL ;
+ int fallback_loc_len = 0 ;
+ const char * loc_range = NULL ;
+ int loc_range_len = 0 ;
+ zval * arr = NULL ;
+ HashTable * hash_arr = NULL ;
+ zend_bool boolCanonical = 0 ;
+ char * result = NULL ;
+ intl_error_reset ( NULL TSRMLS_CC ) ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "as|bs" , & arr , & loc_range , & loc_range_len , & boolCanonical , & fallback_loc , & fallback_loc_len ) == FAILURE ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_lookup: unable to parse input params" , 0 TSRMLS_CC ) ;
+ RETURN_FALSE ;
+ }
+ if ( loc_range_len == 0 ) {
+ loc_range = intl_locale_get_default ( TSRMLS_C ) ;
+ }
+ hash_arr = HASH_OF ( arr ) ;
+ if ( ! hash_arr || zend_hash_num_elements ( hash_arr ) == 0 ) {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+ result = lookup_loc_range ( loc_range , hash_arr , boolCanonical TSRMLS_CC ) ;
+ if ( result == NULL || result [ 0 ] == '\0' ) {
+ if ( fallback_loc ) {
+ result = estrndup ( fallback_loc , fallback_loc_len ) ;
+ }
+ else {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+ }
+ RETVAL_STRINGL ( result , strlen ( result ) , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * fallback_loc = NULL ;
+ int fallback_loc_len = 0 ;
+ const char * loc_range = NULL ;
+ int loc_range_len = 0 ;
+ zval * arr = NULL ;
+ HashTable * hash_arr = NULL ;
+ zend_bool boolCanonical = 0 ;
+ char * result = NULL ;
+ intl_error_reset ( NULL TSRMLS_CC ) ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "as|bs" , & arr , & loc_range , & loc_range_len , & boolCanonical , & fallback_loc , & fallback_loc_len ) == FAILURE ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_lookup: unable to parse input params" , 0 TSRMLS_CC ) ;
+ RETURN_FALSE ;
+ }
+ if ( loc_range_len == 0 ) {
+ loc_range = intl_locale_get_default ( TSRMLS_C ) ;
+ }
+ hash_arr = HASH_OF ( arr ) ;
+ if ( ! hash_arr || zend_hash_num_elements ( hash_arr ) == 0 ) {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+ result = lookup_loc_range ( loc_range , hash_arr , boolCanonical TSRMLS_CC ) ;
+ if ( result == NULL || result [ 0 ] == '\0' ) {
+ if ( fallback_loc ) {
+ result = estrndup ( fallback_loc , fallback_loc_len ) ;...
+      
+25769803777 | BLOCK | 
+        {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_lookup: unable to parse input params" , 0 TSRMLS_CC ) ;
+ RETURN_FALSE ;
+ }
+      
+25769803778 | BLOCK | { loc_range = intl_locale_get_default ( TSRMLS_C ) ; }
+25769803779 | BLOCK | { RETURN_EMPTY_STRING ( ) ; }
+25769803780 | BLOCK | 
+        {
+ if ( fallback_loc ) {
+ result = estrndup ( fallback_loc , fallback_loc_len ) ;
+ }
+ else {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+ }
+      
+25769803781 | BLOCK | { result = estrndup ( fallback_loc , fallback_loc_len ) ; }
+25769803782 | BLOCK | { RETURN_EMPTY_STRING ( ) ; }
+30064771072 | CALL | fallback_loc = NULL
+30064771073 | CALL | fallback_loc_len = 0
+30064771074 | CALL | loc_range = NULL
+30064771075 | CALL | loc_range_len = 0
+30064771076 | CALL | arr = NULL
+30064771077 | CALL | hash_arr = NULL
+30064771078 | CALL | boolCanonical = 0
+30064771079 | CALL | result = NULL
+30064771080 | CALL | 
+        zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "as|bs" , & arr , & loc_range , & loc_range_len , & boolCanonical , & fallback_loc , & fallback_loc_len ) == FAILURE != 0
+      
+30064771081 | CALL | loc_range_len == 0
+30064771082 | CALL | loc_range = intl_locale_get_default ( TSRMLS_C )
+30064771083 | CALL | intl_locale_get_default ( TSRMLS_C )
+30064771084 | CALL | hash_arr = HASH_OF ( arr )
+30064771085 | CALL | HASH_OF ( arr )
+30064771086 | CALL | ! hash_arr || zend_hash_num_elements ( hash_arr ) == 0
+30064771087 | CALL | ! hash_arr
+30064771088 | CALL | zend_hash_num_elements ( hash_arr ) == 0
+30064771089 | CALL | zend_hash_num_elements ( hash_arr )
+30064771090 | CALL | RETURN_EMPTY_STRING ( )
+30064771091 | CALL | result == NULL || result [ 0 ] == '\0'
+30064771092 | CALL | result == NULL
+30064771093 | CALL | result [ 0 ] == '\0'
+30064771094 | CALL | result [ 0 ]
+30064771095 | CALL | fallback_loc != NULL
+30064771096 | CALL | result = estrndup ( fallback_loc , fallback_loc_len )
+30064771097 | CALL | estrndup ( fallback_loc , fallback_loc_len )
+30064771098 | CALL | RETURN_EMPTY_STRING ( )
+30064771099 | CALL | RETVAL_STRINGL ( result , strlen ( result ) , 0 )
+30064771100 | CALL | strlen ( result )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "as|bs" , & arr , & loc_range , & loc_range_len , & boolCanonical , & fallback_loc , & fallback_loc_len ) == FAILURE ) {
+ intl_error_set ( NULL , U_ILLEGAL_ARGUMENT_ERROR , "locale_lookup: unable to parse input params" , 0 TSRMLS_CC ) ;
+ RETURN_FALSE ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( loc_range_len == 0 ) {
+ loc_range = intl_locale_get_default ( TSRMLS_C ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ! hash_arr || zend_hash_num_elements ( hash_arr ) == 0 ) {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( result == NULL || result [ 0 ] == '\0' ) {
+ if ( fallback_loc ) {
+ result = estrndup ( fallback_loc , fallback_loc_len ) ;
+ }
+ else {
+ RETURN_EMPTY_STRING ( ) ;
+ }
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771099 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 30064771090 [AST]
+25769803781 -> 30064771096 [AST]
+25769803782 -> 30064771098 [AST]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771090 [CDG]
+30064771086 -> 30064771090 [CFG]
+30064771086 -> 30064771090 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771088 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771086 [CFG]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771093 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771093 [AST]
+30064771091 -> 30064771095 [CDG]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771091 -> 30064771093 [POST_DOMINATE]
+30064771092 -> 30064771093 [CDG]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,139 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( BrowsingDataRemoverImplTest , RemoveQuotaManagedDataForeverSpecificOrigin ) {
+ std : : unique_ptr < BrowsingDataFilterBuilder > builder ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ builder -> AddRegisterableDomain ( kTestRegisterableDomain1 ) ;
+ BlockUntilOriginDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , std : : move ( builder ) ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ StoragePartitionRemovalData removal_data = GetStoragePartitionRemovalData ( ) ;
+ EXPECT_EQ ( removal_data . remove_mask , StoragePartition : : REMOVE_DATA_MASK_FILE_SYSTEMS | StoragePartition : : REMOVE_DATA_MASK_WEBSQL | StoragePartition : : REMOVE_DATA_MASK_APPCACHE | StoragePartition : : REMOVE_DATA_MASK_SERVICE_WORKERS | StoragePartition : : REMOVE_DATA_MASK_CACHE_STORAGE | StoragePartition : : REMOVE_DATA_MASK_INDEXEDDB ) ;
+ EXPECT_EQ ( removal_data . quota_storage_remove_mask , StoragePartition : : QUOTA_MANAGED_STORAGE_MASK_ALL ) ;
+ EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) ) ) ;
+ EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) ) ) ;
+ EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) ) ) ;
+ EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin4 , mock_policy ( ) ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ std : : unique_ptr < BrowsingDataFilterBuilder > builder ( BrowsingDataFilterBuilder : : Create ( BrowsingDataFilterBuilder : : WHITELIST ) ) ;
+ builder -> AddRegisterableDomain ( kTestRegisterableDomain1 ) ;
+ BlockUntilOriginDataRemoved ( base : : Time ( ) , base : : Time : : Max ( ) , BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , std : : move ( builder ) ) ;
+ EXPECT_EQ ( BrowsingDataRemover : : REMOVE_APPCACHE | BrowsingDataRemover : : REMOVE_SERVICE_WORKERS | BrowsingDataRemover : : REMOVE_CACHE_STORAGE | BrowsingDataRemover : : REMOVE_FILE_SYSTEMS | BrowsingDataRemover : : REMOVE_INDEXEDDB | BrowsingDataRemover : : REMOVE_WEBSQL , GetRemovalMask ( ) ) ;
+ EXPECT_EQ ( BrowsingDataHelper : : UNPROTECTED_WEB , GetOriginTypeMask ( ) ) ;
+ StoragePartitionRemovalDat...
+      
+30064771072 | CALL | builder -> AddRegisterableDomain ( kTestRegisterableDomain1 )
+30064771073 | CALL | builder -> AddRegisterableDomain
+30064771074 | CALL | removal_data = GetStoragePartitionRemovalData ( )
+30064771075 | CALL | GetStoragePartitionRemovalData ( )
+30064771076 | CALL | EXPECT_TRUE ( removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) ) )
+30064771077 | CALL | removal_data . origin_matcher . Run ( kOrigin1 , mock_policy ( ) )
+30064771078 | CALL | removal_data . origin_matcher . Run
+30064771079 | CALL | removal_data . origin_matcher
+30064771080 | CALL | mock_policy ( )
+30064771081 | CALL | EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) ) )
+30064771082 | CALL | removal_data . origin_matcher . Run ( kOrigin2 , mock_policy ( ) )
+30064771083 | CALL | removal_data . origin_matcher . Run
+30064771084 | CALL | removal_data . origin_matcher
+30064771085 | CALL | mock_policy ( )
+30064771086 | CALL | EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) ) )
+30064771087 | CALL | removal_data . origin_matcher . Run ( kOrigin3 , mock_policy ( ) )
+30064771088 | CALL | removal_data . origin_matcher . Run
+30064771089 | CALL | removal_data . origin_matcher
+30064771090 | CALL | mock_policy ( )
+30064771091 | CALL | EXPECT_FALSE ( removal_data . origin_matcher . Run ( kOrigin4 , mock_policy ( ) ) )
+30064771092 | CALL | removal_data . origin_matcher . Run ( kOrigin4 , mock_policy ( ) )
+30064771093 | CALL | removal_data . origin_matcher . Run
+30064771094 | CALL | removal_data . origin_matcher
+30064771095 | CALL | mock_policy ( )
+55834574848 | FIELD_IDENTIFIER | AddRegisterableDomain
+55834574849 | FIELD_IDENTIFIER | origin_matcher
+55834574850 | FIELD_IDENTIFIER | Run
+55834574851 | FIELD_IDENTIFIER | origin_matcher
+55834574852 | FIELD_IDENTIFIER | Run
+55834574853 | FIELD_IDENTIFIER | origin_matcher
+55834574854 | FIELD_IDENTIFIER | Run
+55834574855 | FIELD_IDENTIFIER | origin_matcher
+55834574856 | FIELD_IDENTIFIER | Run
+68719476736 | IDENTIFIER | <unknown> builder
+68719476737 | IDENTIFIER | <unknown> kTestRegisterableDomain1
+68719476738 | IDENTIFIER | removal_data
+68719476739 | IDENTIFIER | removal_data
+68719476740 | IDENTIFIER | <unknown> kOrigin1
+68719476741 | IDENTIFIER | removal_data
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771091 [AST]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [RECEIVER]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 68719476740 [CFG]
+30064771078 -> 68719476740 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 68719476739 [ARGUMENT]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 68719476739 [AST]
+30064771079 -> 55834
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

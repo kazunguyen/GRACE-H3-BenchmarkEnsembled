@@ -1,0 +1,274 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int onenand_initfn(SysBusDevice *sbd)
+
+{
+
+    DeviceState *dev = DEVICE(sbd);
+
+    OneNANDState *s = ONE_NAND(dev);
+
+    uint32_t size = 1 << (24 + ((s->id.dev >> 4) & 7));
+
+    void *ram;
+
+
+
+    s->base = (hwaddr)-1;
+
+    s->rdy = NULL;
+
+    s->blocks = size >> BLOCK_SHIFT;
+
+    s->secs = size >> 9;
+
+    s->blockwp = g_malloc(s->blocks);
+
+    s->density_mask = (s->id.dev & 0x08)
+
+        ? (1 << (6 + ((s->id.dev >> 4) & 7))) : 0;
+
+    memory_region_init_io(&s->iomem, OBJECT(s), &onenand_ops, s, "onenand",
+
+                          0x10000 << s->shift);
+
+    if (!s->blk) {
+
+        s->image = memset(g_malloc(size + (size >> 5)),
+
+                          0xff, size + (size >> 5));
+
+    } else {
+
+        if (blk_is_read_only(s->blk)) {
+
+            error_report("Can't use a read-only drive");
+
+            return -1;
+
+        }
+
+        s->blk_cur = s->blk;
+
+    }
+
+    s->otp = memset(g_malloc((64 + 2) << PAGE_SHIFT),
+
+                    0xff, (64 + 2) << PAGE_SHIFT);
+
+    memory_region_init_ram(&s->ram, OBJECT(s), "onenand.ram",
+
+                           0xc000 << s->shift, &error_abort);
+
+    vmstate_register_ram_global(&s->ram);
+
+    ram = memory_region_get_ram_ptr(&s->ram);
+
+    s->boot[0] = ram + (0x0000 << s->shift);
+
+    s->boot[1] = ram + (0x8000 << s->shift);
+
+    s->data[0][0] = ram + ((0x0200 + (0 << (PAGE_SHIFT - 1))) << s->shift);
+
+    s->data[0][1] = ram + ((0x8010 + (0 << (PAGE_SHIFT - 6))) << s->shift);
+
+    s->data[1][0] = ram + ((0x0200 + (1 << (PAGE_SHIFT - 1))) << s->shift);
+
+    s->data[1][1] = ram + ((0x8010 + (1 << (PAGE_SHIFT - 6))) << s->shift);
+
+    onenand_mem_setup(s);
+
+    sysbus_init_irq(sbd, &s->intr);
+
+    sysbus_init_mmio(sbd, &s->container);
+
+    vmstate_register(dev,
+
+                     ((s->shift & 0x7f) << 24)
+
+                     | ((s->id.man & 0xff) << 16)
+
+                     | ((s->id.dev & 0xff) << 8)
+
+                     | (s->id.ver & 0xff),
+
+                     &vmstate_onenand, s);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 46 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 47 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+53 -> 57 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int onenand_initfn(SysBusDevice *sbd)
+
+{
+
+    DeviceState *dev = DEVICE(sbd);
+
+    OneNANDState *s = ONE_NAND(dev);
+
+    uint32_t size = 1 << (24 + ((s->id.dev >> 4) & 7));
+
+    void *ram;
+
+
+
+    s->base = (hwaddr)-1;
+
+    s->rdy = NULL;
+
+    s->blocks = size >> BLOCK_SHIFT;
+
+    s->secs = size >> 9;
+
+    s->blockwp = g_malloc(s->blocks);
+
+    s->density_mask = (s->id.dev & 0x08)
+
+        ? (1 << (6 + ((s->id.dev >> 4) & 7))) : 0;
+
+    memory_region_init_io(&s->iomem, OBJECT(s), &onenand_ops, s, "onenand",
+
+                          0x10000 << s->shift);
+
+    if (!s->bdrv) {
+
+        s->image = memset(g_malloc(size + (size >> 5)),
+
+                          0xff, size + (size >> 5));
+
+    } else {
+
+        if (bdrv_is_read_only(s->bdrv)) {
+
+            error_report("Can't use a read-only drive");
+
+            return -1;
+
+        }
+
+        s->bdrv_cur = s->bdrv;
+
+    }
+
+    s->otp = memset(g_malloc((64 + 2) << PAGE_SHIFT),
+
+                    0xff, (64 + 2) << PAGE_SHIFT);
+
+    memory_region_init_ram(&s->ram, OBJECT(s), "onenand.ram",
+
+                           0xc000 << s->shift, &error_abort);
+
+    vmstate_register_ram_global(&s->ram);
+
+    ram = memory_region_get_ram_ptr(&s->ram);
+
+    s->boot[0] = ram + (0x0000 << s->shift);
+
+    s->boot[1] = ram + (0x8000 << s->shift);
+
+    s->data[0][0] = ram + ((0x0200 + (0 << (PAGE_SHIFT - 1))) << s->shift);
+
+    s->data[0][1] = ram + ((0x8010 + (0 << (PAGE_SHIFT - 6))) << s->shift);
+
+    s->data[1][0] = ram + ((0x0200 + (1 <
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

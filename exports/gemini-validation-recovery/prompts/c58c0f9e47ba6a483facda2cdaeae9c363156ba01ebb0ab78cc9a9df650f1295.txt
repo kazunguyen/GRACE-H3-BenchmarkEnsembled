@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void sigp_store_status_at_address(CPUState *cs, run_on_cpu_data arg)
+
+{
+
+    S390CPU *cpu = S390_CPU(cs);
+
+    SigpInfo *si = arg.host_ptr;
+
+    uint32_t address = si->param & 0x7ffffe00u;
+
+
+
+    /* cpu has to be stopped */
+
+    if (s390_cpu_get_state(cpu) != CPU_STATE_STOPPED) {
+
+        set_sigp_status(si, SIGP_STAT_INCORRECT_STATE);
+
+        return;
+
+    }
+
+
+
+    cpu_synchronize_state(cs);
+
+
+
+    if (s390_store_status(cpu, address, false)) {
+
+        set_sigp_status(si, SIGP_STAT_INVALID_PARAMETER);
+
+        return;
+
+    }
+
+    si->cc = SIGP_CC_ORDER_CODE_ACCEPTED;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 57 [IS_AST_PARENT]
+37 -> 47 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+70 -> 75 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+82 -> 85 [IS_AST_PARENT]
+79 -> 82 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void sigp_set_prefix(CPUState *cs, run_on_cpu_data arg)
+
+{
+
+    S390CPU *cpu = S390_CPU(cs);
+
+    SigpInfo *si = arg.host_ptr;
+
+    uint32_t addr = si->param & 0x7fffe000u;
+
+
+
+    cpu_synchronize_state(cs);
+
+
+
+    if (!address_space_access_valid(&address_space_memory, addr,
+
+                                    sizeof(struct LowCore), false)) {
+
+        set_sigp_status(si, SIGP_STAT_INVALID_PARAMETER);
+
+        return;
+
+    }
+
+
+
+    /* cpu has to be stopped */
+
+    if (s390_cpu_get_state(cpu) != CPU_STATE_STOPPED) {
+
+        set_sigp_status(si, SIGP_STAT_INCORRECT_STATE);
+
+        return;
+
+    }
+
+
+
+    cpu->env.psa = addr;
+
+    cpu_synchronize_post_init(cs);
+
+    si->cc = SIGP_CC_ORDER_CODE_ACCEPTED;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,174 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+OFCondition parseAssociate ( unsigned char * buf , unsigned long pduLength , PRV_ASSOCIATEPDU * assoc ) {
+ OFCondition cond = EC_Normal ;
+ unsigned char type ;
+ unsigned long itemLength ;
+ PRV_PRESENTATIONCONTEXTITEM * context ;
+ ( void ) memset ( assoc , 0 , sizeof ( * assoc ) ) ;
+ if ( ( assoc -> presentationContextList = LST_Create ( ) ) == NULL ) return EC_MemoryExhausted ;
+ if ( ( assoc -> userInfo . SCUSCPRoleList = LST_Create ( ) ) == NULL ) return EC_MemoryExhausted ;
+ if ( pduLength < 2 + 2 + 16 + 16 + 32 ) return makeLengthError ( "associate PDU" , pduLength , 2 + 2 + 16 + 16 + 32 ) ;
+ assoc -> type = * buf ++ ;
+ assoc -> rsv1 = * buf ++ ;
+ EXTRACT_LONG_BIG ( buf , assoc -> length ) ;
+ buf += 4 ;
+ EXTRACT_SHORT_BIG ( buf , assoc -> protocol ) ;
+ buf += 2 ;
+ pduLength -= 2 ;
+ if ( ( assoc -> protocol & DUL_PROTOCOL ) == 0 ) {
+ char buffer [ 256 ] ;
+ sprintf ( buffer , "DUL Unsupported peer protocol %04x;
+ expected %04x in %s" , assoc -> protocol , DUL_PROTOCOL , "parseAssociate" ) ;
+ return makeDcmnetCondition ( DULC_UNSUPPORTEDPEERPROTOCOL , OF_error , buffer ) ;
+ }
+ assoc -> rsv2 [ 0 ] = * buf ++ ;
+ pduLength -- ;
+ assoc -> rsv2 [ 1 ] = * buf ++ ;
+ pduLength -- ;
+ ( void ) strncpy ( assoc -> calledAPTitle , ( char * ) buf , 16 ) ;
+ assoc -> calledAPTitle [ 16 ] = '\0' ;
+ trim_trailing_spaces ( assoc -> calledAPTitle ) ;
+ buf += 16 ;
+ pduLength -= 16 ;
+ ( void ) strncpy ( assoc -> callingAPTitle , ( char * ) buf , 16 ) ;
+ assoc -> callingAPTitle [ 16 ] = '\0' ;
+ trim_trailing_spaces ( assoc -> callingAPTitle ) ;
+ buf += 16 ;
+ pduLength -= 16 ;
+ ( void ) memcpy ( assoc -> rsv3 , buf , 32 ) ;
+ buf += 32 ;
+ pduLength -= 32 ;
+ if ( DCM_dcmnetLogger . isEnabledFor ( OFLogger : : DEBUG_LOG_LEVEL ) ) {
+ const char * s ;
+ DCMNET_DEBUG ( "Parsing an A-ASSOCIATE PDU" ) ;
+ if ( assoc -> type == DUL_TYPEASSOCIATERQ ) s = "A-ASSOCIATE RQ" ;
+ else if ( assoc -> type == DUL_TYPEASSOCIATEAC ) s = "A-ASSOCIATE AC" ;
+ else s = "Unknown: Programming bug in parseAssociate" ;
+ DCMNET_TRACE ( "PDU type: " << STD_NAMESPACE hex << ( ( unsigned int ) assoc -> type ) << STD_NAMESPACE dec << " (" << s << "), PDU Length: " << assoc -> length << OFendl << "DICOM Protocol: " << STD_NAMESPACE hex << assoc -> protocol << STD_NAMESPACE dec << OFendl << "Called AP Title: " << assoc -> calledAPTitle << OFendl << "Calling AP Title: " << assoc -> callingAPTitle ) ;
+ }
+ while ( ( cond . good ( ) ) && ( pduLength > 0 ) ) {
+ type = * buf ;
+ DCMNET_TRACE ( "Parsing remaining " << pduLength << " bytes of A-ASSOCIATE PDU" << OFendl << "Next item type: " << STD_NAMESPACE hex << STD_NAMESPACE setfill ( '0' ) << STD_NAMESPACE setw ( 2 ) << ( ( unsigned int ) type ) ) ;
+ switch ( type ) {
+ case DUL_TYPEAPPLICATIONCONTEXT : cond = parseSubItem ( & assoc -> applicationContext , buf , & itemLength , pduLength ) ;
+ if ( cond . good ( ) ) {
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ DCMNET_TRACE ( "Successfully parsed Application Context" ) ;
+ }
+ break ;
+ case DUL_TYPEPRESENTATIONC
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ OFCondition cond = EC_Normal ;
+ unsigned char type ;
+ unsigned long itemLength ;
+ PRV_PRESENTATIONCONTEXTITEM * context ;
+ ( void ) memset ( assoc , 0 , sizeof ( * assoc ) ) ;
+ if ( ( assoc -> presentationContextList = LST_Create ( ) ) == NULL ) return EC_MemoryExhausted ;
+ if ( ( assoc -> userInfo . SCUSCPRoleList = LST_Create ( ) ) == NULL ) return EC_MemoryExhausted ;
+ if ( pduLength < 2 + 2 + 16 + 16 + 32 ) return makeLengthError ( "associate PDU" , pduLength , 2 + 2 + 16 + 16 + 32 ) ;
+ assoc -> type = * buf ++ ;
+ assoc -> rsv1 = * buf ++ ;
+ EXTRACT_LONG_BIG ( buf , assoc -> length ) ;
+ buf += 4 ;
+ EXTRACT_SHORT_BIG ( buf , assoc -> protocol ) ;
+ buf += 2 ;
+ pduLength -= 2 ;
+ if ( ( assoc -> protocol & DUL_PROTOCOL ) == 0 ) {
+ char buffer [ 256 ] ;
+ sprintf ( buffer , "DUL Unsupported peer protocol %04x;
+ expected %04x in %s" , assoc -> protocol , DUL_PROTOCOL , "parseAssociate" ) ;
+ return makeDcmnetCondition ( DULC_UNSUPPORTEDPEERPROTOCOL , OF_error , buffer ) ;
+ }
+ assoc -...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ char buffer [ 256 ] ;
+ sprintf ( buffer , "DUL Unsupported peer protocol %04x;
+ expected %04x in %s" , assoc -> protocol , DUL_PROTOCOL , "parseAssociate" ) ;
+ return makeDcmnetCondition ( DULC_UNSUPPORTEDPEERPROTOCOL , OF_error , buffer ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ const char * s ;
+ DCMNET_DEBUG ( "Parsing an A-ASSOCIATE PDU" ) ;
+ if ( assoc -> type == DUL_TYPEASSOCIATERQ ) s = "A-ASSOCIATE RQ" ;
+ else if ( assoc -> type == DUL_TYPEASSOCIATEAC ) s = "A-ASSOCIATE AC" ;
+ else s = "Unknown: Programming bug in parseAssociate" ;
+ DCMNET_TRACE ( "PDU type: " << STD_NAMESPACE hex << ( ( unsigned int ) assoc -> type ) << STD_NAMESPACE dec << " (" << s << "), PDU Length: " << assoc -> length << OFendl << "DICOM Protocol: " << STD_NAMESPACE hex << assoc -> protocol << STD_NAMESPACE dec << OFendl << "Called AP Title: " << assoc -> calledAPTitle << OFendl << "Calling AP Title: " << assoc -> callingAPTitle ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ type = * buf ;
+ DCMNET_TRACE ( "Parsing remaining " << pduLength << " bytes of A-ASSOCIATE PDU" << OFendl << "Next item type: " << STD_NAMESPACE hex << STD_NAMESPACE setfill ( '0' ) << STD_NAMESPACE setw ( 2 ) << ( ( unsigned int ) type ) ) ;
+ switch ( type ) {
+ case DUL_TYPEAPPLICATIONCONTEXT : cond = parseSubItem ( & assoc -> applicationContext , buf , & itemLength , pduLength ) ;
+ if ( cond . good ( ) ) {
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ DCMNET_TRACE ( "Successfully parsed Application Context" ) ;
+ }
+ break ;
+ case DUL_TYPEPRESENTATIONCONTEXTRQ : case DUL_TYPEPRESENTATIONCONTEXTAC : context = ( PRV_PRESENTATIONCONTEXTITEM * ) malloc ( sizeof ( PRV_PRESENTATIONCONTEXTITEM ) ) ;
+ if ( context == NULL ) return EC_MemoryExhausted ;
+ ( void ) memset ( context , 0 , sizeof ( * context ) ) ;
+ cond = parsePresentationContext ( type , context , buf , & itemLength , pduLength ) ;
+ if ( cond . bad ( ) ) return cond ;
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ LST_En...
+      
+25769803787 | BLOCK | 
+        {
+ case DUL_TYPEAPPLICATIONCONTEXT : cond = parseSubItem ( & assoc -> applicationContext , buf , & itemLength , pduLength ) ;
+ if ( cond . good ( ) ) {
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ DCMNET_TRACE ( "Successfully parsed Application Context" ) ;
+ }
+ break ;
+ case DUL_TYPEPRESENTATIONCONTEXTRQ : case DUL_TYPEPRESENTATIONCONTEXTAC : context = ( PRV_PRESENTATIONCONTEXTITEM * ) malloc ( sizeof ( PRV_PRESENTATIONCONTEXTITEM ) ) ;
+ if ( context == NULL ) return EC_MemoryExhausted ;
+ ( void ) memset ( context , 0 , sizeof ( * context ) ) ;
+ cond = parsePresentationContext ( type , context , buf , & itemLength , pduLength ) ;
+ if ( cond . bad ( ) ) return cond ;
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ LST_Enqueue ( & assoc -> presentationContextList , ( LST_NODE * ) context ) ;
+ DCMNET_TRACE ( "Successfully parsed Presentation Context" ) ;
+ break ;
+ case DUL_TYPEUSERINFO : cond = parseUserInfo ( & assoc -> userInfo , buf , & itemLength , assoc -> type , pduLength ) ...
+      
+25769803788 | BLOCK | 
+        {
+ buf += itemLength ;
+ pduLength -= itemLength ;
+ DC
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

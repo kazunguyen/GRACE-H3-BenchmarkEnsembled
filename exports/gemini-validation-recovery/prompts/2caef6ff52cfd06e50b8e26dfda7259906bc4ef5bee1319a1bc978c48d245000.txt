@@ -1,0 +1,298 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void virtio_blk_submit_multireq(BlockBackend *blk, MultiReqBuffer *mrb)
+
+{
+
+    int i = 0, start = 0, num_reqs = 0, niov = 0, nb_sectors = 0;
+
+    int max_xfer_len = 0;
+
+    int64_t sector_num = 0;
+
+
+
+    if (mrb->num_reqs == 1) {
+
+        submit_requests(blk, mrb, 0, 1, -1);
+
+        mrb->num_reqs = 0;
+
+        return;
+
+    }
+
+
+
+    max_xfer_len = blk_get_max_transfer_length(mrb->reqs[0]->dev->blk);
+
+    max_xfer_len = MIN_NON_ZERO(max_xfer_len, BDRV_REQUEST_MAX_SECTORS);
+
+
+
+    qsort(mrb->reqs, mrb->num_reqs, sizeof(*mrb->reqs),
+
+          &multireq_compare);
+
+
+
+    for (i = 0; i < mrb->num_reqs; i++) {
+
+        VirtIOBlockReq *req = mrb->reqs[i];
+
+        if (num_reqs > 0) {
+
+            bool merge = true;
+
+
+
+            /* merge would exceed maximum number of IOVs */
+
+            if (niov + req->qiov.niov > IOV_MAX) {
+
+                merge = false;
+
+            }
+
+
+
+            /* merge would exceed maximum transfer length of backend device */
+
+            if (req->qiov.size / BDRV_SECTOR_SIZE + nb_sectors > max_xfer_len) {
+
+                merge = false;
+
+            }
+
+
+
+            /* requests are not sequential */
+
+            if (sector_num + nb_sectors != req->sector_num) {
+
+                merge = false;
+
+            }
+
+
+
+            if (!merge) {
+
+                submit_requests(blk, mrb, start, num_reqs, niov);
+
+                num_reqs = 0;
+
+            }
+
+        }
+
+
+
+        if (num_reqs == 0) {
+
+            sector_num = req->sector_num;
+
+            nb_sectors = niov = 0;
+
+            start = i;
+
+        }
+
+
+
+        nb_sectors += req->qiov.size / BDRV_SECTOR_SIZE;
+
+        niov += req->qiov.niov;
+
+        num_reqs++;
+
+    }
+
+
+
+    submit_requests(blk, mrb, start, num_reqs, niov);
+
+    mrb->num_reqs = 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+5 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+5 -> 30 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+62 -> 67 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+62 -> 69 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+62 -> 71 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+57 -> 75 [IS_AST_PARENT]
+57 -> 81 [IS_AST_PARENT]
+50 -> 57 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void virtio_blk_submit_multireq(BlockBackend *blk, MultiReqBuffer *mrb)
+
+{
+
+    int i = 0, start = 0, num_reqs = 0, niov = 0, nb_sectors = 0;
+
+    int max_xfer_len = 0;
+
+    int64_t sector_num = 0;
+
+
+
+    if (mrb->num_reqs == 1) {
+
+        submit_requests(blk, mrb, 0, 1, -1);
+
+        mrb->num_reqs = 0;
+
+        return;
+
+    }
+
+
+
+    max_xfer_len = blk_get_max_transfer_length(mrb->reqs[0]->dev->blk);
+
+    max_xfer_len = MIN_NON_ZERO(max_xfer_len, BDRV_REQUEST_MAX_SECTORS);
+
+
+
+    qsort(mrb->reqs, mrb->num_reqs, sizeof(*mrb->reqs),
+
+          &multireq_compare);
+
+
+
+    for (i = 0; i < mrb->num_reqs; i++) {
+
+        VirtIOBlockReq *req = mrb->reqs[i];
+
+        if (num_reqs > 0) {
+
+            /*
+
+             * NOTE: We cannot merge the requests in below situations:
+
+             * 1. requests are not sequential
+
+             * 2. merge would exceed maximum number of IOVs
+
+             * 3. merge would exceed maximum transfer length of backend device
+
+             */
+
+            if (sector_num + nb_sectors != req->sector_num ||
+
+                niov > blk_get_max_iov(blk) - req->qiov.niov ||
+
+                req->qiov.size / BDRV_SECTOR_SIZE > max_xfer_len ||
+
+                nb_sectors > max_xfer_len - req->qiov.size / BDRV_SECTOR_SIZE) {
+
+                submit_requests(blk, mrb, start, num_reqs, niov);
+
+                num_reqs = 0;
+
+            }
+
+        }
+
+
+
+        if (num_reqs == 0) {
+
+            sector_num = req->sector_num;
+
+            nb_sectors = niov = 0;
+
+     
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

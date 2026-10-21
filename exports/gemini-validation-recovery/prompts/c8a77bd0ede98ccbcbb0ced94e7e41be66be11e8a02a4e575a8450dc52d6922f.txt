@@ -1,0 +1,171 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( TransportSecurityPersisterTest , PublicKeyHashes ) {
+ TransportSecurityState : : DomainState domain_state ;
+ static const char kTestDomain [ ] = "example.com" ;
+ EXPECT_FALSE ( state_ . GetDomainState ( kTestDomain , false , & domain_state ) ) ;
+ net : : HashValueVector hashes ;
+ std : : string failure_log ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ net : : HashValue sha1 ( net : : HASH_VALUE_SHA1 ) ;
+ memset ( sha1 . data ( ) , '1' , sha1 . size ( ) ) ;
+ domain_state . dynamic_spki_hashes . push_back ( sha1 ) ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ hashes . push_back ( sha1 ) ;
+ EXPECT_TRUE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ hashes [ 0 ] . data ( ) [ 0 ] = '2' ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ const base : : Time current_time ( base : : Time : : Now ( ) ) ;
+ const base : : Time expiry = current_time + base : : TimeDelta : : FromSeconds ( 1000 ) ;
+ bool include_subdomains = false ;
+ state_ . AddHSTS ( kTestDomain , expiry , include_subdomains ) ;
+ state_ . AddHPKP ( kTestDomain , expiry , include_subdomains , domain_state . dynamic_spki_hashes ) ;
+ std : : string ser ;
+ EXPECT_TRUE ( persister_ -> SerializeData ( & ser ) ) ;
+ bool dirty ;
+ EXPECT_TRUE ( persister_ -> LoadEntries ( ser , & dirty ) ) ;
+ EXPECT_TRUE ( state_ . GetDomainState ( kTestDomain , false , & domain_state ) ) ;
+ EXPECT_EQ ( 1u , domain_state . dynamic_spki_hashes . size ( ) ) ;
+ EXPECT_EQ ( sha1 . tag , domain_state . dynamic_spki_hashes [ 0 ] . tag ) ;
+ EXPECT_EQ ( 0 , memcmp ( domain_state . dynamic_spki_hashes [ 0 ] . data ( ) , sha1 . data ( ) , sha1 . size ( ) ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ TransportSecurityState : : DomainState domain_state ;
+ static const char kTestDomain [ ] = "example.com" ;
+ EXPECT_FALSE ( state_ . GetDomainState ( kTestDomain , false , & domain_state ) ) ;
+ net : : HashValueVector hashes ;
+ std : : string failure_log ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ net : : HashValue sha1 ( net : : HASH_VALUE_SHA1 ) ;
+ memset ( sha1 . data ( ) , '1' , sha1 . size ( ) ) ;
+ domain_state . dynamic_spki_hashes . push_back ( sha1 ) ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ hashes . push_back ( sha1 ) ;
+ EXPECT_TRUE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ hashes [ 0 ] . data ( ) [ 0 ] = '2' ;
+ EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) ) ;
+ const base : : Time current_time ( base : : Time : : Now ( ) ) ;
+ const base : : Time expiry = current_time + base : : TimeDelta : : FromSeconds ( 1000 ) ;
+ bool include_subdoma...
+      
+30064771072 | CALL | kTestDomain [ ] = "example.com"
+30064771073 | CALL | 
+        EXPECT_FALSE ( state_ . GetDomainState ( kTestDomain , false , & domain_state ) )
+      
+30064771074 | CALL | state_ . GetDomainState ( kTestDomain , false , & domain_state )
+30064771075 | CALL | state_ . GetDomainState
+30064771076 | CALL | & domain_state
+30064771077 | CALL | EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) )
+30064771078 | CALL | domain_state . CheckPublicKeyPins ( hashes , & failure_log )
+30064771079 | CALL | domain_state . CheckPublicKeyPins
+30064771080 | CALL | & failure_log
+30064771081 | CALL | memset ( sha1 . data ( ) , '1' , sha1 . size ( ) )
+30064771082 | CALL | sha1 . data ( )
+30064771083 | CALL | sha1 . data
+30064771084 | CALL | sha1 . size ( )
+30064771085 | CALL | sha1 . size
+30064771086 | CALL | domain_state . dynamic_spki_hashes . push_back ( sha1 )
+30064771087 | CALL | domain_state . dynamic_spki_hashes . push_back
+30064771088 | CALL | domain_state . dynamic_spki_hashes
+30064771089 | CALL | EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) )
+30064771090 | CALL | domain_state . CheckPublicKeyPins ( hashes , & failure_log )
+30064771091 | CALL | domain_state . CheckPublicKeyPins
+30064771092 | CALL | & failure_log
+30064771093 | CALL | hashes . push_back ( sha1 )
+30064771094 | CALL | hashes . push_back
+30064771095 | CALL | EXPECT_TRUE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) )
+30064771096 | CALL | domain_state . CheckPublicKeyPins ( hashes , & failure_log )
+30064771097 | CALL | domain_state . CheckPublicKeyPins
+30064771098 | CALL | & failure_log
+30064771099 | CALL | hashes [ 0 ] . data ( ) [ 0 ] = '2'
+30064771100 | CALL | hashes [ 0 ] . data ( ) [ 0 ]
+30064771101 | CALL | hashes [ 0 ] . data ( )
+30064771102 | CALL | hashes [ 0 ] . data
+30064771103 | CALL | hashes [ 0 ]
+30064771104 | CALL | EXPECT_FALSE ( domain_state . CheckPublicKeyPins ( hashes , & failure_log ) )
+30064771105 | CALL | domain_state . CheckPublicKeyPins ( hashes , & failure_log )
+30064771106 | CALL | domain_state . CheckPublicKeyPins
+30064771107 | CALL | & failure_log
+30064771108 | CALL | include_subdomains = false
+30064771109 | CALL | state_ . AddHSTS ( kTestDomain , expiry , include_subdomains )
+30064771110 | CALL | state_ . AddHSTS
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771108 [AST]
+25769803776 -> 30064771109 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771075 [RECEIVER]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771079 [RECEIVER]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771092 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771084 [AST]
+30064771081 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771083 [RECEIVER]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771081 [CFG]
+30064771084 -> 30064771081 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [RECEIVER]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

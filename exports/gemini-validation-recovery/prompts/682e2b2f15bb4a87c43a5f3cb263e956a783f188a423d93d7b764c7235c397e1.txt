@@ -1,0 +1,301 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decode(RA288Context *ractx, float gain, int cb_coef)
+
+{
+
+    int i, j;
+
+    double sumsum;
+
+    float sum, buffer[5];
+
+
+
+    memmove(ractx->sp_block + 5, ractx->sp_block, 36*sizeof(*ractx->sp_block));
+
+
+
+    for (i=4; i >= 0; i--)
+
+        ractx->sp_block[i] = -scalar_product_float(ractx->sp_block + i + 1,
+
+                                             ractx->sp_lpc, 36);
+
+
+
+    /* block 46 of G.728 spec */
+
+    sum = 32. - scalar_product_float(ractx->gain_lpc, ractx->gain_block, 10);
+
+
+
+    /* block 47 of G.728 spec */
+
+    sum = av_clipf(sum, 0, 60);
+
+
+
+    /* block 48 of G.728 spec */
+
+    sumsum = exp(sum * 0.1151292546497) * gain; /* pow(10.0,sum/20)*gain */
+
+
+
+    for (i=0; i < 5; i++)
+
+        buffer[i] = codetable[cb_coef][i] * sumsum;
+
+
+
+    sum = scalar_product_float(buffer, buffer, 5) / 5;
+
+
+
+    sum = FFMAX(sum, 1);
+
+
+
+    /* shift and store */
+
+    memmove(ractx->gain_block, ractx->gain_block - 1,
+
+            10 * sizeof(*ractx->gain_block));
+
+
+
+    *ractx->gain_block = 10 * log10(sum) - 32;
+
+
+
+    for (i=1; i < 5; i++)
+
+        for (j=i-1; j >= 0; j--)
+
+            buffer[i] -= ractx->sp_lpc[i-j-1] * buffer[j];
+
+
+
+    /* output */
+
+    for (i=0; i < 5; i++)
+
+        ractx->sp_block[4-i] =
+
+            av_clipf(ractx->sp_block[4-i] + buffer[i], -4095, 4095);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+16 -> 20 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+28 -> 35 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+28 -> 39 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+49 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+49 -> 58 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+73 -> 82 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+73 -> 86 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+62 -> 68 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void decode(Real288_internal *glob, float gain, int cb_coef)
+
+{
+
+    unsigned int x, y;
+
+    float f;
+
+    double sum, sumsum;
+
+    float *p1, *p2;
+
+    float buffer[5];
+
+
+
+    for (x=36; x--; glob->sb[x+5] = glob->sb[x]);
+
+
+
+    for (x=5; x--;) {
+
+        p1 = glob->sb+x;
+
+        p2 = glob->pr1;
+
+        for (sum=0, y=36; y--; sum -= (*(++p1))*(*(p2++)));
+
+
+
+        glob->sb[x] = sum;
+
+    }
+
+
+
+    /* convert log and do rms */
+
+    for (sum=32, x=10; x--; sum -= glob->pr2[x] * glob->lhist[x]);
+
+
+
+    if (sum < 0)
+
+        sum = 0;
+
+    else if (sum > 60)
+
+        sum = 60;
+
+
+
+    sumsum = exp(sum * 0.1151292546497) * gain;    /* pow(10.0,sum/20)*f */
+
+
+
+    for (sum=0, x=5; x--;) {
+
+        buffer[x] = codetable[cb_coef][x] * sumsum;
+
+        sum += buffer[x] * buffer[x];
+
+    }
+
+
+
+    if ((sum /= 5) < 1)
+
+        sum = 1;
+
+
+
+    /* shift and store */
+
+    for (x=10; --x; glob->lhist[x] = glob->lhist[x-1]);
+
+
+
+    *glob->lhist = glob->history[glob->phase] = 10 * log10(sum) - 32;
+
+
+
+    for (x=1; x < 5; x++)
+
+        for (y=x; y--; buffer[x] -= glob->pr1[x-y-1] * buffer[y]);
+
+
+
+    /* output */
+
+    for (x=0; x < 5; x++) {
+
+        f = glob->sb[4-x] + buffer[x];
+
+
+
+        if (f > 4095)
+
+            f = 4095;
+
+        else if (f < -4095)
+
+            f = -4095;
+
+
+
+        glob->output[glob->phasep+x] = glob->sb[4-x] = f;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

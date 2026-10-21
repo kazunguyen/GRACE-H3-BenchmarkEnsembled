@@ -1,0 +1,349 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_vorbis_len2vlc(uint8_t *bits, uint32_t *codes, unsigned num)
+
+{
+
+    uint32_t exit_at_level[33] = { 404 };
+
+    unsigned i, j, p, code;
+
+
+
+    for (p = 0; (bits[p] == 0) && (p < num); ++p)
+
+        ;
+
+    if (p == num)
+
+        return 0;
+
+
+
+    codes[p] = 0;
+
+    if (bits[p] > 32)
+
+        return AVERROR_INVALIDDATA;
+
+    for (i = 0; i < bits[p]; ++i)
+
+        exit_at_level[i+1] = 1 << i;
+
+
+
+    ++p;
+
+
+
+    for (i = p; (bits[i] == 0) && (i < num); ++i)
+
+        ;
+
+    if (i == num)
+
+        return 0;
+
+
+
+    for (; p < num; ++p) {
+
+        if (bits[p] > 32)
+
+             return AVERROR_INVALIDDATA;
+
+        if (bits[p] == 0)
+
+             continue;
+
+        // find corresponding exit(node which the tree can grow further from)
+
+        for (i = bits[p]; i > 0; --i)
+
+            if (exit_at_level[i])
+
+                break;
+
+        if (!i) // overspecified tree
+
+             return AVERROR_INVALIDDATA;
+
+        code = exit_at_level[i];
+
+        exit_at_level[i] = 0;
+
+        // construct code (append 0s to end) and introduce new exits
+
+        for (j = i + 1 ;j <= bits[p]; ++j)
+
+            exit_at_level[j] = code + (1 << (j - 1));
+
+        codes[p] = code;
+
+    }
+
+
+
+    //no exits should be left (underspecified tree - ie. unused valid vlcs - not allowed by SPEC)
+
+    for (p = 1; p < 33; p++)
+
+        if (exit_at_level[p])
+
+            return AVERROR_INVALIDDATA;
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    uint32_t exit_at_level[33] = { 404 };
+
+    unsigned i, j, p, code;
+
+
+
+    for (p = 0; (bits[p] == 0) && (p < num); ++p)
+
+        ;
+
+    if (p == num)
+
+        return 0;
+
+
+
+    codes[p] = 0;
+
+    if (bits[p] > 32)
+
+        return AVERROR_INVALIDDATA;
+
+    for (i = 0; i < bits[p]; ++i)
+
+        exit_at_level[i+1] = 1 << i;
+
+
+
+    ++p;
+
+
+
+    for (i = p; (bits[i] == 0) && (i < num); ++i)
+
+        ;
+
+    if (i == num)
+
+        return 0;
+
+
+
+    for (; p < num; ++p) {
+
+        if (bits[p] > 32)
+
+             return AVERROR_INVALIDDATA;
+
+        if (bits[p] == 0)
+
+             continue;
+
+        // find corresponding exit(node which the tree can grow further from)
+
+        for (i = bits[p]; i > 0; --i)
+
+            if (exit_at_level[i])
+
+                break;
+
+        if (!i) // overspecified tree
+
+             return AVERROR_INVALIDDATA;
+
+        code = exit_at_level[i];
+
+        exit_at_level[i] = 0;
+
+        // construct code (append 0s to end) and introduce new exits
+
+        f...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+
+        if (bits[p] > 32)
+
+             return AVERROR_INVALIDDATA;
+
+        if (bits[p] == 0)
+
+             continue;
+
+        // find corresponding exit(node which the tree can grow further from)
+
+        for (i = bits[p]; i > 0; --i)
+
+            if (exit_at_level[i])
+
+                break;
+
+        if (!i) // overspecified tree
+
+             return AVERROR_INVALIDDATA;
+
+        code = exit_at_level[i];
+
+        exit_at_level[i] = 0;
+
+        // construct code (append 0s to end) and introduce new exits
+
+        for (j = i + 1 ;j <= bits[p]; ++j)
+
+            exit_at_level[j] = code + (1 << (j - 1));
+
+        codes[p] = code;
+
+    }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | exit_at_level[33] = { 404 }
+30064771073 | CALL | exit_at_level[33] = { 404 }
+30064771074 | CALL | exit_at_level[33] = { 404 }
+30064771075 | CALL | { 404 }
+30064771076 | CALL | p = 0
+30064771077 | CALL | (bits[p] == 0) && (p < num)
+30064771078 | CALL | bits[p] == 0
+30064771079 | CALL | bits[p]
+30064771080 | CALL | p < num
+30064771081 | CALL | ++p
+30064771082 | CALL | p == num
+30064771083 | CALL | codes[p] = 0
+30064771084 | CALL | codes[p]
+30064771085 | CALL | bits[p] > 32
+30064771086 | CALL | bits[p]
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < bits[p]
+30064771089 | CALL | bits[p]
+30064771090 | CALL | ++i
+30064771091 | CALL | exit_at_level[i+1] = 1 << i
+30064771092 | CALL | exit_at_level[i+1]
+30064771093 | CALL | i+1
+30064771094 | CALL | 1 << i
+30064771095 | CALL | ++p
+30064771096 | CALL | i = p
+30064771097 | CALL | (bits[i] == 0) && (i < num)
+30064771098 | CALL | bits[i] == 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771086 [REACHING_DEF]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771097 [CDG]
+30064771085 -> 30064771098 [CDG]
+30064771086 -> 30064771089 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771088 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771094 [CDG]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771094 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771094 [AST]
+30064771091 -> 30064771094 [POST_DOMINATE]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771093 [POST_DOMINATE]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771092 [CFG]
+30064771093 -> 30064771092 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+const uint8_t *avpriv_find_start_code(const uint8_t *av_restrict p,
+
+                  
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+PHP_FUNCTION ( uwsgi_cache_get ) {
+ char * key = NULL ;
+ int keylen = 0 ;
+ char * cache = NULL ;
+ int cachelen = 0 ;
+ uint64_t valsize ;
+ if ( ! uwsgi . caches ) RETURN_NULL ( ) ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "s|s" , & key , & keylen , & cache , & cachelen ) == FAILURE ) {
+ RETURN_NULL ( ) ;
+ }
+ char * value = uwsgi_cache_magic_get ( key , keylen , & valsize , NULL , cache ) ;
+ if ( value ) {
+ char * ret = estrndup ( value , valsize ) ;
+ free ( value ) ;
+ # ifdef UWSGI_PHP7 RETURN_STRING ( ret ) ;
+ # else RETURN_STRING ( ret , 0 ) ;
+ # endif }
+ RETURN_NULL ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * key = NULL ;
+ int keylen = 0 ;
+ char * cache = NULL ;
+ int cachelen = 0 ;
+ uint64_t valsize ;
+ if ( ! uwsgi . caches ) RETURN_NULL ( ) ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "s|s" , & key , & keylen , & cache , & cachelen ) == FAILURE ) {
+ RETURN_NULL ( ) ;
+ }
+ char * value = uwsgi_cache_magic_get ( key , keylen , & valsize , NULL , cache ) ;
+ if ( value ) {
+ char * ret = estrndup ( value , valsize ) ;
+ free ( value ) ;
+ # ifdef UWSGI_PHP7 RETURN_STRING ( ret ) ;
+ # else RETURN_STRING ( ret , 0 ) ;
+ # endif }
+ RETURN_NULL ( ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { RETURN_NULL ( ) ; }
+30064771072 | CALL | key = NULL
+30064771073 | CALL | keylen = 0
+30064771074 | CALL | cache = NULL
+30064771075 | CALL | cachelen = 0
+30064771076 | CALL | ! uwsgi . caches
+30064771077 | CALL | uwsgi . caches
+30064771078 | CALL | RETURN_NULL ( )
+30064771079 | CALL | 
+        zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "s|s" , & key , & keylen , & cache , & cachelen ) == FAILURE != 0
+      
+30064771080 | CALL | RETURN_NULL ( )
+30064771081 | CALL | value = uwsgi_cache_magic_get ( key , keylen , & valsize , NULL , cache )
+30064771082 | CALL | uwsgi_cache_magic_get ( key , keylen , & valsize , NULL , cache )
+30064771083 | CALL | & valsize
+47244640256 | CONTROL_STRUCTURE | if ( ! uwsgi . caches ) RETURN_NULL ( ) ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "s|s" , & key , & keylen , & cache , & cachelen ) == FAILURE ) {
+ RETURN_NULL ( ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | caches
+68719476736 | IDENTIFIER | key
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | keylen
+68719476739 | IDENTIFIER | cache
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | cachelen
+68719476742 | IDENTIFIER | <unknown> uwsgi
+68719476743 | IDENTIFIER | value
+68719476744 | IDENTIFIER | key
+68719476745 | IDENTIFIER | keylen
+68719476746 | IDENTIFIER | valsize
+68719476747 | IDENTIFIER | <unknown> NULL
+68719476748 | IDENTIFIER | cache
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+90194313218 | LITERAL | 0
+94489280512 | LOCAL | char * key
+94489280513 | LOCAL | int keylen
+94489280514 | LOCAL | char * cache
+94489280515 | LOCAL | int cachelen
+94489280516 | LOCAL | uint64_t valsize
+94489280517 | LOCAL | char * value
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 94489280517 [AST]
+25769803776 -> 30064771081 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771078 [CFG]
+30064771076 -> 30064771078 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 90194313218 [ARGUMENT]
+30064771079 -> 90194313218 [AST]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771080 [CFG]
+30064771079 -> 68719476743 [CFG]
+30064771079 -> 68719476743 [DOMINATE]
+30064771079 -> 30064771080 [DOMINATE]
+30064771079 -> 90194313218 [POST_DOMINATE]
+30064771080 -> 68719476743 [CFG]
+30064771081 -> 68719476743 [ARGUMENT]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 68719476743 [AST]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 68719476744 [ARGUMENT]
+30064771082 -> 68719476745 [ARGUMENT]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 68719476747 [ARGUMENT]
+30064771082 -> 68719476748 [ARGUMENT]
+30064771082 -> 68719476744 [AST]
+30064771082 -> 68719476745 [AST]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 68719476747 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+PHP_FUNCTION ( uwsgi_cache_del ) {
+ char * key = NULL ;
+ int keylen = 0 ;
+ char * cache = NULL ;
+ int cachelen = 0 ;
+ if ( zend_parse_parameters ( ZEND_NUM_ARGS ( ) TSRMLS_CC , "s|s" , & key , & keylen , & cache , & cachelen ) == FAILURE ) {
+ RETURN_NULL ( ) ;
+ }
+ if ( ! uwsgi_cache_magic_del ( key , keylen , cache ) ) {
+ RETURN_TRUE ;
+ }
+ RETURN_NULL ( ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void usb_xhci_exit ( PCIDevice * dev ) {
+ int i ;
+ XHCIState * xhci = XHCI ( dev ) ;
+ trace_usb_xhci_exit ( ) ;
+ for ( i = 0 ;
+ i < xhci -> numslots ;
+ i ++ ) {
+ xhci_disable_slot ( xhci , i + 1 ) ;
+ }
+ if ( xhci -> mfwrap_timer ) {
+ timer_del ( xhci -> mfwrap_timer ) ;
+ timer_free ( xhci -> mfwrap_timer ) ;
+ xhci -> mfwrap_timer = NULL ;
+ }
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_cap ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_oper ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_runtime ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_doorbell ) ;
+ for ( i = 0 ;
+ i < xhci -> numports ;
+ i ++ ) {
+ XHCIPort * port = & xhci -> ports [ i ] ;
+ memory_region_del_subregion ( & xhci -> mem , & port -> mem ) ;
+ }
+ if ( dev -> msix_table && dev -> msix_pba && dev -> msix_entry_used ) {
+ msix_uninit ( dev , & xhci -> mem , & xhci -> mem ) ;
+ }
+ usb_bus_release ( & xhci -> bus ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ XHCIState * xhci = XHCI ( dev ) ;
+ trace_usb_xhci_exit ( ) ;
+ for ( i = 0 ;
+ i < xhci -> numslots ;
+ i ++ ) {
+ xhci_disable_slot ( xhci , i + 1 ) ;
+ }
+ if ( xhci -> mfwrap_timer ) {
+ timer_del ( xhci -> mfwrap_timer ) ;
+ timer_free ( xhci -> mfwrap_timer ) ;
+ xhci -> mfwrap_timer = NULL ;
+ }
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_cap ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_oper ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_runtime ) ;
+ memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_doorbell ) ;
+ for ( i = 0 ;
+ i < xhci -> numports ;
+ i ++ ) {
+ XHCIPort * port = & xhci -> ports [ i ] ;
+ memory_region_del_subregion ( & xhci -> mem , & port -> mem ) ;
+ }
+ if ( dev -> msix_table && dev -> msix_pba && dev -> msix_entry_used ) {
+ msix_uninit ( dev , & xhci -> mem , & xhci -> mem ) ;
+ }
+ usb_bus_release ( & xhci -> bus ) ;
+ }
+      
+25769803777 | BLOCK | { xhci_disable_slot ( xhci , i + 1 ) ; }
+25769803778 | BLOCK | 
+        {
+ timer_del ( xhci -> mfwrap_timer ) ;
+ timer_free ( xhci -> mfwrap_timer ) ;
+ xhci -> mfwrap_timer = NULL ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ XHCIPort * port = & xhci -> ports [ i ] ;
+ memory_region_del_subregion ( & xhci -> mem , & port -> mem ) ;
+ }
+      
+25769803780 | BLOCK | { msix_uninit ( dev , & xhci -> mem , & xhci -> mem ) ; }
+30064771072 | CALL | xhci = XHCI ( dev )
+30064771073 | CALL | XHCI ( dev )
+30064771074 | CALL | trace_usb_xhci_exit ( )
+30064771075 | CALL | i = 0
+30064771076 | CALL | i < xhci -> numslots
+30064771077 | CALL | xhci -> numslots
+30064771078 | CALL | i ++
+30064771079 | CALL | xhci_disable_slot ( xhci , i + 1 )
+30064771080 | CALL | i + 1
+30064771081 | CALL | xhci -> mfwrap_timer
+30064771082 | CALL | timer_del ( xhci -> mfwrap_timer )
+30064771083 | CALL | xhci -> mfwrap_timer
+30064771084 | CALL | timer_free ( xhci -> mfwrap_timer )
+30064771085 | CALL | xhci -> mfwrap_timer
+30064771086 | CALL | xhci -> mfwrap_timer = NULL
+30064771087 | CALL | xhci -> mfwrap_timer
+30064771088 | CALL | memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_cap )
+30064771089 | CALL | & xhci -> mem
+30064771090 | CALL | xhci -> mem
+30064771091 | CALL | & xhci -> mem_cap
+30064771092 | CALL | xhci -> mem_cap
+30064771093 | CALL | memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_oper )
+30064771094 | CALL | & xhci -> mem
+30064771095 | CALL | xhci -> mem
+30064771096 | CALL | & xhci -> mem_oper
+30064771097 | CALL | xhci -> mem_oper
+30064771098 | CALL | memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_runtime )
+30064771099 | CALL | & xhci -> mem
+30064771100 | CALL | xhci -> mem
+30064771101 | CALL | & xhci -> mem_runtime
+30064771102 | CALL | xhci -> mem_runtime
+30064771103 | CALL | 
+        memory_region_del_subregion ( & xhci -> mem , & xhci -> mem_doorbell )
+      
+30064771104 | CALL | & xhci -> mem
+30064771105 | CALL | xhci -> mem
+30064771106 | CALL | & xhci -> mem_doorbell
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771086 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [CFG]
+30064771072 -> 30064771074 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771072 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771091 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771091 [AST]
+30064771088 -> 30064771091 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771091 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771095 [REACHING_DEF]
+30064771089 -> 30064771094 [REACHING_DEF]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771104 [REACHING_DEF]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771100 [REACHING_DEF]
+30064771090 -> 30064771095 [REACHING_DEF]
+30064771090 -> 30064771094 [REACHING_DEF]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771105 [REACHING_DEF]
+30064771090 -> 30064771099 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void xhci_detach_slot ( XHCIState * xhci , USBPort * uport ) {
+ int slot , ep ;
+ for ( slot = 0 ;
+ slot < xhci -> numslots ;
+ slot ++ ) {
+ if ( xhci -> slots [ slot ] . uport == uport ) {
+ break ;
+ }
+ }
+ if ( slot == xhci -> numslots ) {
+ return ;
+ }
+ for ( ep = 0 ;
+ ep < 31 ;
+ ep ++ ) {
+ if ( xhci -> slots [ slot ] . eps [ ep ] ) {
+ xhci_ep_nuke_xfers ( xhci , slot + 1 , ep + 1 , 0 ) ;
+ }
+ }
+ xhci -> slots [ slot ] . uport = NU
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

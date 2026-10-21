@@ -1,0 +1,216 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int seconds_count_format_time_units ( int seconds ) {
+ int minutes ;
+ int hours ;
+ if ( seconds < 0 ) {
+ seconds = 0 ;
+ }
+ if ( seconds < 60 ) {
+ return seconds ;
+ }
+ if ( seconds < 60 * 60 ) {
+ minutes = seconds / 60 ;
+ return minutes ;
+ }
+ hours = seconds / ( 60 * 60 ) ;
+ if ( seconds < 60 * 60 * 4 ) {
+ minutes = ( seconds - hours * 60 * 60 ) / 60 ;
+ return minutes + hours ;
+ }
+ return hours ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int minutes ;
+ int hours ;
+ if ( seconds < 0 ) {
+ seconds = 0 ;
+ }
+ if ( seconds < 60 ) {
+ return seconds ;
+ }
+ if ( seconds < 60 * 60 ) {
+ minutes = seconds / 60 ;
+ return minutes ;
+ }
+ hours = seconds / ( 60 * 60 ) ;
+ if ( seconds < 60 * 60 * 4 ) {
+ minutes = ( seconds - hours * 60 * 60 ) / 60 ;
+ return minutes + hours ;
+ }
+ return hours ;
+ }
+      
+25769803777 | BLOCK | { seconds = 0 ; }
+25769803778 | BLOCK | { return seconds ; }
+25769803779 | BLOCK | { minutes = seconds / 60 ; return minutes ; }
+25769803780 | BLOCK | { minutes = ( seconds - hours * 60 * 60 ) / 60 ; return minutes + hours ; }
+30064771072 | CALL | seconds < 0
+30064771073 | CALL | seconds = 0
+30064771074 | CALL | seconds < 60
+30064771075 | CALL | seconds < 60 * 60
+30064771076 | CALL | 60 * 60
+30064771077 | CALL | minutes = seconds / 60
+30064771078 | CALL | seconds / 60
+30064771079 | CALL | hours = seconds / ( 60 * 60 )
+30064771080 | CALL | seconds / ( 60 * 60 )
+30064771081 | CALL | 60 * 60
+30064771082 | CALL | seconds < 60 * 60 * 4
+30064771083 | CALL | 60 * 60 * 4
+30064771084 | CALL | 60 * 60
+30064771085 | CALL | minutes = ( seconds - hours * 60 * 60 ) / 60
+30064771086 | CALL | ( seconds - hours * 60 * 60 ) / 60
+30064771087 | CALL | seconds - hours * 60 * 60
+30064771088 | CALL | hours * 60 * 60
+30064771089 | CALL | hours * 60
+30064771090 | CALL | minutes + hours
+47244640256 | CONTROL_STRUCTURE | if ( seconds < 0 ) { seconds = 0 ; }
+47244640257 | CONTROL_STRUCTURE | if ( seconds < 60 ) { return seconds ; }
+47244640258 | CONTROL_STRUCTURE | 
+        if ( seconds < 60 * 60 ) {
+ minutes = seconds / 60 ;
+ return minutes ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( seconds < 60 * 60 * 4 ) {
+ minutes = ( seconds - hours * 60 * 60 ) / 60 ;
+ return minutes + hours ;
+ }
+      
+68719476736 | IDENTIFIER | seconds
+68719476737 | IDENTIFIER | seconds
+68719476738 | IDENTIFIER | seconds
+68719476739 | IDENTIFIER | seconds
+68719476740 | IDENTIFIER | seconds
+68719476741 | IDENTIFIER | minutes
+68719476742 | IDENTIFIER | seconds
+68719476743 | IDENTIFIER | minutes
+68719476744 | IDENTIFIER | hours
+68719476745 | IDENTIFIER | seconds
+68719476746 | IDENTIFIER | seconds
+68719476747 | IDENTIFIER | minutes
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640259 [AST]
+25769803777 -> 30064771073 [AST]
+25769803779 -> 30064771077 [AST]
+25769803780 -> 30064771085 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476744 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 68719476744 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476744 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476746 [CFG]
+30064771079 -> 68719476746 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 68719476745 [ARGUMENT]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 68719476745 [AST]
+30064771080 -> 30064771081 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * format_time ( int seconds ) {
+ int minutes ;
+ int hours ;
+ char * res ;
+ if ( seconds < 0 ) {
+ seconds = 0 ;
+ }
+ if ( seconds < 60 ) {
+ return g_strdup_printf ( ngettext ( "%'d second" , "%'d seconds" , ( int ) seconds ) , ( int ) seconds ) ;
+ }
+ if ( seconds < 60 * 60 ) {
+ minutes = seconds / 60 ;
+ return g_strdup_printf ( ngettext ( "%'d minute" , "%'d minutes" , minutes ) , minutes ) ;
+ }
+ hours = seconds / ( 60 * 60 ) ;
+ if ( seconds < 60 * 60 * 4 ) {
+ char * h , * m ;
+ minutes = ( seconds - hours * 60 * 60 ) / 60 ;
+ h = g_strdup_printf ( ngettext ( "%'d hour" , "%'d hours" , hours ) , hours ) ;
+ m = g_strdup_printf ( ngettext ( "%'d minute" , "%'d minutes" , minutes ) , minutes ) ;
+ res = g_strconcat ( h , ", " , m , NULL ) ;
+ g_free ( h ) ;
+ g_free ( m ) ;
+ return res ;
+ }
+ return g_strdup_printf ( ngettext ( "approximately %'d hour" , "approximately %'d hours" , hours ) , hours ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,283 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static BlockBackend *blockdev_init(const char *file, QDict *bs_opts,
+                                   Error **errp)
+{
+    const char *buf;
+    int bdrv_flags = 0;
+    int on_read_error, on_write_error;
+    bool account_invalid, account_failed;
+    BlockBackend *blk;
+    BlockDriverState *bs;
+    ThrottleConfig cfg;
+    int snapshot = 0;
+    Error *error = NULL;
+    QemuOpts *opts;
+    const char *id;
+    bool has_driver_specific_opts;
+    BlockdevDetectZeroesOptions detect_zeroes =
+        BLOCKDEV_DETECT_ZEROES_OPTIONS_OFF;
+    const char *throttling_group = NULL;
+    /* Check common options by copying from bs_opts to opts, all other options
+     * stay in bs_opts for processing by bdrv_open(). */
+    id = qdict_get_try_str(bs_opts, "id");
+    opts = qemu_opts_create(&qemu_common_drive_opts, id, 1, &error);
+    if (error) {
+        error_propagate(errp, error);
+        goto err_no_opts;
+    }
+    qemu_opts_absorb_qdict(opts, bs_opts, &error);
+    if (error) {
+        error_propagate(errp, error);
+        goto early_err;
+    }
+    if (id) {
+        qdict_del(bs_opts, "id");
+    }
+    has_driver_specific_opts = !!qdict_size(bs_opts);
+    /* extract parameters */
+    snapshot = qemu_opt_get_bool(opts, "snapshot", 0);
+    extract_common_blockdev_options(opts, &bdrv_flags, &throttling_group, &cfg,
+                                    &detect_zeroes, &error);
+    if (error) {
+        error_propagate(errp, error);
+        goto early_err;
+    }
+    if ((buf = qemu_opt_get(opts, "format")) != NULL) {
+        if (is_help_option(buf)) {
+            error_printf("Supported formats:");
+            bdrv_iterate_format(bdrv_format_print, NULL);
+            error_printf("\n");
+            goto early_err;
+        }
+        if (qdict_haskey(bs_opts, "driver")) {
+            error_setg(errp, "Cannot specify both 'driver' and 'format'");
+            goto early_err;
+        }
+        qdict_put(bs_opts, "driver", qstring_from_str(buf));
+    }
+    on_write_error = BLOCKDEV_ON_ERROR_ENOSPC;
+    if ((buf = qemu_opt_get(opts, "werror")) != NULL) {
+        on_write_error = parse_block_error_action(buf, 0, &error);
+        if (error) {
+            error_propagate(errp, error);
+            goto early_err;
+        }
+    }
+    on_read_error = BLOCKDEV_ON_ERROR_REPORT;
+    if ((buf = qemu_opt_get(opts, "rerror")) != NULL) {
+        on_read_error = parse_block_error_action(buf, 1, &error);
+        if (error) {
+            error_propagate(errp, error);
+            goto early_err;
+        }
+    }
+    if (snapshot) {
+        /* always use cache=unsafe with snapshot */
+        bdrv_flags &= ~BDRV_O_CACHE_MASK;
+        bdrv_flags |= (BDRV_O_SNAPSHOT|BDRV_O_CACHE_WB|BDRV_O_NO_FLUSH);
+    }
+    /* init */
+    if ((!file || !*file) && !has_driver_specific_opts) {
+        BlockBackendRootState *blk_rs;
+        blk = blk_new(qemu_opts_id(opts), errp);
+        if (!blk) {
+            goto early_err;
+        }
+        blk_rs = blk_get_root_state(blk);
+        blk_rs->open_flags    = bdrv_
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+16 -> 20 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+76 -> 79 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+4 -> 75 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static BlockBackend *blockdev_init(const char *file, QDict *bs_opts,
+
+                                   Error **errp)
+
+{
+
+    const char *buf;
+
+    int bdrv_flags = 0;
+
+    int on_read_error, on_write_error;
+
+
+    BlockBackend *blk;
+
+    BlockDriverState *bs;
+
+    ThrottleConfig cfg;
+
+    int snapshot = 0;
+
+    Error *error = NULL;
+
+    QemuOpts *opts;
+
+    const char *id;
+
+    bool has_driver_specific_opts;
+
+    BlockdevDetectZeroesOptions detect_zeroes =
+
+        BLOCKDEV_DETECT_ZEROES_OPTIONS_OFF;
+
+    const char *throttling_group = NULL;
+
+
+
+    /* Check common options by copying from bs_opts to opts, all other options
+
+     * stay in bs_opts for processing by bdrv_open(). */
+
+    id = qdict_get_try_str(bs_opts, "id");
+
+    opts = qemu_opts_create(&qemu_common_drive_opts, id, 1, &error);
+
+    if (error) {
+
+        error_propagate(errp, error);
+
+        goto err_no_opts;
+
+    }
+
+
+
+    qemu_opts_absorb_qdict(opts, bs_opts, &error);
+
+    if (error) {
+
+        error_propagate(errp, error);
+
+        goto early_err;
+
+    }
+
+
+
+    if (id) {
+
+        qdict_del(bs_opts, "id");
+
+    }
+
+
+
+    has_driver_specific_opts = !!qdict_size(bs_opts);
+
+
+
+    /* extract parameters */
+
+    snapshot = qemu_opt_get_bool(opts, "snapshot", 0);
+
+
+
+    account_invalid = qemu_opt_get_bool(opts, "stats-account-invalid", true);
+
+    account_failed = qemu_opt_get_bool(opts, "stats-account-failed", true);
+
+
+
+    extract_common_blockdev_options(opts, &bdrv_flags, &throttling_group, &cfg,
+
+                 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,38 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+guint16 de_cn_common_gsm_map_nas_sys_info ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo , guint32 offset , guint len , gchar * add_string _U_ , int string_len _U_ ) {
+ guint32 curr_offset ;
+ curr_offset = offset ;
+ proto_tree_add_item ( tree , hf_gsm_a_lac , tvb , curr_offset , 2 , ENC_BIG_ENDIAN ) ;
+ curr_offset += 2 ;
+ EXTRANEOUS_DATA_CHECK ( len , curr_offset - offset , pinfo , & ei_gsm_a_extraneous_data ) ;
+ return ( curr_offset - offset ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static guint16 de_lsa_id ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len , gchar * add_string _U_ , int string_len _U_ ) {
+ guint32 curr_offset ;
+ curr_offset = offset ;
+ if ( len == 0 ) {
+ proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_lsa_id , tvb , curr_offset , len , 0 , "not included" ) ;
+ }
+ else {
+ proto_tree_add_item ( tree , hf_gsm_a_dtap_lsa_id , tvb , curr_offset , 3 , ENC_BIG_ENDIAN ) ;
+ }
+ curr_offset += len ;
+ EXTRANEOUS_DATA_CHECK ( len , curr_offset - offset , pinfo , & ei_gsm_a_dtap_extraneous_data ) ;
+ return ( curr_offset - offset ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

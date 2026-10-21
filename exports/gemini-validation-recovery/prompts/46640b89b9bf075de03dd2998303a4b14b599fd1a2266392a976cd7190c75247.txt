@@ -1,0 +1,258 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int scsi_get_configuration(SCSIDiskState *s, uint8_t *outbuf)
+
+{
+
+    int current;
+
+
+
+    if (s->qdev.type != TYPE_ROM) {
+
+        return -1;
+
+    }
+
+    current = media_is_dvd(s) ? MMC_PROFILE_DVD_ROM : MMC_PROFILE_CD_ROM;
+
+    memset(outbuf, 0, 40);
+
+    stl_be_p(&outbuf[0], 36); /* Bytes after the data length field */
+
+    stw_be_p(&outbuf[6], current);
+
+    /* outbuf[8] - outbuf[19]: Feature 0 - Profile list */
+
+    outbuf[10] = 0x03; /* persistent, current */
+
+    outbuf[11] = 8; /* two profiles */
+
+    stw_be_p(&outbuf[12], MMC_PROFILE_DVD_ROM);
+
+    outbuf[14] = (current == MMC_PROFILE_DVD_ROM);
+
+    stw_be_p(&outbuf[16], MMC_PROFILE_CD_ROM);
+
+    outbuf[18] = (current == MMC_PROFILE_CD_ROM);
+
+    /* outbuf[20] - outbuf[31]: Feature 1 - Core feature */
+
+    stw_be_p(&outbuf[20], 1);
+
+    outbuf[22] = 0x08 | 0x03; /* version 2, persistent, current */
+
+    outbuf[23] = 8;
+
+    stl_be_p(&outbuf[24], 1); /* SCSI */
+
+    outbuf[28] = 1; /* DBE = 1, mandatory */
+
+    /* outbuf[32] - outbuf[39]: Feature 3 - Removable media feature */
+
+    stw_be_p(&outbuf[32], 3);
+
+    outbuf[34] = 0x08 | 0x03; /* version 2, persistent, current */
+
+    outbuf[35] = 4;
+
+    outbuf[36] = 0x39; /* tray, load=1, eject=1, unlocked at powerup, lock=1 */
+
+    /* TODO: Random readable, CD read, DVD read, drive serial number,
+
+       power management */
+
+    return 40;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 16 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 17 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+9 -> 18 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 34 [IS_AST_PARENT]
+26 -> 35 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+40 -> 45 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+51 -> 58 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+64 -> 71 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 78 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+4 -> 79 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int scsi_disk_emulate_mode_sense(SCSIRequest *req, uint8_t *outbuf)
+
+{
+
+    SCSIDiskState *s = DO_UPCAST(SCSIDiskState, qdev, req->dev);
+
+    uint64_t nb_sectors;
+
+    int page, dbd, buflen;
+
+    uint8_t *p;
+
+    uint8_t dev_specific_param;
+
+
+
+    dbd = req->cmd.buf[1]  & 0x8;
+
+    page = req->cmd.buf[2] & 0x3f;
+
+    DPRINTF("Mode Sense (page %d, len %zd)\n", page, req->cmd.xfer);
+
+    memset(outbuf, 0, req->cmd.xfer);
+
+    p = outbuf;
+
+
+
+    if (bdrv_is_read_only(s->bs)) {
+
+        dev_specific_param = 0x80; /* Readonly.  */
+
+    } else {
+
+        dev_specific_param = 0x00;
+
+    }
+
+
+
+    if (req->cmd.buf[0] == MODE_SENSE) {
+
+        p[1] = 0; /* Default media type.  */
+
+        p[2] = dev_specific_param;
+
+        p[3] = 0; /* Block descriptor length.  */
+
+        p += 4;
+
+    } else { /* MODE_SENSE_10 */
+
+        p[2] = 0; /* Default media type.  */
+
+        p[3] = dev_specific_param;
+
+        p[6] = p[7] = 0; /* Block descriptor length.  */
+
+        p += 8;
+
+    }
+
+
+
+    bdrv_get_geometry(s->bs, &nb_sectors);
+
+    if ((~dbd) & nb_sectors) {
+
+        if (req->cmd.buf[0] == MODE_SENSE) {
+
+            outbuf[3] = 8; /* Block descriptor length  */
+
+        } else { /* MODE_SENSE_10 */
+
+            outbuf[7] = 8; /* Block descriptor length  */
+
+        }
+
+        nb_sectors /= s->cluster_size;
+
+        nb_sectors--;
+
+        if (nb_sectors > 0xffffff)
+
+            nb_sectors = 0xffffff;
+
+        p[0] = 0; /* media density code */
+
+        p[1] = (nb_sectors >> 16) & 0xff;
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

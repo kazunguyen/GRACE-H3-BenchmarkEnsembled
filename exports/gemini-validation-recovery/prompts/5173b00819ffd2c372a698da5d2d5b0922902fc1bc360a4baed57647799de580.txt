@@ -1,0 +1,235 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void xps_parse_poly_bezier_segment ( fz_context * doc , fz_path * path , fz_xml * root , int stroking , int * skipped_stroke ) {
+ char * points_att = fz_xml_att ( root , "Points" ) ;
+ char * is_stroked_att = fz_xml_att ( root , "IsStroked" ) ;
+ float x [ 3 ] , y [ 3 ] ;
+ int is_stroked ;
+ char * s ;
+ int n ;
+ if ( ! points_att ) {
+ fz_warn ( doc , "PolyBezierSegment element has no points" ) ;
+ return ;
+ }
+ is_stroked = 1 ;
+ if ( is_stroked_att && ! strcmp ( is_stroked_att , "false" ) ) is_stroked = 0 ;
+ if ( ! is_stroked ) * skipped_stroke = 1 ;
+ s = points_att ;
+ n = 0 ;
+ while ( * s != 0 ) {
+ while ( * s == ' ' ) s ++ ;
+ s = xps_parse_point ( s , & x [ n ] , & y [ n ] ) ;
+ n ++ ;
+ if ( n == 3 ) {
+ if ( stroking && ! is_stroked ) fz_moveto ( doc , path , x [ 2 ] , y [ 2 ] ) ;
+ else fz_curveto ( doc , path , x [ 0 ] , y [ 0 ] , x [ 1 ] , y [ 1 ] , x [ 2 ] , y [ 2 ] ) ;
+ n = 0 ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * points_att = fz_xml_att ( root , "Points" ) ;
+ char * is_stroked_att = fz_xml_att ( root , "IsStroked" ) ;
+ float x [ 3 ] , y [ 3 ] ;
+ int is_stroked ;
+ char * s ;
+ int n ;
+ if ( ! points_att ) {
+ fz_warn ( doc , "PolyBezierSegment element has no points" ) ;
+ return ;
+ }
+ is_stroked = 1 ;
+ if ( is_stroked_att && ! strcmp ( is_stroked_att , "false" ) ) is_stroked = 0 ;
+ if ( ! is_stroked ) * skipped_stroke = 1 ;
+ s = points_att ;
+ n = 0 ;
+ while ( * s != 0 ) {
+ while ( * s == ' ' ) s ++ ;
+ s = xps_parse_point ( s , & x [ n ] , & y [ n ] ) ;
+ n ++ ;
+ if ( n == 3 ) {
+ if ( stroking && ! is_stroked ) fz_moveto ( doc , path , x [ 2 ] , y [ 2 ] ) ;
+ else fz_curveto ( doc , path , x [ 0 ] , y [ 0 ] , x [ 1 ] , y [ 1 ] , x [ 2 ] , y [ 2 ] ) ;
+ n = 0 ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ fz_warn ( doc , "PolyBezierSegment element has no points" ) ;
+ return ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ while ( * s == ' ' ) s ++ ;
+ s = xps_parse_point ( s , & x [ n ] , & y [ n ] ) ;
+ n ++ ;
+ if ( n == 3 ) {
+ if ( stroking && ! is_stroked ) fz_moveto ( doc , path , x [ 2 ] , y [ 2 ] ) ;
+ else fz_curveto ( doc , path , x [ 0 ] , y [ 0 ] , x [ 1 ] , y [ 1 ] , x [ 2 ] , y [ 2 ] ) ;
+ n = 0 ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( stroking && ! is_stroked ) fz_moveto ( doc , path , x [ 2 ] , y [ 2 ] ) ;
+ else fz_curveto ( doc , path , x [ 0 ] , y [ 0 ] , x [ 1 ] , y [ 1 ] , x [ 2 ] , y [ 2 ] ) ;
+ n = 0 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | points_att = fz_xml_att ( root , "Points" )
+30064771073 | CALL | fz_xml_att ( root , "Points" )
+30064771074 | CALL | is_stroked_att = fz_xml_att ( root , "IsStroked" )
+30064771075 | CALL | fz_xml_att ( root , "IsStroked" )
+30064771076 | CALL | x [ 3 ]
+30064771077 | CALL | x [ 3 ]
+30064771078 | CALL | y [ 3 ]
+30064771079 | CALL | y [ 3 ]
+30064771080 | CALL | ! points_att
+30064771081 | CALL | fz_warn ( doc , "PolyBezierSegment element has no points" )
+30064771082 | CALL | is_stroked = 1
+30064771083 | CALL | is_stroked_att && ! strcmp ( is_stroked_att , "false" )
+30064771084 | CALL | ! strcmp ( is_stroked_att , "false" )
+30064771085 | CALL | strcmp ( is_stroked_att , "false" )
+30064771086 | CALL | is_stroked = 0
+30064771087 | CALL | ! is_stroked
+30064771088 | CALL | * skipped_stroke = 1
+30064771089 | CALL | * skipped_stroke
+30064771090 | CALL | s = points_att
+30064771091 | CALL | n = 0
+30064771092 | CALL | * s != 0
+30064771093 | CALL | * s
+30064771094 | CALL | * s == ' '
+30064771095 | CALL | * s
+30064771096 | CALL | s ++
+30064771097 | CALL | s = xps_parse_point ( s , & x [ n ] , & y [ n ] )
+30064771098 | CALL | xps_parse_point ( s , & x [ n ] , & y [ n ] )
+30064771099 | CALL | & x [ n ]
+30064771100 | CALL | x [ n ]
+30064771101 | CALL | & y [ n ]
+30064771102 | CALL | y [ n ]
+30064771103 | CALL | n ++
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771081 [AST]
+25769803778 -> 30064771086 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771094 [CDG]
+30064771092 -> 30064771093 [CDG]
+30064771092 -> 30064771092 [CDG]
+30064771092 -> 30064771102 [CDG]
+30064771092 -> 30064771101 [CDG]
+30064771092 -> 30064771100 [CDG]
+30064771092 -> 30064771099 [CDG]
+30064771092 -> 30064771098 [CDG]
+30064771092 -> 30064771097 [CDG]
+30064771092 -> 30064771095 [CDG]
+30064771092 -> 30064771103 [CDG]
+30064771093 -> 30064771095 [REACHING_DEF]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771094 [CDG]
+30064771094 -> 30064771096 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void xps_parse_poly_quadratic_bezier_segment ( fz_context * doc , fz_path * path , fz_xml * root , int stroking , int * skipped_stroke ) {
+ char * points_att = fz_xml_att ( root , "Points" ) ;
+ char * is_stroked_att = fz_xml_att ( root , "IsStroked" ) ;
+ float x [ 2 ] , y [ 2 ] ;
+ int is_stroked ;
+ fz_point pt ;
+ char * s ;
+ int n ;
+ if ( ! points_att ) {
+ fz_warn ( doc , "PolyQuadraticBezierSegment element has no points" ) ;
+ return ;
+ }
+ is_stroked = 1 ;
+ if ( is_stroked_att && ! strcmp ( is_stroked_att , "false" ) ) is_stroked = 0 ;
+ if ( ! is_stroked ) * skipped_stroke = 1 ;
+ s = points_att ;
+ n = 0 ;
+ while ( * s != 0 ) {
+ while ( * s == ' ' ) s ++ ;
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

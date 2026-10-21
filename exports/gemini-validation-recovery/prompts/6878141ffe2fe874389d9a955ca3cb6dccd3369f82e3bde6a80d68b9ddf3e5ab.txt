@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void usb_ohci_exit ( PCIDevice * dev ) {
+ OHCIPCIState * ohci = PCI_OHCI ( dev ) ;
+ OHCIState * s = & ohci -> state ;
+ trace_usb_ohci_exit ( s -> name ) ;
+ ohci_bus_stop ( s ) ;
+ if ( s -> async_td ) {
+ usb_cancel_packet ( & s -> usb_packet ) ;
+ s -> async_td = 0 ;
+ }
+ ohci_stop_endpoints ( s ) ;
+ if ( ! ohci -> masterbus ) {
+ usb_bus_release ( & s -> bus ) ;
+ }
+ timer_del ( s -> eof_timer ) ;
+ timer_free ( s -> eof_timer ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ OHCIPCIState * ohci = PCI_OHCI ( dev ) ;
+ OHCIState * s = & ohci -> state ;
+ trace_usb_ohci_exit ( s -> name ) ;
+ ohci_bus_stop ( s ) ;
+ if ( s -> async_td ) {
+ usb_cancel_packet ( & s -> usb_packet ) ;
+ s -> async_td = 0 ;
+ }
+ ohci_stop_endpoints ( s ) ;
+ if ( ! ohci -> masterbus ) {
+ usb_bus_release ( & s -> bus ) ;
+ }
+ timer_del ( s -> eof_timer ) ;
+ timer_free ( s -> eof_timer ) ;
+ }
+      
+25769803777 | BLOCK | { usb_cancel_packet ( & s -> usb_packet ) ; s -> async_td = 0 ; }
+25769803778 | BLOCK | { usb_bus_release ( & s -> bus ) ; }
+30064771072 | CALL | ohci = PCI_OHCI ( dev )
+30064771073 | CALL | PCI_OHCI ( dev )
+30064771074 | CALL | s = & ohci -> state
+30064771075 | CALL | & ohci -> state
+30064771076 | CALL | ohci -> state
+30064771077 | CALL | trace_usb_ohci_exit ( s -> name )
+30064771078 | CALL | s -> name
+30064771079 | CALL | ohci_bus_stop ( s )
+30064771080 | CALL | s -> async_td
+30064771081 | CALL | usb_cancel_packet ( & s -> usb_packet )
+30064771082 | CALL | & s -> usb_packet
+30064771083 | CALL | s -> usb_packet
+30064771084 | CALL | s -> async_td = 0
+30064771085 | CALL | s -> async_td
+30064771086 | CALL | ohci_stop_endpoints ( s )
+30064771087 | CALL | ! ohci -> masterbus
+30064771088 | CALL | ohci -> masterbus
+30064771089 | CALL | usb_bus_release ( & s -> bus )
+30064771090 | CALL | & s -> bus
+30064771091 | CALL | s -> bus
+30064771092 | CALL | timer_del ( s -> eof_timer )
+30064771093 | CALL | s -> eof_timer
+30064771094 | CALL | timer_free ( s -> eof_timer )
+30064771095 | CALL | s -> eof_timer
+47244640256 | CONTROL_STRUCTURE | 
+        if ( s -> async_td ) {
+ usb_cancel_packet ( & s -> usb_packet ) ;
+ s -> async_td = 0 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! ohci -> masterbus ) {
+ usb_bus_release ( & s -> bus ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | state
+55834574849 | FIELD_IDENTIFIER | name
+55834574850 | FIELD_IDENTIFIER | async_td
+55834574851 | FIELD_IDENTIFIER | usb_packet
+55834574852 | FIELD_IDENTIFIER | async_td
+55834574853 | FIELD_IDENTIFIER | masterbus
+55834574854 | FIELD_IDENTIFIER | bus
+55834574855 | FIELD_IDENTIFIER | eof_timer
+55834574856 | FIELD_IDENTIFIER | eof_timer
+68719476736 | IDENTIFIER | ohci
+68719476737 | IDENTIFIER | dev
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 55834574850 [ARGUMENT]
+30064771080 -> 55834574850 [AST]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 55834574851 [CDG]
+30064771080 -> 55834574852 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 55834574850 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 55834574851 [ARGUMENT]
+30064771083 -> 55834574851 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 55834574851 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 55834574852 [ARGUMENT]
+30064771085 -> 55834574852 [AST]
+30064771085 -> 55834574852 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void usb_ohci_reset_sysbus ( DeviceState * dev ) {
+ OHCISysBusState * s = SYSBUS_OHCI ( dev ) ;
+ OHCIState * ohci = & s -> ohci ;
+ ohci_hard_reset ( ohci ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

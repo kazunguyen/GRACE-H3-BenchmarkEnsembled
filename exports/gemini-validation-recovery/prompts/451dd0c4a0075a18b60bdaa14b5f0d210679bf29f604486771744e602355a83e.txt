@@ -1,0 +1,282 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static krb5_error_code build_principal_va ( krb5_context context , krb5_principal princ , unsigned int rlen , const char * realm , va_list ap ) {
+ krb5_error_code retval = 0 ;
+ char * r = NULL ;
+ krb5_data * data = NULL ;
+ krb5_int32 count = 0 ;
+ krb5_int32 size = 2 ;
+ char * component = NULL ;
+ data = malloc ( size * sizeof ( krb5_data ) ) ;
+ if ( ! data ) {
+ retval = ENOMEM ;
+ }
+ if ( ! retval ) r = k5memdup0 ( realm , rlen , & retval ) ;
+ while ( ! retval && ( component = va_arg ( ap , char * ) ) ) {
+ if ( count == size ) {
+ krb5_data * new_data = NULL ;
+ size *= 2 ;
+ new_data = realloc ( data , size * sizeof ( krb5_data ) ) ;
+ if ( new_data ) {
+ data = new_data ;
+ }
+ else {
+ retval = ENOMEM ;
+ }
+ }
+ if ( ! retval ) {
+ data [ count ] . length = strlen ( component ) ;
+ data [ count ] . data = strdup ( component ) ;
+ if ( ! data [ count ] . data ) {
+ retval = ENOMEM ;
+ }
+ count ++ ;
+ }
+ }
+ if ( ! retval ) {
+ princ -> type = KRB5_NT_UNKNOWN ;
+ princ -> magic = KV5M_PRINCIPAL ;
+ princ -> realm = make_data ( r , rlen ) ;
+ princ -> data = data ;
+ princ -> length = count ;
+ r = NULL ;
+ data = NULL ;
+ }
+ if ( data ) {
+ while ( -- count >= 0 ) {
+ free ( data [ count ] . data ) ;
+ }
+ free ( data ) ;
+ }
+ free ( r ) ;
+ return retval ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ krb5_error_code retval = 0 ;
+ char * r = NULL ;
+ krb5_data * data = NULL ;
+ krb5_int32 count = 0 ;
+ krb5_int32 size = 2 ;
+ char * component = NULL ;
+ data = malloc ( size * sizeof ( krb5_data ) ) ;
+ if ( ! data ) {
+ retval = ENOMEM ;
+ }
+ if ( ! retval ) r = k5memdup0 ( realm , rlen , & retval ) ;
+ while ( ! retval && ( component = va_arg ( ap , char * ) ) ) {
+ if ( count == size ) {
+ krb5_data * new_data = NULL ;
+ size *= 2 ;
+ new_data = realloc ( data , size * sizeof ( krb5_data ) ) ;
+ if ( new_data ) {
+ data = new_data ;
+ }
+ else {
+ retval = ENOMEM ;
+ }
+ }
+ if ( ! retval ) {
+ data [ count ] . length = strlen ( component ) ;
+ data [ count ] . data = strdup ( component ) ;
+ if ( ! data [ count ] . data ) {
+ retval = ENOMEM ;
+ }
+ count ++ ;
+ }
+ }
+ if ( ! retval ) {
+ princ -> type = KRB5_NT_UNKNOWN ;
+ princ -> magic = KV5M_PRINCIPAL ;
+ princ -> realm = make_data ( r , rlen ) ;
+ princ -> data = data ;
+ princ -> length = count ;
+ r = NULL ;
+ data = NULL ;
+ }
+ if ( data ) {
+ while ( -...
+      
+25769803777 | BLOCK | { retval = ENOMEM ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( count == size ) {
+ krb5_data * new_data = NULL ;
+ size *= 2 ;
+ new_data = realloc ( data , size * sizeof ( krb5_data ) ) ;
+ if ( new_data ) {
+ data = new_data ;
+ }
+ else {
+ retval = ENOMEM ;
+ }
+ }
+ if ( ! retval ) {
+ data [ count ] . length = strlen ( component ) ;
+ data [ count ] . data = strdup ( component ) ;
+ if ( ! data [ count ] . data ) {
+ retval = ENOMEM ;
+ }
+ count ++ ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ krb5_data * new_data = NULL ;
+ size *= 2 ;
+ new_data = realloc ( data , size * sizeof ( krb5_data ) ) ;
+ if ( new_data ) {
+ data = new_data ;
+ }
+ else {
+ retval = ENOMEM ;
+ }
+ }
+      
+25769803781 | BLOCK | { data = new_data ; }
+25769803782 | BLOCK | { retval = ENOMEM ; }
+25769803783 | BLOCK | 
+        {
+ data [ count ] . length = strlen ( component ) ;
+ data [ count ] . data = strdup ( component ) ;
+ if ( ! data [ count ] . data ) {
+ retval = ENOMEM ;
+ }
+ count ++ ;
+ }
+      
+25769803784 | BLOCK | { retval = ENOMEM ; }
+25769803785 | BLOCK | 
+        {
+ princ -> type = KRB5_NT_UNKNOWN ;
+ princ -> magic = KV5M_PRINCIPAL ;
+ princ -> realm = make_data ( r , rlen ) ;
+ princ -> data = data ;
+ princ -> length = count ;
+ r = NULL ;
+ data = NULL ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ while ( -- count >= 0 ) {
+ free ( data [ count ] . data ) ;
+ }
+ free ( data ) ;
+ }
+      
+25769803787 | BLOCK | { free ( data [ count ] . data ) ; }
+30064771072 | CALL | retval = 0
+30064771073 | CALL | r = NULL
+30064771074 | CALL | data = NULL
+30064771075 | CALL | count = 0
+30064771076 | CALL | size = 2
+30064771077 | CALL | component = NULL
+30064771078 | CALL | data = malloc ( size * sizeof ( krb5_data ) )
+30064771079 | CALL | malloc ( size * sizeof ( krb5_data ) )
+30064771080 | CALL | size * sizeof ( krb5_data )
+30064771081 | CALL | sizeof ( krb5_data )
+30064771082 | CALL | ! data
+30064771083 | CALL | retval = ENOMEM
+30064771084 | CALL | ! retval
+30064771085 | CALL | r = k5memdup0 ( realm , rlen , & retval )
+30064771086 | CALL | k5memdup0 ( realm , rlen , & retval )
+30064771087 | CALL | & retval
+30064771088 | CALL | ! retval && ( component = va_arg ( ap , char * ) ) != 0
+30064771089 | CALL | count == size
+30064771090 | CALL | new_data = NULL
+30064771091 | CALL | size *= 2
+30064771092 | CALL | new_data = realloc ( data , size * sizeof ( krb5_data ) )
+30064771093 | CALL | realloc ( data , size * sizeof ( krb5_data ) )
+30064771094 | CALL | size * sizeof ( krb5_data )
+30064771095 | CALL | sizeof ( krb5_data )
+30064771096 | CALL | new_data != NULL
+30064771097 | CALL | data = new_data
+30064771098 | CALL | retval = ENOMEM
+30064771099 | CALL | ! retval
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771085 [AST]
+25769803780 -> 30064771090 [AST]
+25769803780 -> 30064771091 [AST]
+25769803780 -> 30064771092 [AST]
+25769803781 -> 30064771097 [AST]
+25769803782 -> 30064771098 [AST]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771083 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771088 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771096 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771093 [POST_DOMINATE]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771092 [CFG]
+30064771093 -> 30064771092 [DOMINATE]
+30064771093 -> 30064771094 [POST_DOMINATE]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 30064771095 [AR
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

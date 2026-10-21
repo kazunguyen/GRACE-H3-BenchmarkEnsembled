@@ -1,0 +1,166 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool e1000e_has_rxbufs ( E1000ECore * core , const E1000E_RingInfo * r , size_t total_size ) {
+ uint32_t bufs = e1000e_ring_free_descr_num ( core , r ) ;
+ trace_e1000e_rx_has_buffers ( r -> idx , bufs , total_size , core -> rx_desc_buf_size ) ;
+ return total_size <= bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t bufs = e1000e_ring_free_descr_num ( core , r ) ;
+ trace_e1000e_rx_has_buffers ( r -> idx , bufs , total_size , core -> rx_desc_buf_size ) ;
+ return total_size <= bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size ;
+ }
+      
+30064771072 | CALL | bufs = e1000e_ring_free_descr_num ( core , r )
+30064771073 | CALL | e1000e_ring_free_descr_num ( core , r )
+30064771074 | CALL | 
+        trace_e1000e_rx_has_buffers ( r -> idx , bufs , total_size , core -> rx_desc_buf_size )
+      
+30064771075 | CALL | r -> idx
+30064771076 | CALL | core -> rx_desc_buf_size
+30064771077 | CALL | 
+        total_size <= bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size
+      
+30064771078 | CALL | 
+        bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size
+      
+30064771079 | CALL | bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN )
+30064771080 | CALL | core -> rx_desc_len / E1000_MIN_RX_DESC_LEN
+30064771081 | CALL | core -> rx_desc_len
+30064771082 | CALL | core -> rx_desc_buf_size
+55834574848 | FIELD_IDENTIFIER | idx
+55834574849 | FIELD_IDENTIFIER | rx_desc_buf_size
+55834574850 | FIELD_IDENTIFIER | rx_desc_len
+55834574851 | FIELD_IDENTIFIER | rx_desc_buf_size
+68719476736 | IDENTIFIER | bufs
+68719476737 | IDENTIFIER | core
+68719476738 | IDENTIFIER | r
+68719476739 | IDENTIFIER | r
+68719476740 | IDENTIFIER | bufs
+68719476741 | IDENTIFIER | total_size
+68719476742 | IDENTIFIER | core
+68719476743 | IDENTIFIER | total_size
+68719476744 | IDENTIFIER | bufs
+68719476745 | IDENTIFIER | core
+68719476746 | IDENTIFIER | <unknown> E1000_MIN_RX_DESC_LEN
+68719476747 | IDENTIFIER | core
+94489280512 | LOCAL | uint32_t bufs
+94489280513 | LOCAL | <unknown> E1000_MIN_RX_DESC_LEN
+107374182400 | METHOD | 
+        static bool e1000e_has_rxbufs ( E1000ECore * core , const E1000E_RingInfo * r , size_t total_size ) {
+ uint32_t bufs = e1000e_ring_free_descr_num ( core , r ) ;
+ trace_e1000e_rx_has_buffers ( r -> idx , bufs , total_size , core -> rx_desc_buf_size ) ;
+ return total_size <= bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | E1000ECore * core
+111669149697 | METHOD_PARAMETER_IN | const E1000E_RingInfo * r
+111669149698 | METHOD_PARAMETER_IN | size_t total_size
+115964116992 | METHOD_PARAMETER_OUT | E1000ECore * core
+115964116993 | METHOD_PARAMETER_OUT | const E1000E_RingInfo * r
+115964116994 | METHOD_PARAMETER_OUT | size_t total_size
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | 
+        return total_size <= bufs / ( core -> rx_desc_len / E1000_MIN_RX_DESC_LEN ) * core -> rx_desc_buf_size ;
+      
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280513 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476741 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 68719476741 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 68719476743 [DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 115964116993 [REACHING_DEF]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 68719476741 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 68719476745 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476747 [REACHING_DEF]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 141733920768 [CFG]
+30064771077 -> 141733920768 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 141733920768 [REACHING_DEF]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771082 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771082 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771082 [POST_DOMINATE]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline bool e1000e_rx_descr_threshold_hit ( E1000ECore * core , const E1000E_RingInfo * rxi ) {
+ return e1000e_ring_free_descr_num ( core , rxi ) == e1000e_ring_len ( core , rxi ) >> core -> rxbuf_min_shift ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

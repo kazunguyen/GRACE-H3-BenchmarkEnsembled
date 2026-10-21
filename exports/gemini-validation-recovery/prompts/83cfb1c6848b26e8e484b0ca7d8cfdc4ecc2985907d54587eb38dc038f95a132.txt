@@ -1,0 +1,361 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ff_er_frame_end(MpegEncContext *s){
+
+    int i, mb_x, mb_y, error, error_type, dc_error, mv_error, ac_error;
+
+    int distance;
+
+    int threshold_part[4]= {100,100,100};
+
+    int threshold= 50;
+
+    int is_intra_likely;
+
+    int size = s->b8_stride * 2 * s->mb_height;
+
+    Picture *pic= s->current_picture_ptr;
+
+
+
+    if(!s->error_recognition || s->error_count==0 || s->avctx->lowres ||
+
+       s->avctx->codec->capabilities&CODEC_CAP_HWACCEL_VDPAU ||
+
+       s->error_count==3*s->mb_width*(s->avctx->skip_top + s->avctx->skip_bottom)) return;
+
+
+
+    if(s->current_picture.motion_val[0] == NULL){
+
+        av_log(s->avctx, AV_LOG_ERROR, "Warning MVs not available\n");
+
+
+
+        for(i=0; i<2; i++){
+
+            pic->ref_index[i]= av_mallocz(size * sizeof(uint8_t));
+
+            pic->motion_val_base[i]= av_mallocz((size+4) * 2 * sizeof(uint16_t));
+
+            pic->motion_val[i]= pic->motion_val_base[i]+4;
+
+        }
+
+        pic->motion_subsample_log2= 3;
+
+        s->current_picture= *s->current_picture_ptr;
+
+    }
+
+
+
+    for(i=0; i<2; i++){
+
+        if(pic->ref_index[i])
+
+            memset(pic->ref_index[i], 0, size * sizeof(uint8_t));
+
+    }
+
+
+
+    if(s->avctx->debug&FF_DEBUG_ER){
+
+        for(mb_y=0; mb_y<s->mb_height; mb_y++){
+
+            for(mb_x=0; mb_x<s->mb_width; mb_x++){
+
+                int status= s->error_status_table[mb_x + mb_y*s->mb_stride];
+
+
+
+                av_log(s->avctx, AV_LOG_DEBUG, "%2X ", status);
+
+            }
+
+            av_log(s->avctx, AV_LOG_DEBUG, "\n");
+
+        }
+
+    }
+
+
+
+#if 1
+
+    /* handle overlapping slices */
+
+    for(error_type=1; error_type<=3; error_type++){
+
+        int end_ok=0;
+
+
+
+        for(i=s->mb_num-1; i>=0; i--){
+
+            const int mb_xy= s->mb_index2xy[i];
+
+            int error= s->error_status_table[mb_xy];
+
+
+
+            if(error&(1<<error_type))
+
+                end_ok=1;
+
+            if(error&(8<<error_type))
+
+                end_ok=1;
+
+
+
+            if(!end_ok)
+
+                s->error_status_table[mb_xy]|= 1<<error_type;
+
+
+
+            if(error&VP_START)
+
+                end_ok=0;
+
+        }
+
+    }
+
+#endif
+
+#if 1
+
+    /* handle slices with partitions of different length */
+
+    if(s->partitioned_frame){
+
+        int end_ok=0;
+
+
+
+        for(i=s->mb_num-1; i>=0; i--){
+
+            const int mb_xy= s->mb_index2xy[i];
+
+            int error= s->error_status_table[mb_xy];
+
+
+
+            if(error&AC_END)
+
+                end_ok=0;
+
+            if((error&MV_END) || (error&DC_END) || (error&AC_ERROR))
+
+                end_ok=1;
+
+
+
+            if(!end_ok)
+
+                s->error_status_table[mb_xy]|= AC_ERROR;
+
+
+
+            if(error&VP_START)
+
+                end_ok=0;
+
+        }
+
+    }
+
+#endif
+
+    /* handle missing slices */
+
+    if(s->error_recognition>=4){
+
+        int end_ok=1;
+
+
+
+        for(i=s->mb_num-2; i>=s->mb_width+100; i--){ //FIXME +100 hack
+
+            const int mb_xy= s->mb_index2xy[i];
+
+            int error1= s->error_status_table[mb_xy  ];
+
+            int error2= 
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+5 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+5 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+5 -> 27 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+62 -> 66 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void ff_er_frame_end(ERContext *s)
+
+{
+
+    int *linesize = s->cur_pic->f.linesize;
+
+    int i, mb_x, mb_y, error, error_type, dc_error, mv_error, ac_error;
+
+    int distance;
+
+    int threshold_part[4] = { 100, 100, 100 };
+
+    int threshold = 50;
+
+    int is_intra_likely;
+
+    int size = s->b8_stride * 2 * s->mb_height;
+
+
+
+    /* We do not support ER of field pictures yet,
+
+     * though it should not crash if enabled. */
+
+    if (!s->avctx->error_concealment || s->error_count == 0            ||
+
+        s->avctx->lowres                                               ||
+
+        s->avctx->hwaccel                                              ||
+
+        s->avctx->codec->capabilities&CODEC_CAP_HWACCEL_VDPAU          ||
+
+        !s->cur_pic || s->cur_pic->field_picture                               ||
+
+        s->error_count == 3 * s->mb_width *
+
+                          (s->avctx->skip_top + s->avctx->skip_bottom)) {
+
+        return;
+
+    }
+
+    for (mb_x = 0; mb_x < s->mb_width; mb_x++) {
+
+        int status = s->error_status_table[mb_x + (s->mb_height - 1) * s->mb_stride];
+
+        if (status != 0x7F)
+
+            break;
+
+    }
+
+
+
+    if (   mb_x == s->mb_width
+
+        && s->avctx->codec_id == AV_CODEC_ID_MPEG2VIDEO
+
+        && (s->avctx->height&16)
+
+        && s->error_count == 3 * s->mb_width * (s->avctx->skip_top + s->avctx->skip_bottom + 1)
+
+    ) {
+
+        av_log(s->avctx, AV_LOG_DEBUG, "ignoring last missing slice\n");
+
+        return;
+
+    }
+
+
+
+    if (s->last_pic) 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void input_DecoderFrameNext ( decoder_t * p_dec , mtime_t * pi_duration ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ * pi_duration = 0 ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ if ( p_dec -> fmt_out . i_cat == VIDEO_ES ) {
+ if ( p_owner -> b_paused && p_owner -> p_vout ) {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+ }
+ else {
+ DecoderFlush ( p_dec ) ;
+ }
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ * pi_duration = 0 ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ if ( p_dec -> fmt_out . i_cat == VIDEO_ES ) {
+ if ( p_owner -> b_paused && p_owner -> p_vout ) {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+ }
+ else {
+ DecoderFlush ( p_dec ) ;
+ }
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( p_owner -> b_paused && p_owner -> p_vout ) {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+      
+25769803779 | BLOCK | { DecoderFlush ( p_dec ) ; }
+30064771072 | CALL | p_owner = p_dec -> p_owner
+30064771073 | CALL | p_dec -> p_owner
+30064771074 | CALL | * pi_duration = 0
+30064771075 | CALL | * pi_duration
+30064771076 | CALL | vlc_mutex_lock ( & p_owner -> lock )
+30064771077 | CALL | & p_owner -> lock
+30064771078 | CALL | p_owner -> lock
+30064771079 | CALL | p_dec -> fmt_out . i_cat == VIDEO_ES
+30064771080 | CALL | p_dec -> fmt_out . i_cat
+30064771081 | CALL | p_dec -> fmt_out
+30064771082 | CALL | p_owner -> b_paused && p_owner -> p_vout
+30064771083 | CALL | p_owner -> b_paused
+30064771084 | CALL | p_owner -> p_vout
+30064771085 | CALL | vout_NextPicture ( p_owner -> p_vout , pi_duration )
+30064771086 | CALL | p_owner -> p_vout
+30064771087 | CALL | p_owner -> pause . i_ignore ++
+30064771088 | CALL | p_owner -> pause . i_ignore
+30064771089 | CALL | p_owner -> pause
+30064771090 | CALL | vlc_cond_signal ( & p_owner -> wait_request )
+30064771091 | CALL | & p_owner -> wait_request
+30064771092 | CALL | p_owner -> wait_request
+30064771093 | CALL | DecoderFlush ( p_dec )
+30064771094 | CALL | vlc_mutex_unlock ( & p_owner -> lock )
+30064771095 | CALL | & p_owner -> lock
+30064771096 | CALL | p_owner -> lock
+47244640256 | CONTROL_STRUCTURE | 
+        if ( p_dec -> fmt_out . i_cat == VIDEO_ES ) {
+ if ( p_owner -> b_paused && p_owner -> p_vout ) {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+ }
+ else {
+ DecoderFlush ( p_dec ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( p_owner -> b_paused && p_owner -> p_vout ) {
+ vout_NextPicture ( p_owner -> p_vout , pi_duration ) ;
+ p_owner -> pause . i_ignore ++ ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | p_owner
+55834574849 | FIELD_IDENTIFIER | lock
+55834574850 | FIELD_IDENTIFIER | fmt_out
+55834574851 | FIELD_IDENTIFIER | i_cat
+55834574852 | FIELD_IDENTIFIER | b_paused
+55834574853 | FIELD_IDENTIFIER | p_vout
+55834574854 | FIELD_IDENTIFIER | p_vout
+55834574855 | FIELD_IDENTIFIER | pause
+55834574856 | FIELD_IDENTIFIER | i_ignore
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771085 [AST]
+25769803778 -> 30064771087 [AST]
+25769803778 -> 30064771090 [AST]
+25769803779 -> 30064771093 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 30064771096 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771095 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 55834574852 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 55834574851 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 55834574851 [AST]
+30064771080 -> 55834574851 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 55834574850 [ARGUMENT]
+30064771081 -> 55834574850 [AST]
+30064771081 -> 55834574851 [CFG]
+30064771081 -> 55834574851 [DOMINATE]
+30064771081 -> 55834574850 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 55834574855 [CDG]
+30064771082 -> 55834574854 [CDG]
+30064771082 -> 55834574856 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 55834574852 [ARGUMENT]
+30064771083 -> 55834574852 [AST]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 55834574853 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void input_DecoderChangePause ( decoder_t * p_dec , bool b_paused , mtime_t i_date ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ if ( likely ( p_owner -> b_paused != b_paused ) ) {
+ p_owner -> b_paused = b_paused ;
+ p_owner -> pause . i_date = i_date ;
+ p_owner -> pause . i_ignore = 0 ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ DecoderOutputChangePause ( p_dec , b_paused , i_date ) ;
+ }
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,149 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_rsvp_common ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , gboolean e2ei ) {
+ guint8 message_type ;
+ int session_off , tempfilt_off ;
+ rsvp_conversation_info * rsvph ;
+ conversation_t * conversation ;
+ struct rsvp_request_key request_key , * new_request_key ;
+ struct rsvp_request_val * request_val ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ message_type = tvb_get_guint8 ( tvb , 1 ) ;
+ rsvph = wmem_new0 ( wmem_packet_scope ( ) , rsvp_conversation_info ) ;
+ set_address ( & rsvph -> source , pinfo -> src . type , pinfo -> src . len , pinfo -> src . data ) ;
+ set_address ( & rsvph -> destination , pinfo -> dst . type , pinfo -> dst . len , pinfo -> dst . data ) ;
+ col_add_str ( pinfo -> cinfo , COL_INFO , val_to_str_ext ( message_type , & message_type_vals_ext , "Unknown (%u). " ) ) ;
+ if ( message_type == RSVP_MSG_BUNDLE ) {
+ col_set_str ( pinfo -> cinfo , COL_INFO , rsvp_bundle_dissect ? "Component Messages Dissected" : "Component Messages Not Dissected" ) ;
+ }
+ else {
+ find_rsvp_session_tempfilt ( tvb , 0 , & session_off , & tempfilt_off ) ;
+ if ( session_off ) col_append_str ( pinfo -> cinfo , COL_INFO , summary_session ( tvb , session_off ) ) ;
+ if ( tempfilt_off ) col_append_str ( pinfo -> cinfo , COL_INFO , summary_template ( tvb , tempfilt_off ) ) ;
+ }
+ dissect_rsvp_msg_tree ( tvb , pinfo , tree , TREE ( TT_RSVP ) , rsvph , e2ei ) ;
+ if ( ( message_type == RSVP_MSG_ACK ) || ( message_type == RSVP_MSG_SREFRESH ) || ( message_type == RSVP_MSG_HELLO ) ) return ;
+ conversation = find_or_create_conversation ( pinfo ) ;
+ memset ( & request_key , 0 , sizeof ( request_key ) ) ;
+ request_key . conversation = conversation -> index ;
+ request_key . session_type = rsvph -> session_type ;
+ switch ( request_key . session_type ) {
+ case RSVP_SESSION_TYPE_IPV4 : set_address ( & request_key . u . session_ipv4 . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_ipv4 . protocol = rsvph -> protocol ;
+ request_key . u . session_ipv4 . udp_dest_port = rsvph -> udp_dest_port ;
+ break ;
+ case RSVP_SESSION_TYPE_IPV6 : break ;
+ case RSVP_SESSION_TYPE_IPV4_LSP : set_address ( & request_key . u . session_ipv4_lsp . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_ipv4_lsp . udp_dest_port = rsvph -> udp_dest_port ;
+ request_key . u . session_ipv4_lsp . ext_tunnel_id = rsvph -> ext_tunnel_id ;
+ break ;
+ case RSVP_SESSION_TYPE_AGGREGATE_IPV4 : set_address ( & request_key . u . session_agg_ipv4 . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_agg_ipv4 . dscp = rsvph -> dscp ;
+ break ;
+ case RSVP_SESSION_TYPE_IPV4_UNI : set_address ( & request_key . u . session_ipv4_uni . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint8 message_type ;
+ int session_off , tempfilt_off ;
+ rsvp_conversation_info * rsvph ;
+ conversation_t * conversation ;
+ struct rsvp_request_key request_key , * new_request_key ;
+ struct rsvp_request_val * request_val ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ message_type = tvb_get_guint8 ( tvb , 1 ) ;
+ rsvph = wmem_new0 ( wmem_packet_scope ( ) , rsvp_conversation_info ) ;
+ set_address ( & rsvph -> source , pinfo -> src . type , pinfo -> src . len , pinfo -> src . data ) ;
+ set_address ( & rsvph -> destination , pinfo -> dst . type , pinfo -> dst . len , pinfo -> dst . data ) ;
+ col_add_str ( pinfo -> cinfo , COL_INFO , val_to_str_ext ( message_type , & message_type_vals_ext , "Unknown (%u). " ) ) ;
+ if ( message_type == RSVP_MSG_BUNDLE ) {
+ col_set_str ( pinfo -> cinfo , COL_INFO , rsvp_bundle_dissect ? "Component Messages Dissected" : "Component Messages Not Dissected" ) ;
+ }
+ else {
+ find_rsvp_session_tempfilt ( tvb , 0 , & session_off , & tempfilt_off ) ;
+ if ( session...
+      
+25769803777 | BLOCK | 
+        {
+ col_set_str ( pinfo -> cinfo , COL_INFO , rsvp_bundle_dissect ? "Component Messages Dissected" : "Component Messages Not Dissected" ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ find_rsvp_session_tempfilt ( tvb , 0 , & session_off , & tempfilt_off ) ;
+ if ( session_off ) col_append_str ( pinfo -> cinfo , COL_INFO , summary_session ( tvb , session_off ) ) ;
+ if ( tempfilt_off ) col_append_str ( pinfo -> cinfo , COL_INFO , summary_template ( tvb , tempfilt_off ) ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ case RSVP_SESSION_TYPE_IPV4 : set_address ( & request_key . u . session_ipv4 . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_ipv4 . protocol = rsvph -> protocol ;
+ request_key . u . session_ipv4 . udp_dest_port = rsvph -> udp_dest_port ;
+ break ;
+ case RSVP_SESSION_TYPE_IPV6 : break ;
+ case RSVP_SESSION_TYPE_IPV4_LSP : set_address ( & request_key . u . session_ipv4_lsp . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_ipv4_lsp . udp_dest_port = rsvph -> udp_dest_port ;
+ request_key . u . session_ipv4_lsp . ext_tunnel_id = rsvph -> ext_tunnel_id ;
+ break ;
+ case RSVP_SESSION_TYPE_AGGREGATE_IPV4 : set_address ( & request_key . u . session_agg_ipv4 . destination , rsvph -> destination . type , rsvph -> destination . len , rsvph -> destination . data ) ;
+ request_key . u . session_agg_ipv4 . dscp = rsvph -> dscp ;
+ b...
+      
+25769803783 | BLOCK | 
+        {
+ new_request_key = ( struct rsvp_request_key * ) wmem_memdup ( wmem_file_scope ( ) , & request_key , sizeof ( struct rsvp_request_key ) ) ;
+ request_val = wmem_new ( wmem_file_scope ( ) , struct rsvp_request_val ) ;
+ request_val -> value = conversation -> index ;
+ g_hash_table_insert ( rsvp_request_hash , new_request_key , request_val ) ;
+ }
+      
+30064771072 | CALL | col_clear ( pinfo -> cinfo , COL_INFO )
+30064771073 | CALL | pinfo -> cinfo
+30064771074 | CALL | message_type = tvb_get_guint8 ( tvb , 1 )
+30064771075 | CALL | tvb_get_guint8 ( tvb , 1 )
+30064771076 | CALL | rsvph = wmem_new0 ( wmem_packet_scope ( ) , rsvp_conversation_info )
+30064771077 | CALL | wmem_new0 ( wmem_packet_scope ( ) , rsvp_conversation_info )
+30064771078 | CALL | wmem_packet_scope ( )
+30064771079 | CALL | 
+        set_address ( & rsvph -> source , pinfo -> src . type , pinfo -> src . len , pinfo -> src . data )
+      
+30064771080 | CALL | & rsvph -> source
+30064771081 | CALL | rsvph -> source
+30064771082 | CALL | pinfo -> src . type
+30064771083 | CALL | pinfo -> src
+30064771084 | CALL | pinfo -> src . len
+30064771085 | CALL | pinfo -> src
+30064771086 | CALL | pinfo -> src . data
+30064771087 | CALL | pinfo -> src
+30064771088 | CALL | 
+        set_address ( & rsvph -> destination , pinfo -> dst . type , pinfo -> dst . len , pinfo -> dst . data )
+      
+30064771089 | CALL | & rsvph -> destination
+30064771090 | CALL | rsvph -> destination
+30064771091 | CALL | pinfo -> dst . type
+30064771092 | CALL | pinfo -> dst
+30064771093 | CALL | pinfo -> dst . len
+30064771094 | CALL | pinfo -> dst
+30064771095 | CALL | pinfo -> dst . data
+30064771096 | CALL | pinfo -> dst
+30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

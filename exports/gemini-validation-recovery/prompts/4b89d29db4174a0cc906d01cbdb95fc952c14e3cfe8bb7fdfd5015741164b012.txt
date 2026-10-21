@@ -1,0 +1,235 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ReadToc ( ArchiveHandle * AH ) {
+ int i ;
+ char * tmp ;
+ DumpId * deps ;
+ int depIdx ;
+ int depSize ;
+ TocEntry * te ;
+ AH -> tocCount = ReadInt ( AH ) ;
+ AH -> maxDumpId = 0 ;
+ for ( i = 0 ;
+ i < AH -> tocCount ;
+ i ++ ) {
+ te = ( TocEntry * ) pg_malloc0 ( sizeof ( TocEntry ) ) ;
+ te -> dumpId = ReadInt ( AH ) ;
+ if ( te -> dumpId > AH -> maxDumpId ) AH -> maxDumpId = te -> dumpId ;
+ if ( te -> dumpId <= 0 ) exit_horribly ( modulename , "entry ID %d out of range -- perhaps a corrupt TOC\n" , te -> dumpId ) ;
+ te -> hadDumper = ReadInt ( AH ) ;
+ if ( AH -> version >= K_VERS_1_8 ) {
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . tableoid ) ;
+ free ( tmp ) ;
+ }
+ else te -> catalogId . tableoid = InvalidOid ;
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . oid ) ;
+ free ( tmp ) ;
+ te -> tag = ReadStr ( AH ) ;
+ te -> desc = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_11 ) {
+ te -> section = ReadInt ( AH ) ;
+ }
+ else {
+ if ( strcmp ( te -> desc , "COMMENT" ) == 0 || strcmp ( te -> desc , "ACL" ) == 0 || strcmp ( te -> desc , "ACL LANGUAGE" ) == 0 ) te -> section = SECTION_NONE ;
+ else if ( strcmp ( te -> desc , "TABLE DATA" ) == 0 || strcmp ( te -> desc , "BLOBS" ) == 0 || strcmp ( te -> desc , "BLOB COMMENTS" ) == 0 ) te -> section = SECTION_DATA ;
+ else if ( strcmp ( te -> desc , "CONSTRAINT" ) == 0 || strcmp ( te -> desc , "CHECK CONSTRAINT" ) == 0 || strcmp ( te -> desc , "FK CONSTRAINT" ) == 0 || strcmp ( te -> desc , "INDEX" ) == 0 || strcmp ( te -> desc , "RULE" ) == 0 || strcmp ( te -> desc , "TRIGGER" ) == 0 ) te -> section = SECTION_POST_DATA ;
+ else te -> section = SECTION_PRE_DATA ;
+ }
+ te -> defn = ReadStr ( AH ) ;
+ te -> dropStmt = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_3 ) te -> copyStmt = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_6 ) te -> namespace = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_10 ) te -> tablespace = ReadStr ( AH ) ;
+ te -> owner = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_9 ) {
+ if ( strcmp ( ReadStr ( AH ) , "true" ) == 0 ) te -> withOids = true ;
+ else te -> withOids = false ;
+ }
+ else te -> withOids = true ;
+ if ( AH -> version >= K_VERS_1_5 ) {
+ depSize = 100 ;
+ deps = ( DumpId * ) pg_malloc ( sizeof ( DumpId ) * depSize ) ;
+ depIdx = 0 ;
+ for ( ;
+ ;
+ ) {
+ tmp = ReadStr ( AH ) ;
+ if ( ! tmp ) break ;
+ if ( depIdx >= depSize ) {
+ depSize *= 2 ;
+ deps = ( DumpId * ) pg_realloc ( deps , sizeof ( DumpId ) * depSize ) ;
+ }
+ sscanf ( tmp , "%d" , & deps [ depIdx ] ) ;
+ free ( tmp ) ;
+ depIdx ++ ;
+ }
+ if ( depIdx > 0 ) {
+ deps = ( DumpId * ) pg_realloc ( deps , sizeof ( DumpId ) * depIdx ) ;
+ te -> dependencies = deps ;
+ te -> nDeps = depIdx ;
+ }
+ else {
+ free ( deps ) ;
+ te -> dependencies = NULL ;
+ te -> nDeps = 0 ;
+ }
+ }
+ else {
+ te -> dependencies = NULL ;
+ te -> nDeps = 0 ;
+ }
+ if ( AH -> ReadExtraTocPtr ) ( * AH -> ReadExtraTocPtr ) ( AH , te ) ;
+ ahlog ( AH , 3 , "read TOC entry %d (ID %d) for %s %s\n" , i , te -> dumpId , te -> desc , 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ char * tmp ;
+ DumpId * deps ;
+ int depIdx ;
+ int depSize ;
+ TocEntry * te ;
+ AH -> tocCount = ReadInt ( AH ) ;
+ AH -> maxDumpId = 0 ;
+ for ( i = 0 ;
+ i < AH -> tocCount ;
+ i ++ ) {
+ te = ( TocEntry * ) pg_malloc0 ( sizeof ( TocEntry ) ) ;
+ te -> dumpId = ReadInt ( AH ) ;
+ if ( te -> dumpId > AH -> maxDumpId ) AH -> maxDumpId = te -> dumpId ;
+ if ( te -> dumpId <= 0 ) exit_horribly ( modulename , "entry ID %d out of range -- perhaps a corrupt TOC\n" , te -> dumpId ) ;
+ te -> hadDumper = ReadInt ( AH ) ;
+ if ( AH -> version >= K_VERS_1_8 ) {
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . tableoid ) ;
+ free ( tmp ) ;
+ }
+ else te -> catalogId . tableoid = InvalidOid ;
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . oid ) ;
+ free ( tmp ) ;
+ te -> tag = ReadStr ( AH ) ;
+ te -> desc = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_11 ) {
+ te -> section = ReadInt ( AH ) ;
+ }
+ else {
+ if ( strcmp ( te -> desc , "COMMENT" ) == 0 || strcmp (...
+      
+25769803777 | BLOCK | 
+        {
+ te = ( TocEntry * ) pg_malloc0 ( sizeof ( TocEntry ) ) ;
+ te -> dumpId = ReadInt ( AH ) ;
+ if ( te -> dumpId > AH -> maxDumpId ) AH -> maxDumpId = te -> dumpId ;
+ if ( te -> dumpId <= 0 ) exit_horribly ( modulename , "entry ID %d out of range -- perhaps a corrupt TOC\n" , te -> dumpId ) ;
+ te -> hadDumper = ReadInt ( AH ) ;
+ if ( AH -> version >= K_VERS_1_8 ) {
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . tableoid ) ;
+ free ( tmp ) ;
+ }
+ else te -> catalogId . tableoid = InvalidOid ;
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . oid ) ;
+ free ( tmp ) ;
+ te -> tag = ReadStr ( AH ) ;
+ te -> desc = ReadStr ( AH ) ;
+ if ( AH -> version >= K_VERS_1_11 ) {
+ te -> section = ReadInt ( AH ) ;
+ }
+ else {
+ if ( strcmp ( te -> desc , "COMMENT" ) == 0 || strcmp ( te -> desc , "ACL" ) == 0 || strcmp ( te -> desc , "ACL LANGUAGE" ) == 0 ) te -> section = SECTION_NONE ;
+ else if ( strcmp ( te -> desc , "TABLE DATA" ) == 0 || strcmp ( te -> desc , "BLOBS...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ tmp = ReadStr ( AH ) ;
+ sscanf ( tmp , "%u" , & te -> catalogId . tableoid ) ;
+ free ( tmp ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { te -> section = ReadInt ( AH ) ; }
+25769803783 | BLOCK | 
+        {
+ if ( strcmp ( te -> desc , "COMMENT" ) == 0 || strcmp ( te -> desc , "ACL" ) == 0 || strcmp ( te -> desc , "ACL LANGUAGE" ) == 0 ) te -> section = SECTION_NONE ;
+ else if ( strcmp ( te -> desc , "TABLE DATA" ) == 0 || strcmp ( te -> desc , "BLOBS" ) == 0 || strcmp ( te -> desc , "BLOB COMMENTS" ) == 0 ) te -> section = SECTION_DATA ;
+ else if ( strcmp ( te -> desc , "CONSTRAINT" ) == 0 || strcmp ( te -> desc , "CHECK CONSTRAINT" ) == 0 || strcmp ( te -> desc , "FK CONSTRAINT" ) == 0 || strcmp ( te -> desc , "INDEX" ) == 0 || strcmp ( te -> desc , "RULE" ) == 0 || strcmp ( te -> desc , "TRIGGER" ) == 0 ) te -> section = SECTION_POST_DATA ;
+ else te -> section = SECTION_PRE_DATA ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | 
+        {
+ if ( strcmp ( ReadStr ( AH ) , "true" ) == 0 ) te -> withOids = true ;
+ else te -> withOids = false ;
+ }
+      
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | 
+        {
+ depSize = 100 ;
+ deps = ( DumpId * ) pg_malloc ( sizeof ( DumpId ) * depSize ) ;
+ depIdx = 0 ;
+ for ( ;
+ ;
+ ) {
+ tmp = ReadStr ( AH ) ;
+ if ( ! tmp ) break ;
+ if ( depIdx >= depSize ) {
+ depSize *= 2 ;
+ deps = ( DumpId * ) pg_realloc ( deps , sizeof ( DumpId ) * depSize ) ;
+ }
+ sscanf ( tmp , "%d" , & deps [ depIdx ] ) ;
+ free ( tmp ) ;
+ depIdx ++ ;
+ }
+ if ( depIdx > 0 ) {
+ deps = ( DumpId * ) pg_realloc ( deps , sizeof ( DumpId ) * depIdx ) ;
+ te -> dependencies = deps ;
+ te -> nDeps = depIdx ;
+ }
+ else {
+ free ( deps ) ;
+ te -> dependencies = NULL ;
+ te -> nDeps = 0 ;
+ }
+ }
+      
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | 
+        {
+ tmp = ReadStr ( AH ) ;
+ if ( ! tmp ) break ;
+ if ( depIdx >= depSize ) {
+ depSize *= 2 ;
+ 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

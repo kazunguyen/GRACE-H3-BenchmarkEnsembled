@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+DEFINE_TEST ( test_write_disk_secure ) {
+ # if defined ( _WIN32 ) && ! defined ( __CYGWIN__ ) skipping ( "archive_write_disk security checks not supported on Windows" ) ;
+ # else struct archive * a ;
+ struct archive_entry * ae ;
+ struct stat st ;
+ assertUmask ( UMASK ) ;
+ assert ( ( a = archive_write_disk_new ( ) ) != NULL ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "dir" ) ;
+ archive_entry_set_mode ( ae , S_IFDIR | 0777 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ archive_entry_free ( ae ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir" ) ;
+ archive_entry_set_mode ( ae , S_IFLNK | 0777 ) ;
+ archive_entry_set_symlink ( ae , "dir" ) ;
+ archive_write_disk_set_options ( a , 0 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( archive_entry_clear ( ae ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir/filea" ) ;
+ archive_entry_set_mode ( ae , S_IFREG | 0777 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( archive_entry_clear ( ae ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir/fileb" ) ;
+ archive_entry_set_mode ( ae , S_IFREG | 0777 ) ;
+ archive_write_disk_set_options ( a , ARCHIVE_EXTRACT_SECURE_SYMLINKS ) ;
+ failure ( "Extracting a file through a symlink should fail here." ) ;
+ assertEqualInt ( ARCHIVE_FAILED , archive_write_header ( a , ae ) ) ;
+ archive_entry_free ( ae ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir2" ) ;
+ archive_entry_set_mode ( ae , S_IFLNK | 0777 ) ;
+ archive_entry_set_symlink ( ae , "dir" ) ;
+ archive_write_disk_set_options ( a , 0 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( archive_entry_clear ( ae ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir2/filec" ) ;
+ archive_entry_set_mode ( ae , S_IFREG | 0777 ) ;
+ archive_write_disk_set_options ( a , ARCHIVE_EXTRACT_SECURE_SYMLINKS | ARCHIVE_EXTRACT_UNLINK ) ;
+ assertEqualIntA ( a , ARCHIVE_OK , archive_write_header ( a , ae ) ) ;
+ archive_entry_free ( ae ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir3" ) ;
+ archive_entry_set_mode ( ae , S_IFLNK | 0777 ) ;
+ archive_entry_set_symlink ( ae , "dir" ) ;
+ archive_write_disk_set_options ( a , 0 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( archive_entry_clear ( ae ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir3" ) ;
+ archive_entry_set_mode ( ae , S_IFDIR | 0777 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert (
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # if defined ( _WIN32 ) && ! defined ( __CYGWIN__ ) skipping ( "archive_write_disk security checks not supported on Windows" ) ;
+ # else struct archive * a ;
+ struct archive_entry * ae ;
+ struct stat st ;
+ assertUmask ( UMASK ) ;
+ assert ( ( a = archive_write_disk_new ( ) ) != NULL ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "dir" ) ;
+ archive_entry_set_mode ( ae , S_IFDIR | 0777 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ archive_entry_free ( ae ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( ( ae = archive_entry_new ( ) ) != NULL ) ;
+ archive_entry_copy_pathname ( ae , "link_to_dir" ) ;
+ archive_entry_set_mode ( ae , S_IFLNK | 0777 ) ;
+ archive_entry_set_symlink ( ae , "dir" ) ;
+ archive_write_disk_set_options ( a , 0 ) ;
+ assert ( 0 == archive_write_header ( a , ae ) ) ;
+ assert ( 0 == archive_write_finish_entry ( a ) ) ;
+ assert ( archive_entry_clear ( ae ) != NULL ) ;
+ archive_entry_copy_pathname ...
+      
+30064771072 | CALL | assertUmask ( UMASK )
+30064771073 | CALL | assert ( ( a = archive_write_disk_new ( ) ) != NULL )
+30064771074 | CALL | ( a = archive_write_disk_new ( ) ) != NULL
+30064771075 | CALL | a = archive_write_disk_new ( )
+30064771076 | CALL | archive_write_disk_new ( )
+30064771077 | CALL | assert ( ( ae = archive_entry_new ( ) ) != NULL )
+30064771078 | CALL | ( ae = archive_entry_new ( ) ) != NULL
+30064771079 | CALL | ae = archive_entry_new ( )
+30064771080 | CALL | archive_entry_new ( )
+30064771081 | CALL | archive_entry_copy_pathname ( ae , "dir" )
+30064771082 | CALL | archive_entry_set_mode ( ae , S_IFDIR | 0777 )
+30064771083 | CALL | S_IFDIR | 0777
+30064771084 | CALL | assert ( 0 == archive_write_header ( a , ae ) )
+30064771085 | CALL | 0 == archive_write_header ( a , ae )
+30064771086 | CALL | archive_write_header ( a , ae )
+30064771087 | CALL | archive_entry_free ( ae )
+30064771088 | CALL | assert ( 0 == archive_write_finish_entry ( a ) )
+30064771089 | CALL | 0 == archive_write_finish_entry ( a )
+30064771090 | CALL | archive_write_finish_entry ( a )
+30064771091 | CALL | assert ( ( ae = archive_entry_new ( ) ) != NULL )
+30064771092 | CALL | ( ae = archive_entry_new ( ) ) != NULL
+30064771093 | CALL | ae = archive_entry_new ( )
+30064771094 | CALL | archive_entry_new ( )
+30064771095 | CALL | archive_entry_copy_pathname ( ae , "link_to_dir" )
+30064771096 | CALL | archive_entry_set_mode ( ae , S_IFLNK | 0777 )
+30064771097 | CALL | S_IFLNK | 0777
+30064771098 | CALL | archive_entry_set_symlink ( ae , "dir" )
+30064771099 | CALL | archive_write_disk_set_options ( a , 0 )
+30064771100 | CALL | assert ( 0 == archive_write_header ( a , ae ) )
+30064771101 | CALL | 0 == archive_write_header ( a , ae )
+30064771102 | CALL | archive_write_header ( a , ae )
+30064771103 | CALL | assert ( 0 == archive_write_finish_entry ( a ) )
+30064771104 | CALL | 0 == archive_write_finish_entry ( a )
+30064771105 | CALL | archive_write_finish_entry ( a )
+30064771106 | CALL | assert ( archive_entry_clear ( ae ) != NULL )
+30064771107 | CALL | archive_entry_clear ( ae ) != NULL
+30064771108 | CALL | archive_entry_clear ( ae )
+30064771109 | CALL | archive_entry_copy_pathname ( ae , "link_to_dir/filea" )
+30064771110 | CALL | archive_entry_set_mode ( ae , S_IFREG | 0777 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+25769803776 -> 30064771110 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

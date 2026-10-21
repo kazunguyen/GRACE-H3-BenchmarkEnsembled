@@ -1,0 +1,238 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static ssize_t qio_channel_websock_read_wire ( QIOChannelWebsock * ioc , Error * * errp ) {
+ ssize_t ret ;
+ if ( ioc -> encinput . offset < 4096 ) {
+ size_t want = 4096 - ioc -> encinput . offset ;
+ buffer_reserve ( & ioc -> encinput , want ) ;
+ ret = qio_channel_read ( ioc -> master , ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset , want , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ if ( ret == 0 && ioc -> encinput . offset == 0 ) {
+ ioc -> io_eof = TRUE ;
+ return 0 ;
+ }
+ ioc -> encinput . offset += ret ;
+ }
+ while ( ioc -> encinput . offset != 0 ) {
+ if ( ioc -> payload_remain == 0 ) {
+ ret = qio_channel_websock_decode_header ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+ ret = qio_channel_websock_decode_payload ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ssize_t ret ;
+ if ( ioc -> encinput . offset < 4096 ) {
+ size_t want = 4096 - ioc -> encinput . offset ;
+ buffer_reserve ( & ioc -> encinput , want ) ;
+ ret = qio_channel_read ( ioc -> master , ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset , want , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ if ( ret == 0 && ioc -> encinput . offset == 0 ) {
+ ioc -> io_eof = TRUE ;
+ return 0 ;
+ }
+ ioc -> encinput . offset += ret ;
+ }
+ while ( ioc -> encinput . offset != 0 ) {
+ if ( ioc -> payload_remain == 0 ) {
+ ret = qio_channel_websock_decode_header ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+ ret = qio_channel_websock_decode_payload ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+ return 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ size_t want = 4096 - ioc -> encinput . offset ;
+ buffer_reserve ( & ioc -> encinput , want ) ;
+ ret = qio_channel_read ( ioc -> master , ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset , want , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ if ( ret == 0 && ioc -> encinput . offset == 0 ) {
+ ioc -> io_eof = TRUE ;
+ return 0 ;
+ }
+ ioc -> encinput . offset += ret ;
+ }
+      
+25769803778 | BLOCK | { return ret ; }
+25769803779 | BLOCK | { ioc -> io_eof = TRUE ; return 0 ; }
+25769803780 | BLOCK | 
+        {
+ if ( ioc -> payload_remain == 0 ) {
+ ret = qio_channel_websock_decode_header ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+ ret = qio_channel_websock_decode_payload ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ ret = qio_channel_websock_decode_header ( ioc , errp ) ;
+ if ( ret < 0 ) {
+ return ret ;
+ }
+ }
+      
+25769803782 | BLOCK | { return ret ; }
+25769803783 | BLOCK | { return ret ; }
+30064771072 | CALL | ioc -> encinput . offset < 4096
+30064771073 | CALL | ioc -> encinput . offset
+30064771074 | CALL | ioc -> encinput
+30064771075 | CALL | want = 4096 - ioc -> encinput . offset
+30064771076 | CALL | 4096 - ioc -> encinput . offset
+30064771077 | CALL | ioc -> encinput . offset
+30064771078 | CALL | ioc -> encinput
+30064771079 | CALL | buffer_reserve ( & ioc -> encinput , want )
+30064771080 | CALL | & ioc -> encinput
+30064771081 | CALL | ioc -> encinput
+30064771082 | CALL | 
+        ret = qio_channel_read ( ioc -> master , ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset , want , errp )
+      
+30064771083 | CALL | 
+        qio_channel_read ( ioc -> master , ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset , want , errp )
+      
+30064771084 | CALL | ioc -> master
+30064771085 | CALL | ( char * ) ioc -> encinput . buffer + ioc -> encinput . offset
+30064771086 | CALL | ( char * ) ioc -> encinput . buffer
+30064771087 | CALL | ioc -> encinput . buffer
+30064771088 | CALL | ioc -> encinput
+30064771089 | CALL | ioc -> encinput . offset
+30064771090 | CALL | ioc -> encinput
+30064771091 | CALL | ret < 0
+30064771092 | CALL | ret == 0 && ioc -> encinput . offset == 0
+30064771093 | CALL | ret == 0
+30064771094 | CALL | ioc -> encinput . offset == 0
+30064771095 | CALL | ioc -> encinput . offset
+30064771096 | CALL | ioc -> encinput
+30064771097 | CALL | ioc -> io_eof = TRUE
+30064771098 | CALL | ioc -> io_eof
+30064771099 | CALL | ioc -> encinput . offset += ret
+30064771100 | CALL | ioc -> encinput . offset
+30064771101 | CALL | ioc -> encinput
+30064771102 | CALL | ioc -> encinput . offset != 0
+30064771103 | CALL | ioc -> encinput . offset
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771099 [AST]
+25769803779 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771102 [CDG]
+30064771072 -> 30064771103 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771103 [REACHING_DEF]
+30064771073 -> 30064771078 [REACHING_DEF]
+30064771073 -> 30064771077 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771081 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771088 [REACHING_DEF]
+30064771077 -> 30064771090 [REACHING_DEF]
+30064771077 -> 30064771089 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771096 [REACHING_DEF]
+30064771080 -> 30064771088 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771101 [REACHING_DEF]
+30064771080 -> 30064771090 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771096 [REACHING_DEF]
+30064771081 -> 30064771088 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771101 [REACHING_DEF]
+30064771081 -> 30064771090 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int qio_channel_websock_handshake_read ( QIOChannelWebsock * ioc , Error * * errp ) {
+ char * handshake_end ;
+ ssize_t re
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

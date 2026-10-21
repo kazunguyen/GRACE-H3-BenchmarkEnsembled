@@ -1,0 +1,211 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void nntp_parse_xref ( struct Context * ctx , struct Header * hdr ) {
+ struct NntpData * nntp_data = ctx -> data ;
+ char * buf = mutt_str_strdup ( hdr -> env -> xref ) ;
+ char * p = buf ;
+ while ( p ) {
+ anum_t anum ;
+ p += strspn ( p , " \t" ) ;
+ char * grp = p ;
+ p = strpbrk ( p , " \t" ) ;
+ if ( p ) * p ++ = '\0' ;
+ char * colon = strchr ( grp , ':' ) ;
+ if ( ! colon ) continue ;
+ * colon ++ = '\0' ;
+ if ( sscanf ( colon , ANUM , & anum ) != 1 ) continue ;
+ nntp_article_status ( ctx , hdr , grp , anum ) ;
+ if ( ! NHDR ( hdr ) -> article_num && ( mutt_str_strcmp ( nntp_data -> group , grp ) == 0 ) ) NHDR ( hdr ) -> article_num = anum ;
+ }
+ FREE ( & buf ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct NntpData * nntp_data = ctx -> data ;
+ char * buf = mutt_str_strdup ( hdr -> env -> xref ) ;
+ char * p = buf ;
+ while ( p ) {
+ anum_t anum ;
+ p += strspn ( p , " \t" ) ;
+ char * grp = p ;
+ p = strpbrk ( p , " \t" ) ;
+ if ( p ) * p ++ = '\0' ;
+ char * colon = strchr ( grp , ':' ) ;
+ if ( ! colon ) continue ;
+ * colon ++ = '\0' ;
+ if ( sscanf ( colon , ANUM , & anum ) != 1 ) continue ;
+ nntp_article_status ( ctx , hdr , grp , anum ) ;
+ if ( ! NHDR ( hdr ) -> article_num && ( mutt_str_strcmp ( nntp_data -> group , grp ) == 0 ) ) NHDR ( hdr ) -> article_num = anum ;
+ }
+ FREE ( & buf ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ anum_t anum ;
+ p += strspn ( p , " \t" ) ;
+ char * grp = p ;
+ p = strpbrk ( p , " \t" ) ;
+ if ( p ) * p ++ = '\0' ;
+ char * colon = strchr ( grp , ':' ) ;
+ if ( ! colon ) continue ;
+ * colon ++ = '\0' ;
+ if ( sscanf ( colon , ANUM , & anum ) != 1 ) continue ;
+ nntp_article_status ( ctx , hdr , grp , anum ) ;
+ if ( ! NHDR ( hdr ) -> article_num && ( mutt_str_strcmp ( nntp_data -> group , grp ) == 0 ) ) NHDR ( hdr ) -> article_num = anum ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | nntp_data = ctx -> data
+30064771073 | CALL | ctx -> data
+30064771074 | CALL | buf = mutt_str_strdup ( hdr -> env -> xref )
+30064771075 | CALL | mutt_str_strdup ( hdr -> env -> xref )
+30064771076 | CALL | hdr -> env -> xref
+30064771077 | CALL | hdr -> env
+30064771078 | CALL | p = buf
+30064771079 | CALL | p != NULL
+30064771080 | CALL | p += strspn ( p , " \t" )
+30064771081 | CALL | strspn ( p , " \t" )
+30064771082 | CALL | grp = p
+30064771083 | CALL | p = strpbrk ( p , " \t" )
+30064771084 | CALL | strpbrk ( p , " \t" )
+30064771085 | CALL | p != NULL
+30064771086 | CALL | * p ++ = '\0'
+30064771087 | CALL | * p ++
+30064771088 | CALL | p ++
+30064771089 | CALL | colon = strchr ( grp , ':' )
+30064771090 | CALL | strchr ( grp , ':' )
+30064771091 | CALL | ! colon
+30064771092 | CALL | * colon ++ = '\0'
+30064771093 | CALL | * colon ++
+30064771094 | CALL | colon ++
+30064771095 | CALL | sscanf ( colon , ANUM , & anum ) != 1
+30064771096 | CALL | sscanf ( colon , ANUM , & anum )
+30064771097 | CALL | & anum
+30064771098 | CALL | nntp_article_status ( ctx , hdr , grp , anum )
+30064771099 | CALL | 
+        ! NHDR ( hdr ) -> article_num && ( mutt_str_strcmp ( nntp_data -> group , grp ) == 0 )
+      
+30064771100 | CALL | ! NHDR ( hdr ) -> article_num
+30064771101 | CALL | NHDR ( hdr ) -> article_num
+30064771102 | CALL | NHDR ( hdr )
+30064771103 | CALL | mutt_str_strcmp ( nntp_data -> group , grp ) == 0
+30064771104 | CALL | mutt_str_strcmp ( nntp_data -> group , grp )
+30064771105 | CALL | nntp_data -> group
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771078 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771098 [AST]
+25769803778 -> 30064771086 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771088 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771096 [CDG]
+30064771091 -> 30064771097 [CDG]
+30064771091 -> 30064771094 [CDG]
+30064771091 -> 30064771095 [CDG]
+30064771091 -> 30064771092 [CDG]
+30064771091 -> 30064771093 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int fetch_description ( char * line , void * data ) {
+ struct NntpServer * nserv = data ;
+ struct NntpData * nntp_data = NULL ;
+ char * desc = NULL ;
+ if ( ! line ) return 0 ;
+ desc = strpbrk ( line , " \t" ) ;
+ if ( desc ) {
+ * desc ++ = '\0' ;
+ desc += strspn ( desc , " \t" ) ;
+ }
+ else desc = strchr ( line , '\0' ) ;
+ nntp_data = mutt_hash_find ( nserv -> groups_hash , line ) ;
+ if ( nntp_data && ( mutt_str_strcmp ( desc , nntp_data -> desc ) != 0 ) ) {
+ mutt_str_replace ( & nntp_data -> desc , desc ) ;
+ mutt_debug ( 2 , "group: %s, desc: %s\n" , line , desc ) ;
+ }
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

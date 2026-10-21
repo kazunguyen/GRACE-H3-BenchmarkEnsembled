@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void purple_login ( account_t * acc ) {
+ struct im_connection * ic = imcb_new ( acc ) ;
+ struct purple_data * pd ;
+ if ( ( local_bee != NULL && local_bee != acc -> bee ) || ( global . conf -> runmode == RUNMODE_DAEMON && ! getenv ( "BITLBEE_DEBUG" ) ) ) {
+ imcb_error ( ic , "Daemon mode detected. Do *not* try to use libpurple in daemon mode! " "Please use inetd or ForkDaemon mode instead." ) ;
+ imc_logout ( ic , FALSE ) ;
+ return ;
+ }
+ local_bee = acc -> bee ;
+ purple_connections = g_slist_prepend ( purple_connections , ic ) ;
+ ic -> proto_data = pd = g_new0 ( struct purple_data , 1 ) ;
+ pd -> account = purple_account_new ( acc -> user , purple_get_account_prpl_id ( acc ) ) ;
+ pd -> input_requests = g_hash_table_new_full ( g_direct_hash , g_direct_equal , NULL , g_free ) ;
+ pd -> next_request_id = 0 ;
+ purple_account_set_password ( pd -> account , acc -> pass ) ;
+ purple_sync_settings ( acc , pd -> account ) ;
+ purple_account_set_enabled ( pd -> account , "BitlBee" , TRUE ) ;
+ if ( set_getbool ( & acc -> set , "mail_notifications" ) && set_getstr ( & acc -> set , "mail_notifications_handle" ) ) {
+ imcb_add_buddy ( ic , set_getstr ( & acc -> set , "mail_notifications_handle" ) , NULL ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct im_connection * ic = imcb_new ( acc ) ;
+ struct purple_data * pd ;
+ if ( ( local_bee != NULL && local_bee != acc -> bee ) || ( global . conf -> runmode == RUNMODE_DAEMON && ! getenv ( "BITLBEE_DEBUG" ) ) ) {
+ imcb_error ( ic , "Daemon mode detected. Do *not* try to use libpurple in daemon mode! " "Please use inetd or ForkDaemon mode instead." ) ;
+ imc_logout ( ic , FALSE ) ;
+ return ;
+ }
+ local_bee = acc -> bee ;
+ purple_connections = g_slist_prepend ( purple_connections , ic ) ;
+ ic -> proto_data = pd = g_new0 ( struct purple_data , 1 ) ;
+ pd -> account = purple_account_new ( acc -> user , purple_get_account_prpl_id ( acc ) ) ;
+ pd -> input_requests = g_hash_table_new_full ( g_direct_hash , g_direct_equal , NULL , g_free ) ;
+ pd -> next_request_id = 0 ;
+ purple_account_set_password ( pd -> account , acc -> pass ) ;
+ purple_sync_settings ( acc , pd -> account ) ;
+ purple_account_set_enabled ( pd -> account , "BitlBee" , TRUE ) ;
+ if ( set_getbool ( & acc -> set , "mail_not...
+      
+25769803777 | BLOCK | 
+        {
+ imcb_error ( ic , "Daemon mode detected. Do *not* try to use libpurple in daemon mode! " "Please use inetd or ForkDaemon mode instead." ) ;
+ imc_logout ( ic , FALSE ) ;
+ return ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ imcb_add_buddy ( ic , set_getstr ( & acc -> set , "mail_notifications_handle" ) , NULL ) ;
+ }
+      
+30064771072 | CALL | ic = imcb_new ( acc )
+30064771073 | CALL | imcb_new ( acc )
+30064771074 | CALL | 
+        ( local_bee != NULL && local_bee != acc -> bee ) || ( global . conf -> runmode == RUNMODE_DAEMON && ! getenv ( "BITLBEE_DEBUG" ) )
+      
+30064771075 | CALL | local_bee != NULL && local_bee != acc -> bee
+30064771076 | CALL | local_bee != NULL
+30064771077 | CALL | local_bee != acc -> bee
+30064771078 | CALL | acc -> bee
+30064771079 | CALL | 
+        global . conf -> runmode == RUNMODE_DAEMON && ! getenv ( "BITLBEE_DEBUG" )
+      
+30064771080 | CALL | global . conf -> runmode == RUNMODE_DAEMON
+30064771081 | CALL | global . conf -> runmode
+30064771082 | CALL | global . conf
+30064771083 | CALL | ! getenv ( "BITLBEE_DEBUG" )
+30064771084 | CALL | getenv ( "BITLBEE_DEBUG" )
+30064771085 | CALL | 
+        imcb_error ( ic , "Daemon mode detected. Do *not* try to use libpurple in daemon mode! " "Please use inetd or ForkDaemon mode instead." )
+      
+30064771086 | CALL | imc_logout ( ic , FALSE )
+30064771087 | CALL | local_bee = acc -> bee
+30064771088 | CALL | acc -> bee
+30064771089 | CALL | purple_connections = g_slist_prepend ( purple_connections , ic )
+30064771090 | CALL | g_slist_prepend ( purple_connections , ic )
+30064771091 | CALL | 
+        pd -> account = purple_account_new ( acc -> user , purple_get_account_prpl_id ( acc ) )
+      
+30064771092 | CALL | pd -> account
+30064771093 | CALL | purple_account_new ( acc -> user , purple_get_account_prpl_id ( acc ) )
+30064771094 | CALL | acc -> user
+30064771095 | CALL | purple_get_account_prpl_id ( acc )
+30064771096 | CALL | 
+        pd -> input_requests = g_hash_table_new_full ( g_direct_hash , g_direct_equal , NULL , g_free )
+      
+30064771097 | CALL | pd -> input_requests
+30064771098 | CALL | g_hash_table_new_full ( g_direct_hash , g_direct_equal , NULL , g_free )
+30064771099 | CALL | pd -> next_request_id = 0
+30064771100 | CALL | pd -> next_request_id
+30064771101 | CALL | purple_account_set_password ( pd -> account , acc -> pass )
+30064771102 | CALL | pd -> account
+30064771103 | CALL | acc -> pass
+30064771104 | CALL | purple_sync_settings ( acc , pd -> account )
+30064771105 | CALL | pd -> account
+30064771106 | CALL | purple_account_set_enabled ( pd -> account , "BitlBee" , TRUE )
+30064771107 | CALL | pd -> account
+30064771108 | CALL | 
+        set_getbool ( & acc -> set , "mail_notifications" ) && set_getstr ( & acc -> set , "mail_notifications_handle" )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771106 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771086 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771108 [CDG]
+30064771074 -> 30064771098 [CDG]
+30064771074 -> 30064771099 [CDG]
+30064771074 -> 30064771096 [CDG]
+30064771074 -> 30064771097 [CDG]
+30064771074 -> 30064771094 [CDG]
+30064771074 -> 30064771095 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771106 [CDG]
+30064771074 -> 30064771107 [CDG]
+30064771074 -> 30064771104 [CDG]
+30064771074 -> 30064771105 [CDG]
+30064771074 -> 30064771102 [CDG]
+30064771074 -> 30064771103 [CDG]
+30064771074 -> 30064771100 [CDG]
+30064771074 -> 30064771101 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+3006
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * fix_for_comment ( const char * ident ) {
+ static char buf [ 1024 ] ;
+ char c , * s = buf ;
+ while ( ( c = * s ++ = * ident ++ ) ) {
+ if ( s >= buf + sizeof ( buf ) - 10 ) {
+ strmov ( s , "..." ) ;
+ break ;
+ }
+ if ( c == '\n' ) s = strmov ( s , "-- " ) ;
+ }
+ return buf ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static char buf [ 1024 ] ;
+ char c , * s = buf ;
+ while ( ( c = * s ++ = * ident ++ ) ) {
+ if ( s >= buf + sizeof ( buf ) - 10 ) {
+ strmov ( s , "..." ) ;
+ break ;
+ }
+ if ( c == '\n' ) s = strmov ( s , "-- " ) ;
+ }
+ return buf ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( s >= buf + sizeof ( buf ) - 10 ) {
+ strmov ( s , "..." ) ;
+ break ;
+ }
+ if ( c == '\n' ) s = strmov ( s , "-- " ) ;
+ }
+      
+25769803778 | BLOCK | { strmov ( s , "..." ) ; break ; }
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | buf [ 1024 ]
+30064771073 | CALL | buf [ 1024 ]
+30064771074 | CALL | s = buf
+30064771075 | CALL | c = * s ++ = * ident ++
+30064771076 | CALL | * s ++ = * ident ++
+30064771077 | CALL | * s ++
+30064771078 | CALL | s ++
+30064771079 | CALL | * ident ++
+30064771080 | CALL | ident ++
+30064771081 | CALL | s >= buf + sizeof ( buf ) - 10
+30064771082 | CALL | buf + sizeof ( buf ) - 10
+30064771083 | CALL | buf + sizeof ( buf )
+30064771084 | CALL | sizeof ( buf )
+30064771085 | CALL | strmov ( s , "..." )
+30064771086 | CALL | c == '\n'
+30064771087 | CALL | s = strmov ( s , "-- " )
+30064771088 | CALL | strmov ( s , "-- " )
+47244640256 | CONTROL_STRUCTURE | while (( c = * s ++ = * ident ++ ))
+47244640257 | CONTROL_STRUCTURE | 
+        if ( s >= buf + sizeof ( buf ) - 10 ) {
+ strmov ( s , "..." ) ;
+ break ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | if ( c == '\n' ) s = strmov ( s , "-- " ) ;
+68719476736 | IDENTIFIER | buf
+68719476737 | IDENTIFIER | char[1024]
+68719476738 | IDENTIFIER | s
+68719476739 | IDENTIFIER | buf
+68719476740 | IDENTIFIER | c
+68719476741 | IDENTIFIER | s
+68719476742 | IDENTIFIER | ident
+68719476743 | IDENTIFIER | s
+68719476744 | IDENTIFIER | buf
+68719476745 | IDENTIFIER | buf
+68719476746 | IDENTIFIER | s
+68719476747 | IDENTIFIER | c
+68719476748 | IDENTIFIER | s
+68719476749 | IDENTIFIER | s
+68719476750 | IDENTIFIER | buf
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 47244640259 [AST]
+25769803778 -> 30064771085 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771087 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476743 [CFG]
+30064771075 -> 68719476750 [CFG]
+30064771075 -> 68719476750 [DOMINATE]
+30064771075 -> 68719476743 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476742 [CFG]
+30064771077 -> 68719476742 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771076 [CFG]
+30064771079 -> 30064771076 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 68719476742 [ARGUMENT]
+30064771080 -> 68719476742 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 68719476742 [POST_DOMINATE]
+30064771081 -> 68719476743 [ARGUMENT]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * xps_parse_real_num ( char * s , float * number ) {
+ char buf [ 64 ] ;
+ char * p = buf ;
+ while ( is_real_num_char ( * s ) ) * p ++ = * s ++ ;
+ * p = 0 ;
+ if ( buf [ 0 ] ) * number = fz_atof ( buf ) ;
+ return s ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

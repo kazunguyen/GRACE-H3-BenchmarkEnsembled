@@ -1,0 +1,227 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gboolean k12_read ( wtap * wth , int * err , gchar * * err_info , gint64 * data_offset ) {
+ k12_t * k12 = ( k12_t * ) wth -> priv ;
+ k12_src_desc_t * src_desc ;
+ guint8 * buffer ;
+ gint64 offset ;
+ gint len ;
+ guint32 type ;
+ guint32 src_id ;
+ offset = file_tell ( wth -> fh ) ;
+ do {
+ if ( k12 -> num_of_records == 0 ) {
+ * err = 0 ;
+ return FALSE ;
+ }
+ K12_DBG ( 5 , ( "k12_read: offset=%i" , offset ) ) ;
+ * data_offset = offset ;
+ len = get_record ( k12 , wth -> fh , offset , FALSE , err , err_info ) ;
+ if ( len < 0 ) {
+ return FALSE ;
+ }
+ else if ( len == 0 ) {
+ * err = WTAP_ERR_SHORT_READ ;
+ return FALSE ;
+ }
+ else if ( len < K12_RECORD_SRC_ID + 4 ) {
+ * err = WTAP_ERR_BAD_FILE ;
+ * err_info = g_strdup_printf ( "k12: Data record length %d too short" , len ) ;
+ return FALSE ;
+ }
+ k12 -> num_of_records -- ;
+ buffer = k12 -> seq_read_buff ;
+ type = pntoh32 ( buffer + K12_RECORD_TYPE ) ;
+ src_id = pntoh32 ( buffer + K12_RECORD_SRC_ID ) ;
+ if ( ! ( src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id ) ) ) ) {
+ src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id & K12_RECORD_SRC_ID_MASK ) ) ;
+ }
+ K12_DBG ( 5 , ( "k12_read: record type=%x src_id=%x" , type , src_id ) ) ;
+ offset += len ;
+ }
+ while ( ( ( type & K12_MASK_PACKET ) != K12_REC_PACKET && ( type & K12_MASK_PACKET ) != K12_REC_D0020 ) || ! src_id || ! src_desc ) ;
+ return process_packet_data ( & wth -> phdr , wth -> frame_buffer , buffer , ( guint ) len , k12 , err , err_info ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ k12_t * k12 = ( k12_t * ) wth -> priv ;
+ k12_src_desc_t * src_desc ;
+ guint8 * buffer ;
+ gint64 offset ;
+ gint len ;
+ guint32 type ;
+ guint32 src_id ;
+ offset = file_tell ( wth -> fh ) ;
+ do {
+ if ( k12 -> num_of_records == 0 ) {
+ * err = 0 ;
+ return FALSE ;
+ }
+ K12_DBG ( 5 , ( "k12_read: offset=%i" , offset ) ) ;
+ * data_offset = offset ;
+ len = get_record ( k12 , wth -> fh , offset , FALSE , err , err_info ) ;
+ if ( len < 0 ) {
+ return FALSE ;
+ }
+ else if ( len == 0 ) {
+ * err = WTAP_ERR_SHORT_READ ;
+ return FALSE ;
+ }
+ else if ( len < K12_RECORD_SRC_ID + 4 ) {
+ * err = WTAP_ERR_BAD_FILE ;
+ * err_info = g_strdup_printf ( "k12: Data record length %d too short" , len ) ;
+ return FALSE ;
+ }
+ k12 -> num_of_records -- ;
+ buffer = k12 -> seq_read_buff ;
+ type = pntoh32 ( buffer + K12_RECORD_TYPE ) ;
+ src_id = pntoh32 ( buffer + K12_RECORD_SRC_ID ) ;
+ if ( ! ( src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id ) ) ) ) {
+ src_desc = ( k12...
+      
+25769803777 | BLOCK | 
+        {
+ if ( k12 -> num_of_records == 0 ) {
+ * err = 0 ;
+ return FALSE ;
+ }
+ K12_DBG ( 5 , ( "k12_read: offset=%i" , offset ) ) ;
+ * data_offset = offset ;
+ len = get_record ( k12 , wth -> fh , offset , FALSE , err , err_info ) ;
+ if ( len < 0 ) {
+ return FALSE ;
+ }
+ else if ( len == 0 ) {
+ * err = WTAP_ERR_SHORT_READ ;
+ return FALSE ;
+ }
+ else if ( len < K12_RECORD_SRC_ID + 4 ) {
+ * err = WTAP_ERR_BAD_FILE ;
+ * err_info = g_strdup_printf ( "k12: Data record length %d too short" , len ) ;
+ return FALSE ;
+ }
+ k12 -> num_of_records -- ;
+ buffer = k12 -> seq_read_buff ;
+ type = pntoh32 ( buffer + K12_RECORD_TYPE ) ;
+ src_id = pntoh32 ( buffer + K12_RECORD_SRC_ID ) ;
+ if ( ! ( src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id ) ) ) ) {
+ src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id & K12_RECORD_SRC_ID_MASK ) ) ;
+ }
+ K12_DBG ( 5 , ( "k12_read: record type=%x src_id=%x" , type , src_id ) ) ;
+ ...
+      
+25769803778 | BLOCK | { * err = 0 ; return FALSE ; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { return FALSE ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { * err = WTAP_ERR_SHORT_READ ; return FALSE ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ * err = WTAP_ERR_BAD_FILE ;
+ * err_info = g_strdup_printf ( "k12: Data record length %d too short" , len ) ;
+ return FALSE ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ src_desc = ( k12_src_desc_t * ) g_hash_table_lookup ( k12 -> src_by_id , GUINT_TO_POINTER ( src_id & K12_RECORD_SRC_ID_MASK ) ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | k12 = ( k12_t * ) wth -> priv
+30064771073 | CALL | ( k12_t * ) wth -> priv
+30064771074 | CALL | wth -> priv
+30064771075 | CALL | offset = file_tell ( wth -> fh )
+30064771076 | CALL | file_tell ( wth -> fh )
+30064771077 | CALL | wth -> fh
+30064771078 | CALL | k12 -> num_of_records == 0
+30064771079 | CALL | k12 -> num_of_records
+30064771080 | CALL | * err = 0
+30064771081 | CALL | * err
+30064771082 | CALL | K12_DBG ( 5 , ( "k12_read: offset=%i" , offset ) )
+30064771083 | CALL | * data_offset = offset
+30064771084 | CALL | * data_offset
+30064771085 | CALL | len = get_record ( k12 , wth -> fh , offset , FALSE , err , err_info )
+30064771086 | CALL | get_record ( k12 , wth -> fh , offset , FALSE , err , err_info )
+30064771087 | CALL | wth -> fh
+30064771088 | CALL | len < 0
+30064771089 | CALL | len == 0
+30064771090 | CALL | * err = WTAP_ERR_SHORT_READ
+30064771091 | CALL | * err
+30064771092 | CALL | len < K12_RECORD_SRC_ID + 4
+30064771093 | CALL | K12_RECORD_SRC_ID + 4
+30064771094 | CALL | * err = WTAP_ERR_BAD_FILE
+30064771095 | CALL | * err
+30064771096 | CALL | 
+        * err_info = g_strdup_printf ( "k12: Data record length %d too short" , len )
+      
+30064771097 | CALL | * err_info
+30064771098 | CALL | g_strdup_printf ( "k12: Data record length %d too short" , len )
+30064771099 | CALL | k12 -> num_of_records --
+30064771100 | CALL | k12 -> num_of_records
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771099 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771082 [CFG]
+25769803779 -> 30064771082 [DOMINATE]
+25769803779 -> 30064771082 [REACHING_DEF]
+25769803779 -> 30064771082 [REACHING_DEF]
+25769803782 -> 30064771090 [AST]
+25769803784 -> 30064771094 [AST]
+25769803784 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771087 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

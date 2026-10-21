@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pitch_enhancer ( float * fixed_vector , float voice_fac ) {
+ int i ;
+ float cpe = 0.125 * ( 1 + voice_fac ) ;
+ float last = fixed_vector [ 0 ] ;
+ fixed_vector [ 0 ] -= cpe * fixed_vector [ 1 ] ;
+ for ( i = 1 ;
+ i < AMRWB_SFR_SIZE - 1 ;
+ i ++ ) {
+ float cur = fixed_vector [ i ] ;
+ fixed_vector [ i ] -= cpe * ( last + fixed_vector [ i + 1 ] ) ;
+ last = cur ;
+ }
+ fixed_vector [ AMRWB_SFR_SIZE - 1 ] -= cpe * last ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ float cpe = 0.125 * ( 1 + voice_fac ) ;
+ float last = fixed_vector [ 0 ] ;
+ fixed_vector [ 0 ] -= cpe * fixed_vector [ 1 ] ;
+ for ( i = 1 ;
+ i < AMRWB_SFR_SIZE - 1 ;
+ i ++ ) {
+ float cur = fixed_vector [ i ] ;
+ fixed_vector [ i ] -= cpe * ( last + fixed_vector [ i + 1 ] ) ;
+ last = cur ;
+ }
+ fixed_vector [ AMRWB_SFR_SIZE - 1 ] -= cpe * last ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ float cur = fixed_vector [ i ] ;
+ fixed_vector [ i ] -= cpe * ( last + fixed_vector [ i + 1 ] ) ;
+ last = cur ;
+ }
+      
+30064771072 | CALL | cpe = 0.125 * ( 1 + voice_fac )
+30064771073 | CALL | 0.125 * ( 1 + voice_fac )
+30064771074 | CALL | 1 + voice_fac
+30064771075 | CALL | last = fixed_vector [ 0 ]
+30064771076 | CALL | fixed_vector [ 0 ]
+30064771077 | CALL | fixed_vector [ 0 ] -= cpe * fixed_vector [ 1 ]
+30064771078 | CALL | fixed_vector [ 0 ]
+30064771079 | CALL | cpe * fixed_vector [ 1 ]
+30064771080 | CALL | fixed_vector [ 1 ]
+30064771081 | CALL | i = 1
+30064771082 | CALL | i < AMRWB_SFR_SIZE - 1
+30064771083 | CALL | AMRWB_SFR_SIZE - 1
+30064771084 | CALL | i ++
+30064771085 | CALL | cur = fixed_vector [ i ]
+30064771086 | CALL | fixed_vector [ i ]
+30064771087 | CALL | fixed_vector [ i ] -= cpe * ( last + fixed_vector [ i + 1 ] )
+30064771088 | CALL | fixed_vector [ i ]
+30064771089 | CALL | cpe * ( last + fixed_vector [ i + 1 ] )
+30064771090 | CALL | last + fixed_vector [ i + 1 ]
+30064771091 | CALL | fixed_vector [ i + 1 ]
+30064771092 | CALL | i + 1
+30064771093 | CALL | last = cur
+30064771094 | CALL | fixed_vector [ AMRWB_SFR_SIZE - 1 ] -= cpe * last
+30064771095 | CALL | fixed_vector [ AMRWB_SFR_SIZE - 1 ]
+30064771096 | CALL | AMRWB_SFR_SIZE - 1
+30064771097 | CALL | cpe * last
+47244640256 | CONTROL_STRUCTURE | for (i = 1 ;i < AMRWB_SFR_SIZE - 1;i ++)
+68719476736 | IDENTIFIER | cpe
+68719476737 | IDENTIFIER | voice_fac
+68719476738 | IDENTIFIER | last
+68719476739 | IDENTIFIER | fixed_vector
+68719476740 | IDENTIFIER | fixed_vector
+68719476741 | IDENTIFIER | cpe
+68719476742 | IDENTIFIER | fixed_vector
+68719476743 | IDENTIFIER | i
+68719476744 | IDENTIFIER | i
+68719476745 | IDENTIFIER | <unknown> AMRWB_SFR_SIZE
+68719476746 | IDENTIFIER | i
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771093 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 68719476741 [CFG]
+30064771078 -> 68719476741 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476741 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476741 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 68719476742 [ARGUMENT]
+30064771080 -> 68719476742 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 68719476741 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 68719476743 [ARGUMENT]
+30064771081 -> 68719476743 [AST]
+30064771081 -> 68719476744 [CFG]
+30064771081 -> 68719476744 [DOMINATE]
+30064771082 -> 68719476744 [ARGUMENT]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 68719476744 [AST]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771091 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void pitch_sharpening ( AMRWBContext * ctx , float * fixed_vector ) {
+ int i ;
+ for ( i = AMRWB_SFR_SIZE - 1 ;
+ i != 0 ;
+ i -- ) fixed_vector [ i ] -= fixed_vector [ i - 1 ] * ctx -> tilt_coef ;
+ for ( i = ctx -> pitch_lag_int ;
+ i < AMRWB_SFR_SIZE ;
+ i ++ ) fixed_vector [ i ] += fixed_vector [ i - ctx -> pitch_lag_int ] * 0.85 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

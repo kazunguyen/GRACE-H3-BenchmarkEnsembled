@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * cmd_response_body_mime_type ( cmd_parms * cmd , void * _dcfg , const char * _p1 ) {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ char * p1 = apr_pstrdup ( cmd -> pool , _p1 ) ;
+ if ( ( dcfg -> of_mime_types == NULL ) || ( dcfg -> of_mime_types == NOT_SET_P ) ) {
+ dcfg -> of_mime_types = apr_table_make ( cmd -> pool , 10 ) ;
+ }
+ strtolower_inplace ( ( unsigned char * ) p1 ) ;
+ apr_table_setn ( dcfg -> of_mime_types , p1 , "1" ) ;
+ return NULL ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ char * p1 = apr_pstrdup ( cmd -> pool , _p1 ) ;
+ if ( ( dcfg -> of_mime_types == NULL ) || ( dcfg -> of_mime_types == NOT_SET_P ) ) {
+ dcfg -> of_mime_types = apr_table_make ( cmd -> pool , 10 ) ;
+ }
+ strtolower_inplace ( ( unsigned char * ) p1 ) ;
+ apr_table_setn ( dcfg -> of_mime_types , p1 , "1" ) ;
+ return NULL ;
+ }
+      
+25769803777 | BLOCK | { dcfg -> of_mime_types = apr_table_make ( cmd -> pool , 10 ) ; }
+30064771072 | CALL | dcfg = ( directory_config * ) _dcfg
+30064771073 | CALL | ( directory_config * ) _dcfg
+30064771074 | CALL | p1 = apr_pstrdup ( cmd -> pool , _p1 )
+30064771075 | CALL | apr_pstrdup ( cmd -> pool , _p1 )
+30064771076 | CALL | cmd -> pool
+30064771077 | CALL | ( dcfg -> of_mime_types == NULL ) || ( dcfg -> of_mime_types == NOT_SET_P )
+30064771078 | CALL | dcfg -> of_mime_types == NULL
+30064771079 | CALL | dcfg -> of_mime_types
+30064771080 | CALL | dcfg -> of_mime_types == NOT_SET_P
+30064771081 | CALL | dcfg -> of_mime_types
+30064771082 | CALL | dcfg -> of_mime_types = apr_table_make ( cmd -> pool , 10 )
+30064771083 | CALL | dcfg -> of_mime_types
+30064771084 | CALL | apr_table_make ( cmd -> pool , 10 )
+30064771085 | CALL | cmd -> pool
+30064771086 | CALL | strtolower_inplace ( ( unsigned char * ) p1 )
+30064771087 | CALL | ( unsigned char * ) p1
+30064771088 | CALL | apr_table_setn ( dcfg -> of_mime_types , p1 , "1" )
+30064771089 | CALL | dcfg -> of_mime_types
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( dcfg -> of_mime_types == NULL ) || ( dcfg -> of_mime_types == NOT_SET_P ) ) {
+ dcfg -> of_mime_types = apr_table_make ( cmd -> pool , 10 ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | pool
+55834574849 | FIELD_IDENTIFIER | of_mime_types
+55834574850 | FIELD_IDENTIFIER | of_mime_types
+55834574851 | FIELD_IDENTIFIER | of_mime_types
+55834574852 | FIELD_IDENTIFIER | pool
+55834574853 | FIELD_IDENTIFIER | of_mime_types
+68719476736 | IDENTIFIER | dcfg
+68719476737 | IDENTIFIER | _dcfg
+68719476738 | IDENTIFIER | p1
+68719476739 | IDENTIFIER | cmd
+68719476740 | IDENTIFIER | _p1
+68719476741 | IDENTIFIER | dcfg
+68719476742 | IDENTIFIER | <unknown> NULL
+68719476743 | IDENTIFIER | dcfg
+68719476744 | IDENTIFIER | <unknown> NOT_SET_P
+68719476745 | IDENTIFIER | dcfg
+68719476746 | IDENTIFIER | cmd
+68719476747 | IDENTIFIER | p1
+68719476748 | IDENTIFIER | dcfg
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476746 [REACHING_DEF]
+30064771076 -> 30064771085 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 55834574851 [CDG]
+30064771077 -> 55834574852 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 55834574850 [CDG]
+30064771078 -> 68719476744 [CDG]
+30064771078 -> 68719476743 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 68719476743 [CFG]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476743 [DOMINATE]
+30064771078 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476741 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static const char * cmd_response_body_mime_types_clear ( cmd_parms * cmd , void * _dcfg ) {
+ directory_config * dcfg = ( directory_config * ) _dcfg ;
+ if ( dcfg == NULL ) return NULL ;
+ dcfg -> of_mime_types_cleared = 1 ;
+ if ( ( dcfg -> of_mime_types != NULL ) && ( dcfg -> of_mime_types != NOT_SET_P ) ) {
+ apr_table_clear ( dcfg -> of_mime_types ) ;
+ }
+ return NULL ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

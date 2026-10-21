@@ -1,0 +1,132 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void copy_clog_xlog_xid ( void ) {
+ copy_subdir_files ( "pg_clog" ) ;
+ prep_status ( "Setting next transaction ID and epoch for new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -x %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -e %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtepoch , new_cluster . pgdata ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -c %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ if ( old_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER && new_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER ) {
+ copy_subdir_files ( "pg_multixact/offsets" ) ;
+ copy_subdir_files ( "pg_multixact/members" ) ;
+ prep_status ( "Setting next multixact ID and offset for new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -O %u -m %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtmxoff , old_cluster . controldata . chkpnt_nxtmulti , old_cluster . controldata . chkpnt_oldstMulti , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ }
+ else if ( new_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER ) {
+ remove_new_subdir ( "pg_multixact/offsets" , false ) ;
+ prep_status ( "Setting oldest multixact ID on new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -m %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtmulti + 1 , old_cluster . controldata . chkpnt_nxtmulti , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ }
+ prep_status ( "Resetting WAL archives" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -l 00000001%s \"%s\"" , new_cluster . bindir , old_cluster . controldata . nextxlogfile + 8 , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ copy_subdir_files ( "pg_clog" ) ;
+ prep_status ( "Setting next transaction ID and epoch for new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -x %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -e %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtepoch , new_cluster . pgdata ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -c %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ if ( old_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER && new_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER ) {
+ copy_subdir_files ( "pg_multixact/offsets" ) ;
+ copy_subdir_files ( "pg_multixact/members" ) ;
+ prep_status ( "Setting next multixac...
+      
+25769803777 | BLOCK | 
+        {
+ copy_subdir_files ( "pg_multixact/offsets" ) ;
+ copy_subdir_files ( "pg_multixact/members" ) ;
+ prep_status ( "Setting next multixact ID and offset for new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -O %u -m %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtmxoff , old_cluster . controldata . chkpnt_nxtmulti , old_cluster . controldata . chkpnt_oldstMulti , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ remove_new_subdir ( "pg_multixact/offsets" , false ) ;
+ prep_status ( "Setting oldest multixact ID on new cluster" ) ;
+ exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -m %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtmulti + 1 , old_cluster . controldata . chkpnt_nxtmulti , new_cluster . pgdata ) ;
+ check_ok ( ) ;
+ }
+      
+30064771072 | CALL | copy_subdir_files ( "pg_clog" )
+30064771073 | CALL | prep_status ( "Setting next transaction ID and epoch for new cluster" )
+30064771074 | CALL | 
+        exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -x %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata )
+      
+30064771075 | CALL | new_cluster . bindir
+30064771076 | CALL | old_cluster . controldata . chkpnt_nxtxid
+30064771077 | CALL | old_cluster . controldata
+30064771078 | CALL | new_cluster . pgdata
+30064771079 | CALL | 
+        exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -e %u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtepoch , new_cluster . pgdata )
+      
+30064771080 | CALL | new_cluster . bindir
+30064771081 | CALL | old_cluster . controldata . chkpnt_nxtepoch
+30064771082 | CALL | old_cluster . controldata
+30064771083 | CALL | new_cluster . pgdata
+30064771084 | CALL | 
+        exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -f -c %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtxid , old_cluster . controldata . chkpnt_nxtxid , new_cluster . pgdata )
+      
+30064771085 | CALL | new_cluster . bindir
+30064771086 | CALL | old_cluster . controldata . chkpnt_nxtxid
+30064771087 | CALL | old_cluster . controldata
+30064771088 | CALL | old_cluster . controldata . chkpnt_nxtxid
+30064771089 | CALL | old_cluster . controldata
+30064771090 | CALL | new_cluster . pgdata
+30064771091 | CALL | check_ok ( )
+30064771092 | CALL | 
+        old_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER && new_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER
+      
+30064771093 | CALL | old_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER
+30064771094 | CALL | old_cluster . controldata . cat_ver
+30064771095 | CALL | old_cluster . controldata
+30064771096 | CALL | new_cluster . controldata . cat_ver >= MULTIXACT_FORMATCHANGE_CAT_VER
+30064771097 | CALL | new_cluster . controldata . cat_ver
+30064771098 | CALL | new_cluster . controldata
+30064771099 | CALL | copy_subdir_files ( "pg_multixact/offsets" )
+30064771100 | CALL | copy_subdir_files ( "pg_multixact/members" )
+30064771101 | CALL | prep_status ( "Setting next multixact ID and offset for new cluster" )
+30064771102 | CALL | 
+        exec_prog ( UTILITY_LOG_FILE , NULL , true , "\"%s/pg_resetxlog\" -O %u -m %u,%u \"%s\"" , new_cluster . bindir , old_cluster . controldata . chkpnt_nxtmxoff , old_cluster . controldata . chkpnt_nxtmulti , old_cluster . controldata . chkpnt_oldstMulti , new_cluster . pgdata )
+      
+30064771103 | CALL | new_cluster . bindir
+30064771104 | CALL | old_cluster . controldata . chkpnt_nxtmxoff
+30064771105 | CALL | old_cluster . controldata
+30064771106 | CALL | old_cluster . controldata . chkpnt_nxtmulti
+30064771107 | CALL | old_cluster . controldata
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771099 [AST]
+25769803777 -> 30064771100 [AST]
+25769803777 -> 30064771101 [AST]
+25769803777 -> 30064771102 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

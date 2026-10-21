@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static cmsBool AllocArray ( cmsContext ContextID , _cmsDICarray * a , cmsUInt32Number Count , cmsUInt32Number Length ) {
+ memset ( a , 0 , sizeof ( _cmsDICarray ) ) ;
+ if ( ! AllocElem ( ContextID , & a -> Name , Count ) ) goto Error ;
+ if ( ! AllocElem ( ContextID , & a -> Value , Count ) ) goto Error ;
+ if ( Length > 16 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayName , Count ) ) goto Error ;
+ }
+ if ( Length > 24 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayValue , Count ) ) goto Error ;
+ }
+ return TRUE ;
+ Error : FreeArray ( a ) ;
+ return FALSE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ memset ( a , 0 , sizeof ( _cmsDICarray ) ) ;
+ if ( ! AllocElem ( ContextID , & a -> Name , Count ) ) goto Error ;
+ if ( ! AllocElem ( ContextID , & a -> Value , Count ) ) goto Error ;
+ if ( Length > 16 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayName , Count ) ) goto Error ;
+ }
+ if ( Length > 24 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayValue , Count ) ) goto Error ;
+ }
+ return TRUE ;
+ Error : FreeArray ( a ) ;
+ return FALSE ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( ! AllocElem ( ContextID , & a -> DisplayName , Count ) ) goto Error ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ if ( ! AllocElem ( ContextID , & a -> DisplayValue , Count ) ) goto Error ;
+ }
+      
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | memset ( a , 0 , sizeof ( _cmsDICarray ) )
+30064771073 | CALL | sizeof ( _cmsDICarray )
+30064771074 | CALL | ! AllocElem ( ContextID , & a -> Name , Count )
+30064771075 | CALL | AllocElem ( ContextID , & a -> Name , Count )
+30064771076 | CALL | & a -> Name
+30064771077 | CALL | a -> Name
+30064771078 | CALL | ! AllocElem ( ContextID , & a -> Value , Count )
+30064771079 | CALL | AllocElem ( ContextID , & a -> Value , Count )
+30064771080 | CALL | & a -> Value
+30064771081 | CALL | a -> Value
+30064771082 | CALL | Length > 16
+30064771083 | CALL | ! AllocElem ( ContextID , & a -> DisplayName , Count )
+30064771084 | CALL | AllocElem ( ContextID , & a -> DisplayName , Count )
+30064771085 | CALL | & a -> DisplayName
+30064771086 | CALL | a -> DisplayName
+30064771087 | CALL | Length > 24
+30064771088 | CALL | ! AllocElem ( ContextID , & a -> DisplayValue , Count )
+30064771089 | CALL | AllocElem ( ContextID , & a -> DisplayValue , Count )
+30064771090 | CALL | & a -> DisplayValue
+30064771091 | CALL | a -> DisplayValue
+30064771092 | CALL | FreeArray ( a )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! AllocElem ( ContextID , & a -> Name , Count ) ) goto Error ;
+      
+47244640257 | CONTROL_STRUCTURE | goto Error;
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ! AllocElem ( ContextID , & a -> Value , Count ) ) goto Error ;
+      
+47244640259 | CONTROL_STRUCTURE | goto Error;
+47244640260 | CONTROL_STRUCTURE | 
+        if ( Length > 16 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayName , Count ) ) goto Error ;
+ }
+      
+47244640261 | CONTROL_STRUCTURE | 
+        if ( ! AllocElem ( ContextID , & a -> DisplayName , Count ) ) goto Error ;
+      
+47244640262 | CONTROL_STRUCTURE | goto Error;
+47244640263 | CONTROL_STRUCTURE | 
+        if ( Length > 24 ) {
+ if ( ! AllocElem ( ContextID , & a -> DisplayValue , Count ) ) goto Error ;
+ }
+      
+47244640264 | CONTROL_STRUCTURE | 
+        if ( ! AllocElem ( ContextID , & a -> DisplayValue , Count ) ) goto Error ;
+      
+47244640265 | CONTROL_STRUCTURE | goto Error;
+55834574848 | FIELD_IDENTIFIER | Name
+55834574849 | FIELD_IDENTIFIER | Value
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640260 [AST]
+25769803776 -> 47244640263 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 47244640259 [AST]
+25769803779 -> 47244640261 [AST]
+25769803780 -> 47244640262 [AST]
+25769803781 -> 47244640264 [AST]
+25769803782 -> 47244640265 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 47244640257 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 47244640257 [CFG]
+30064771074 -> 47244640257 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 47244640259 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 47244640259 [CFG]
+30064771078 -> 47244640259 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 55834574849 [ARGUMENT]
+30064771081 -> 55834574849 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 55834574849 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 47244640262 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 47244640262 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static cmsBool WriteOffsetArray ( cmsIOHANDLER * io , _cmsDICarray * a , cmsUInt32Number Count , cmsUInt32Number Length ) {
+ cmsUInt32Number i ;
+ for ( i = 0 ;
+ i < Count ;
+ i ++ ) {
+ if ( ! WriteOneElem ( io , & a -> Name , i ) ) return FALSE ;
+ if ( ! WriteOneElem ( io , & a -> Value , i ) ) return FALSE ;
+ if ( Length > 16 ) {
+ if ( ! WriteOneElem ( io , & a -> DisplayName , i ) ) return FALSE ;
+ }
+ if ( Length > 24 ) {
+ if ( ! WriteOneElem ( io , & a -> DisplayValue , i ) ) return FALSE ;
+ }
+ }
+ return TRUE ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

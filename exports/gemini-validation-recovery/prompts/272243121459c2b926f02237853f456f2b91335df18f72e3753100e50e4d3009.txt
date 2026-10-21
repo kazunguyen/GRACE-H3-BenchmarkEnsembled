@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void * Type_MPEclut_Read ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , cmsUInt32Number * nItems , cmsUInt32Number SizeOfTag ) {
+ cmsStage * mpe = NULL ;
+ cmsUInt16Number InputChans , OutputChans ;
+ cmsUInt8Number Dimensions8 [ 16 ] ;
+ cmsUInt32Number i , nMaxGrids , GridPoints [ MAX_INPUT_DIMENSIONS ] ;
+ _cmsStageCLutData * clut ;
+ if ( ! _cmsReadUInt16Number ( io , & InputChans ) ) return NULL ;
+ if ( ! _cmsReadUInt16Number ( io , & OutputChans ) ) return NULL ;
+ if ( InputChans == 0 ) goto Error ;
+ if ( OutputChans == 0 ) goto Error ;
+ if ( io -> Read ( io , Dimensions8 , sizeof ( cmsUInt8Number ) , 16 ) != 16 ) goto Error ;
+ nMaxGrids = InputChans > MAX_INPUT_DIMENSIONS ? MAX_INPUT_DIMENSIONS : InputChans ;
+ for ( i = 0 ;
+ i < nMaxGrids ;
+ i ++ ) GridPoints [ i ] = ( cmsUInt32Number ) Dimensions8 [ i ] ;
+ mpe = cmsStageAllocCLutFloatGranular ( self -> ContextID , GridPoints , InputChans , OutputChans , NULL ) ;
+ if ( mpe == NULL ) goto Error ;
+ clut = ( _cmsStageCLutData * ) mpe -> Data ;
+ for ( i = 0 ;
+ i < clut -> nEntries ;
+ i ++ ) {
+ if ( ! _cmsReadFloat32Number ( io , & clut -> Tab . TFloat [ i ] ) ) goto Error ;
+ }
+ * nItems = 1 ;
+ return mpe ;
+ Error : * nItems = 0 ;
+ if ( mpe != NULL ) cmsStageFree ( mpe ) ;
+ return NULL ;
+ cmsUNUSED_PARAMETER ( SizeOfTag ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsStage * mpe = NULL ;
+ cmsUInt16Number InputChans , OutputChans ;
+ cmsUInt8Number Dimensions8 [ 16 ] ;
+ cmsUInt32Number i , nMaxGrids , GridPoints [ MAX_INPUT_DIMENSIONS ] ;
+ _cmsStageCLutData * clut ;
+ if ( ! _cmsReadUInt16Number ( io , & InputChans ) ) return NULL ;
+ if ( ! _cmsReadUInt16Number ( io , & OutputChans ) ) return NULL ;
+ if ( InputChans == 0 ) goto Error ;
+ if ( OutputChans == 0 ) goto Error ;
+ if ( io -> Read ( io , Dimensions8 , sizeof ( cmsUInt8Number ) , 16 ) != 16 ) goto Error ;
+ nMaxGrids = InputChans > MAX_INPUT_DIMENSIONS ? MAX_INPUT_DIMENSIONS : InputChans ;
+ for ( i = 0 ;
+ i < nMaxGrids ;
+ i ++ ) GridPoints [ i ] = ( cmsUInt32Number ) Dimensions8 [ i ] ;
+ mpe = cmsStageAllocCLutFloatGranular ( self -> ContextID , GridPoints , InputChans , OutputChans , NULL ) ;
+ if ( mpe == NULL ) goto Error ;
+ clut = ( _cmsStageCLutData * ) mpe -> Data ;
+ for ( i = 0 ;
+ i < clut -> nEntries ;
+ i ++ ) {
+ if ( ! _cmsReadFloat32Number ( io , & clut -> Tab . TFloat [ i ] )...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ if ( ! _cmsReadFloat32Number ( io , & clut -> Tab . TFloat [ i ] ) ) goto Error ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | mpe = NULL
+30064771073 | CALL | Dimensions8 [ 16 ]
+30064771074 | CALL | Dimensions8 [ 16 ]
+30064771075 | CALL | GridPoints [ MAX_INPUT_DIMENSIONS ]
+30064771076 | CALL | GridPoints [ MAX_INPUT_DIMENSIONS ]
+30064771077 | CALL | ! _cmsReadUInt16Number ( io , & InputChans )
+30064771078 | CALL | _cmsReadUInt16Number ( io , & InputChans )
+30064771079 | CALL | & InputChans
+30064771080 | CALL | ! _cmsReadUInt16Number ( io , & OutputChans )
+30064771081 | CALL | _cmsReadUInt16Number ( io , & OutputChans )
+30064771082 | CALL | & OutputChans
+30064771083 | CALL | InputChans == 0
+30064771084 | CALL | OutputChans == 0
+30064771085 | CALL | io -> Read ( io , Dimensions8 , sizeof ( cmsUInt8Number ) , 16 ) != 16
+30064771086 | CALL | io -> Read ( io , Dimensions8 , sizeof ( cmsUInt8Number ) , 16 )
+30064771087 | CALL | io -> Read
+30064771088 | CALL | sizeof ( cmsUInt8Number )
+30064771089 | CALL | 
+        nMaxGrids = InputChans > MAX_INPUT_DIMENSIONS ? MAX_INPUT_DIMENSIONS : InputChans
+      
+30064771090 | CALL | InputChans > MAX_INPUT_DIMENSIONS ? MAX_INPUT_DIMENSIONS : InputChans
+30064771091 | CALL | InputChans > MAX_INPUT_DIMENSIONS
+30064771092 | CALL | i = 0
+30064771093 | CALL | i < nMaxGrids
+30064771094 | CALL | i ++
+30064771095 | CALL | GridPoints [ i ] = ( cmsUInt32Number ) Dimensions8 [ i ]
+30064771096 | CALL | GridPoints [ i ]
+30064771097 | CALL | ( cmsUInt32Number ) Dimensions8 [ i ]
+30064771098 | CALL | Dimensions8 [ i ]
+30064771099 | CALL | 
+        mpe = cmsStageAllocCLutFloatGranular ( self -> ContextID , GridPoints , InputChans , OutputChans , NULL )
+      
+30064771100 | CALL | 
+        cmsStageAllocCLutFloatGranular ( self -> ContextID , GridPoints , InputChans , OutputChans , NULL )
+      
+30064771101 | CALL | self -> ContextID
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771099 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771099 [CDG]
+30064771085 -> 30064771100 [CDG]
+30064771085 -> 30064771101 [CDG]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771087 [RECEIVER]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771093 -> 30064771093 [CDG]
+30064771093 -> 30064771098 [CDG]
+30064771093 -> 30064771094 [CDG]
+30064771093 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

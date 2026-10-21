@@ -1,0 +1,168 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TSReturnCode TSHttpTxnCachedRespTimeGet ( TSHttpTxn txnp , time_t * resp_time ) {
+ sdk_assert ( sdk_sanity_check_txn ( txnp ) == TS_SUCCESS ) ;
+ HttpSM * sm = ( HttpSM * ) txnp ;
+ HTTPInfo * cached_obj = sm -> t_state . cache_info . object_read ;
+ if ( cached_obj == nullptr || ! cached_obj -> valid ( ) ) {
+ return TS_ERROR ;
+ }
+ * resp_time = cached_obj -> response_received_time_get ( ) ;
+ return TS_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ sdk_assert ( sdk_sanity_check_txn ( txnp ) == TS_SUCCESS ) ;
+ HttpSM * sm = ( HttpSM * ) txnp ;
+ HTTPInfo * cached_obj = sm -> t_state . cache_info . object_read ;
+ if ( cached_obj == nullptr || ! cached_obj -> valid ( ) ) {
+ return TS_ERROR ;
+ }
+ * resp_time = cached_obj -> response_received_time_get ( ) ;
+ return TS_SUCCESS ;
+ }
+      
+25769803777 | BLOCK | { return TS_ERROR ; }
+30064771072 | CALL | sdk_assert ( sdk_sanity_check_txn ( txnp ) == TS_SUCCESS )
+30064771073 | CALL | sdk_sanity_check_txn ( txnp ) == TS_SUCCESS
+30064771074 | CALL | sdk_sanity_check_txn ( txnp )
+30064771075 | CALL | sm = ( HttpSM * ) txnp
+30064771076 | CALL | ( HttpSM * ) txnp
+30064771077 | CALL | cached_obj = sm -> t_state . cache_info . object_read
+30064771078 | CALL | sm -> t_state . cache_info . object_read
+30064771079 | CALL | sm -> t_state . cache_info
+30064771080 | CALL | sm -> t_state
+30064771081 | CALL | cached_obj == nullptr || ! cached_obj -> valid ( )
+30064771082 | CALL | cached_obj == nullptr
+30064771083 | CALL | ! cached_obj -> valid ( )
+30064771084 | CALL | cached_obj -> valid ( )
+30064771085 | CALL | cached_obj -> valid
+30064771086 | CALL | * resp_time = cached_obj -> response_received_time_get ( )
+30064771087 | CALL | * resp_time
+30064771088 | CALL | cached_obj -> response_received_time_get ( )
+30064771089 | CALL | cached_obj -> response_received_time_get
+47244640256 | CONTROL_STRUCTURE | 
+        if ( cached_obj == nullptr || ! cached_obj -> valid ( ) ) {
+ return TS_ERROR ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | t_state
+55834574849 | FIELD_IDENTIFIER | cache_info
+55834574850 | FIELD_IDENTIFIER | object_read
+55834574851 | FIELD_IDENTIFIER | valid
+55834574852 | FIELD_IDENTIFIER | response_received_time_get
+68719476736 | IDENTIFIER | txnp
+68719476737 | IDENTIFIER | <unknown> TS_SUCCESS
+68719476738 | IDENTIFIER | sm
+68719476739 | IDENTIFIER | txnp
+68719476740 | IDENTIFIER | cached_obj
+68719476741 | IDENTIFIER | sm
+68719476742 | IDENTIFIER | cached_obj
+68719476743 | IDENTIFIER | <unknown> nullptr
+68719476744 | IDENTIFIER | cached_obj
+68719476745 | IDENTIFIER | <unknown> TS_ERROR
+68719476746 | IDENTIFIER | resp_time
+68719476747 | IDENTIFIER | cached_obj
+68719476748 | IDENTIFIER | <unknown> TS_SUCCESS
+94489280512 | LOCAL | HttpSM * sm
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771086 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 68719476737 [CFG]
+30064771074 -> 68719476737 [DOMINATE]
+30064771074 -> 68719476736 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476742 [CFG]
+30064771077 -> 68719476742 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 68719476740 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 55834574849 [AST]
+30064771079 -> 55834574850 [CFG]
+30064771079 -> 55834574850 [DOMINATE]
+30064771079 -> 55834574849 [POST_DOMINATE]
+30064771080 -> 68719476741 [ARGUMENT]
+30064771080 -> 55834574848 [ARGUMENT]
+30064771080 -> 68719476741 [AST]
+30064771080 -> 55834574848 [AST]
+30064771080 -> 55834574849 [CFG]
+30064771080 -> 55834574849 [DOMINATE]
+30064771080 -> 55834574848 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 55834574852 [CDG]
+30064771081 -> 68719476746 [CDG]
+30064771081 -> 68719476747 [CDG]
+30064771081 -> 68719476745 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771089 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int TSHttpTxnPushedRespHdrBytesGet ( TSHttpTxn txnp ) {
+ sdk_assert ( sdk_sanity_check_txn ( txnp ) == TS_SUCCESS ) ;
+ HttpSM * sm = ( HttpSM * ) txnp ;
+ return sm -> pushed_response_hdr_bytes ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

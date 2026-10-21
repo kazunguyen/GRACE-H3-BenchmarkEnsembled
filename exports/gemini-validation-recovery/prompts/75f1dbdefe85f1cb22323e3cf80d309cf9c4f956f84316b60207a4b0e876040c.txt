@@ -1,0 +1,227 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void xan_unpack ( unsigned char * dest , int dest_len , const unsigned char * src , int src_len ) {
+ unsigned char opcode ;
+ int size ;
+ unsigned char * dest_org = dest ;
+ unsigned char * dest_end = dest + dest_len ;
+ GetByteContext ctx ;
+ bytestream2_init ( & ctx , src , src_len ) ;
+ while ( dest < dest_end && bytestream2_get_bytes_left ( & ctx ) ) {
+ opcode = bytestream2_get_byte ( & ctx ) ;
+ if ( opcode < 0xe0 ) {
+ int size2 , back ;
+ if ( ( opcode & 0x80 ) == 0 ) {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x1c ) >> 2 ) + 3 ;
+ }
+ else if ( ( opcode & 0x40 ) == 0 ) {
+ size = bytestream2_peek_byte ( & ctx ) >> 6 ;
+ back = ( bytestream2_get_be16 ( & ctx ) & 0x3fff ) + 1 ;
+ size2 = ( opcode & 0x3f ) + 4 ;
+ }
+ else {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x10 ) << 12 ) + bytestream2_get_be16 ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x0c ) << 6 ) + bytestream2_get_byte ( & ctx ) + 5 ;
+ }
+ if ( dest_end - dest < size + size2 || dest + size - dest_org < back || bytestream2_get_bytes_left ( & ctx ) < size ) return ;
+ bytestream2_get_buffer ( & ctx , dest , size ) ;
+ dest += size ;
+ av_memcpy_backptr ( dest , back , size2 ) ;
+ dest += size2 ;
+ }
+ else {
+ int finish = opcode >= 0xfc ;
+ size = finish ? opcode & 3 : ( ( opcode & 0x1f ) << 2 ) + 4 ;
+ if ( dest_end - dest < size || bytestream2_get_bytes_left ( & ctx ) < size ) return ;
+ bytestream2_get_buffer ( & ctx , dest , size ) ;
+ dest += size ;
+ if ( finish ) return ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned char opcode ;
+ int size ;
+ unsigned char * dest_org = dest ;
+ unsigned char * dest_end = dest + dest_len ;
+ GetByteContext ctx ;
+ bytestream2_init ( & ctx , src , src_len ) ;
+ while ( dest < dest_end && bytestream2_get_bytes_left ( & ctx ) ) {
+ opcode = bytestream2_get_byte ( & ctx ) ;
+ if ( opcode < 0xe0 ) {
+ int size2 , back ;
+ if ( ( opcode & 0x80 ) == 0 ) {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x1c ) >> 2 ) + 3 ;
+ }
+ else if ( ( opcode & 0x40 ) == 0 ) {
+ size = bytestream2_peek_byte ( & ctx ) >> 6 ;
+ back = ( bytestream2_get_be16 ( & ctx ) & 0x3fff ) + 1 ;
+ size2 = ( opcode & 0x3f ) + 4 ;
+ }
+ else {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x10 ) << 12 ) + bytestream2_get_be16 ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x0c ) << 6 ) + bytestream2_get_byte ( & ctx ) + 5 ;
+ }
+ if ( dest_end - dest < size + size2 || dest + size - dest_org < back || bytestream2_get_bytes_left ( & ctx ) < size ) r...
+      
+25769803777 | BLOCK | 
+        {
+ opcode = bytestream2_get_byte ( & ctx ) ;
+ if ( opcode < 0xe0 ) {
+ int size2 , back ;
+ if ( ( opcode & 0x80 ) == 0 ) {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x1c ) >> 2 ) + 3 ;
+ }
+ else if ( ( opcode & 0x40 ) == 0 ) {
+ size = bytestream2_peek_byte ( & ctx ) >> 6 ;
+ back = ( bytestream2_get_be16 ( & ctx ) & 0x3fff ) + 1 ;
+ size2 = ( opcode & 0x3f ) + 4 ;
+ }
+ else {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x10 ) << 12 ) + bytestream2_get_be16 ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x0c ) << 6 ) + bytestream2_get_byte ( & ctx ) + 5 ;
+ }
+ if ( dest_end - dest < size + size2 || dest + size - dest_org < back || bytestream2_get_bytes_left ( & ctx ) < size ) return ;
+ bytestream2_get_buffer ( & ctx , dest , size ) ;
+ dest += size ;
+ av_memcpy_backptr ( dest , back , size2 ) ;
+ dest += size2 ;
+ }
+ else {
+ int finish = opcode >= 0xfc ;
+ size = finish ? opcode & 3 : ( ( opcode & 0x1f ) << 2 ) + 4 ;
+ if ( dest_en...
+      
+25769803778 | BLOCK | 
+        {
+ int size2 , back ;
+ if ( ( opcode & 0x80 ) == 0 ) {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x1c ) >> 2 ) + 3 ;
+ }
+ else if ( ( opcode & 0x40 ) == 0 ) {
+ size = bytestream2_peek_byte ( & ctx ) >> 6 ;
+ back = ( bytestream2_get_be16 ( & ctx ) & 0x3fff ) + 1 ;
+ size2 = ( opcode & 0x3f ) + 4 ;
+ }
+ else {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x10 ) << 12 ) + bytestream2_get_be16 ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x0c ) << 6 ) + bytestream2_get_byte ( & ctx ) + 5 ;
+ }
+ if ( dest_end - dest < size + size2 || dest + size - dest_org < back || bytestream2_get_bytes_left ( & ctx ) < size ) return ;
+ bytestream2_get_buffer ( & ctx , dest , size ) ;
+ dest += size ;
+ av_memcpy_backptr ( dest , back , size2 ) ;
+ dest += size2 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x1c ) >> 2 ) + 3 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ size = bytestream2_peek_byte ( & ctx ) >> 6 ;
+ back = ( bytestream2_get_be16 ( & ctx ) & 0x3fff ) + 1 ;
+ size2 = ( opcode & 0x3f ) + 4 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ size = opcode & 3 ;
+ back = ( ( opcode & 0x10 ) << 12 ) + bytestream2_get_be16 ( & ctx ) + 1 ;
+ size2 = ( ( opcode & 0x0c ) << 6 ) + bytestream2_get_byte ( & ctx ) + 5 ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ int finish = opcode >= 0xfc ;
+ size = finish ? opcode & 3 : ( ( opcode & 0x1f ) << 2 ) + 4 ;
+ if ( dest_end - dest < size || bytestream2_get_bytes_left ( & ctx ) < size ) return ;
+ bytestream2_get_buffer ( & ctx , dest , size ) ;
+ dest += size ;
+ if ( finish ) return ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | dest_org = dest
+30064771073 | CALL | dest_end = dest + dest_len
+30064771074 | CALL | dest + dest_len
+30064771075 | CALL | bytestream2_init ( & ctx , src , src_len )
+30064771076 | CALL | & ctx
+30064771077 | CALL | dest < dest_end && bytestream2_get_bytes_left ( & ctx )
+30064771078 | CALL | dest < dest_end
+30064771079 | CALL | bytestream2_get_bytes_left ( & ctx )
+30064771080 | CALL | & ctx
+30064771081 | CALL | opcode = bytestream2_get_byte ( & ctx )
+30064771082 | CALL | bytestream2_get_byte ( & ctx )
+30064771083 | CALL | & ctx
+30064771084 | CALL | opcode < 0xe0
+30064771085 | CALL | ( opcode & 0x80 ) == 0
+30064771086 | CALL | opcode & 0x80
+30064771087 | CALL | size = opcode & 3
+30064771088 | CALL | opcode & 3
+30064771089 | CALL | 
+        back = ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1
+      
+30064771090 | CALL | ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx ) + 1
+30064771091 | CALL | ( ( opcode & 0x60 ) << 3 ) + bytestream2_get_byte ( & ctx )
+30064771092 | CALL | ( opcode & 0x60 ) << 3
+30064771093 | CALL | opcode & 0x60
+30064771094 | CALL | bytestream2_get_byte ( & ctx )
+30064771095 | CALL | & ctx
+30064771096 | CALL | size2 = ( ( opcode & 0x1c ) >> 2 ) + 3
+30064771097 | CALL | ( ( opcode & 0x1c ) >> 2 ) + 3
+30064771098 | CALL | ( opcode & 0x1c ) >> 2
+30064771099 | CALL | opcode & 0x1c
+30064771100 | CALL | ( opcode & 0x40 ) == 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803777 -> 30064771081 [AST]
+25769803779 -> 30064771087 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771096 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

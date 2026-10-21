@@ -1,0 +1,352 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decApplyRound ( decNumber * dn , decContext * set , Int residue , uInt * status ) {
+ Int bump ;
+ if ( residue == 0 ) return ;
+ bump = 0 ;
+ switch ( set -> round ) {
+ case DEC_ROUND_05UP : {
+ Int lsd5 = * dn -> lsu % 5 ;
+ if ( residue < 0 && lsd5 != 1 ) bump = - 1 ;
+ else if ( residue > 0 && lsd5 == 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_DOWN : {
+ if ( residue < 0 ) bump = - 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_DOWN : {
+ if ( residue > 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_EVEN : {
+ if ( residue > 5 ) bump = 1 ;
+ else if ( residue == 5 ) {
+ if ( * dn -> lsu & 0x01 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_HALF_UP : {
+ if ( residue >= 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_UP : {
+ if ( residue > 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_CEILING : {
+ if ( decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_FLOOR : {
+ if ( ! decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ default : {
+ * status |= DEC_Invalid_context ;
+ # if DECTRACE || ( DECCHECK && DECVERB ) printf ( "Unknown rounding mode: %d\n" , set -> round ) ;
+ # endif break ;
+ }
+ }
+ if ( bump == 0 ) return ;
+ if ( bump > 0 ) {
+ Unit * up ;
+ uInt count = dn -> digits ;
+ for ( up = dn -> lsu ;
+ ;
+ up ++ ) {
+ if ( count <= DECDPUN ) {
+ if ( * up != powers [ count ] - 1 ) break ;
+ * up = ( Unit ) powers [ count - 1 ] ;
+ for ( up = up - 1 ;
+ up >= dn -> lsu ;
+ up -- ) * up = 0 ;
+ dn -> exponent ++ ;
+ if ( ( dn -> exponent + dn -> digits ) > set -> emax + 1 ) {
+ decSetOverflow ( dn , set , status ) ;
+ }
+ return ;
+ }
+ if ( * up != DECDPUNMAX ) break ;
+ count -= DECDPUN ;
+ }
+ }
+ else {
+ Unit * up , * sup ;
+ uInt count = dn -> digits ;
+ for ( up = dn -> lsu ;
+ ;
+ up ++ ) {
+ if ( count <= DECDPUN ) {
+ if ( * up != powers [ count - 1 ] ) break ;
+ sup = up ;
+ * up = ( Unit ) powers [ count ] - 1 ;
+ for ( up = up - 1 ;
+ up >= dn -> lsu ;
+ up -- ) * up = ( Unit ) powers [ DECDPUN ] - 1 ;
+ dn -> exponent -- ;
+ if ( dn -> exponent + 1 == set -> emin - set -> digits + 1 ) {
+ if ( count == 1 && dn -> digits == 1 ) * sup = 0 ;
+ else {
+ * sup = ( Unit ) powers [ count - 1 ] - 1 ;
+ dn -> digits -- ;
+ }
+ dn -> exponent ++ ;
+ * status |= DEC_Underflow | DEC_Subnormal | DEC_Inexact | DEC_Rounded ;
+ }
+ return ;
+ }
+ if ( * up != 0 ) break ;
+ count -= DECDPUN ;
+ }
+ }
+ decUnitAddSub ( dn -> lsu , D2U ( dn -> digits ) , uarrone , 1 , 0 , dn -> lsu , bump ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Int bump ;
+ if ( residue == 0 ) return ;
+ bump = 0 ;
+ switch ( set -> round ) {
+ case DEC_ROUND_05UP : {
+ Int lsd5 = * dn -> lsu % 5 ;
+ if ( residue < 0 && lsd5 != 1 ) bump = - 1 ;
+ else if ( residue > 0 && lsd5 == 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_DOWN : {
+ if ( residue < 0 ) bump = - 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_DOWN : {
+ if ( residue > 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_EVEN : {
+ if ( residue > 5 ) bump = 1 ;
+ else if ( residue == 5 ) {
+ if ( * dn -> lsu & 0x01 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_HALF_UP : {
+ if ( residue >= 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_UP : {
+ if ( residue > 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_CEILING : {
+ if ( decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_FLOOR : {
+ if ( ! decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ default : {
+ * sta...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ case DEC_ROUND_05UP : {
+ Int lsd5 = * dn -> lsu % 5 ;
+ if ( residue < 0 && lsd5 != 1 ) bump = - 1 ;
+ else if ( residue > 0 && lsd5 == 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_DOWN : {
+ if ( residue < 0 ) bump = - 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_DOWN : {
+ if ( residue > 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_HALF_EVEN : {
+ if ( residue > 5 ) bump = 1 ;
+ else if ( residue == 5 ) {
+ if ( * dn -> lsu & 0x01 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_HALF_UP : {
+ if ( residue >= 5 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_UP : {
+ if ( residue > 0 ) bump = 1 ;
+ break ;
+ }
+ case DEC_ROUND_CEILING : {
+ if ( decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ case DEC_ROUND_FLOOR : {
+ if ( ! decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+ default : {
+ * status |= DEC_Invalid_context ;
+ # if DECTRACE || ( DECCHECK && DECVERB ) printf ( "...
+      
+25769803779 | BLOCK | 
+        {
+ Int lsd5 = * dn -> lsu % 5 ;
+ if ( residue < 0 && lsd5 != 1 ) bump = - 1 ;
+ else if ( residue > 0 && lsd5 == 0 ) bump = 1 ;
+ break ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { if ( residue < 0 ) bump = - 1 ; break ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { if ( residue > 5 ) bump = 1 ; break ; }
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( residue > 5 ) bump = 1 ;
+ else if ( residue == 5 ) {
+ if ( * dn -> lsu & 0x01 ) bump = 1 ;
+ }
+ break ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | { if ( * dn -> lsu & 0x01 ) bump = 1 ; }
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | { if ( residue >= 5 ) bump = 1 ; break ; }
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | { if ( residue > 0 ) bump = 1 ; break ; }
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | 
+        {
+ if ( decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+      
+25769803797 | BLOCK | { if ( residue < 0 ) bump = - 1 ; }
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | { if ( residue > 0 ) bump = 1 ; }
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | 
+        {
+ if ( ! decNumberIsNegative ( dn ) ) {
+ if ( residue < 0 ) bump = - 1 ;
+ }
+ else {
+ if ( residue > 0 ) bump = 1 ;
+ }
+ break ;
+ }
+      
+25769803802 | BLOCK | { if ( residue < 0 ) bump = - 1 ; }
+25769803803 | BLOCK | <empty>
+25769803804 | BLOCK | { if ( residue > 0 ) bump = 1 ; }
+25769803805 | BLOCK | <empty>
+25769803806 | BLOCK | 
+        {
+ * status |= DEC_Invalid_context ;
+ # if DECTRACE || ( DECCHECK && DECVERB ) printf ( "Unknown rounding mode: %d\n" , set -> round ) ;
+ # endif break ;
+ }
+      
+25769803807 | BLOCK | <empty>
+25769803808 | BLOCK | 
+        {
+ Unit * up ;
+ uInt count = dn -> digits ;
+ for ( up = dn -> lsu ;
+ ;
+ up ++ ) {
+ if ( count <= DECDPUN ) {
+ if ( * up != powers [ count ] - 1 ) break ;
+ * up = ( Unit ) powers [ count - 1 ] ;
+ for ( up = up - 1 ;
+ up >= dn -> lsu ;
+ up -- ) * up = 0 ;
+ dn -> exponent ++ ;
+ if ( ( dn -> exponent + dn -> digits ) > set -> emax + 1 ) {
+ decSetOverflow ( dn , set , status ) ;
+ }
+ return ;
+ }
+ if ( * up != DECDPUNMAX ) break ;
+ count -= DECDPUN ;
+ }
+ }
+      
+25769803809 | BLOCK | 
+        {
+ if ( count <= DECDPUN ) {
+ if ( * up != powers [ count ] - 1 ) break ;
+ * up = ( Unit ) powers [ count - 1 ] ;
+ for ( up = up - 1 ;
+ up >= dn -> lsu ;
+ up -- ) * up = 0 ;
+ dn -> exponent ++ ;
+ if ( ( dn -> exponent + dn -> digits ) > set -> emax + 1 ) {
+ decSetOverflow ( dn , set , status ) ;
+ }
+ return ;
+ }
+ if ( * up != DECDPUNMAX ) break ;
+ count -= DECDPUN ;
+ }
+  
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

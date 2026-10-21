@@ -1,0 +1,313 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mxf_read_header(AVFormatContext *s)
+
+{
+
+    MXFContext *mxf = s->priv_data;
+
+    KLVPacket klv;
+
+    int64_t essence_offset = 0;
+
+    int ret;
+
+
+
+    mxf->last_forward_tell = INT64_MAX;
+
+    mxf->edit_units_per_packet = 1;
+
+
+
+    if (!mxf_read_sync(s->pb, mxf_header_partition_pack_key, 14)) {
+
+        av_log(s, AV_LOG_ERROR, "could not find header partition pack key\n");
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+    avio_seek(s->pb, -14, SEEK_CUR);
+
+    mxf->fc = s;
+
+    mxf->run_in = avio_tell(s->pb);
+
+
+
+    mxf_read_random_index_pack(s);
+
+
+
+    while (!url_feof(s->pb)) {
+
+        const MXFMetadataReadTableEntry *metadata;
+
+
+
+        if (klv_read_packet(&klv, s->pb) < 0) {
+
+            /* EOF - seek to previous partition or stop */
+
+            if(mxf_parse_handle_partition_or_eof(mxf) <= 0)
+
+                break;
+
+            else
+
+                continue;
+
+        }
+
+
+
+        PRINT_KEY(s, "read header", klv.key);
+
+        av_dlog(s, "size %"PRIu64" offset %#"PRIx64"\n", klv.length, klv.offset);
+
+        if (IS_KLV_KEY(klv.key, mxf_encrypted_triplet_key) ||
+
+            IS_KLV_KEY(klv.key, mxf_essence_element_key) ||
+
+            IS_KLV_KEY(klv.key, mxf_avid_essence_element_key) ||
+
+            IS_KLV_KEY(klv.key, mxf_system_item_key)) {
+
+
+
+            if (!mxf->current_partition) {
+
+                av_log(mxf->fc, AV_LOG_ERROR, "found essence prior to first PartitionPack\n");
+
+                return AVERROR_INVALIDDATA;
+
+            }
+
+
+
+            if (!mxf->current_partition->essence_offset) {
+
+                /* for OP1a we compute essence_offset
+
+                 * for OPAtom we point essence_offset after the KL (usually op1a_essence_offset + 20 or 25)
+
+                 * TODO: for OP1a we could eliminate this entire if statement, always stopping parsing at op1a_essence_offset
+
+                 *       for OPAtom we still need the actual essence_offset though (the KL's length can vary)
+
+                 */
+
+                int64_t op1a_essence_offset =
+
+                    round_to_kag(mxf->current_partition->this_partition +
+
+                                 mxf->current_partition->pack_length,       mxf->current_partition->kag_size) +
+
+                    round_to_kag(mxf->current_partition->header_byte_count, mxf->current_partition->kag_size) +
+
+                    round_to_kag(mxf->current_partition->index_byte_count,  mxf->current_partition->kag_size);
+
+
+
+                if (mxf->op == OPAtom) {
+
+                    /* point essence_offset to the actual data
+
+                    * OPAtom has all the essence in one big KLV
+
+                    */
+
+                    mxf->current_partition->essence_offset = avio_tell(s->pb);
+
+                    mxf->current_partition->essence_length = klv.length;
+
+                } else {
+
+                    /* NOTE: op1a_essence_offset may be less than to klv.offset (C0023S01.mxf)  */
+
+                    mxf->current_partition->essence_offset = op1a_essence_offset;
+
+               
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+19 -> 22 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+48 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+48 -> 55 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+62 -> 67 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+57 -> 69 [IS_AST_PARENT]
+41 -> 57 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+75 -> 80 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+75 -> 84 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int mxf_read_packet_old(AVFormatContext *s, AVPacket *pkt)
+
+{
+
+    KLVPacket klv;
+
+    MXFContext *mxf = s->priv_data;
+
+    int ret;
+
+
+
+    while ((ret = klv_read_packet(&klv, s->pb)) == 0) {
+
+        PRINT_KEY(s, "read packet", klv.key);
+
+        av_log(s, AV_LOG_TRACE, "size %"PRIu64" offset %#"PRIx64"\n", klv.length, klv.offset);
+
+        if (IS_KLV_KEY(klv.key, mxf_encrypted_triplet_key)) {
+
+            ret = mxf_decrypt_triplet(s, pkt, &klv);
+
+            if (ret < 0) {
+
+                av_log(s, AV_LOG_ERROR, "invalid encoded triplet\n");
+
+                return ret;
+
+            }
+
+            return 0;
+
+        }
+
+        if (IS_KLV_KEY(klv.key, mxf_essence_element_key) ||
+
+            IS_KLV_KEY(klv.key, mxf_canopus_essence_element_key) ||
+
+            IS_KLV_KEY(klv.key, mxf_avid_essence_element_key)) {
+
+            int index = mxf_get_stream_index(s, &klv);
+
+            int64_t next_ofs, next_klv;
+
+            AVStream *st;
+
+            MXFTrack *track;
+
+            AVCodecParameters *par;
+
+
+
+            if (index < 0) {
+
+                av_log(s, AV_LOG_ERROR,
+
+                       "error getting stream index %"PRIu32"\n",
+
+                       AV_RB32(klv.key + 12));
+
+                goto skip;
+
+            }
+
+
+
+            st = s->streams[index];
+
+            track = st->priv_data;
+
+
+
+            if (s->streams[index]->discard == AVDISCARD_ALL)
+
+                goto skip;
+
+
+
+            next_klv = avio_tell(s->pb) + klv.length;
+
+            next_ofs =
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

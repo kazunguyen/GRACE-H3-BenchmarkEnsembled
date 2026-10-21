@@ -1,0 +1,177 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+double mcv_selectivity ( VariableStatData * vardata , FmgrInfo * opproc , Datum constval , bool varonleft , double * sumcommonp ) {
+ double mcv_selec , sumcommon ;
+ Datum * values ;
+ int nvalues ;
+ float4 * numbers ;
+ int nnumbers ;
+ int i ;
+ mcv_selec = 0.0 ;
+ sumcommon = 0.0 ;
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) && statistic_proc_security_check ( vardata , opproc -> fn_oid ) && get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ) mcv_selec += numbers [ i ] ;
+ sumcommon += numbers [ i ] ;
+ }
+ free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers ) ;
+ }
+ * sumcommonp = sumcommon ;
+ return mcv_selec ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ double mcv_selec , sumcommon ;
+ Datum * values ;
+ int nvalues ;
+ float4 * numbers ;
+ int nnumbers ;
+ int i ;
+ mcv_selec = 0.0 ;
+ sumcommon = 0.0 ;
+ if ( HeapTupleIsValid ( vardata -> statsTuple ) && statistic_proc_security_check ( vardata , opproc -> fn_oid ) && get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ) mcv_selec += numbers [ i ] ;
+ sumcommon += numbers [ i ] ;
+ }
+ free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers ) ;
+ }
+ * sumcommonp = sumcommon ;
+ return mcv_selec ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ) mcv_selec += numbers [ i ] ;
+ sumcommon += numbers [ i ] ;
+ }
+ free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ) mcv_selec += numbers [ i ] ;
+ sumcommon += numbers [ i ] ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | mcv_selec = 0.0
+30064771073 | CALL | sumcommon = 0.0
+30064771074 | CALL | 
+        HeapTupleIsValid ( vardata -> statsTuple ) && statistic_proc_security_check ( vardata , opproc -> fn_oid ) && get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers )
+      
+30064771075 | CALL | 
+        HeapTupleIsValid ( vardata -> statsTuple ) && statistic_proc_security_check ( vardata , opproc -> fn_oid )
+      
+30064771076 | CALL | HeapTupleIsValid ( vardata -> statsTuple )
+30064771077 | CALL | vardata -> statsTuple
+30064771078 | CALL | statistic_proc_security_check ( vardata , opproc -> fn_oid )
+30064771079 | CALL | opproc -> fn_oid
+30064771080 | CALL | 
+        get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers )
+      
+30064771081 | CALL | vardata -> statsTuple
+30064771082 | CALL | vardata -> atttype
+30064771083 | CALL | vardata -> atttypmod
+30064771084 | CALL | & values
+30064771085 | CALL | & nvalues
+30064771086 | CALL | & numbers
+30064771087 | CALL | & nnumbers
+30064771088 | CALL | i = 0
+30064771089 | CALL | i < nvalues
+30064771090 | CALL | i ++
+30064771091 | CALL | 
+        varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) )
+      
+30064771092 | CALL | 
+        DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) )
+      
+30064771093 | CALL | FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval )
+30064771094 | CALL | values [ i ]
+30064771095 | CALL | 
+        DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) )
+      
+30064771096 | CALL | FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] )
+30064771097 | CALL | values [ i ]
+30064771098 | CALL | mcv_selec += numbers [ i ]
+30064771099 | CALL | numbers [ i ]
+30064771100 | CALL | sumcommon += numbers [ i ]
+30064771101 | CALL | numbers [ i ]
+30064771102 | CALL | free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers )
+30064771103 | CALL | vardata -> atttype
+30064771104 | CALL | * sumcommonp = sumcommon
+30064771105 | CALL | * sumcommonp
+47244640256 | CONTROL_STRUCTURE | 
+        if ( HeapTupleIsValid ( vardata -> statsTuple ) && statistic_proc_security_check ( vardata , opproc -> fn_oid ) && get_attstatsslot ( vardata -> statsTuple , vardata -> atttype , vardata -> atttypmod , STATISTIC_KIND_MCV , InvalidOid , NULL , & values , & nvalues , & numbers , & nnumbers ) ) {
+ for ( i = 0 ;
+ i < nvalues ;
+ i ++ ) {
+ if ( varonleft ? DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , values [ i ] , constval ) ) : DatumGetBool ( FunctionCall2Coll ( opproc , DEFAULT_COLLATION_OID , constval , values [ i ] ) ) ) mcv_selec += numbers [ i ] ;
+ sumcommon += numbers [ i ] ;
+ }
+ free_attstatsslot ( vardata -> atttype , values , nvalues , numbers , nnumbers ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | for (i = 0 ;i < nvalues;i ++)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771104 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771102 [AST]
+25769803778 -> 30064771100 [AST]
+25769803779 -> 30064771098 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771080 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771080 [AST]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771102 [CDG]
+30064771074 -> 30064771103 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771080 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771086 [CDG]
+30064771075 -> 30064771087 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771080 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 300647
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

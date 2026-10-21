@@ -1,0 +1,201 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ohci_port_set_status ( OHCIState * ohci , int portnum , uint32_t val ) {
+ uint32_t old_state ;
+ OHCIPort * port ;
+ port = & ohci -> rhport [ portnum ] ;
+ old_state = port -> ctrl ;
+ if ( val & OHCI_PORT_WTC ) port -> ctrl &= ~ ( val & OHCI_PORT_WTC ) ;
+ if ( val & OHCI_PORT_CCS ) port -> ctrl &= ~ OHCI_PORT_PES ;
+ ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PES ) ;
+ if ( ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PSS ) ) {
+ trace_usb_ohci_port_suspend ( portnum ) ;
+ }
+ if ( ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PRS ) ) {
+ trace_usb_ohci_port_reset ( portnum ) ;
+ usb_device_reset ( port -> port . dev ) ;
+ port -> ctrl &= ~ OHCI_PORT_PRS ;
+ port -> ctrl |= OHCI_PORT_PES | OHCI_PORT_PRSC ;
+ }
+ if ( val & OHCI_PORT_LSDA ) ohci_port_power ( ohci , portnum , 0 ) ;
+ if ( val & OHCI_PORT_PPS ) ohci_port_power ( ohci , portnum , 1 ) ;
+ if ( old_state != port -> ctrl ) ohci_set_interrupt ( ohci , OHCI_INTR_RHSC ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t old_state ;
+ OHCIPort * port ;
+ port = & ohci -> rhport [ portnum ] ;
+ old_state = port -> ctrl ;
+ if ( val & OHCI_PORT_WTC ) port -> ctrl &= ~ ( val & OHCI_PORT_WTC ) ;
+ if ( val & OHCI_PORT_CCS ) port -> ctrl &= ~ OHCI_PORT_PES ;
+ ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PES ) ;
+ if ( ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PSS ) ) {
+ trace_usb_ohci_port_suspend ( portnum ) ;
+ }
+ if ( ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PRS ) ) {
+ trace_usb_ohci_port_reset ( portnum ) ;
+ usb_device_reset ( port -> port . dev ) ;
+ port -> ctrl &= ~ OHCI_PORT_PRS ;
+ port -> ctrl |= OHCI_PORT_PES | OHCI_PORT_PRSC ;
+ }
+ if ( val & OHCI_PORT_LSDA ) ohci_port_power ( ohci , portnum , 0 ) ;
+ if ( val & OHCI_PORT_PPS ) ohci_port_power ( ohci , portnum , 1 ) ;
+ if ( old_state != port -> ctrl ) ohci_set_interrupt ( ohci , OHCI_INTR_RHSC ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { trace_usb_ohci_port_suspend ( portnum ) ; }
+25769803780 | BLOCK | 
+        {
+ trace_usb_ohci_port_reset ( portnum ) ;
+ usb_device_reset ( port -> port . dev ) ;
+ port -> ctrl &= ~ OHCI_PORT_PRS ;
+ port -> ctrl |= OHCI_PORT_PES | OHCI_PORT_PRSC ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | port = & ohci -> rhport [ portnum ]
+30064771073 | CALL | & ohci -> rhport [ portnum ]
+30064771074 | CALL | ohci -> rhport [ portnum ]
+30064771075 | CALL | ohci -> rhport
+30064771076 | CALL | old_state = port -> ctrl
+30064771077 | CALL | port -> ctrl
+30064771078 | CALL | val & OHCI_PORT_WTC
+30064771079 | CALL | port -> ctrl &= ~ ( val & OHCI_PORT_WTC )
+30064771080 | CALL | port -> ctrl
+30064771081 | CALL | ~ ( val & OHCI_PORT_WTC )
+30064771082 | CALL | val & OHCI_PORT_WTC
+30064771083 | CALL | val & OHCI_PORT_CCS
+30064771084 | CALL | port -> ctrl &= ~ OHCI_PORT_PES
+30064771085 | CALL | port -> ctrl
+30064771086 | CALL | ~ OHCI_PORT_PES
+30064771087 | CALL | ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PES )
+30064771088 | CALL | val & OHCI_PORT_PES
+30064771089 | CALL | ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PSS )
+30064771090 | CALL | val & OHCI_PORT_PSS
+30064771091 | CALL | trace_usb_ohci_port_suspend ( portnum )
+30064771092 | CALL | ohci_port_set_if_connected ( ohci , portnum , val & OHCI_PORT_PRS )
+30064771093 | CALL | val & OHCI_PORT_PRS
+30064771094 | CALL | trace_usb_ohci_port_reset ( portnum )
+30064771095 | CALL | usb_device_reset ( port -> port . dev )
+30064771096 | CALL | port -> port . dev
+30064771097 | CALL | port -> port
+30064771098 | CALL | port -> ctrl &= ~ OHCI_PORT_PRS
+30064771099 | CALL | port -> ctrl
+30064771100 | CALL | ~ OHCI_PORT_PRS
+30064771101 | CALL | port -> ctrl |= OHCI_PORT_PES | OHCI_PORT_PRSC
+30064771102 | CALL | port -> ctrl
+30064771103 | CALL | OHCI_PORT_PES | OHCI_PORT_PRSC
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771091 [AST]
+25769803780 -> 30064771094 [AST]
+25769803780 -> 30064771095 [AST]
+25769803780 -> 30064771098 [AST]
+25769803780 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771099 [REACHING_DEF]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771085 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771099 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771099 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void ohci_attach ( USBPort * port1 ) {
+ OHCIState * s = port1 -> opaque ;
+ OHCIPort * port = & s -> rhport [ port1 -> index ] ;
+ uint32_t old_state = port -> ctrl ;
+ port -> ctrl |= OHCI_PORT_CCS | OHCI_PORT_CSC ;
+ if ( port -> port . dev -> speed == USB_SPEED_LOW ) {
+ port -> ctrl |= OHCI_PORT_LSDA ;
+ }
+ else {
+ port -> ctrl &= ~ OHCI_PORT_LSDA ;
+ }
+ if ( ( s -> ctl & OHCI_CTL_HCFS ) == OHCI_USB_SUSPEND ) {
+ ohci_set_interrupt ( s , OHCI_INTR
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

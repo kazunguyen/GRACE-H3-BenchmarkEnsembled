@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Expr * inline_function ( Oid funcid , Oid result_type , Oid result_collid , Oid input_collid , List * args , bool funcvariadic , HeapTuple func_tuple , eval_const_expressions_context * context ) {
+ Form_pg_proc funcform = ( Form_pg_proc ) GETSTRUCT ( func_tuple ) ;
+ char * src ;
+ Datum tmp ;
+ bool isNull ;
+ bool modifyTargetList ;
+ MemoryContext oldcxt ;
+ MemoryContext mycxt ;
+ inline_error_callback_arg callback_arg ;
+ ErrorContextCallback sqlerrcontext ;
+ FuncExpr * fexpr ;
+ SQLFunctionParseInfoPtr pinfo ;
+ ParseState * pstate ;
+ List * raw_parsetree_list ;
+ Query * querytree ;
+ Node * newexpr ;
+ int * usecounts ;
+ ListCell * arg ;
+ int i ;
+ if ( funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset || funcform -> prorettype == RECORDOID || ! heap_attisnull ( func_tuple , Anum_pg_proc_proconfig ) || funcform -> pronargs != list_length ( args ) ) return NULL ;
+ if ( list_member_oid ( context -> active_fns , funcid ) ) return NULL ;
+ if ( pg_proc_aclcheck ( funcid , GetUserId ( ) , ACL_EXECUTE ) != ACLCHECK_OK ) return NULL ;
+ if ( FmgrHookIsNeeded ( funcid ) ) return NULL ;
+ mycxt = AllocSetContextCreate ( CurrentMemoryContext , "inline_function" , ALLOCSET_DEFAULT_MINSIZE , ALLOCSET_DEFAULT_INITSIZE , ALLOCSET_DEFAULT_MAXSIZE ) ;
+ oldcxt = MemoryContextSwitchTo ( mycxt ) ;
+ tmp = SysCacheGetAttr ( PROCOID , func_tuple , Anum_pg_proc_prosrc , & isNull ) ;
+ if ( isNull ) elog ( ERROR , "null prosrc for function %u" , funcid ) ;
+ src = TextDatumGetCString ( tmp ) ;
+ callback_arg . proname = NameStr ( funcform -> proname ) ;
+ callback_arg . prosrc = src ;
+ sqlerrcontext . callback = sql_inline_error_callback ;
+ sqlerrcontext . arg = ( void * ) & callback_arg ;
+ sqlerrcontext . previous = error_context_stack ;
+ error_context_stack = & sqlerrcontext ;
+ fexpr = makeNode ( FuncExpr ) ;
+ fexpr -> funcid = funcid ;
+ fexpr -> funcresulttype = result_type ;
+ fexpr -> funcretset = false ;
+ fexpr -> funcvariadic = funcvariadic ;
+ fexpr -> funcformat = COERCE_EXPLICIT_CALL ;
+ fexpr -> funccollid = result_collid ;
+ fexpr -> inputcollid = input_collid ;
+ fexpr -> args = args ;
+ fexpr -> location = - 1 ;
+ pinfo = prepare_sql_fn_parse_info ( func_tuple , ( Node * ) fexpr , input_collid ) ;
+ raw_parsetree_list = pg_parse_query ( src ) ;
+ if ( list_length ( raw_parsetree_list ) != 1 ) goto fail ;
+ pstate = make_parsestate ( NULL ) ;
+ pstate -> p_sourcetext = src ;
+ sql_fn_parser_setup ( pstate , pinfo ) ;
+ querytree = transformTopLevelStmt ( pstate , linitial ( raw_parsetree_list ) ) ;
+ free_parsestate ( pstate ) ;
+ if ( ! IsA ( querytree , Query ) || querytree -> commandType != CMD_SELECT || querytree -> utilityStmt || querytree -> hasAggs || querytree -> hasWindowFuncs || querytree -> hasSubLinks || querytree -> cteList || querytree -> rtable || querytree -> jointree -> fromlist || querytree -> jointree -> quals || querytree -> groupClause || querytree -> groupingSets || querytree -> havingQual || querytree -> windowClause |
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Form_pg_proc funcform = ( Form_pg_proc ) GETSTRUCT ( func_tuple ) ;
+ char * src ;
+ Datum tmp ;
+ bool isNull ;
+ bool modifyTargetList ;
+ MemoryContext oldcxt ;
+ MemoryContext mycxt ;
+ inline_error_callback_arg callback_arg ;
+ ErrorContextCallback sqlerrcontext ;
+ FuncExpr * fexpr ;
+ SQLFunctionParseInfoPtr pinfo ;
+ ParseState * pstate ;
+ List * raw_parsetree_list ;
+ Query * querytree ;
+ Node * newexpr ;
+ int * usecounts ;
+ ListCell * arg ;
+ int i ;
+ if ( funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset || funcform -> prorettype == RECORDOID || ! heap_attisnull ( func_tuple , Anum_pg_proc_proconfig ) || funcform -> pronargs != list_length ( args ) ) return NULL ;
+ if ( list_member_oid ( context -> active_fns , funcid ) ) return NULL ;
+ if ( pg_proc_aclcheck ( funcid , GetUserId ( ) , ACL_EXECUTE ) != ACLCHECK_OK ) return NULL ;
+ if ( FmgrHookIsNeeded ( funcid ) ) return NULL ;
+ mycxt = AllocSetContextCreate ( CurrentMemoryContext , "inline_func...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ Node * param = lfirst ( arg ) ;
+ if ( usecounts [ i ] == 0 ) {
+ if ( funcform -> proisstrict ) goto fail ;
+ }
+ else if ( usecounts [ i ] != 1 ) {
+ QualCost eval_cost ;
+ if ( contain_subplans ( param ) ) goto fail ;
+ cost_qual_eval ( & eval_cost , list_make1 ( param ) , NULL ) ;
+ if ( eval_cost . startup + eval_cost . per_tuple > 10 * cpu_operator_cost ) goto fail ;
+ if ( contain_volatile_functions ( param ) ) goto fail ;
+ }
+ i ++ ;
+ }
+      
+25769803792 | BLOCK | { if ( funcform -> proisstrict ) goto fail ; }
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ QualCost eval_cost ;
+ if ( contain_subplans ( param ) ) goto fail ;
+ cost_qual_eval ( & eval_cost , list_make1 ( param ) , NULL ) ;
+ if ( eval_cost . startup + eval_cost . per_tuple > 10 * cpu_operator_cost ) goto fail ;
+ if ( contain_volatile_functions ( param ) ) goto fail ;
+ }
+      
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | 
+        {
+ Oid exprcoll = exprCollation ( newexpr ) ;
+ if ( OidIsValid ( exprcoll ) && exprcoll != result_collid ) {
+ CollateExpr * newnode = makeNode ( CollateExpr ) ;
+ newnode -> arg = ( Expr * ) newexpr ;
+ newnode -> collOid = result_collid ;
+ newnode -> location = - 1 ;
+ newexpr = ( Node * ) newnode ;
+ }
+ }
+      
+25769803800 | BLOCK | 
+        {
+ CollateExpr * newnode = makeNode ( CollateExpr ) ;
+ newnode -> arg = ( Expr * ) newexpr ;
+ newnode -> collOid = result_collid ;
+ newnode -> location = - 1 ;
+ newexpr = ( Node * ) newnode ;
+ }
+      
+25769803801 | BLOCK | <empty>
+30064771072 | CALL | funcform = ( Form_pg_proc ) GETSTRUCT ( func_tuple )
+30064771073 | CALL | ( Form_pg_proc ) GETSTRUCT ( func_tuple )
+30064771074 | CALL | GETSTRUCT ( func_tuple )
+30064771075 | CALL | 
+        funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset || funcform -> prorettype == RECORDOID || ! heap_attisnull ( func_tuple , Anum_pg_proc_proconfig ) || funcform -> pronargs != list_length ( args )
+      
+30064771076 | CALL | 
+        funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset || funcform -> prorettype == RECORDOID || ! heap_attisnull ( func_tuple , Anum_pg_proc_proconfig )
+      
+30064771077 | CALL | 
+        funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset || funcform -> prorettype == RECORDOID
+      
+30064771078 | CALL | 
+        funcform -> prolang != SQLlanguageId || funcform -> prosecdef || funcform -> proretset
+      
+30064771079 | CALL | funcform -> prolang != SQLlanguageId || funcform -> prosecdef
+30064771080 | CALL | funcform -> prolang != SQLlanguageId
+30064771081 | CALL | funcform -> prolang
+30064771082 | CALL | funcform -> prosecdef
+30064771083 | CALL | funcform -> proretset
+30064771084 | CALL | funcform -> prorettype == RECORDOID
+3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

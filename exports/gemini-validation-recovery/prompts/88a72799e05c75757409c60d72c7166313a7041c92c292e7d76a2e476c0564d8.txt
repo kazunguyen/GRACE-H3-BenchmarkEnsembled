@@ -1,0 +1,357 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool get_phys_addr_lpae(CPUARMState *env, target_ulong address,
+
+                               MMUAccessType access_type, ARMMMUIdx mmu_idx,
+
+                               hwaddr *phys_ptr, MemTxAttrs *txattrs, int *prot,
+
+                               target_ulong *page_size_ptr,
+
+                               ARMMMUFaultInfo *fi, ARMCacheAttrs *cacheattrs)
+
+{
+
+    ARMCPU *cpu = arm_env_get_cpu(env);
+
+    CPUState *cs = CPU(cpu);
+
+    /* Read an LPAE long-descriptor translation table. */
+
+    ARMFaultType fault_type = ARMFault_Translation;
+
+    uint32_t level;
+
+    uint32_t epd = 0;
+
+    int32_t t0sz, t1sz;
+
+    uint32_t tg;
+
+    uint64_t ttbr;
+
+    int ttbr_select;
+
+    hwaddr descaddr, indexmask, indexmask_grainsize;
+
+    uint32_t tableattrs;
+
+    target_ulong page_size;
+
+    uint32_t attrs;
+
+    int32_t stride = 9;
+
+    int32_t addrsize;
+
+    int inputsize;
+
+    int32_t tbi = 0;
+
+    TCR *tcr = regime_tcr(env, mmu_idx);
+
+    int ap, ns, xn, pxn;
+
+    uint32_t el = regime_el(env, mmu_idx);
+
+    bool ttbr1_valid = true;
+
+    uint64_t descaddrmask;
+
+    bool aarch64 = arm_el_is_aa64(env, el);
+
+
+
+    /* TODO:
+
+     * This code does not handle the different format TCR for VTCR_EL2.
+
+     * This code also does not support shareability levels.
+
+     * Attribute and permission bit handling should also be checked when adding
+
+     * support for those page table walks.
+
+     */
+
+    if (aarch64) {
+
+        level = 0;
+
+        addrsize = 64;
+
+        if (el > 1) {
+
+            if (mmu_idx != ARMMMUIdx_S2NS) {
+
+                tbi = extract64(tcr->raw_tcr, 20, 1);
+
+            }
+
+        } else {
+
+            if (extract64(address, 55, 1)) {
+
+                tbi = extract64(tcr->raw_tcr, 38, 1);
+
+            } else {
+
+                tbi = extract64(tcr->raw_tcr, 37, 1);
+
+            }
+
+        }
+
+        tbi *= 8;
+
+
+
+        /* If we are in 64-bit EL2 or EL3 then there is no TTBR1, so mark it
+
+         * invalid.
+
+         */
+
+        if (el > 1) {
+
+            ttbr1_valid = false;
+
+        }
+
+    } else {
+
+        level = 1;
+
+        addrsize = 32;
+
+        /* There is no TTBR1 for EL2 */
+
+        if (el == 2) {
+
+            ttbr1_valid = false;
+
+        }
+
+    }
+
+
+
+    /* Determine whether this address is in the region controlled by
+
+     * TTBR0 or TTBR1 (or if it is in neither region and should fault).
+
+     * This is a Non-secure PL0/1 stage 1 translation, so controlled by
+
+     * TTBCR/TTBR0/TTBR1 in accordance with ARM ARM DDI0406C table B-32:
+
+     */
+
+    if (aarch64) {
+
+        /* AArch64 translation.  */
+
+        t0sz = extract32(tcr->raw_tcr, 0, 6);
+
+        t0sz = MIN(t0sz, 39);
+
+        t0sz = MAX(t0sz, 16);
+
+    } else if (mmu_idx != ARMMMUIdx_S2NS) {
+
+        /* AArch32 stage 1 translation.  */
+
+        t0sz = extract32(tcr->raw_tcr, 0, 3);
+
+    } else {
+
+        /* AArch32 stage 2 translation.  */
+
+        bool sext = extract32(tcr->raw_tcr, 4, 1);
+
+        bool sign = extract32(tcr->raw_tcr, 3, 1);
+
+        /* Address size i
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+66 -> 73 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+4 -> 80 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static bool get_phys_addr_lpae(CPUARMState *env, target_ulong address,
+
+                               int access_type, ARMMMUIdx mmu_idx,
+
+                               hwaddr *phys_ptr, MemTxAttrs *txattrs, int *prot,
+
+                               target_ulong *page_size_ptr, uint32_t *fsr,
+
+                               ARMMMUFaultInfo *fi)
+
+{
+
+    ARMCPU *cpu = arm_env_get_cpu(env);
+
+    CPUState *cs = CPU(cpu);
+
+    /* Read an LPAE long-descriptor translation table. */
+
+    MMUFaultType fault_type = translation_fault;
+
+    uint32_t level;
+
+    uint32_t epd = 0;
+
+    int32_t t0sz, t1sz;
+
+    uint32_t tg;
+
+    uint64_t ttbr;
+
+    int ttbr_select;
+
+    hwaddr descaddr, indexmask, indexmask_grainsize;
+
+    uint32_t tableattrs;
+
+    target_ulong page_size;
+
+    uint32_t attrs;
+
+    int32_t stride = 9;
+
+    int32_t va_size;
+
+    int inputsize;
+
+    int32_t tbi = 0;
+
+    TCR *tcr = regime_tcr(env, mmu_idx);
+
+    int ap, ns, xn, pxn;
+
+    uint32_t el = regime_el(env, mmu_idx);
+
+    bool ttbr1_valid = true;
+
+    uint64_t descaddrmask;
+
+
+
+    /* TODO:
+
+     * This code does not handle the different format TCR for VTCR_EL2.
+
+     * This code also does not support shareability levels.
+
+     * Attribute and permission bit handling should also be checked when adding
+
+     * support for those page table walks.
+
+     */
+
+    if (arm_el_is_aa64(env, el)) {
+
+        level = 0;
+
+        va_size = 64;
+
+        if (el > 1) {
+
+            if (mmu_idx != ARMMMUIdx_S2NS) {
+
+                
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

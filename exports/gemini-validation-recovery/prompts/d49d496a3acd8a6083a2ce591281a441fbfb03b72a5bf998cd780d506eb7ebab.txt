@@ -1,0 +1,177 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void reindex_one_database ( const char * name , const char * dbname , const char * type , const char * host , const char * port , const char * username , enum trivalue prompt_password , const char * progname , bool echo , bool verbose ) {
+ PQExpBufferData sql ;
+ PGconn * conn ;
+ conn = connectDatabase ( dbname , host , port , username , prompt_password , progname , false , false ) ;
+ initPQExpBuffer ( & sql ) ;
+ appendPQExpBufferStr ( & sql , "REINDEX" ) ;
+ if ( verbose ) appendPQExpBufferStr ( & sql , " (VERBOSE)" ) ;
+ if ( strcmp ( type , "TABLE" ) == 0 ) appendPQExpBuffer ( & sql , " TABLE %s" , name ) ;
+ else if ( strcmp ( type , "INDEX" ) == 0 ) appendPQExpBuffer ( & sql , " INDEX %s" , name ) ;
+ else if ( strcmp ( type , "SCHEMA" ) == 0 ) appendPQExpBuffer ( & sql , " SCHEMA %s" , name ) ;
+ else if ( strcmp ( type , "DATABASE" ) == 0 ) appendPQExpBuffer ( & sql , " DATABASE %s" , fmtId ( PQdb ( conn ) ) ) ;
+ appendPQExpBufferChar ( & sql , ';
+' ) ;
+ if ( ! executeMaintenanceCommand ( conn , sql . data , echo ) ) {
+ if ( strcmp ( type , "TABLE" ) == 0 ) fprintf ( stderr , _ ( "%s: reindexing of table \"%s\" in database \"%s\" failed: %s" ) , progname , name , PQdb ( conn ) , PQerrorMessage ( conn ) ) ;
+ if ( strcmp ( type , "INDEX" ) == 0 ) fprintf ( stderr , _ ( "%s: reindexing of index \"%s\" in database \"%s\" failed: %s" ) , progname , name , PQdb ( conn ) , PQerrorMessage ( conn ) ) ;
+ if ( strcmp ( type , "SCHEMA" ) == 0 ) fprintf ( stderr , _ ( "%s: reindexing of schema \"%s\" in database \"%s\" failed: %s" ) , progname , name , PQdb ( conn ) , PQerrorMessage ( conn ) ) ;
+ else fprintf ( stderr , _ ( "%s: reindexing of database \"%s\" failed: %s" ) , progname , PQdb ( conn ) , PQerrorMessage ( conn ) ) ;
+ PQfinish ( conn ) ;
+ exit ( 1 ) ;
+ }
+ PQfinish ( conn ) ;
+ termPQExpBuffer ( & sql ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PQExpBufferData sql ;
+ PGconn * conn ;
+ conn = connectDatabase ( dbname , host , port , username , prompt_password , progname , false , false ) ;
+ initPQExpBuffer ( & sql ) ;
+ appendPQExpBufferStr ( & sql , "REINDEX" ) ;
+ if ( verbose ) appendPQExpBufferStr ( & sql , " (VERBOSE)" ) ;
+ if ( strcmp ( type , "TABLE" ) == 0 ) appendPQExpBuffer ( & sql , " TABLE %s" , name ) ;
+ else if ( strcmp ( type , "INDEX" ) == 0 ) appendPQExpBuffer ( & sql , " INDEX %s" , name ) ;
+ else if ( strcmp ( type , "SCHEMA" ) == 0 ) appendPQExpBuffer ( & sql , " SCHEMA %s" , name ) ;
+ else if ( strcmp ( type , "DATABASE" ) == 0 ) appendPQExpBuffer ( & sql , " DATABASE %s" , fmtId ( PQdb ( conn ) ) ) ;
+ appendPQExpBufferChar ( & sql , ';
+' ) ;
+ if ( ! executeMaintenanceCommand ( conn , sql . data , echo ) ) {
+ if ( strcmp ( type , "TABLE" ) == 0 ) fprintf ( stderr , _ ( "%s: reindexing of table \"%s\" in database \"%s\" failed: %s" ) , progname , name , PQdb ( conn ) , PQerrorMessage ( conn ) ) ;
+ if ( s...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | 
+        conn = connectDatabase ( dbname , host , port , username , prompt_password , progname , false , false )
+      
+30064771073 | CALL | 
+        connectDatabase ( dbname , host , port , username , prompt_password , progname , false , false )
+      
+30064771074 | CALL | initPQExpBuffer ( & sql )
+30064771075 | CALL | & sql
+30064771076 | CALL | appendPQExpBufferStr ( & sql , "REINDEX" )
+30064771077 | CALL | & sql
+30064771078 | CALL | verbose != 0
+30064771079 | CALL | appendPQExpBufferStr ( & sql , " (VERBOSE)" )
+30064771080 | CALL | & sql
+30064771081 | CALL | strcmp ( type , "TABLE" ) == 0
+30064771082 | CALL | strcmp ( type , "TABLE" )
+30064771083 | CALL | appendPQExpBuffer ( & sql , " TABLE %s" , name )
+30064771084 | CALL | & sql
+30064771085 | CALL | strcmp ( type , "INDEX" ) == 0
+30064771086 | CALL | strcmp ( type , "INDEX" )
+30064771087 | CALL | appendPQExpBuffer ( & sql , " INDEX %s" , name )
+30064771088 | CALL | & sql
+30064771089 | CALL | strcmp ( type , "SCHEMA" ) == 0
+30064771090 | CALL | strcmp ( type , "SCHEMA" )
+30064771091 | CALL | appendPQExpBuffer ( & sql , " SCHEMA %s" , name )
+30064771092 | CALL | & sql
+30064771093 | CALL | strcmp ( type , "DATABASE" ) == 0
+30064771094 | CALL | strcmp ( type , "DATABASE" )
+30064771095 | CALL | 
+        appendPQExpBuffer ( & sql , " DATABASE %s" , fmtId ( PQdb ( conn ) ) )
+      
+30064771096 | CALL | & sql
+30064771097 | CALL | fmtId ( PQdb ( conn ) )
+30064771098 | CALL | PQdb ( conn )
+30064771099 | CALL | PQfinish ( conn )
+30064771100 | CALL | termPQExpBuffer ( & sql )
+30064771101 | CALL | & sql
+47244640256 | CONTROL_STRUCTURE | 
+        if ( verbose ) appendPQExpBufferStr ( & sql , " (VERBOSE)" ) ;
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771083 [AST]
+25769803780 -> 30064771087 [AST]
+25769803782 -> 30064771091 [AST]
+25769803784 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771084 [REACHING_DEF]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771092 [REACHING_DEF]
+30064771077 -> 30064771101 [REACHING_DEF]
+30064771077 -> 30064771088 [REACHING_DEF]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771096 [REACHING_DEF]
+30064771080 -> 30064771092 [REACHING_DEF]
+30064771080 -> 30064771101 [REACHING_DEF]
+30064771080 -> 30064771088 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771101 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771101 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771092 [CDG
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

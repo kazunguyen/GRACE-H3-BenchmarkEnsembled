@@ -1,0 +1,127 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nvdec_h264_decode_init(AVCodecContext *avctx)
+
+{
+
+    const H264Context *h = avctx->priv_data;
+
+    const SPS       *sps = h->ps.sps;
+
+    return ff_nvdec_decode_init(avctx, sps->ref_frame_count + sps->num_reorder_frames);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 24 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+33 -> 37 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 40 [IS_AST_PARENT]
+3 -> 41 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+3 -> 42 [IS_AST_PARENT]
+46 -> 43 [FLOWS_TO]
+43 -> 5 [FLOWS_TO]
+5 -> 14 [FLOWS_TO]
+14 -> 25 [FLOWS_TO]
+25 -> 47 [FLOWS_TO]
+25 -> 48 [USE]
+32 -> 48 [USE]
+5 -> 49 [USE]
+9 -> 49 [USE]
+14 -> 50 [USE]
+20 -> 50 [USE]
+18 -> 50 [USE]
+14 -> 51 [USE]
+20 -> 51 [USE]
+18 -> 51 [USE]
+14 -> 52 [USE]
+18 -> 52 [USE]
+14 -> 53 [DEF]
+15 -> 53 [DEF]
+18 -> 53 [DEF]
+25 -> 53 [USE]
+34 -> 53 [USE]
+37 -> 53 [USE]
+5 -> 54 [DEF]
+9 -> 54 [DEF]
+6 -> 54 [DEF]
+14 -> 54 [USE]
+21 -> 54 [USE]
+25 -> 55 [USE]
+43 -> 56 [DEF]
+5 -> 56 [USE]
+11 -> 56 [USE]
+25 -> 56 [USE]
+30 -> 56 [USE]
+5 -> 57 [USE]
+9 -> 57 [USE]
+25 -> 58 [USE]
+32 -> 58 [USE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int nvdec_hevc_decode_init(AVCodecContext *avctx)
+
+{
+
+    const HEVCContext *s = avctx->priv_data;
+
+    const HEVCSPS *sps = s->ps.sps;
+
+    return ff_nvdec_decode_init(avctx, sps->temporal_layer[sps->max_sub_layers - 1].max_dec_pic_buffering + 1);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

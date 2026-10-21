@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int may_create ( struct inode * dir , struct dentry * dentry , u16 tclass ) {
+ const struct task_security_struct * tsec = current_security ( ) ;
+ struct inode_security_struct * dsec ;
+ struct superblock_security_struct * sbsec ;
+ u32 sid , newsid ;
+ struct common_audit_data ad ;
+ int rc ;
+ dsec = inode_security ( dir ) ;
+ sbsec = dir -> i_sb -> s_security ;
+ sid = tsec -> sid ;
+ ad . type = LSM_AUDIT_DATA_DENTRY ;
+ ad . u . dentry = dentry ;
+ rc = avc_has_perm ( sid , dsec -> sid , SECCLASS_DIR , DIR__ADD_NAME | DIR__SEARCH , & ad ) ;
+ if ( rc ) return rc ;
+ rc = selinux_determine_inode_label ( current_security ( ) , dir , & dentry -> d_name , tclass , & newsid ) ;
+ if ( rc ) return rc ;
+ rc = avc_has_perm ( sid , newsid , tclass , FILE__CREATE , & ad ) ;
+ if ( rc ) return rc ;
+ return avc_has_perm ( newsid , sbsec -> sid , SECCLASS_FILESYSTEM , FILESYSTEM__ASSOCIATE , & ad ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const struct task_security_struct * tsec = current_security ( ) ;
+ struct inode_security_struct * dsec ;
+ struct superblock_security_struct * sbsec ;
+ u32 sid , newsid ;
+ struct common_audit_data ad ;
+ int rc ;
+ dsec = inode_security ( dir ) ;
+ sbsec = dir -> i_sb -> s_security ;
+ sid = tsec -> sid ;
+ ad . type = LSM_AUDIT_DATA_DENTRY ;
+ ad . u . dentry = dentry ;
+ rc = avc_has_perm ( sid , dsec -> sid , SECCLASS_DIR , DIR__ADD_NAME | DIR__SEARCH , & ad ) ;
+ if ( rc ) return rc ;
+ rc = selinux_determine_inode_label ( current_security ( ) , dir , & dentry -> d_name , tclass , & newsid ) ;
+ if ( rc ) return rc ;
+ rc = avc_has_perm ( sid , newsid , tclass , FILE__CREATE , & ad ) ;
+ if ( rc ) return rc ;
+ return avc_has_perm ( newsid , sbsec -> sid , SECCLASS_FILESYSTEM , FILESYSTEM__ASSOCIATE , & ad ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | tsec = current_security ( )
+30064771073 | CALL | current_security ( )
+30064771074 | CALL | dsec = inode_security ( dir )
+30064771075 | CALL | inode_security ( dir )
+30064771076 | CALL | sbsec = dir -> i_sb -> s_security
+30064771077 | CALL | dir -> i_sb -> s_security
+30064771078 | CALL | dir -> i_sb
+30064771079 | CALL | sid = tsec -> sid
+30064771080 | CALL | tsec -> sid
+30064771081 | CALL | ad . type = LSM_AUDIT_DATA_DENTRY
+30064771082 | CALL | ad . type
+30064771083 | CALL | ad . u . dentry = dentry
+30064771084 | CALL | ad . u . dentry
+30064771085 | CALL | ad . u
+30064771086 | CALL | 
+        rc = avc_has_perm ( sid , dsec -> sid , SECCLASS_DIR , DIR__ADD_NAME | DIR__SEARCH , & ad )
+      
+30064771087 | CALL | 
+        avc_has_perm ( sid , dsec -> sid , SECCLASS_DIR , DIR__ADD_NAME | DIR__SEARCH , & ad )
+      
+30064771088 | CALL | dsec -> sid
+30064771089 | CALL | DIR__ADD_NAME | DIR__SEARCH
+30064771090 | CALL | & ad
+30064771091 | CALL | rc != 0
+30064771092 | CALL | 
+        rc = selinux_determine_inode_label ( current_security ( ) , dir , & dentry -> d_name , tclass , & newsid )
+      
+30064771093 | CALL | 
+        selinux_determine_inode_label ( current_security ( ) , dir , & dentry -> d_name , tclass , & newsid )
+      
+30064771094 | CALL | current_security ( )
+30064771095 | CALL | & dentry -> d_name
+30064771096 | CALL | dentry -> d_name
+30064771097 | CALL | & newsid
+30064771098 | CALL | rc != 0
+30064771099 | CALL | rc = avc_has_perm ( sid , newsid , tclass , FILE__CREATE , & ad )
+30064771100 | CALL | avc_has_perm ( sid , newsid , tclass , FILE__CREATE , & ad )
+30064771101 | CALL | & ad
+30064771102 | CALL | rc != 0
+30064771103 | CALL | 
+        avc_has_perm ( newsid , sbsec -> sid , SECCLASS_FILESYSTEM , FILESYSTEM__ASSOCIATE , & ad )
+      
+30064771104 | CALL | sbsec -> sid
+30064771105 | CALL | & ad
+47244640256 | CONTROL_STRUCTURE | if ( rc ) return rc ;
+47244640257 | CONTROL_STRUCTURE | if ( rc ) return rc ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771090 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771090 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771090 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [REACHING_DEF]
+30064771088 -> 30064771090 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771089 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771087 [CFG]
+30064771090 -> 30064771087 [DOMINATE]
+30064771090 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771101 [REACHING_DEF]
+30064771091 -> 30064771098 [CDG]
+30064771091 -> 30064771092 [CDG]
+30064771091 -> 30064771093 [CDG]
+30064771091 -> 30064771094 [CDG]
+30064771091 -> 30064771095 [CDG]
+30064771091 -> 30064771096 [CDG]
+30064771091 -> 30064771097 [CDG]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771093 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int may_link ( struct inode * dir , struct dentry * dentry , int kind ) {
+ struct inode_security_struct * dsec , * isec ;
+ struct common_audit_data ad ;
+ u32 sid = current_sid ( ) ;
+ u32 av ;
+ int rc ;
+ dsec = inode_security ( dir ) ;
+ isec = backing_inode_security ( dentry ) ;
+ ad . type = LSM_AUDIT_DATA_DENTRY ;
+ ad . u . dentry = dentry ;
+ av = DIR__SEARCH ;
+ av |= ( kind ? DIR__REMOVE_NAME : DIR__ADD_NAME ) ;
+ rc = avc_has_perm ( sid , dsec -> sid , SECCLASS_DIR , av , & ad ) ;
+ if ( rc ) return rc ;
+ switch ( kind ) {
+ case MAY_LINK : av = FILE__LINK ;
+ break ;
+ case MAY_UNLINK : av = F
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

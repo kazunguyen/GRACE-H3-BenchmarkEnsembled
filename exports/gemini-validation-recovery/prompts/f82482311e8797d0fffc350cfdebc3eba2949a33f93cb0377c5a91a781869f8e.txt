@@ -1,0 +1,229 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int tablefilematch ( struct taboff * tab , FILE * ttc , struct alltabs * all , int pos ) {
+ int i , ch1 , ch2 ;
+ struct taboff * test ;
+ unsigned len ;
+ for ( i = 0 ;
+ i < pos ;
+ ++ i ) {
+ test = findtabindir ( & all [ i ] . tabdir , tab -> tag ) ;
+ if ( test == NULL || test -> data == ( void * ) ( intpt ) - 1 || test -> length != tab -> length ) continue ;
+ rewind ( tab -> data ) ;
+ fseek ( ttc , test -> offset , SEEK_SET ) ;
+ for ( len = 0 ;
+ len < tab -> length && ( ch1 = getc ( tab -> data ) ) != EOF && ( ch2 = getc ( ttc ) ) != EOF ;
+ ++ len ) {
+ if ( ch1 != ch2 ) break ;
+ }
+ if ( len == tab -> length ) {
+ rewind ( tab -> data ) ;
+ fseek ( ttc , 0 , SEEK_END ) ;
+ return ( i ) ;
+ }
+ }
+ rewind ( tab -> data ) ;
+ fseek ( ttc , 0 , SEEK_END ) ;
+ return ( - 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , ch1 , ch2 ;
+ struct taboff * test ;
+ unsigned len ;
+ for ( i = 0 ;
+ i < pos ;
+ ++ i ) {
+ test = findtabindir ( & all [ i ] . tabdir , tab -> tag ) ;
+ if ( test == NULL || test -> data == ( void * ) ( intpt ) - 1 || test -> length != tab -> length ) continue ;
+ rewind ( tab -> data ) ;
+ fseek ( ttc , test -> offset , SEEK_SET ) ;
+ for ( len = 0 ;
+ len < tab -> length && ( ch1 = getc ( tab -> data ) ) != EOF && ( ch2 = getc ( ttc ) ) != EOF ;
+ ++ len ) {
+ if ( ch1 != ch2 ) break ;
+ }
+ if ( len == tab -> length ) {
+ rewind ( tab -> data ) ;
+ fseek ( ttc , 0 , SEEK_END ) ;
+ return ( i ) ;
+ }
+ }
+ rewind ( tab -> data ) ;
+ fseek ( ttc , 0 , SEEK_END ) ;
+ return ( - 1 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ test = findtabindir ( & all [ i ] . tabdir , tab -> tag ) ;
+ if ( test == NULL || test -> data == ( void * ) ( intpt ) - 1 || test -> length != tab -> length ) continue ;
+ rewind ( tab -> data ) ;
+ fseek ( ttc , test -> offset , SEEK_SET ) ;
+ for ( len = 0 ;
+ len < tab -> length && ( ch1 = getc ( tab -> data ) ) != EOF && ( ch2 = getc ( ttc ) ) != EOF ;
+ ++ len ) {
+ if ( ch1 != ch2 ) break ;
+ }
+ if ( len == tab -> length ) {
+ rewind ( tab -> data ) ;
+ fseek ( ttc , 0 , SEEK_END ) ;
+ return ( i ) ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { if ( ch1 != ch2 ) break ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { rewind ( tab -> data ) ; fseek ( ttc , 0 , SEEK_END ) ; return ( i ) ; }
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < pos
+30064771074 | CALL | ++ i
+30064771075 | CALL | test = findtabindir ( & all [ i ] . tabdir , tab -> tag )
+30064771076 | CALL | findtabindir ( & all [ i ] . tabdir , tab -> tag )
+30064771077 | CALL | & all [ i ] . tabdir
+30064771078 | CALL | all [ i ] . tabdir
+30064771079 | CALL | all [ i ]
+30064771080 | CALL | tab -> tag
+30064771081 | CALL | 
+        test == NULL || test -> data == ( void * ) ( intpt ) - 1 || test -> length != tab -> length
+      
+30064771082 | CALL | test == NULL || test -> data == ( void * ) ( intpt ) - 1
+30064771083 | CALL | test == NULL
+30064771084 | CALL | test -> data == ( void * ) ( intpt ) - 1
+30064771085 | CALL | test -> data
+30064771086 | CALL | ( void * ) ( intpt ) - 1
+30064771087 | CALL | ( void * ) ( intpt )
+30064771088 | CALL | test -> length != tab -> length
+30064771089 | CALL | test -> length
+30064771090 | CALL | tab -> length
+30064771091 | CALL | rewind ( tab -> data )
+30064771092 | CALL | tab -> data
+30064771093 | CALL | fseek ( ttc , test -> offset , SEEK_SET )
+30064771094 | CALL | test -> offset
+30064771095 | CALL | len = 0
+30064771096 | CALL | 
+        len < tab -> length && ( ch1 = getc ( tab -> data ) ) != EOF && ( ch2 = getc ( ttc ) ) != EOF
+      
+30064771097 | CALL | len < tab -> length && ( ch1 = getc ( tab -> data ) ) != EOF
+30064771098 | CALL | len < tab -> length
+30064771099 | CALL | tab -> length
+30064771100 | CALL | ( ch1 = getc ( tab -> data ) ) != EOF
+30064771101 | CALL | ch1 = getc ( tab -> data )
+30064771102 | CALL | getc ( tab -> data )
+30064771103 | CALL | tab -> data
+30064771104 | CALL | ( ch2 = getc ( ttc ) ) != EOF
+30064771105 | CALL | ch2 = getc ( ttc )
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771093 [AST]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771082 [CDG]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771080 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771076 [CFG]
+30064771080 -> 30064771076 [DOMINATE]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771088 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771088 [AST]
+30064771081 -> 30064771074 [CDG]
+30064771081 -> 30064771073 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771098 [CDG]
+30064771081 -> 30064771097 [CDG]
+30064771081 -> 30064771099 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771088 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771088 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static FILE * checkdupstoredtable ( SplineFont * sf , uint32 tag , int * len , struct alltabs * all , int me ) {
+ int i ;
+ struct ttf_table * tab = SFFindTable ( sf , tag ) , * test ;
+ if ( tab == NULL ) {
+ * len = 0 ;
+ return ( NULL ) ;
+ }
+ for ( i = 0 ;
+ i < me ;
+ ++ i ) {
+ test = SFFindTable ( all [ i ] . sf , tag ) ;
+ if ( test != NULL && test -> len == tab -> len && memcmp ( test -> data , tab -> data , tab -> len ) == 0 ) {
+ * len = i ;
+ return ( ( FILE * ) ( intpt ) - 1 ) ;
+ }
+ }
+ return ( dumpstoredtable ( sf , 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

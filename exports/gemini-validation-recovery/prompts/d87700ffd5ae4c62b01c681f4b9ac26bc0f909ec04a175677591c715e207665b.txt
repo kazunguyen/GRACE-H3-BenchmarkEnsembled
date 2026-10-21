@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ni_prepare_read ( AVFormatContext * s ) {
+ AVIContext * avi = s -> priv_data ;
+ int best_stream_index = 0 ;
+ AVStream * best_st = NULL ;
+ AVIStream * best_ast ;
+ int64_t best_ts = INT64_MAX ;
+ int i ;
+ for ( i = 0 ;
+ i < s -> nb_streams ;
+ i ++ ) {
+ AVStream * st = s -> streams [ i ] ;
+ AVIStream * ast = st -> priv_data ;
+ int64_t ts = ast -> frame_offset ;
+ int64_t last_ts ;
+ if ( ! st -> nb_index_entries ) continue ;
+ last_ts = st -> index_entries [ st -> nb_index_entries - 1 ] . timestamp ;
+ if ( ! ast -> remaining && ts > last_ts ) continue ;
+ ts = av_rescale_q ( ts , st -> time_base , ( AVRational ) {
+ FFMAX ( 1 , ast -> sample_size ) , AV_TIME_BASE }
+ ) ;
+ av_log ( s , AV_LOG_TRACE , "%" PRId64 " %d/%d %" PRId64 "\n" , ts , st -> time_base . num , st -> time_base . den , ast -> frame_offset ) ;
+ if ( ts < best_ts ) {
+ best_ts = ts ;
+ best_st = st ;
+ best_stream_index = i ;
+ }
+ }
+ if ( ! best_st ) return AVERROR_EOF ;
+ best_ast = best_st -> priv_data ;
+ best_ts = best_ast -> frame_offset ;
+ if ( best_ast -> remaining ) {
+ i = av_index_search_timestamp ( best_st , best_ts , AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD ) ;
+ }
+ else {
+ i = av_index_search_timestamp ( best_st , best_ts , AVSEEK_FLAG_ANY ) ;
+ if ( i >= 0 ) best_ast -> frame_offset = best_st -> index_entries [ i ] . timestamp ;
+ }
+ if ( i >= 0 ) {
+ int64_t pos = best_st -> index_entries [ i ] . pos ;
+ pos += best_ast -> packet_size - best_ast -> remaining ;
+ if ( avio_seek ( s -> pb , pos + 8 , SEEK_SET ) < 0 ) return AVERROR_EOF ;
+ av_assert0 ( best_ast -> remaining <= best_ast -> packet_size ) ;
+ avi -> stream_index = best_stream_index ;
+ if ( ! best_ast -> remaining ) best_ast -> packet_size = best_ast -> remaining = best_st -> index_entries [ i ] . size ;
+ }
+ else return AVERROR_EOF ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVIContext * avi = s -> priv_data ;
+ int best_stream_index = 0 ;
+ AVStream * best_st = NULL ;
+ AVIStream * best_ast ;
+ int64_t best_ts = INT64_MAX ;
+ int i ;
+ for ( i = 0 ;
+ i < s -> nb_streams ;
+ i ++ ) {
+ AVStream * st = s -> streams [ i ] ;
+ AVIStream * ast = st -> priv_data ;
+ int64_t ts = ast -> frame_offset ;
+ int64_t last_ts ;
+ if ( ! st -> nb_index_entries ) continue ;
+ last_ts = st -> index_entries [ st -> nb_index_entries - 1 ] . timestamp ;
+ if ( ! ast -> remaining && ts > last_ts ) continue ;
+ ts = av_rescale_q ( ts , st -> time_base , ( AVRational ) {
+ FFMAX ( 1 , ast -> sample_size ) , AV_TIME_BASE }
+ ) ;
+ av_log ( s , AV_LOG_TRACE , "%" PRId64 " %d/%d %" PRId64 "\n" , ts , st -> time_base . num , st -> time_base . den , ast -> frame_offset ) ;
+ if ( ts < best_ts ) {
+ best_ts = ts ;
+ best_st = st ;
+ best_stream_index = i ;
+ }
+ }
+ if ( ! best_st ) return AVERROR_EOF ;
+ best_ast = best_st -> priv_data ;
+ best_ts = best_ast -> frame_offset ;
+ if ( best_ast -> remaining...
+      
+25769803777 | BLOCK | 
+        {
+ AVStream * st = s -> streams [ i ] ;
+ AVIStream * ast = st -> priv_data ;
+ int64_t ts = ast -> frame_offset ;
+ int64_t last_ts ;
+ if ( ! st -> nb_index_entries ) continue ;
+ last_ts = st -> index_entries [ st -> nb_index_entries - 1 ] . timestamp ;
+ if ( ! ast -> remaining && ts > last_ts ) continue ;
+ ts = av_rescale_q ( ts , st -> time_base , ( AVRational ) {
+ FFMAX ( 1 , ast -> sample_size ) , AV_TIME_BASE }
+ ) ;
+ av_log ( s , AV_LOG_TRACE , "%" PRId64 " %d/%d %" PRId64 "\n" , ts , st -> time_base . num , st -> time_base . den , ast -> frame_offset ) ;
+ if ( ts < best_ts ) {
+ best_ts = ts ;
+ best_st = st ;
+ best_stream_index = i ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { best_ts = ts ; best_st = st ; best_stream_index = i ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ i = av_index_search_timestamp ( best_st , best_ts , AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ i = av_index_search_timestamp ( best_st , best_ts , AVSEEK_FLAG_ANY ) ;
+ if ( i >= 0 ) best_ast -> frame_offset = best_st -> index_entries [ i ] . timestamp ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ int64_t pos = best_st -> index_entries [ i ] . pos ;
+ pos += best_ast -> packet_size - best_ast -> remaining ;
+ if ( avio_seek ( s -> pb , pos + 8 , SEEK_SET ) < 0 ) return AVERROR_EOF ;
+ av_assert0 ( best_ast -> remaining <= best_ast -> packet_size ) ;
+ avi -> stream_index = best_stream_index ;
+ if ( ! best_ast -> remaining ) best_ast -> packet_size = best_ast -> remaining = best_st -> index_entries [ i ] . size ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | avi = s -> priv_data
+30064771073 | CALL | s -> priv_data
+30064771074 | CALL | best_stream_index = 0
+30064771075 | CALL | best_st = NULL
+30064771076 | CALL | best_ts = INT64_MAX
+30064771077 | CALL | i = 0
+30064771078 | CALL | i < s -> nb_streams
+30064771079 | CALL | s -> nb_streams
+30064771080 | CALL | i ++
+30064771081 | CALL | st = s -> streams [ i ]
+30064771082 | CALL | s -> streams [ i ]
+30064771083 | CALL | s -> streams
+30064771084 | CALL | ast = st -> priv_data
+30064771085 | CALL | st -> priv_data
+30064771086 | CALL | ts = ast -> frame_offset
+30064771087 | CALL | ast -> frame_offset
+30064771088 | CALL | ! st -> nb_index_entries
+30064771089 | CALL | st -> nb_index_entries
+30064771090 | CALL | last_ts = st -> index_entries [ st -> nb_index_entries - 1 ] . timestamp
+30064771091 | CALL | st -> index_entries [ st -> nb_index_entries - 1 ] . timestamp
+30064771092 | CALL | st -> index_entries [ st -> nb_index_entries - 1 ]
+30064771093 | CALL | st -> index_entries
+30064771094 | CALL | st -> nb_index_entries - 1
+30064771095 | CALL | st -> nb_index_entries
+30064771096 | CALL | ! ast -> remaining && ts > last_ts
+30064771097 | CALL | ! ast -> remaining
+30064771098 | CALL | ast -> remaining
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

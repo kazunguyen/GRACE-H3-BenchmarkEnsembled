@@ -1,0 +1,388 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decode_cdlms(WmallDecodeCtx *s)
+
+{
+
+    int c, i;
+
+    int cdlms_send_coef = get_bits1(&s->gb);
+
+
+
+    for(c = 0; c < s->num_channels; c++) {
+
+	s->cdlms_ttl[c] = get_bits(&s->gb, 3) + 1;
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].order = (get_bits(&s->gb, 7) + 1) * 8;
+
+	}
+
+
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].scaling = get_bits(&s->gb, 4);
+
+	}
+
+
+
+	if(cdlms_send_coef) {
+
+	    for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+		int cbits, shift_l, shift_r, j;
+
+		cbits = av_log2(s->cdlms[c][i].order);
+
+		if(1 << cbits < s->cdlms[c][i].order)
+
+		    cbits++;
+
+		s->cdlms[c][i].coefsend = get_bits(&s->gb, cbits) + 1;
+
+
+
+		cbits = av_log2(s->cdlms[c][i].scaling + 1);
+
+		if(1 << cbits < s->cdlms[c][i].scaling + 1)
+
+		    cbits++;
+
+
+
+		s->cdlms[c][i].bitsend = get_bits(&s->gb, cbits) + 2;
+
+		shift_l = 32 - s->cdlms[c][i].bitsend;
+
+		shift_r = 32 - 2 - s->cdlms[c][i].scaling;
+
+		for(j = 0; j < s->cdlms[c][i].coefsend; j++) {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c][i].bitsend) << shift_l) >> shift_r;
+
+		}
+
+	    }
+
+	}
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int c, i;
+
+    int cdlms_send_coef = get_bits1(&s->gb);
+
+
+
+    for(c = 0; c < s->num_channels; c++) {
+
+	s->cdlms_ttl[c] = get_bits(&s->gb, 3) + 1;
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].order = (get_bits(&s->gb, 7) + 1) * 8;
+
+	}
+
+
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].scaling = get_bits(&s->gb, 4);
+
+	}
+
+
+
+	if(cdlms_send_coef) {
+
+	    for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+		int cbits, shift_l, shift_r, j;
+
+		cbits = av_log2(s->cdlms[c][i].order);
+
+		if(1 << cbits < s->cdlms[c][i].order)
+
+		    cbits++;
+
+		s->cdlms[c][i].coefsend = get_bits(&s->gb, cbits) + 1;
+
+
+
+		cbits = av_log2(s->cdlms[c][i].scaling + 1);
+
+		if(1 << cbits < s->cdlms[c][i].scaling + 1)
+
+		    cbits++;
+
+
+
+		s->cdlms[c][i].bitsend = get_bits(&s->gb, cbits) + 2;
+
+		shift_l = 32 - s->cdlms[c][i].bitsend;
+
+		shift_r = 32 - 2 - s->cdlms[c][i].scaling;
+
+		for(j = 0; j < s->cdlms[c][i].coefsend; j++) {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c]...
+      
+25769803777 | BLOCK | 
+        {
+
+	s->cdlms_ttl[c] = get_bits(&s->gb, 3) + 1;
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].order = (get_bits(&s->gb, 7) + 1) * 8;
+
+	}
+
+
+
+	for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+	    s->cdlms[c][i].scaling = get_bits(&s->gb, 4);
+
+	}
+
+
+
+	if(cdlms_send_coef) {
+
+	    for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+		int cbits, shift_l, shift_r, j;
+
+		cbits = av_log2(s->cdlms[c][i].order);
+
+		if(1 << cbits < s->cdlms[c][i].order)
+
+		    cbits++;
+
+		s->cdlms[c][i].coefsend = get_bits(&s->gb, cbits) + 1;
+
+
+
+		cbits = av_log2(s->cdlms[c][i].scaling + 1);
+
+		if(1 << cbits < s->cdlms[c][i].scaling + 1)
+
+		    cbits++;
+
+
+
+		s->cdlms[c][i].bitsend = get_bits(&s->gb, cbits) + 2;
+
+		shift_l = 32 - s->cdlms[c][i].bitsend;
+
+		shift_r = 32 - 2 - s->cdlms[c][i].scaling;
+
+		for(j = 0; j < s->cdlms[c][i].coefsend; j++) {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c][i].bitsend) << shift_l) >> shift_r;
+
+		}
+
+	    }
+
+	}
+
+    }
+      
+25769803778 | BLOCK | { s->cdlms[c][i].order = (get_bits(&s->gb, 7) + 1) * 8; }
+25769803779 | BLOCK | { s->cdlms[c][i].scaling = get_bits(&s->gb, 4); }
+25769803780 | BLOCK | 
+        {
+
+	    for(i = 0; i < s->cdlms_ttl[c]; i++) {
+
+		int cbits, shift_l, shift_r, j;
+
+		cbits = av_log2(s->cdlms[c][i].order);
+
+		if(1 << cbits < s->cdlms[c][i].order)
+
+		    cbits++;
+
+		s->cdlms[c][i].coefsend = get_bits(&s->gb, cbits) + 1;
+
+
+
+		cbits = av_log2(s->cdlms[c][i].scaling + 1);
+
+		if(1 << cbits < s->cdlms[c][i].scaling + 1)
+
+		    cbits++;
+
+
+
+		s->cdlms[c][i].bitsend = get_bits(&s->gb, cbits) + 2;
+
+		shift_l = 32 - s->cdlms[c][i].bitsend;
+
+		shift_r = 32 - 2 - s->cdlms[c][i].scaling;
+
+		for(j = 0; j < s->cdlms[c][i].coefsend; j++) {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c][i].bitsend) << shift_l) >> shift_r;
+
+		}
+
+	    }
+
+	}
+      
+25769803781 | BLOCK | 
+        {
+
+		int cbits, shift_l, shift_r, j;
+
+		cbits = av_log2(s->cdlms[c][i].order);
+
+		if(1 << cbits < s->cdlms[c][i].order)
+
+		    cbits++;
+
+		s->cdlms[c][i].coefsend = get_bits(&s->gb, cbits) + 1;
+
+
+
+		cbits = av_log2(s->cdlms[c][i].scaling + 1);
+
+		if(1 << cbits < s->cdlms[c][i].scaling + 1)
+
+		    cbits++;
+
+
+
+		s->cdlms[c][i].bitsend = get_bits(&s->gb, cbits) + 2;
+
+		shift_l = 32 - s->cdlms[c][i].bitsend;
+
+		shift_r = 32 - 2 - s->cdlms[c][i].scaling;
+
+		for(j = 0; j < s->cdlms[c][i].coefsend; j++) {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c][i].bitsend) << shift_l) >> shift_r;
+
+		}
+
+	    }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+
+		    s->cdlms[c][i].coefs[j] =
+
+			(get_bits(&s->gb, s->cdlms[c][i].bitsend) << shift_l) >> shift_r;
+
+		}
+      
+30064771072 | CALL | cdlms_send_coef = get_bits1(&s->gb)
+30064771073 | CALL | get_bits1(&s->gb)
+30064771074 | CALL | &s->gb
+30064771075 | CALL | s->gb
+30064771076 | CALL | c = 0
+30064771077 | CALL | c < s->num_channels
+30064771078 | CALL | s->num_channels
+30064771079 | CALL | c++
+30064771080 | CALL | s->cdlms_ttl[c] = get_bits(&s->gb, 3) + 1
+30064771081 | CALL | s->cdlms_ttl[c]
+30064771082 | CALL | s->cdlms_ttl
+30064771083 | CALL | get_bits(&s->gb, 3) + 1
+30064771084 | CALL | get_bits(&s->gb, 3)
+30064771085 | CALL | &s->gb
+30064771086 | CALL | s->gb
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < s->cdlms_ttl[c]
+30064771089 | CALL | s->cdlms_ttl[c]
+30064771090 | CALL | s->cdlms_ttl
+30064771091 | CALL | i++
+30064771092 | CALL | s->cdlms[c][i].order = (get_bits(&s->gb, 7) + 1) * 8
+30064771093 | CALL | s->cdlms[c][i].order
+30064771094 | CALL | s->cdlms[c][i]
+30064771095 | CALL | s->cdlms[c]
+30064771096 | CALL | s->cdlms
+30064771097 | CALL | (get_bits(&s->gb, 7) + 1) * 8
+30064771098 | CALL | get_bits(&s->gb, 7) + 1
+30064771099 | CALL | get_bits(&s->gb, 7)
+30064771100 | CALL | &s->gb
+30064771101 | CALL | s->gb
+30064771102 | CALL | i = 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771086 [REACHING_DEF]
+30064771074 -> 30064771085 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771101 [REACHING_DEF]
+30064771075 -> 30064771086 [REACHING_DEF]
+30064771075 -> 30064771085 [REACHING_DEF]
+30064771075 -> 30064771100 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

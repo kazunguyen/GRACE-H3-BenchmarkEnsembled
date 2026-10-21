@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void isoent_setup_file_location ( struct iso9660 * iso9660 , int location ) {
+ struct isoent * isoent ;
+ struct isoent * np ;
+ struct isofile * file ;
+ size_t size ;
+ int block ;
+ int depth ;
+ int joliet ;
+ int symlocation ;
+ int total_block ;
+ iso9660 -> total_file_block = 0 ;
+ if ( ( isoent = iso9660 -> el_torito . catalog ) != NULL ) {
+ isoent -> file -> content . location = location ;
+ block = ( int ) ( ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ) ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ }
+ if ( ( isoent = iso9660 -> el_torito . boot ) != NULL ) {
+ isoent -> file -> content . location = location ;
+ size = fd_boot_image_size ( iso9660 -> el_torito . media_type ) ;
+ if ( size == 0 ) size = ( size_t ) archive_entry_size ( isoent -> file -> entry ) ;
+ block = ( ( int ) size + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ isoent -> file -> content . blocks = block ;
+ }
+ depth = 0 ;
+ symlocation = - 16 ;
+ if ( ! iso9660 -> opt . rr && iso9660 -> opt . joliet ) {
+ joliet = 1 ;
+ np = iso9660 -> joliet . rootent ;
+ }
+ else {
+ joliet = 0 ;
+ np = iso9660 -> primary . rootent ;
+ }
+ do {
+ _isoent_file_location ( iso9660 , np , & symlocation ) ;
+ if ( np -> subdirs . first != NULL && ( joliet || ( ( iso9660 -> opt . rr == OPT_RR_DISABLED && depth + 2 < iso9660 -> primary . max_depth ) || ( iso9660 -> opt . rr && depth + 1 < iso9660 -> primary . max_depth ) ) ) ) {
+ np = np -> subdirs . first ;
+ depth ++ ;
+ continue ;
+ }
+ while ( np != np -> parent ) {
+ if ( np -> drnext == NULL ) {
+ np = np -> parent ;
+ depth -- ;
+ }
+ else {
+ np = np -> drnext ;
+ break ;
+ }
+ }
+ }
+ while ( np != np -> parent ) ;
+ total_block = 0 ;
+ for ( file = iso9660 -> data_file_list . first ;
+ file != NULL ;
+ file = file -> datanext ) {
+ if ( ! file -> write_content ) continue ;
+ file -> cur_content = & ( file -> content ) ;
+ do {
+ file -> cur_content -> location = location ;
+ location += file -> cur_content -> blocks ;
+ total_block += file -> cur_content -> blocks ;
+ file -> cur_content = file -> cur_content -> next ;
+ }
+ while ( file -> cur_content != NULL ) ;
+ }
+ iso9660 -> total_file_block += total_block ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct isoent * isoent ;
+ struct isoent * np ;
+ struct isofile * file ;
+ size_t size ;
+ int block ;
+ int depth ;
+ int joliet ;
+ int symlocation ;
+ int total_block ;
+ iso9660 -> total_file_block = 0 ;
+ if ( ( isoent = iso9660 -> el_torito . catalog ) != NULL ) {
+ isoent -> file -> content . location = location ;
+ block = ( int ) ( ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ) ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ }
+ if ( ( isoent = iso9660 -> el_torito . boot ) != NULL ) {
+ isoent -> file -> content . location = location ;
+ size = fd_boot_image_size ( iso9660 -> el_torito . media_type ) ;
+ if ( size == 0 ) size = ( size_t ) archive_entry_size ( isoent -> file -> entry ) ;
+ block = ( ( int ) size + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ isoent -> file -> content . blocks = block ;
+ }
+ depth = 0 ;
+ symlocation = - 16 ;
+ if ( ! iso966...
+      
+25769803777 | BLOCK | 
+        {
+ isoent -> file -> content . location = location ;
+ block = ( int ) ( ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ) ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ isoent -> file -> content . location = location ;
+ size = fd_boot_image_size ( iso9660 -> el_torito . media_type ) ;
+ if ( size == 0 ) size = ( size_t ) archive_entry_size ( isoent -> file -> entry ) ;
+ block = ( ( int ) size + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS ;
+ location += block ;
+ iso9660 -> total_file_block += block ;
+ isoent -> file -> content . blocks = block ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { joliet = 1 ; np = iso9660 -> joliet . rootent ; }
+25769803781 | BLOCK | { joliet = 0 ; np = iso9660 -> primary . rootent ; }
+25769803782 | BLOCK | 
+        {
+ _isoent_file_location ( iso9660 , np , & symlocation ) ;
+ if ( np -> subdirs . first != NULL && ( joliet || ( ( iso9660 -> opt . rr == OPT_RR_DISABLED && depth + 2 < iso9660 -> primary . max_depth ) || ( iso9660 -> opt . rr && depth + 1 < iso9660 -> primary . max_depth ) ) ) ) {
+ np = np -> subdirs . first ;
+ depth ++ ;
+ continue ;
+ }
+ while ( np != np -> parent ) {
+ if ( np -> drnext == NULL ) {
+ np = np -> parent ;
+ depth -- ;
+ }
+ else {
+ np = np -> drnext ;
+ break ;
+ }
+ }
+ }
+      
+25769803783 | BLOCK | { np = np -> subdirs . first ; depth ++ ; continue ; }
+25769803784 | BLOCK | 
+        {
+ if ( np -> drnext == NULL ) {
+ np = np -> parent ;
+ depth -- ;
+ }
+ else {
+ np = np -> drnext ;
+ break ;
+ }
+ }
+      
+25769803785 | BLOCK | { np = np -> parent ; depth -- ; }
+25769803786 | BLOCK | { np = np -> drnext ; break ; }
+25769803787 | BLOCK | 
+        {
+ if ( ! file -> write_content ) continue ;
+ file -> cur_content = & ( file -> content ) ;
+ do {
+ file -> cur_content -> location = location ;
+ location += file -> cur_content -> blocks ;
+ total_block += file -> cur_content -> blocks ;
+ file -> cur_content = file -> cur_content -> next ;
+ }
+ while ( file -> cur_content != NULL ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ file -> cur_content -> location = location ;
+ location += file -> cur_content -> blocks ;
+ total_block += file -> cur_content -> blocks ;
+ file -> cur_content = file -> cur_content -> next ;
+ }
+      
+30064771072 | CALL | iso9660 -> total_file_block = 0
+30064771073 | CALL | iso9660 -> total_file_block
+30064771074 | CALL | ( isoent = iso9660 -> el_torito . catalog ) != NULL
+30064771075 | CALL | isoent = iso9660 -> el_torito . catalog
+30064771076 | CALL | iso9660 -> el_torito . catalog
+30064771077 | CALL | iso9660 -> el_torito
+30064771078 | CALL | isoent -> file -> content . location = location
+30064771079 | CALL | isoent -> file -> content . location
+30064771080 | CALL | isoent -> file -> content
+30064771081 | CALL | isoent -> file
+30064771082 | CALL | 
+        block = ( int ) ( ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS )
+      
+30064771083 | CALL | 
+        ( int ) ( ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS )
+      
+30064771084 | CALL | 
+        ( archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1 ) >> LOGICAL_BLOCK_BITS
+      
+30064771085 | CALL | archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE - 1
+30064771086 | CALL | archive_entry_size ( isoent -> file -> entry ) + LOGICAL_BLOCK_SIZE
+30064771087 | CALL | archive_entry_size ( isoent -> file -> entry )
+30064771088 | CALL | isoent -> file -> entry
+30064771089 | CALL | isoent -> file
+30064771090 | CALL | location += block
+30064771091 | CALL | iso9660 -> total_file_block += block
+30064771092 | CALL | iso9660 -> total_file_block
+30064771093 | CALL | ( isoent = iso9660 -> el_torito . boot ) != NULL
+30064771094 | CALL | isoent = iso9660 -> el_torito . boot
+30064771095 | CALL | iso9660 -> el_torito . boot
+30064771096 | CALL | iso9660 -> el_torito
+30064771097 | CALL | isoe
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

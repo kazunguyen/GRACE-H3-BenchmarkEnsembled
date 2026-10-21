@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+setup_sigcontext(struct target_sigcontext *sc, struct target_fpstate *fpstate,
+
+		 CPUX86State *env, unsigned long mask)
+
+{
+
+	int err = 0;
+
+
+
+	err |= __put_user(env->segs[R_GS], (unsigned int *)&sc->gs);
+
+	err |= __put_user(env->segs[R_FS], (unsigned int *)&sc->fs);
+
+	err |= __put_user(env->segs[R_ES], (unsigned int *)&sc->es);
+
+	err |= __put_user(env->segs[R_DS], (unsigned int *)&sc->ds);
+
+	err |= __put_user(env->regs[R_EDI], &sc->edi);
+
+	err |= __put_user(env->regs[R_ESI], &sc->esi);
+
+	err |= __put_user(env->regs[R_EBP], &sc->ebp);
+
+	err |= __put_user(env->regs[R_ESP], &sc->esp);
+
+	err |= __put_user(env->regs[R_EBX], &sc->ebx);
+
+	err |= __put_user(env->regs[R_EDX], &sc->edx);
+
+	err |= __put_user(env->regs[R_ECX], &sc->ecx);
+
+	err |= __put_user(env->regs[R_EAX], &sc->eax);
+
+	err |= __put_user(env->exception_index, &sc->trapno);
+
+	err |= __put_user(env->error_code, &sc->err);
+
+	err |= __put_user(env->eip, &sc->eip);
+
+	err |= __put_user(env->segs[R_CS], (unsigned int *)&sc->cs);
+
+	err |= __put_user(env->eflags, &sc->eflags);
+
+	err |= __put_user(env->regs[R_ESP], &sc->esp_at_signal);
+
+	err |= __put_user(env->segs[R_SS], (unsigned int *)&sc->ss);
+
+#if 0
+
+	tmp = save_i387(fpstate);
+
+	if (tmp < 0)
+
+	  err = 1;
+
+	else
+
+	  err |= __put_user(tmp ? fpstate : NULL, &sc->fpstate);
+
+#else
+
+        err |= __put_user(0, &sc->fpstate);
+
+#endif
+
+	/* non-iBCS2 extensions.. */
+
+	err |= __put_user(mask, &sc->oldmask);
+
+	err |= __put_user(/*current->thread.cr2*/ 0, &sc->cr2);
+
+	return err;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 24 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+18 -> 25 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 45 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 66 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+60 -> 67 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 87 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+setup_sigcontext(struct target_sigcontext *sc, /*struct _fpstate *fpstate,*/
+
+		 CPUState *env, unsigned long mask)
+
+{
+
+	int err = 0;
+
+
+
+	__put_user_error(env->regs[0], &sc->arm_r0, err);
+
+	__put_user_error(env->regs[1], &sc->arm_r1, err);
+
+	__put_user_error(env->regs[2], &sc->arm_r2, err);
+
+	__put_user_error(env->regs[3], &sc->arm_r3, err);
+
+	__put_user_error(env->regs[4], &sc->arm_r4, err);
+
+	__put_user_error(env->regs[5], &sc->arm_r5, err);
+
+	__put_user_error(env->regs[6], &sc->arm_r6, err);
+
+	__put_user_error(env->regs[7], &sc->arm_r7, err);
+
+	__put_user_error(env->regs[8], &sc->arm_r8, err);
+
+	__put_user_error(env->regs[9], &sc->arm_r9, err);
+
+	__put_user_error(env->regs[10], &sc->arm_r10, err);
+
+	__put_user_error(env->regs[11], &sc->arm_fp, err);
+
+	__put_user_error(env->regs[12], &sc->arm_ip, err);
+
+	__put_user_error(env->regs[13], &sc->arm_sp, err);
+
+	__put_user_error(env->regs[14], &sc->arm_lr, err);
+
+	__put_user_error(env->regs[15], &sc->arm_pc, err);
+
+#ifdef TARGET_CONFIG_CPU_32
+
+	__put_user_error(cpsr_read(env), &sc->arm_cpsr, err);
+
+#endif
+
+
+
+	__put_user_error(/* current->thread.trap_no */ 0, &sc->trap_no, err);
+
+	__put_user_error(/* current->thread.error_code */ 0, &sc->error_code, err);
+
+	__put_user_error(/* current->thread.address */ 0, &sc->fault_address, err);
+
+	__put_user_error(mask, &sc->oldmask, err);
+
+
+
+	return err;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

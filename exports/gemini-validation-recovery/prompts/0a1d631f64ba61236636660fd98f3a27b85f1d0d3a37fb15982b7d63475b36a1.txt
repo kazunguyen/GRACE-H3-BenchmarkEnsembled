@@ -1,0 +1,51 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dtap_cc_congestion_control ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len ) {
+ guint32 curr_offset ;
+ guint32 consumed ;
+ guint curr_len ;
+ guint8 oct ;
+ proto_tree * subtree ;
+ curr_offset = offset ;
+ curr_len = len ;
+ is_uplink = IS_UPLINK_FALSE ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , curr_offset << 3 , 4 , ENC_BIG_ENDIAN ) ;
+ subtree = proto_tree_add_subtree ( tree , tvb , curr_offset , 1 , ett_gsm_dtap_elem [ DE_CONGESTION ] , NULL , val_to_str_ext_const ( DE_CONGESTION , & gsm_dtap_elem_strings_ext , "" ) ) ;
+ proto_tree_add_uint_format_value ( subtree , hf_gsm_a_dtap_congestion_level , tvb , curr_offset , 1 , oct , "%s" , val_to_str_const ( oct & 0xF , gsm_a_dtap_congestion_level_vals , "Reserved" ) ) ;
+ curr_offset ++ ;
+ curr_len -- ;
+ if ( ( signed ) curr_len <= 0 ) return ;
+ ELEM_OPT_TLV ( 0x08 , GSM_A_PDU_TYPE_DTAP , DE_CAUSE , NULL ) ;
+ EXTRANEOUS_DATA_CHECK ( curr_len , 0 , pinfo , & ei_gsm_a_dtap_extraneous_data ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void dtap_mm_id_req ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len ) {
+ guint32 curr_offset ;
+ guint curr_len ;
+ proto_tree * subtree ;
+ curr_offset = offset ;
+ curr_len = len ;
+ is_uplink = IS_UPLINK_FALSE ;
+ proto_tree_add_bits_item ( tree , hf_gsm_a_spare_bits , tvb , curr_offset << 3 , 4 , ENC_BIG_ENDIAN ) ;
+ subtree = proto_tree_add_subtree ( tree , tvb , curr_offset , 1 , ett_gsm_dtap_elem [ DE_ID_TYPE ] , NULL , val_to_str_ext_const ( DE_ID_TYPE , & gsm_dtap_elem_strings_ext , "" ) ) ;
+ proto_tree_add_bits_item ( subtree , hf_gsm_a_spare_bits , tvb , ( curr_offset << 3 ) + 4 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( subtree , hf_gsm_a_dtap_type_of_identity , tvb , curr_offset , 1 , ENC_BIG_ENDIAN ) ;
+ curr_offset ++ ;
+ curr_len -- ;
+ EXTRANEOUS_DATA_CHECK ( curr_len , 0 , pinfo , & ei_gsm_a_dtap_extraneous_data ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

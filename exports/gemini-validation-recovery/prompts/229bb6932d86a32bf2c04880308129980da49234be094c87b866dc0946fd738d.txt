@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int vp9_full_search_sad_c ( const MACROBLOCK * x , const MV * ref_mv , int sad_per_bit , int distance , const vp9_variance_fn_ptr_t * fn_ptr , const MV * center_mv , MV * best_mv ) {
+ int r , c ;
+ const MACROBLOCKD * const xd = & x -> e_mbd ;
+ const struct buf_2d * const what = & x -> plane [ 0 ] . src ;
+ const struct buf_2d * const in_what = & xd -> plane [ 0 ] . pre [ 0 ] ;
+ const int row_min = MAX ( ref_mv -> row - distance , x -> mv_row_min ) ;
+ const int row_max = MIN ( ref_mv -> row + distance , x -> mv_row_max ) ;
+ const int col_min = MAX ( ref_mv -> col - distance , x -> mv_col_min ) ;
+ const int col_max = MIN ( ref_mv -> col + distance , x -> mv_col_max ) ;
+ const MV fcenter_mv = {
+ center_mv -> row >> 3 , center_mv -> col >> 3 }
+ ;
+ int best_sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , ref_mv ) , in_what -> stride ) + mvsad_err_cost ( x , ref_mv , & fcenter_mv , sad_per_bit ) ;
+ * best_mv = * ref_mv ;
+ for ( r = row_min ;
+ r < row_max ;
+ ++ r ) {
+ for ( c = col_min ;
+ c < col_max ;
+ ++ c ) {
+ const MV mv = {
+ r , c }
+ ;
+ const int sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , & mv ) , in_what -> stride ) + mvsad_err_cost ( x , & mv , & fcenter_mv , sad_per_bit ) ;
+ if ( sad < best_sad ) {
+ best_sad = sad ;
+ * best_mv = mv ;
+ }
+ }
+ }
+ return best_sad ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int r , c ;
+ const MACROBLOCKD * const xd = & x -> e_mbd ;
+ const struct buf_2d * const what = & x -> plane [ 0 ] . src ;
+ const struct buf_2d * const in_what = & xd -> plane [ 0 ] . pre [ 0 ] ;
+ const int row_min = MAX ( ref_mv -> row - distance , x -> mv_row_min ) ;
+ const int row_max = MIN ( ref_mv -> row + distance , x -> mv_row_max ) ;
+ const int col_min = MAX ( ref_mv -> col - distance , x -> mv_col_min ) ;
+ const int col_max = MIN ( ref_mv -> col + distance , x -> mv_col_max ) ;
+ const MV fcenter_mv = {
+ center_mv -> row >> 3 , center_mv -> col >> 3 }
+ ;
+ int best_sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , ref_mv ) , in_what -> stride ) + mvsad_err_cost ( x , ref_mv , & fcenter_mv , sad_per_bit ) ;
+ * best_mv = * ref_mv ;
+ for ( r = row_min ;
+ r < row_max ;
+ ++ r ) {
+ for ( c = col_min ;
+ c < col_max ;
+ ++ c ) {
+ const MV mv = {
+ r , c }
+ ;
+ const int sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , & mv...
+      
+25769803777 | BLOCK | 
+        {
+ for ( c = col_min ;
+ c < col_max ;
+ ++ c ) {
+ const MV mv = {
+ r , c }
+ ;
+ const int sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , & mv ) , in_what -> stride ) + mvsad_err_cost ( x , & mv , & fcenter_mv , sad_per_bit ) ;
+ if ( sad < best_sad ) {
+ best_sad = sad ;
+ * best_mv = mv ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ const MV mv = {
+ r , c }
+ ;
+ const int sad = fn_ptr -> sdf ( what -> buf , what -> stride , get_buf_from_mv ( in_what , & mv ) , in_what -> stride ) + mvsad_err_cost ( x , & mv , & fcenter_mv , sad_per_bit ) ;
+ if ( sad < best_sad ) {
+ best_sad = sad ;
+ * best_mv = mv ;
+ }
+ }
+      
+25769803779 | BLOCK | { best_sad = sad ; * best_mv = mv ; }
+30064771072 | CALL | const xd = & x -> e_mbd
+30064771073 | CALL | & x -> e_mbd
+30064771074 | CALL | x -> e_mbd
+30064771075 | CALL | const what = & x -> plane [ 0 ] . src
+30064771076 | CALL | & x -> plane [ 0 ] . src
+30064771077 | CALL | x -> plane [ 0 ] . src
+30064771078 | CALL | x -> plane [ 0 ]
+30064771079 | CALL | x -> plane
+30064771080 | CALL | const in_what = & xd -> plane [ 0 ] . pre [ 0 ]
+30064771081 | CALL | & xd -> plane [ 0 ] . pre [ 0 ]
+30064771082 | CALL | xd -> plane [ 0 ] . pre [ 0 ]
+30064771083 | CALL | xd -> plane [ 0 ] . pre
+30064771084 | CALL | xd -> plane [ 0 ]
+30064771085 | CALL | xd -> plane
+30064771086 | CALL | row_min = MAX ( ref_mv -> row - distance , x -> mv_row_min )
+30064771087 | CALL | MAX ( ref_mv -> row - distance , x -> mv_row_min )
+30064771088 | CALL | ref_mv -> row - distance
+30064771089 | CALL | ref_mv -> row
+30064771090 | CALL | x -> mv_row_min
+30064771091 | CALL | row_max = MIN ( ref_mv -> row + distance , x -> mv_row_max )
+30064771092 | CALL | MIN ( ref_mv -> row + distance , x -> mv_row_max )
+30064771093 | CALL | ref_mv -> row + distance
+30064771094 | CALL | ref_mv -> row
+30064771095 | CALL | x -> mv_row_max
+30064771096 | CALL | col_min = MAX ( ref_mv -> col - distance , x -> mv_col_min )
+30064771097 | CALL | MAX ( ref_mv -> col - distance , x -> mv_col_min )
+30064771098 | CALL | ref_mv -> col - distance
+30064771099 | CALL | ref_mv -> col
+30064771100 | CALL | x -> mv_col_min
+30064771101 | CALL | col_max = MIN ( ref_mv -> col + distance , x -> mv_col_max )
+30064771102 | CALL | MIN ( ref_mv -> col + distance , x -> mv_col_max )
+30064771103 | CALL | ref_mv -> col + distance
+30064771104 | CALL | ref_mv -> col
+30064771105 | CALL | x -> mv_col_max
+30064771106 | CALL | fcenter_mv = { center_mv -> row >> 3 , center_mv -> col >> 3 }
+30064771107 | CALL | { center_mv -> row >> 3 , center_mv -> col >> 3 }
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771090 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771090 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

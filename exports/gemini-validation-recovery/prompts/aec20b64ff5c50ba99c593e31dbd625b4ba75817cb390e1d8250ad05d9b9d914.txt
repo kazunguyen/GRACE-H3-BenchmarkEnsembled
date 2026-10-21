@@ -1,0 +1,252 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void constrain_copy_partitioning ( VP9_COMP * const cpi , const TileInfo * const tile , MODE_INFO * mi_8x8 , MODE_INFO * prev_mi_8x8 , int mi_row , int mi_col , BLOCK_SIZE bsize ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ const int mis = cm -> mi_stride ;
+ const int row8x8_remaining = tile -> mi_row_end - mi_row ;
+ const int col8x8_remaining = tile -> mi_col_end - mi_col ;
+ MODE_INFO * const mi_upper_left = cm -> mi + mi_row * mis + mi_col ;
+ const int bh = num_8x8_blocks_high_lookup [ bsize ] ;
+ const int bw = num_8x8_blocks_wide_lookup [ bsize ] ;
+ int block_row , block_col ;
+ assert ( ( row8x8_remaining > 0 ) && ( col8x8_remaining > 0 ) ) ;
+ if ( ( col8x8_remaining >= MI_BLOCK_SIZE ) && ( row8x8_remaining >= MI_BLOCK_SIZE ) ) {
+ for ( block_row = 0 ;
+ block_row < MI_BLOCK_SIZE ;
+ block_row += bh ) {
+ for ( block_col = 0 ;
+ block_col < MI_BLOCK_SIZE ;
+ block_col += bw ) {
+ const int index = block_row * mis + block_col ;
+ MODE_INFO * prev_mi = prev_mi_8x8 [ index ] . src_mi ;
+ const BLOCK_SIZE sb_type = prev_mi ? prev_mi -> mbmi . sb_type : 0 ;
+ if ( prev_mi && sb_type <= bsize ) {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;
+ ++ block_row2 ) {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+ }
+ else {
+ mi_8x8 [ index ] . src_mi = mi_upper_left + index ;
+ mi_8x8 [ index ] . src_mi -> mbmi . sb_type = bsize ;
+ }
+ }
+ }
+ }
+ else {
+ copy_partitioning ( cm , mi_8x8 , prev_mi_8x8 ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & cpi -> common ;
+ const int mis = cm -> mi_stride ;
+ const int row8x8_remaining = tile -> mi_row_end - mi_row ;
+ const int col8x8_remaining = tile -> mi_col_end - mi_col ;
+ MODE_INFO * const mi_upper_left = cm -> mi + mi_row * mis + mi_col ;
+ const int bh = num_8x8_blocks_high_lookup [ bsize ] ;
+ const int bw = num_8x8_blocks_wide_lookup [ bsize ] ;
+ int block_row , block_col ;
+ assert ( ( row8x8_remaining > 0 ) && ( col8x8_remaining > 0 ) ) ;
+ if ( ( col8x8_remaining >= MI_BLOCK_SIZE ) && ( row8x8_remaining >= MI_BLOCK_SIZE ) ) {
+ for ( block_row = 0 ;
+ block_row < MI_BLOCK_SIZE ;
+ block_row += bh ) {
+ for ( block_col = 0 ;
+ block_col < MI_BLOCK_SIZE ;
+ block_col += bw ) {
+ const int index = block_row * mis + block_col ;
+ MODE_INFO * prev_mi = prev_mi_8x8 [ index ] . src_mi ;
+ const BLOCK_SIZE sb_type = prev_mi ? prev_mi -> mbmi . sb_type : 0 ;
+ if ( prev_mi && sb_type <= bsize ) {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;...
+      
+25769803777 | BLOCK | 
+        {
+ for ( block_row = 0 ;
+ block_row < MI_BLOCK_SIZE ;
+ block_row += bh ) {
+ for ( block_col = 0 ;
+ block_col < MI_BLOCK_SIZE ;
+ block_col += bw ) {
+ const int index = block_row * mis + block_col ;
+ MODE_INFO * prev_mi = prev_mi_8x8 [ index ] . src_mi ;
+ const BLOCK_SIZE sb_type = prev_mi ? prev_mi -> mbmi . sb_type : 0 ;
+ if ( prev_mi && sb_type <= bsize ) {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;
+ ++ block_row2 ) {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+ }
+ else {
+ mi_8x8 [ index ] . src_mi = mi_upper_left + index ;
+ mi_8x8 [ index ] . src_mi -> mbmi . sb_type = bsize ;
+ }
+ }
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ for ( block_col = 0 ;
+ block_col < MI_BLOCK_SIZE ;
+ block_col += bw ) {
+ const int index = block_row * mis + block_col ;
+ MODE_INFO * prev_mi = prev_mi_8x8 [ index ] . src_mi ;
+ const BLOCK_SIZE sb_type = prev_mi ? prev_mi -> mbmi . sb_type : 0 ;
+ if ( prev_mi && sb_type <= bsize ) {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;
+ ++ block_row2 ) {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+ }
+ else {
+ mi_8x8 [ index ] . src_mi = mi_upper_left + index ;
+ mi_8x8 [ index ] . src_mi -> mbmi . sb_type = bsize ;
+ }
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ const int index = block_row * mis + block_col ;
+ MODE_INFO * prev_mi = prev_mi_8x8 [ index ] . src_mi ;
+ const BLOCK_SIZE sb_type = prev_mi ? prev_mi -> mbmi . sb_type : 0 ;
+ if ( prev_mi && sb_type <= bsize ) {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;
+ ++ block_row2 ) {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+ }
+ else {
+ mi_8x8 [ index ] . src_mi = mi_upper_left + index ;
+ mi_8x8 [ index ] . src_mi -> mbmi . sb_type = bsize ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ int block_row2 , block_col2 ;
+ for ( block_row2 = 0 ;
+ block_row2 < bh ;
+ ++ block_row2 ) {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ for ( block_col2 = 0 ;
+ block_col2 < bw ;
+ ++ block_col2 ) {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ const int index2 = ( block_row + block_row2 ) * mis + block_col + block_col2 ;
+ prev_mi = prev_mi_8x8 [ index2 ] . src_mi ;
+ if ( prev_mi ) {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ const ptrdiff_t offset = prev_mi - cm -> prev_mi ;
+ mi_8x8 [ index2 ] . src_mi = cm -> mi + offset ;
+ mi_8x8 [ index2 ] . src_mi -> mbmi . sb_type = prev_mi -> mbmi . sb_type ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ mi_8x8 [ index ] . src_mi = mi_upper_left + index ;
+ mi_8x8 [ index ] . src_mi -> mbmi . sb_type = bsize ;
+ }
+      
+25769803785 | BLOCK | { copy_partitionin
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

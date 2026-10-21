@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+unsigned int vp9_sub_pixel_variance ## W ## x ## H ## _c ( const uint8_t * src , int src_stride , int xoffset , int yoffset , const uint8_t * dst , int dst_stride , unsigned int * sse ) {
+ uint16_t fdata3 [ ( H + 1 ) * W ] ;
+ uint8_t temp2 [ H * W ] ;
+ var_filter_block2d_bil_first_pass ( src , fdata3 , src_stride , 1 , H + 1 , W , BILINEAR_FILTERS_2TAP ( xoffset ) ) ;
+ var_filter_block2d_bil_second_pass ( fdata3 , temp2 , W , W , H , W , BILINEAR_FILTERS_2TAP ( yoffset ) ) ;
+ return vp9_variance ## W ## x ## H ## _c ( temp2 , W , dst , dst_stride , sse ) ;
+ \ }
+ # define SUBPIX_AVG_VAR ( W , H ) unsigned int vp9_sub_pixel_avg_variance ## W ## x ## H ## _c ( const uint8_t * src , int src_stride , int xoffset , int yoffset , const uint8_t * dst , int dst_stride , unsigned int * sse , const uint8_t * second_pred ) {
+ uint16_t fdata3 [ ( H + 1 ) * W ] ;
+ uint8_t temp2 [ H * W ] ;
+ DECLARE_ALIGNED_ARRAY ( 16 , uint8_t , temp3 , H * W ) ;
+ var_filter_block2d_bil_first_pass ( src , fdata3 , src_stride , 1 , H + 1 , W , BILINEAR_FILTERS_2TAP ( xoffset ) ) ;
+ var_filter_block2d_bil_second_pass ( fdata3 , temp2 , W , W , H , W , BILINEAR_FILTERS_2TAP ( yoffset ) ) ;
+ vp9_comp_avg_pred ( temp3 , second_pred , W , H , temp2 , W ) ;
+ return vp9_variance ## W ## x ## H ## _c ( temp3 , W , dst , dst_stride , sse ) ;
+ \ }
+ void vp9_get16x16var_c ( const uint8_t * src_ptr , int source_stride , const uint8_t * ref_ptr , int ref_stride , unsigned int * sse , int * sum ) {
+ variance ( src_ptr , source_stride , ref_ptr , ref_stride , 16 , 16 , sse , sum ) ;
+ }
+ void vp9_get8x8var_c ( const uint8_t * src_ptr , int source_stride , const uint8_t * ref_ptr , int ref_stride , unsigned int * sse , int * sum ) {
+ variance ( src_ptr , source_stride , ref_ptr , ref_stride , 8 , 8 , sse , sum ) ;
+ }
+ unsigned int vp9_mse16x16_c ( const uint8_t * src , int src_stride , const uint8_t * ref , int ref_stride , unsigned int * sse ) {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 16 , 16 , sse , & sum ) ;
+ return * sse ;
+ }
+ unsigned int vp9_mse16x8_c ( const uint8_t * src , int src_stride , const uint8_t * ref , int ref_stride , unsigned int * sse ) {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 16 , 8 , sse , & sum ) ;
+ return * sse ;
+ }
+ unsigned int vp9_mse8x16_c ( const uint8_t * src , int src_stride , const uint8_t * ref , int ref_stride , unsigned int * sse ) {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 8 , 16 , sse , & sum ) ;
+ return * sse ;
+ }
+ unsigned int vp9_mse8x8_c ( const uint8_t * src , int src_stride , const uint8_t * ref , int ref_stride , unsigned int * sse ) {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 8 , 8 , sse , & sum ) ;
+ return * sse ;
+ }
+ VAR ( 4 , 4 ) SUBPIX_VAR ( 4 , 4 ) SUBPIX_AVG_VAR ( 4 , 4 ) VAR ( 4 , 8 ) SUBPIX_VAR ( 4 , 8 ) SUBPIX_AVG_VAR ( 4 , 8 ) VAR ( 8 , 4 ) SUBPIX_VAR ( 8 , 4 ) SUBPIX_AVG_VAR ( 8 , 4 ) VAR ( 8 , 8 ) SUBPIX_VAR ( 8 , 8 )
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ variance ( src_ptr , source_stride , ref_ptr , ref_stride , 16 , 16 , sse , sum ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ variance ( src_ptr , source_stride , ref_ptr , ref_stride , 8 , 8 , sse , sum ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 16 , 16 , sse , & sum ) ;
+ return * sse ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 16 , 8 , sse , & sum ) ;
+ return * sse ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 8 , 16 , sse , & sum ) ;
+ return * sse ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ int sum ;
+ variance ( src , src_stride , ref , ref_stride , 8 , 8 , sse , & sum ) ;
+ return * sse ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | variance ( src_ptr , source_stride , ref_ptr , ref_stride , 16 , 16 , sse , sum )
+30064771073 | CALL | variance ( src_ptr , source_stride , ref_ptr , ref_stride , 8 , 8 , sse , sum )
+30064771074 | CALL | variance ( src , src_stride , ref , ref_stride , 16 , 16 , sse , & sum )
+30064771075 | CALL | & sum
+30064771076 | CALL | * sse
+30064771077 | CALL | variance ( src , src_stride , ref , ref_stride , 16 , 8 , sse , & sum )
+30064771078 | CALL | & sum
+30064771079 | CALL | * sse
+30064771080 | CALL | variance ( src , src_stride , ref , ref_stride , 8 , 16 , sse , & sum )
+30064771081 | CALL | & sum
+30064771082 | CALL | * sse
+30064771083 | CALL | variance ( src , src_stride , ref , ref_stride , 8 , 8 , sse , & sum )
+30064771084 | CALL | & sum
+30064771085 | CALL | * sse
+68719476736 | IDENTIFIER | src_ptr
+68719476737 | IDENTIFIER | source_stride
+68719476738 | IDENTIFIER | ref_ptr
+68719476739 | IDENTIFIER | ref_stride
+68719476740 | IDENTIFIER | sse
+68719476741 | IDENTIFIER | sum
+68719476742 | IDENTIFIER | src_ptr
+68719476743 | IDENTIFIER | source_stride
+68719476744 | IDENTIFIER | ref_ptr
+68719476745 | IDENTIFIER | ref_stride
+68719476746 | IDENTIFIER | sse
+68719476747 | IDENTIFIER | sum
+68719476748 | IDENTIFIER | src
+68719476749 | IDENTIFIER | src_stride
+68719476750 | IDENTIFIER | ref
+68719476751 | IDENTIFIER | ref_stride
+68719476752 | IDENTIFIER | sse
+68719476753 | IDENTIFIER | sum
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771074 [AST]
+25769803779 -> 30064771077 [AST]
+25769803780 -> 30064771080 [AST]
+25769803781 -> 30064771083 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476738 [ARGUMENT]
+30064771072 -> 68719476739 [ARGUMENT]
+30064771072 -> 68719476740 [ARGUMENT]
+30064771072 -> 68719476741 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [AST]
+30064771072 -> 68719476739 [AST]
+30064771072 -> 68719476740 [AST]
+30064771072 -> 68719476741 [AST]
+30064771072 -> 68719476741 [POST_DOMINATE]
+30064771073 -> 68719476742 [ARGUMENT]
+30064771073 -> 68719476743 [ARGUMENT]
+30064771073 -> 68719476744 [ARGUMENT]
+30064771073 -> 68719476745 [ARGUMENT]
+30064771073 -> 68719476746 [ARGUMENT]
+30064771073 -> 68719476747 [ARGUMENT]
+30064771073 -> 68719476742 [AST]
+30064771073 -> 68719476743 [AST]
+30064771073 -> 68719476744 [AST]
+30064771073 -> 68719476745 [AST]
+30064771073 -> 68719476746 [AST]
+30064771073 -> 68719476747 [AST]
+30064771073 -> 68719476747 [POST_DOMINATE]
+30064771074 -> 68719476748 [ARGUMENT]
+30064771074 -> 68719476749 [ARGUMENT]
+30064771074 -> 68719476750 [ARGUMENT]
+30064771074 -> 68719476751 [ARGUMENT]
+30064771074 -> 68719476752 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476748 [AST]
+30064771074 -> 68719476749 [AST]
+30064771074 -> 68719476750 [AST]
+30064771074 -> 68719476751 [AST]
+30064771074 -> 68719476752 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476753 [ARGUMENT]
+30064771075 -> 68719476753 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476753 [POST_DOMINATE]
+30064771075 -> 68719476748 [REACHING_DEF]
+30064771075 -> 68719476749 [REACHING_DEF]
+30064771075 -> 68719476750 [REACHING_DEF]
+30064771075 -> 68719476751 [REACHING_DEF]
+30064771075 -> 68719476752 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

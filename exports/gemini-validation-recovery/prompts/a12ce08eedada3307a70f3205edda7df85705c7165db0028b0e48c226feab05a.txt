@@ -1,0 +1,290 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void do_audio_out(AVFormatContext *s, OutputStream *ost,
+
+                         InputStream *ist, AVFrame *decoded_frame)
+
+{
+
+    uint8_t *buftmp;
+
+
+
+    int size_out, frame_bytes, resample_changed;
+
+    AVCodecContext *enc = ost->st->codec;
+
+    AVCodecContext *dec = ist->st->codec;
+
+    int osize = av_get_bytes_per_sample(enc->sample_fmt);
+
+    int isize = av_get_bytes_per_sample(dec->sample_fmt);
+
+    uint8_t *buf = decoded_frame->data[0];
+
+    int size     = decoded_frame->nb_samples * dec->channels * isize;
+
+
+
+    if (alloc_audio_output_buf(dec, enc, decoded_frame->nb_samples) < 0) {
+
+        av_log(NULL, AV_LOG_FATAL, "Error allocating audio buffer\n");
+
+        exit_program(1);
+
+    }
+
+
+
+    if (enc->channels != dec->channels || enc->sample_rate != dec->sample_rate)
+
+        ost->audio_resample = 1;
+
+
+
+    resample_changed = ost->resample_sample_fmt  != dec->sample_fmt ||
+
+                       ost->resample_channels    != dec->channels   ||
+
+                       ost->resample_sample_rate != dec->sample_rate;
+
+
+
+    if ((ost->audio_resample && !ost->resample) || resample_changed) {
+
+        if (resample_changed) {
+
+            av_log(NULL, AV_LOG_INFO, "Input stream #%d:%d frame changed from rate:%d fmt:%s ch:%d to rate:%d fmt:%s ch:%d\n",
+
+                   ist->file_index, ist->st->index,
+
+                   ost->resample_sample_rate, av_get_sample_fmt_name(ost->resample_sample_fmt), ost->resample_channels,
+
+                   dec->sample_rate, av_get_sample_fmt_name(dec->sample_fmt), dec->channels);
+
+            ost->resample_sample_fmt  = dec->sample_fmt;
+
+            ost->resample_channels    = dec->channels;
+
+            ost->resample_sample_rate = dec->sample_rate;
+
+            if (ost->resample)
+
+                audio_resample_close(ost->resample);
+
+        }
+
+        /* if audio_sync_method is >1 the resampler is needed for audio drift compensation */
+
+        if (audio_sync_method <= 1 &&
+
+            ost->resample_sample_fmt  == enc->sample_fmt &&
+
+            ost->resample_channels    == enc->channels   &&
+
+            ost->resample_sample_rate == enc->sample_rate) {
+
+            ost->resample = NULL;
+
+            ost->audio_resample = 0;
+
+        } else if (ost->audio_resample) {
+
+            if (dec->sample_fmt != AV_SAMPLE_FMT_S16)
+
+                av_log(NULL, AV_LOG_WARNING, "Using s16 intermediate sample format for resampling\n");
+
+            ost->resample = av_audio_resample_init(enc->channels,    dec->channels,
+
+                                                   enc->sample_rate, dec->sample_rate,
+
+                                                   enc->sample_fmt,  dec->sample_fmt,
+
+                                                   16, 10, 0, 0.8);
+
+            if (!ost->resample) {
+
+                av_log(NULL, AV_LOG_FATAL, "Can not resample %d channels @ %d Hz to %d channels @ %d Hz\n",
+
+                       dec->channels, dec->sample_rate,
+
+                       enc->channels, enc->sample_rate);
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+9 -> 16 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 29 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void do_audio_out(AVFormatContext *s,
+
+                         AVOutputStream *ost,
+
+                         AVInputStream *ist,
+
+                         unsigned char *buf, int size)
+
+{
+
+    uint8_t *buftmp;
+
+    static uint8_t *audio_buf = NULL;
+
+    static uint8_t *audio_out = NULL;
+
+    const int audio_out_size= 4*MAX_AUDIO_PACKET_SIZE;
+
+
+
+    int size_out, frame_bytes, ret;
+
+    AVCodecContext *enc= ost->st->codec;
+
+    AVCodecContext *dec= ist->st->codec;
+
+
+
+    /* SC: dynamic allocation of buffers */
+
+    if (!audio_buf)
+
+        audio_buf = av_malloc(2*MAX_AUDIO_PACKET_SIZE);
+
+    if (!audio_out)
+
+        audio_out = av_malloc(audio_out_size);
+
+    if (!audio_buf || !audio_out)
+
+        return;               /* Should signal an error ! */
+
+
+
+    if (enc->channels != dec->channels)
+
+        ost->audio_resample = 1;
+
+
+
+    if (ost->audio_resample && !ost->resample) {
+
+        ost->resample = audio_resample_init(enc->channels,    dec->channels,
+
+                                            enc->sample_rate, dec->sample_rate);
+
+        if (!ost->resample) {
+
+            fprintf(stderr, "Can not resample %d channels @ %d Hz to %d channels @ %d Hz\n",
+
+                    dec->channels, dec->sample_rate,
+
+                    enc->channels, enc->sample_rate);
+
+            av_exit(1);
+
+        }
+
+    }
+
+
+
+    if(audio_sync_method){
+
+        double delta = get_sync_ipts(ost) * enc->sample_rate - ost->sync_opts
+
+                - av_fifo_size(&ost->fifo)/(ost->st->code
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

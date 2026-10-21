@@ -1,0 +1,38 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_nlm_freeall ( tvbuff_t * tvb , int offset , packet_info * pinfo _U_ , proto_tree * tree , int version _U_ ) {
+ guint32 nlm_stat ;
+ offset = dissect_rpc_string ( tvb , tree , hf_nlm_share_name , offset , NULL ) ;
+ nlm_stat = tvb_get_ntohl ( tvb , offset ) ;
+ if ( nlm_stat ) {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " %s" , val_to_str ( nlm_stat , names_nlm_stats , "Unknown Status (%u)" ) ) ;
+ }
+ offset = dissect_rpc_uint32 ( tvb , tree , hf_nlm_stat , offset ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_nlm_shareres ( tvbuff_t * tvb , int offset , packet_info * pinfo _U_ , proto_tree * tree , int version _U_ ) {
+ guint32 nlm_stat ;
+ offset = dissect_rpc_data ( tvb , tree , hf_nlm_cookie , offset ) ;
+ nlm_stat = tvb_get_ntohl ( tvb , offset ) ;
+ if ( nlm_stat ) {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " %s" , val_to_str ( nlm_stat , names_nlm_stats , "Unknown Status (%u)" ) ) ;
+ }
+ offset = dissect_rpc_uint32 ( tvb , tree , hf_nlm_stat , offset ) ;
+ offset = dissect_rpc_uint32 ( tvb , tree , hf_nlm_sequence , offset ) ;
+ return offset ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

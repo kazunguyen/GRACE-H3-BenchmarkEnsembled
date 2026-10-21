@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint32 dissect_fullpacket ( tvbuff_t * tvb , guint32 offset , guint16 scallno , packet_info * pinfo , proto_tree * iax2_tree , proto_tree * main_tree ) {
+ guint16 dcallno ;
+ guint32 ts ;
+ guint8 type ;
+ guint8 csub ;
+ guint32 codec ;
+ proto_tree * packet_type_tree = NULL ;
+ iax_call_data * iax_call ;
+ iax_packet_data * iax_packet ;
+ gboolean reversed ;
+ gboolean rtp_marker ;
+ dcallno = tvb_get_ntohs ( tvb , offset ) & 0x7FFF ;
+ ts = tvb_get_ntohl ( tvb , offset + 2 ) ;
+ type = tvb_get_guint8 ( tvb , offset + 8 ) ;
+ csub = tvb_get_guint8 ( tvb , offset + 9 ) ;
+ iax2_info -> ftype = type ;
+ iax2_info -> csub = csub ;
+ iax2_info -> scallno = scallno ;
+ iax2_info -> dcallno = dcallno ;
+ iax_packet = ( iax_packet_data * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_iax2 , 0 ) ;
+ if ( ! iax_packet ) {
+ if ( type == AST_FRAME_IAX && csub == IAX_COMMAND_NEW ) {
+ iax_call = iax_new_call ( pinfo , scallno ) ;
+ reversed = FALSE ;
+ }
+ else {
+ iax_call = iax_lookup_call ( pinfo , scallno , dcallno , & reversed ) ;
+ }
+ iax_packet = iax_new_packet_data ( iax_call , reversed ) ;
+ p_add_proto_data ( wmem_file_scope ( ) , pinfo , proto_iax2 , 0 , iax_packet ) ;
+ }
+ else {
+ iax_call = iax_packet -> call_data ;
+ reversed = iax_packet -> reversed ;
+ }
+ iax2_populate_pinfo_from_packet_data ( pinfo , iax_packet ) ;
+ if ( iax2_tree ) {
+ proto_item * packet_type_base ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_dcallno , tvb , offset , 2 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_retransmission , tvb , offset , 2 , ENC_BIG_ENDIAN ) ;
+ if ( iax_call ) {
+ proto_item * item = proto_tree_add_uint ( iax2_tree , hf_iax2_callno , tvb , 0 , 4 , iax_call -> forward_circuit_ids [ 0 ] ) ;
+ PROTO_ITEM_SET_GENERATED ( item ) ;
+ }
+ proto_tree_add_uint ( iax2_tree , hf_iax2_ts , tvb , offset + 2 , 4 , ts ) ;
+ iax2_add_ts_fields ( pinfo , iax2_tree , iax_packet , ( guint16 ) ts ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_oseqno , tvb , offset + 6 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_iseqno , tvb , offset + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ packet_type_base = proto_tree_add_uint ( iax2_tree , hf_iax2_type , tvb , offset + 8 , 1 , type ) ;
+ packet_type_tree = proto_item_add_subtree ( packet_type_base , ett_iax2_type ) ;
+ }
+ else {
+ iax2_add_ts_fields ( pinfo , iax2_tree , iax_packet , ( guint16 ) ts ) ;
+ }
+ col_add_fstr ( pinfo -> cinfo , COL_INFO , "%s, source call# %d, timestamp %ums" , val_to_str_ext ( type , & iax_frame_types_ext , "Unknown (0x%02x)" ) , scallno , ts ) ;
+ iax2_info -> messageName = val_to_str_ext ( type , & iax_frame_types_ext , "Unknown (0x%02x)" ) ;
+ switch ( type ) {
+ case AST_FRAME_IAX : offset = dissect_iax2_command ( tvb , offset + 9 , pinfo , packet_type_tree , iax_packet ) ;
+ iax2_info -> messageName = val_to_str_ext ( csub , & iax_iax_subclasses_ext , "unknown (0x%02x)" ) ;
+ if ( csub < NUM_TAP_IAX_VOIP_STATES ) iax2_info -> callState = tap_iax_voip_state [ csub ] ;
+ break ;
+ case AST_FRAME_D
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint16 dcallno ;
+ guint32 ts ;
+ guint8 type ;
+ guint8 csub ;
+ guint32 codec ;
+ proto_tree * packet_type_tree = NULL ;
+ iax_call_data * iax_call ;
+ iax_packet_data * iax_packet ;
+ gboolean reversed ;
+ gboolean rtp_marker ;
+ dcallno = tvb_get_ntohs ( tvb , offset ) & 0x7FFF ;
+ ts = tvb_get_ntohl ( tvb , offset + 2 ) ;
+ type = tvb_get_guint8 ( tvb , offset + 8 ) ;
+ csub = tvb_get_guint8 ( tvb , offset + 9 ) ;
+ iax2_info -> ftype = type ;
+ iax2_info -> csub = csub ;
+ iax2_info -> scallno = scallno ;
+ iax2_info -> dcallno = dcallno ;
+ iax_packet = ( iax_packet_data * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_iax2 , 0 ) ;
+ if ( ! iax_packet ) {
+ if ( type == AST_FRAME_IAX && csub == IAX_COMMAND_NEW ) {
+ iax_call = iax_new_call ( pinfo , scallno ) ;
+ reversed = FALSE ;
+ }
+ else {
+ iax_call = iax_lookup_call ( pinfo , scallno , dcallno , & reversed ) ;
+ }
+ iax_packet = iax_new_packet_data ( iax_call , reversed ) ;
+ p_add_proto_data ( wmem_file_scope ( ) , pinfo , proto_ia...
+      
+25769803777 | BLOCK | 
+        {
+ if ( type == AST_FRAME_IAX && csub == IAX_COMMAND_NEW ) {
+ iax_call = iax_new_call ( pinfo , scallno ) ;
+ reversed = FALSE ;
+ }
+ else {
+ iax_call = iax_lookup_call ( pinfo , scallno , dcallno , & reversed ) ;
+ }
+ iax_packet = iax_new_packet_data ( iax_call , reversed ) ;
+ p_add_proto_data ( wmem_file_scope ( ) , pinfo , proto_iax2 , 0 , iax_packet ) ;
+ }
+      
+25769803778 | BLOCK | { iax_call = iax_new_call ( pinfo , scallno ) ; reversed = FALSE ; }
+25769803779 | BLOCK | { iax_call = iax_lookup_call ( pinfo , scallno , dcallno , & reversed ) ; }
+25769803780 | BLOCK | { iax_call = iax_packet -> call_data ; reversed = iax_packet -> reversed ; }
+25769803781 | BLOCK | 
+        {
+ proto_item * packet_type_base ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_dcallno , tvb , offset , 2 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_retransmission , tvb , offset , 2 , ENC_BIG_ENDIAN ) ;
+ if ( iax_call ) {
+ proto_item * item = proto_tree_add_uint ( iax2_tree , hf_iax2_callno , tvb , 0 , 4 , iax_call -> forward_circuit_ids [ 0 ] ) ;
+ PROTO_ITEM_SET_GENERATED ( item ) ;
+ }
+ proto_tree_add_uint ( iax2_tree , hf_iax2_ts , tvb , offset + 2 , 4 , ts ) ;
+ iax2_add_ts_fields ( pinfo , iax2_tree , iax_packet , ( guint16 ) ts ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_oseqno , tvb , offset + 6 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( iax2_tree , hf_iax2_iseqno , tvb , offset + 7 , 1 , ENC_BIG_ENDIAN ) ;
+ packet_type_base = proto_tree_add_uint ( iax2_tree , hf_iax2_type , tvb , offset + 8 , 1 , type ) ;
+ packet_type_tree = proto_item_add_subtree ( packet_type_base , ett_iax2_type ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ proto_item * item = proto_tree_add_uint ( iax2_tree , hf_iax2_callno , tvb , 0 , 4 , iax_call -> forward_circuit_ids [ 0 ] ) ;
+ PROTO_ITEM_SET_GENERATED ( item ) ;
+ }
+      
+25769803783 | BLOCK | { iax2_add_ts_fields ( pinfo , iax2_tree , iax_packet , ( guint16 ) ts ) ; }
+25769803784 | BLOCK | 
+        {
+ case AST_FRAME_IAX : offset = dissect_iax2_command ( tvb , offset + 9 , pinfo , packet_type_tree , iax_packet ) ;
+ iax2_info -> messageName = val_to_str_ext ( csub , & iax_iax_subclasses_ext , "unknown (0x%02x)" ) ;
+ if ( csub < NUM_TAP_IAX_VOIP_STATES ) iax2_info -> callState = tap_iax_voip_state [ csub ] ;
+ break ;
+ case AST_FRAME_DTMF_BEGIN : case AST_FRAME_DTMF_END : proto_tree_add_item ( packet_type_tree , hf_iax2_dtmf_csub , tvb , offset + 9 , 1 , ENC_ASCII | ENC_NA ) ;
+ offset += 10 ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " digit %c" , csub ) ;
+ break ;
+ case AST_FRAME_CONTROL : proto_tree_add_uint ( packet_type_tree , hf_iax2_cmd_csub , tvb , offset + 9 , 1 , csub ) ;
+ offset += 10 ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " %s" , val_to_str_ext ( csub , & iax_cmd_subclasses_ext , "unknown (0x%02x)" ) ) ;
+ iax2_info -> messageName = val_to_str_ext ( csub , & iax_cmd_subclasses_ext , "unknown (0x%02x)" ) ;
+ if ( csub < NUM_TAP_CMD_VOIP_STATES ) iax2_info ->...
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ proto_item * item ;
+ proto_tree_add_item ( packet_type_tree , hf_iax2_voice_csub , tvb , offset + 9 , 1 , ENC_BIG_ENDIAN ) ;
+ item = proto_tree_add_uint ( packet_type_tree , hf_iax2_voice_codec , tvb , offset + 9 , 1 , codec ) ;
+ PROTO_ITEM_S
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+guint16 elem_v_short ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo , gint pdu_type , int idx , guint32 offset , guint32 nibble ) {
+ guint16 consumed = 1 ;
+ guint32 curr_offset ;
+ proto_tree * subtree ;
+ proto_item * item ;
+ value_string_ext elem_names_ext ;
+ gint * elem_ett ;
+ elem_fcn * elem_funcs ;
+ gchar * a_add_string ;
+ const gchar * elem_name ;
+ curr_offset = offset ;
+ SET_ELEM_VARS ( pdu_type , elem_names_ext , elem_ett , elem_funcs , & ei_gsm_a_unknown_pdu_type ) ;
+ elem_name = try_val_to_str_ext ( idx , & elem_names_ext ) ;
+ if ( elem_name == NULL ) {
+ proto_tree_add_expert ( tree , pinfo , & ei_gsm_a_unknown_element , tvb , curr_offset , 0 ) ;
+ return consumed ;
+ }
+ subtree = proto_tree_add_subtree ( tree , tvb , curr_offset , 0 , elem_ett [ idx ] , & item , elem_name ) ;
+ a_add_string = ( gchar * ) wmem_alloc ( wmem_packet_scope ( ) , 1024 ) ;
+ a_add_string [ 0 ] = '\0' ;
+ if ( elem_funcs [ idx ] == NULL ) {
+ ( void ) de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+ else {
+ ( void ) ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+ if ( a_add_string [ 0 ] != '\0' ) {
+ proto_item_append_text ( item , "%s" , a_add_string ) ;
+ }
+ proto_item_set_len ( item , consumed ) ;
+ return consumed ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint16 consumed = 1 ;
+ guint32 curr_offset ;
+ proto_tree * subtree ;
+ proto_item * item ;
+ value_string_ext elem_names_ext ;
+ gint * elem_ett ;
+ elem_fcn * elem_funcs ;
+ gchar * a_add_string ;
+ const gchar * elem_name ;
+ curr_offset = offset ;
+ SET_ELEM_VARS ( pdu_type , elem_names_ext , elem_ett , elem_funcs , & ei_gsm_a_unknown_pdu_type ) ;
+ elem_name = try_val_to_str_ext ( idx , & elem_names_ext ) ;
+ if ( elem_name == NULL ) {
+ proto_tree_add_expert ( tree , pinfo , & ei_gsm_a_unknown_element , tvb , curr_offset , 0 ) ;
+ return consumed ;
+ }
+ subtree = proto_tree_add_subtree ( tree , tvb , curr_offset , 0 , elem_ett [ idx ] , & item , elem_name ) ;
+ a_add_string = ( gchar * ) wmem_alloc ( wmem_packet_scope ( ) , 1024 ) ;
+ a_add_string [ 0 ] = '\0' ;
+ if ( elem_funcs [ idx ] == NULL ) {
+ ( void ) de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+ else {
+ ( void ) ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble ,...
+      
+25769803777 | BLOCK | 
+        {
+ proto_tree_add_expert ( tree , pinfo , & ei_gsm_a_unknown_element , tvb , curr_offset , 0 ) ;
+ return consumed ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ ( void ) de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ ( void ) ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+      
+25769803780 | BLOCK | { proto_item_append_text ( item , "%s" , a_add_string ) ; }
+30064771072 | CALL | consumed = 1
+30064771073 | CALL | curr_offset = offset
+30064771074 | CALL | 
+        SET_ELEM_VARS ( pdu_type , elem_names_ext , elem_ett , elem_funcs , & ei_gsm_a_unknown_pdu_type )
+      
+30064771075 | CALL | & ei_gsm_a_unknown_pdu_type
+30064771076 | CALL | elem_name = try_val_to_str_ext ( idx , & elem_names_ext )
+30064771077 | CALL | try_val_to_str_ext ( idx , & elem_names_ext )
+30064771078 | CALL | & elem_names_ext
+30064771079 | CALL | elem_name == NULL
+30064771080 | CALL | 
+        proto_tree_add_expert ( tree , pinfo , & ei_gsm_a_unknown_element , tvb , curr_offset , 0 )
+      
+30064771081 | CALL | & ei_gsm_a_unknown_element
+30064771082 | CALL | 
+        subtree = proto_tree_add_subtree ( tree , tvb , curr_offset , 0 , elem_ett [ idx ] , & item , elem_name )
+      
+30064771083 | CALL | 
+        proto_tree_add_subtree ( tree , tvb , curr_offset , 0 , elem_ett [ idx ] , & item , elem_name )
+      
+30064771084 | CALL | elem_ett [ idx ]
+30064771085 | CALL | & item
+30064771086 | CALL | a_add_string = ( gchar * ) wmem_alloc ( wmem_packet_scope ( ) , 1024 )
+30064771087 | CALL | ( gchar * ) wmem_alloc ( wmem_packet_scope ( ) , 1024 )
+30064771088 | CALL | wmem_alloc ( wmem_packet_scope ( ) , 1024 )
+30064771089 | CALL | wmem_packet_scope ( )
+30064771090 | CALL | a_add_string [ 0 ] = '\0'
+30064771091 | CALL | a_add_string [ 0 ]
+30064771092 | CALL | elem_funcs [ idx ] == NULL
+30064771093 | CALL | elem_funcs [ idx ]
+30064771094 | CALL | 
+        ( void ) de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 )
+      
+30064771095 | CALL | 
+        de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 )
+      
+30064771096 | CALL | 
+        ( void ) ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 )
+      
+30064771097 | CALL | 
+        ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 )
+      
+30064771098 | CALL | * elem_funcs [ idx ]
+30064771099 | CALL | elem_funcs [ idx ]
+30064771100 | CALL | a_add_string [ 0 ] != '\0'
+30064771101 | CALL | a_add_string [ 0 ]
+30064771102 | CALL | proto_item_append_text ( item , "%s" , a_add_string )
+30064771103 | CALL | proto_item_set_len ( item , consumed )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( elem_name == NULL ) {
+ proto_tree_add_expert ( tree , pinfo , & ei_gsm_a_unknown_element , tvb , curr_offset , 0 ) ;
+ return consumed ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( elem_funcs [ idx ] == NULL ) {
+ ( void ) de_spare_nibble ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+ else {
+ ( void ) ( * elem_funcs [ idx ] ) ( tvb , subtree , pinfo , curr_offset , nibble , a_add_string , 1024 ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( a_add_string [ 0 ] != '\0' ) {
+ proto_item_append_text ( item , "%s" , a_add_string ) ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771094 [AST]
+25769803779 -> 30064771096 [AST]
+25769803780 -> 30064771102 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771091 [CDG]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

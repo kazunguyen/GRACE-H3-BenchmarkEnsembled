@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int temporal_filter_find_matching_mb_c ( VP9_COMP * cpi , uint8_t * arf_frame_buf , uint8_t * frame_ptr_buf , int stride ) {
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ const MV_SPEED_FEATURES * const mv_sf = & cpi -> sf . mv ;
+ int step_param ;
+ int sadpb = x -> sadperbit16 ;
+ int bestsme = INT_MAX ;
+ int distortion ;
+ unsigned int sse ;
+ int sad_list [ 5 ] ;
+ MV best_ref_mv1 = {
+ 0 , 0 }
+ ;
+ MV best_ref_mv1_full ;
+ MV * ref_mv = & x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ] . as_mv ;
+ struct buf_2d src = x -> plane [ 0 ] . src ;
+ struct buf_2d pre = xd -> plane [ 0 ] . pre [ 0 ] ;
+ best_ref_mv1_full . col = best_ref_mv1 . col >> 3 ;
+ best_ref_mv1_full . row = best_ref_mv1 . row >> 3 ;
+ x -> plane [ 0 ] . src . buf = arf_frame_buf ;
+ x -> plane [ 0 ] . src . stride = stride ;
+ xd -> plane [ 0 ] . pre [ 0 ] . buf = frame_ptr_buf ;
+ xd -> plane [ 0 ] . pre [ 0 ] . stride = stride ;
+ step_param = mv_sf -> reduce_first_step_size ;
+ step_param = MIN ( step_param , MAX_MVSEARCH_STEPS - 2 ) ;
+ vp9_hex_search ( x , & best_ref_mv1_full , step_param , sadpb , 1 , cond_sad_list ( cpi , sad_list ) , & cpi -> fn_ptr [ BLOCK_16X16 ] , 0 , & best_ref_mv1 , ref_mv ) ;
+ bestsme = cpi -> find_fractional_mv_step ( x , ref_mv , & best_ref_mv1 , cpi -> common . allow_high_precision_mv , x -> errorperbit , & cpi -> fn_ptr [ BLOCK_16X16 ] , 0 , mv_sf -> subpel_iters_per_step , cond_sad_list ( cpi , sad_list ) , NULL , NULL , & distortion , & sse , NULL , 0 , 0 ) ;
+ x -> plane [ 0 ] . src = src ;
+ xd -> plane [ 0 ] . pre [ 0 ] = pre ;
+ return bestsme ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ const MV_SPEED_FEATURES * const mv_sf = & cpi -> sf . mv ;
+ int step_param ;
+ int sadpb = x -> sadperbit16 ;
+ int bestsme = INT_MAX ;
+ int distortion ;
+ unsigned int sse ;
+ int sad_list [ 5 ] ;
+ MV best_ref_mv1 = {
+ 0 , 0 }
+ ;
+ MV best_ref_mv1_full ;
+ MV * ref_mv = & x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ] . as_mv ;
+ struct buf_2d src = x -> plane [ 0 ] . src ;
+ struct buf_2d pre = xd -> plane [ 0 ] . pre [ 0 ] ;
+ best_ref_mv1_full . col = best_ref_mv1 . col >> 3 ;
+ best_ref_mv1_full . row = best_ref_mv1 . row >> 3 ;
+ x -> plane [ 0 ] . src . buf = arf_frame_buf ;
+ x -> plane [ 0 ] . src . stride = stride ;
+ xd -> plane [ 0 ] . pre [ 0 ] . buf = frame_ptr_buf ;
+ xd -> plane [ 0 ] . pre [ 0 ] . stride = stride ;
+ step_param = mv_sf -> reduce_first_step_size ;
+ step_param = MIN ( step_param , MAX_MVSEARCH_STEPS - 2 ) ;
+ vp9_hex_search ( x , & best_ref_mv1_full , step_param , sadpb , 1 ,...
+      
+30064771072 | CALL | const x = & cpi -> mb
+30064771073 | CALL | & cpi -> mb
+30064771074 | CALL | cpi -> mb
+30064771075 | CALL | const xd = & x -> e_mbd
+30064771076 | CALL | & x -> e_mbd
+30064771077 | CALL | x -> e_mbd
+30064771078 | CALL | const mv_sf = & cpi -> sf . mv
+30064771079 | CALL | & cpi -> sf . mv
+30064771080 | CALL | cpi -> sf . mv
+30064771081 | CALL | cpi -> sf
+30064771082 | CALL | sadpb = x -> sadperbit16
+30064771083 | CALL | x -> sadperbit16
+30064771084 | CALL | bestsme = INT_MAX
+30064771085 | CALL | sad_list [ 5 ]
+30064771086 | CALL | sad_list [ 5 ]
+30064771087 | CALL | best_ref_mv1 = { 0 , 0 }
+30064771088 | CALL | { 0 , 0 }
+30064771089 | CALL | 
+        ref_mv = & x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ] . as_mv
+      
+30064771090 | CALL | & x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ] . as_mv
+30064771091 | CALL | x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ] . as_mv
+30064771092 | CALL | x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv [ 0 ]
+30064771093 | CALL | x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ] . as_mv
+30064771094 | CALL | x -> e_mbd . mi [ 0 ] . src_mi -> bmi [ 0 ]
+30064771095 | CALL | x -> e_mbd . mi [ 0 ] . src_mi -> bmi
+30064771096 | CALL | x -> e_mbd . mi [ 0 ] . src_mi
+30064771097 | CALL | x -> e_mbd . mi [ 0 ]
+30064771098 | CALL | x -> e_mbd . mi
+30064771099 | CALL | x -> e_mbd
+30064771100 | CALL | src = x -> plane [ 0 ] . src
+30064771101 | CALL | x -> plane [ 0 ] . src
+30064771102 | CALL | x -> plane [ 0 ]
+30064771103 | CALL | x -> plane
+30064771104 | CALL | pre = xd -> plane [ 0 ] . pre [ 0 ]
+30064771105 | CALL | xd -> plane [ 0 ] . pre [ 0 ]
+30064771106 | CALL | xd -> plane [ 0 ] . pre
+30064771107 | CALL | xd -> plane [ 0 ]
+30064771108 | CALL | xd -> plane
+30064771109 | CALL | best_ref_mv1_full . col = best_ref_mv1 . col >> 3
+30064771110 | CALL | best_ref_mv1_full . col
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771099 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771099 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+3006
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

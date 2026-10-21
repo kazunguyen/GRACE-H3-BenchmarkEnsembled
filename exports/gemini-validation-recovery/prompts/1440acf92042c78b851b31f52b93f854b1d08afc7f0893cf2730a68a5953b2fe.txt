@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void dynstr_append_sorted ( DYNAMIC_STRING * ds , DYNAMIC_STRING * ds_input , bool keep_header ) {
+ unsigned i ;
+ char * start = ds_input -> str ;
+ DYNAMIC_ARRAY lines ;
+ DBUG_ENTER ( "dynstr_append_sorted" ) ;
+ if ( ! * start ) DBUG_VOID_RETURN ;
+ my_init_dynamic_array ( & lines , sizeof ( const char * ) , 32 , 32 ) ;
+ if ( keep_header ) {
+ while ( * start && * start != '\n' ) start ++ ;
+ start ++ ;
+ dynstr_append_mem ( ds , ds_input -> str , start - ds_input -> str ) ;
+ }
+ while ( * start ) {
+ char * line_end = ( char * ) start ;
+ while ( * line_end && * line_end != '\n' ) line_end ++ ;
+ * line_end = 0 ;
+ if ( insert_dynamic ( & lines , ( uchar * ) & start ) ) die ( "Out of memory inserting lines to sort" ) ;
+ start = line_end + 1 ;
+ }
+ qsort ( lines . buffer , lines . elements , sizeof ( char * * ) , ( qsort_cmp ) comp_lines ) ;
+ for ( i = 0 ;
+ i < lines . elements ;
+ i ++ ) {
+ const char * * line = dynamic_element ( & lines , i , const char * * ) ;
+ dynstr_append ( ds , * line ) ;
+ dynstr_append ( ds , "\n" ) ;
+ }
+ delete_dynamic ( & lines ) ;
+ DBUG_VOID_RETURN ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned i ;
+ char * start = ds_input -> str ;
+ DYNAMIC_ARRAY lines ;
+ DBUG_ENTER ( "dynstr_append_sorted" ) ;
+ if ( ! * start ) DBUG_VOID_RETURN ;
+ my_init_dynamic_array ( & lines , sizeof ( const char * ) , 32 , 32 ) ;
+ if ( keep_header ) {
+ while ( * start && * start != '\n' ) start ++ ;
+ start ++ ;
+ dynstr_append_mem ( ds , ds_input -> str , start - ds_input -> str ) ;
+ }
+ while ( * start ) {
+ char * line_end = ( char * ) start ;
+ while ( * line_end && * line_end != '\n' ) line_end ++ ;
+ * line_end = 0 ;
+ if ( insert_dynamic ( & lines , ( uchar * ) & start ) ) die ( "Out of memory inserting lines to sort" ) ;
+ start = line_end + 1 ;
+ }
+ qsort ( lines . buffer , lines . elements , sizeof ( char * * ) , ( qsort_cmp ) comp_lines ) ;
+ for ( i = 0 ;
+ i < lines . elements ;
+ i ++ ) {
+ const char * * line = dynamic_element ( & lines , i , const char * * ) ;
+ dynstr_append ( ds , * line ) ;
+ dynstr_append ( ds , "\n" ) ;
+ }
+ delete_dynamic ( & lines ) ;
+ DBUG_VOID_RETURN ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ while ( * start && * start != '\n' ) start ++ ;
+ start ++ ;
+ dynstr_append_mem ( ds , ds_input -> str , start - ds_input -> str ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ char * line_end = ( char * ) start ;
+ while ( * line_end && * line_end != '\n' ) line_end ++ ;
+ * line_end = 0 ;
+ if ( insert_dynamic ( & lines , ( uchar * ) & start ) ) die ( "Out of memory inserting lines to sort" ) ;
+ start = line_end + 1 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ const char * * line = dynamic_element ( & lines , i , const char * * ) ;
+ dynstr_append ( ds , * line ) ;
+ dynstr_append ( ds , "\n" ) ;
+ }
+      
+30064771072 | CALL | start = ds_input -> str
+30064771073 | CALL | ds_input -> str
+30064771074 | CALL | DBUG_ENTER ( "dynstr_append_sorted" )
+30064771075 | CALL | ! * start
+30064771076 | CALL | * start
+30064771077 | CALL | my_init_dynamic_array ( & lines , sizeof ( const char * ) , 32 , 32 )
+30064771078 | CALL | & lines
+30064771079 | CALL | sizeof ( const char * )
+30064771080 | CALL | keep_header != 0
+30064771081 | CALL | * start && * start != '\n'
+30064771082 | CALL | * start
+30064771083 | CALL | * start != '\n'
+30064771084 | CALL | * start
+30064771085 | CALL | start ++
+30064771086 | CALL | start ++
+30064771087 | CALL | dynstr_append_mem ( ds , ds_input -> str , start - ds_input -> str )
+30064771088 | CALL | ds_input -> str
+30064771089 | CALL | start - ds_input -> str
+30064771090 | CALL | ds_input -> str
+30064771091 | CALL | * start
+30064771092 | CALL | line_end = ( char * ) start
+30064771093 | CALL | ( char * ) start
+30064771094 | CALL | * line_end && * line_end != '\n'
+30064771095 | CALL | * line_end
+30064771096 | CALL | * line_end != '\n'
+30064771097 | CALL | * line_end
+30064771098 | CALL | line_end ++
+30064771099 | CALL | * line_end = 0
+30064771100 | CALL | * line_end
+30064771101 | CALL | insert_dynamic ( & lines , ( uchar * ) & start )
+30064771102 | CALL | & lines
+30064771103 | CALL | ( uchar * ) & start
+30064771104 | CALL | & start
+30064771105 | CALL | die ( "Out of memory inserting lines to sort" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771087 [AST]
+25769803779 -> 30064771092 [AST]
+25769803779 -> 30064771099 [AST]
+25769803780 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771090 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 30064771084 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771102 [REACHING_DEF]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771081 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771089 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771087 [CFG]
+30064771089 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771102 [CDG]
+30064771091 -> 30064771103 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int replace ( DYNAMIC_STRING * ds_str , const char * search_str , ulong search_len , const char * replace_str , ulong replace_len ) {
+ DYNAMIC_STRING ds_tmp 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

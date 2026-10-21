@@ -1,0 +1,224 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int cinaudio_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ CinAudioContext * cin = avctx -> priv_data ;
+ const uint8_t * buf_end = buf + avpkt -> size ;
+ int16_t * samples ;
+ int delta , ret ;
+ frame -> nb_samples = avpkt -> size - cin -> initial_decode_frame ;
+ if ( ( ret = ff_get_buffer ( avctx , frame ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ samples = ( int16_t * ) frame -> data [ 0 ] ;
+ delta = cin -> delta ;
+ if ( cin -> initial_decode_frame ) {
+ cin -> initial_decode_frame = 0 ;
+ delta = sign_extend ( AV_RL16 ( buf ) , 16 ) ;
+ buf += 2 ;
+ * samples ++ = delta ;
+ }
+ while ( buf < buf_end ) {
+ delta += cinaudio_delta16_table [ * buf ++ ] ;
+ delta = av_clip_int16 ( delta ) ;
+ * samples ++ = delta ;
+ }
+ cin -> delta = delta ;
+ * got_frame_ptr = 1 ;
+ return avpkt -> size ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ CinAudioContext * cin = avctx -> priv_data ;
+ const uint8_t * buf_end = buf + avpkt -> size ;
+ int16_t * samples ;
+ int delta , ret ;
+ frame -> nb_samples = avpkt -> size - cin -> initial_decode_frame ;
+ if ( ( ret = ff_get_buffer ( avctx , frame ) ) < 0 ) {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+ samples = ( int16_t * ) frame -> data [ 0 ] ;
+ delta = cin -> delta ;
+ if ( cin -> initial_decode_frame ) {
+ cin -> initial_decode_frame = 0 ;
+ delta = sign_extend ( AV_RL16 ( buf ) , 16 ) ;
+ buf += 2 ;
+ * samples ++ = delta ;
+ }
+ while ( buf < buf_end ) {
+ delta += cinaudio_delta16_table [ * buf ++ ] ;
+ delta = av_clip_int16 ( delta ) ;
+ * samples ++ = delta ;
+ }
+ cin -> delta = delta ;
+ * got_frame_ptr = 1 ;
+ return avpkt -> size ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" ) ;
+ return ret ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ cin -> initial_decode_frame = 0 ;
+ delta = sign_extend ( AV_RL16 ( buf ) , 16 ) ;
+ buf += 2 ;
+ * samples ++ = delta ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ delta += cinaudio_delta16_table [ * buf ++ ] ;
+ delta = av_clip_int16 ( delta ) ;
+ * samples ++ = delta ;
+ }
+      
+30064771072 | CALL | frame = data
+30064771073 | CALL | buf = avpkt -> data
+30064771074 | CALL | avpkt -> data
+30064771075 | CALL | cin = avctx -> priv_data
+30064771076 | CALL | avctx -> priv_data
+30064771077 | CALL | buf_end = buf + avpkt -> size
+30064771078 | CALL | buf + avpkt -> size
+30064771079 | CALL | avpkt -> size
+30064771080 | CALL | frame -> nb_samples = avpkt -> size - cin -> initial_decode_frame
+30064771081 | CALL | frame -> nb_samples
+30064771082 | CALL | avpkt -> size - cin -> initial_decode_frame
+30064771083 | CALL | avpkt -> size
+30064771084 | CALL | cin -> initial_decode_frame
+30064771085 | CALL | ( ret = ff_get_buffer ( avctx , frame ) ) < 0
+30064771086 | CALL | ret = ff_get_buffer ( avctx , frame )
+30064771087 | CALL | ff_get_buffer ( avctx , frame )
+30064771088 | CALL | av_log ( avctx , AV_LOG_ERROR , "get_buffer() failed\n" )
+30064771089 | CALL | samples = ( int16_t * ) frame -> data [ 0 ]
+30064771090 | CALL | ( int16_t * ) frame -> data [ 0 ]
+30064771091 | CALL | frame -> data [ 0 ]
+30064771092 | CALL | frame -> data
+30064771093 | CALL | delta = cin -> delta
+30064771094 | CALL | cin -> delta
+30064771095 | CALL | cin -> initial_decode_frame
+30064771096 | CALL | cin -> initial_decode_frame = 0
+30064771097 | CALL | cin -> initial_decode_frame
+30064771098 | CALL | delta = sign_extend ( AV_RL16 ( buf ) , 16 )
+30064771099 | CALL | sign_extend ( AV_RL16 ( buf ) , 16 )
+30064771100 | CALL | AV_RL16 ( buf )
+30064771101 | CALL | buf += 2
+30064771102 | CALL | * samples ++ = delta
+30064771103 | CALL | * samples ++
+30064771104 | CALL | samples ++
+30064771105 | CALL | buf < buf_end
+30064771106 | CALL | delta += cinaudio_delta16_table [ * buf ++ ]
+30064771107 | CALL | cinaudio_delta16_table [ * buf ++ ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771096 [AST]
+25769803778 -> 30064771098 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771102 [AST]
+25769803779 -> 30064771106 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771105 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int cinaudio_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ CinAudioContext * cin = avctx -> priv_data ;
+ const uint8_t * buf_end = buf + avpkt -> size ;
+ int16_t * samples ;
+ int delta , ret ;
+ frame -> nb_samples = avpkt -> size - cin -> initial_decode_frame ;
+ if ( ( ret = ff_get_buffer ( avctx , fr
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

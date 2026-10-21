@@ -1,0 +1,269 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int evdns_resolv_conf_parse ( int flags , const char * const filename ) {
+ struct stat st ;
+ int fd , n , r ;
+ u8 * resolv ;
+ char * start ;
+ int err = 0 ;
+ log ( EVDNS_LOG_DEBUG , "Parsing resolv.conf file %s" , filename ) ;
+ fd = open ( filename , O_RDONLY ) ;
+ if ( fd < 0 ) {
+ evdns_resolv_set_defaults ( flags ) ;
+ return 1 ;
+ }
+ if ( fstat ( fd , & st ) ) {
+ err = 2 ;
+ goto out1 ;
+ }
+ if ( ! st . st_size ) {
+ evdns_resolv_set_defaults ( flags ) ;
+ err = ( flags & DNS_OPTION_NAMESERVERS ) ? 6 : 0 ;
+ goto out1 ;
+ }
+ if ( st . st_size > 65535 ) {
+ err = 3 ;
+ goto out1 ;
+ }
+ resolv = ( u8 * ) malloc ( ( size_t ) st . st_size + 1 ) ;
+ if ( ! resolv ) {
+ err = 4 ;
+ goto out1 ;
+ }
+ n = 0 ;
+ while ( ( r = read ( fd , resolv + n , ( size_t ) st . st_size - n ) ) > 0 ) {
+ n += r ;
+ if ( n == st . st_size ) break ;
+ assert ( n < st . st_size ) ;
+ }
+ if ( r < 0 ) {
+ err = 5 ;
+ goto out2 ;
+ }
+ resolv [ n ] = 0 ;
+ start = ( char * ) resolv ;
+ for ( ;
+ ;
+ ) {
+ char * const newline = strchr ( start , '\n' ) ;
+ if ( ! newline ) {
+ resolv_conf_parse_line ( start , flags ) ;
+ break ;
+ }
+ else {
+ * newline = 0 ;
+ resolv_conf_parse_line ( start , flags ) ;
+ start = newline + 1 ;
+ }
+ }
+ if ( ! server_head && ( flags & DNS_OPTION_NAMESERVERS ) ) {
+ evdns_nameserver_ip_add ( "127.0.0.1" ) ;
+ err = 6 ;
+ }
+ if ( flags & DNS_OPTION_SEARCH && ( ! global_search_state || global_search_state -> num_domains == 0 ) ) {
+ search_set_from_hostname ( ) ;
+ }
+ out2 : free ( resolv ) ;
+ out1 : close ( fd ) ;
+ return err ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct stat st ;
+ int fd , n , r ;
+ u8 * resolv ;
+ char * start ;
+ int err = 0 ;
+ log ( EVDNS_LOG_DEBUG , "Parsing resolv.conf file %s" , filename ) ;
+ fd = open ( filename , O_RDONLY ) ;
+ if ( fd < 0 ) {
+ evdns_resolv_set_defaults ( flags ) ;
+ return 1 ;
+ }
+ if ( fstat ( fd , & st ) ) {
+ err = 2 ;
+ goto out1 ;
+ }
+ if ( ! st . st_size ) {
+ evdns_resolv_set_defaults ( flags ) ;
+ err = ( flags & DNS_OPTION_NAMESERVERS ) ? 6 : 0 ;
+ goto out1 ;
+ }
+ if ( st . st_size > 65535 ) {
+ err = 3 ;
+ goto out1 ;
+ }
+ resolv = ( u8 * ) malloc ( ( size_t ) st . st_size + 1 ) ;
+ if ( ! resolv ) {
+ err = 4 ;
+ goto out1 ;
+ }
+ n = 0 ;
+ while ( ( r = read ( fd , resolv + n , ( size_t ) st . st_size - n ) ) > 0 ) {
+ n += r ;
+ if ( n == st . st_size ) break ;
+ assert ( n < st . st_size ) ;
+ }
+ if ( r < 0 ) {
+ err = 5 ;
+ goto out2 ;
+ }
+ resolv [ n ] = 0 ;
+ start = ( char * ) resolv ;
+ for ( ;
+ ;
+ ) {
+ char * const newline = strchr ( start , '\n' ) ;
+ if ( ! newline ) {
+ resolv_conf_parse_line ( start , fl...
+      
+25769803777 | BLOCK | { evdns_resolv_set_defaults ( flags ) ; return 1 ; }
+25769803778 | BLOCK | { err = 2 ; goto out1 ; }
+25769803779 | BLOCK | 
+        {
+ evdns_resolv_set_defaults ( flags ) ;
+ err = ( flags & DNS_OPTION_NAMESERVERS ) ? 6 : 0 ;
+ goto out1 ;
+ }
+      
+25769803780 | BLOCK | { err = 3 ; goto out1 ; }
+25769803781 | BLOCK | { err = 4 ; goto out1 ; }
+25769803782 | BLOCK | { n += r ; if ( n == st . st_size ) break ; assert ( n < st . st_size ) ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { err = 5 ; goto out2 ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ char * const newline = strchr ( start , '\n' ) ;
+ if ( ! newline ) {
+ resolv_conf_parse_line ( start , flags ) ;
+ break ;
+ }
+ else {
+ * newline = 0 ;
+ resolv_conf_parse_line ( start , flags ) ;
+ start = newline + 1 ;
+ }
+ }
+      
+25769803787 | BLOCK | { resolv_conf_parse_line ( start , flags ) ; break ; }
+25769803788 | BLOCK | 
+        {
+ * newline = 0 ;
+ resolv_conf_parse_line ( start , flags ) ;
+ start = newline + 1 ;
+ }
+      
+25769803789 | BLOCK | { evdns_nameserver_ip_add ( "127.0.0.1" ) ; err = 6 ; }
+25769803790 | BLOCK | { search_set_from_hostname ( ) ; }
+30064771072 | CALL | err = 0
+30064771073 | CALL | log ( EVDNS_LOG_DEBUG , "Parsing resolv.conf file %s" , filename )
+30064771074 | CALL | fd = open ( filename , O_RDONLY )
+30064771075 | CALL | open ( filename , O_RDONLY )
+30064771076 | CALL | fd < 0
+30064771077 | CALL | evdns_resolv_set_defaults ( flags )
+30064771078 | CALL | fstat ( fd , & st )
+30064771079 | CALL | & st
+30064771080 | CALL | err = 2
+30064771081 | CALL | ! st . st_size
+30064771082 | CALL | st . st_size
+30064771083 | CALL | evdns_resolv_set_defaults ( flags )
+30064771084 | CALL | err = ( flags & DNS_OPTION_NAMESERVERS ) ? 6 : 0
+30064771085 | CALL | ( flags & DNS_OPTION_NAMESERVERS ) ? 6 : 0
+30064771086 | CALL | flags & DNS_OPTION_NAMESERVERS
+30064771087 | CALL | st . st_size > 65535
+30064771088 | CALL | st . st_size
+30064771089 | CALL | err = 3
+30064771090 | CALL | resolv = ( u8 * ) malloc ( ( size_t ) st . st_size + 1 )
+30064771091 | CALL | ( u8 * ) malloc ( ( size_t ) st . st_size + 1 )
+30064771092 | CALL | malloc ( ( size_t ) st . st_size + 1 )
+30064771093 | CALL | ( size_t ) st . st_size + 1
+30064771094 | CALL | ( size_t ) st . st_size
+30064771095 | CALL | st . st_size
+30064771096 | CALL | ! resolv
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771084 [AST]
+25769803780 -> 30064771089 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771088 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 30064771093 [CDG]
+30064771087 -> 30064771094 [CDG]
+30064771087 -> 30064771095 [CDG]
+30064771087 -> 30064771096 [CDG]
+30064771088 -> 30064771095 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,171 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gpgme_error_t add_io_cb ( engine_gpgsm_t gpgsm , iocb_data_t * iocbd , gpgme_io_cb_t handler ) {
+ gpgme_error_t err ;
+ TRACE_BEG2 ( DEBUG_ENGINE , "engine-gpgsm:add_io_cb" , gpgsm , "fd %d, dir %d" , iocbd -> fd , iocbd -> dir ) ;
+ err = ( * gpgsm -> io_cbs . add ) ( gpgsm -> io_cbs . add_priv , iocbd -> fd , iocbd -> dir , handler , iocbd -> data , & iocbd -> tag ) ;
+ if ( err ) return TRACE_ERR ( err ) ;
+ if ( ! iocbd -> dir ) err = _gpgme_io_set_nonblocking ( iocbd -> fd ) ;
+ return TRACE_ERR ( err ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gpgme_error_t err ;
+ TRACE_BEG2 ( DEBUG_ENGINE , "engine-gpgsm:add_io_cb" , gpgsm , "fd %d, dir %d" , iocbd -> fd , iocbd -> dir ) ;
+ err = ( * gpgsm -> io_cbs . add ) ( gpgsm -> io_cbs . add_priv , iocbd -> fd , iocbd -> dir , handler , iocbd -> data , & iocbd -> tag ) ;
+ if ( err ) return TRACE_ERR ( err ) ;
+ if ( ! iocbd -> dir ) err = _gpgme_io_set_nonblocking ( iocbd -> fd ) ;
+ return TRACE_ERR ( err ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | 
+        TRACE_BEG2 ( DEBUG_ENGINE , "engine-gpgsm:add_io_cb" , gpgsm , "fd %d, dir %d" , iocbd -> fd , iocbd -> dir )
+      
+30064771073 | CALL | iocbd -> fd
+30064771074 | CALL | iocbd -> dir
+30064771075 | CALL | 
+        err = ( * gpgsm -> io_cbs . add ) ( gpgsm -> io_cbs . add_priv , iocbd -> fd , iocbd -> dir , handler , iocbd -> data , & iocbd -> tag )
+      
+30064771076 | CALL | 
+        ( * gpgsm -> io_cbs . add ) ( gpgsm -> io_cbs . add_priv , iocbd -> fd , iocbd -> dir , handler , iocbd -> data , & iocbd -> tag )
+      
+30064771077 | CALL | * gpgsm -> io_cbs . add
+30064771078 | CALL | gpgsm -> io_cbs . add
+30064771079 | CALL | gpgsm -> io_cbs
+30064771080 | CALL | gpgsm -> io_cbs . add_priv
+30064771081 | CALL | gpgsm -> io_cbs
+30064771082 | CALL | iocbd -> fd
+30064771083 | CALL | iocbd -> dir
+30064771084 | CALL | iocbd -> data
+30064771085 | CALL | & iocbd -> tag
+30064771086 | CALL | iocbd -> tag
+30064771087 | CALL | err != 0
+30064771088 | CALL | TRACE_ERR ( err )
+30064771089 | CALL | ! iocbd -> dir
+30064771090 | CALL | iocbd -> dir
+30064771091 | CALL | err = _gpgme_io_set_nonblocking ( iocbd -> fd )
+30064771092 | CALL | _gpgme_io_set_nonblocking ( iocbd -> fd )
+30064771093 | CALL | iocbd -> fd
+30064771094 | CALL | TRACE_ERR ( err )
+47244640256 | CONTROL_STRUCTURE | if ( err ) return TRACE_ERR ( err ) ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! iocbd -> dir ) err = _gpgme_io_set_nonblocking ( iocbd -> fd ) ;
+      
+55834574848 | FIELD_IDENTIFIER | fd
+55834574849 | FIELD_IDENTIFIER | dir
+55834574850 | FIELD_IDENTIFIER | io_cbs
+55834574851 | FIELD_IDENTIFIER | add
+55834574852 | FIELD_IDENTIFIER | io_cbs
+55834574853 | FIELD_IDENTIFIER | add_priv
+55834574854 | FIELD_IDENTIFIER | fd
+55834574855 | FIELD_IDENTIFIER | dir
+55834574856 | FIELD_IDENTIFIER | data
+55834574857 | FIELD_IDENTIFIER | tag
+55834574858 | FIELD_IDENTIFIER | dir
+55834574859 | FIELD_IDENTIFIER | fd
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771082 [REACHING_DEF]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771082 [ARGUMENT]
+30064771076 -> 30064771083 [ARGUMENT]
+30064771076 -> 30064771084 [ARGUMENT]
+30064771076 -> 30064771085 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 30064771082 [AST]
+30064771076 -> 30064771083 [AST]
+30064771076 -> 30064771084 [AST]
+30064771076 -> 30064771085 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771085 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771077 [RECEIVER]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 55834574851 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 55834574851 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574851 [POST_DOMINATE]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 55834574851 [CFG]
+30064771079 -> 55834574851 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 55834574853 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 55834574853 [AST]
+30064771080 -> 55834574853 [POST_DOMINATE]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771083 [REACHING_DEF]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771080 -> 30064771085 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 55834574852 [ARGUMENT]
+30064771081 -> 55834574852 [AST]
+30064771081 -> 55834574853 [CFG]
+30064771081 -> 55834574853 [DOMINATE]
+30064771081 -> 55834574852 [POST_DOMINATE]
+30064771082 -> 55834574854 [ARGUMENT]
+30064771082 -> 55834574854 [AST]
+30064771082 -> 55834574854 [POST_DOMINATE]
+30064771082 -> 30064771093 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771084 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static gpgme_error_t add_io_cb ( engine_uiserver_t uiserver , iocb_data_t * iocbd , gpgme_io_cb_t handler ) {
+ gpgme_error_t err ;
+ TRACE_BEG2 ( DEBUG_ENGINE , "engine-uiserver:add_io_cb" , uiserver , "fd %d, dir %d" , iocbd -> fd , iocbd -> dir ) ;
+ err = ( * uiserver -> io_cbs . add ) ( uiserver -> io_cbs . add_priv , iocbd -> fd , iocbd -> dir , handler , iocbd -> data , & iocbd -> tag ) ;
+ if ( err ) return TRACE_ERR ( err ) ;
+ if ( ! iocbd -> dir ) err = _gpgme_io_set_nonblocking ( iocbd -> fd ) ;
+ return TRACE_ERR ( err ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

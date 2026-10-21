@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_bug8722 ( ) {
+ MYSQL_STMT * stmt ;
+ int rc ;
+ const char * stmt_text ;
+ myheader ( "test_bug8722" ) ;
+ stmt_text = "drop table if exists t1, v1" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "CREATE TABLE t1 (c1 varchar(10), c2 varchar(10), c3 varchar(10)," " c4 varchar(10), c5 varchar(10), c6 varchar(10)," " c7 varchar(10), c8 varchar(10), c9 varchar(10)," "c10 varchar(10))" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "INSERT INTO t1 VALUES (1,2,3,4,5,6,7,8,9,10)" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "CREATE VIEW v1 AS SELECT * FROM t1" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt = mysql_stmt_init ( mysql ) ;
+ stmt_text = "select * from v1" ;
+ rc = mysql_stmt_prepare ( stmt , stmt_text , strlen ( stmt_text ) ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( stmt ) ;
+ stmt_text = "drop table if exists t1, v1" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ int rc ;
+ const char * stmt_text ;
+ myheader ( "test_bug8722" ) ;
+ stmt_text = "drop table if exists t1, v1" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "CREATE TABLE t1 (c1 varchar(10), c2 varchar(10), c3 varchar(10)," " c4 varchar(10), c5 varchar(10), c6 varchar(10)," " c7 varchar(10), c8 varchar(10), c9 varchar(10)," "c10 varchar(10))" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "INSERT INTO t1 VALUES (1,2,3,4,5,6,7,8,9,10)" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt_text = "CREATE VIEW v1 AS SELECT * FROM t1" ;
+ rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) ) ;
+ myquery ( rc ) ;
+ stmt = mysql_stmt_init ( mysql ) ;
+ stmt_text = "select * from v1" ;
+ rc = mysql_stmt_prepare ( stmt , stmt_text , strlen ( stmt_text ) ) ;
+ check_execute ( stmt , rc ) ;
+ mysql_stmt_close ( s...
+      
+30064771072 | CALL | myheader ( "test_bug8722" )
+30064771073 | CALL | stmt_text = "drop table if exists t1, v1"
+30064771074 | CALL | rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771075 | CALL | mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771076 | CALL | strlen ( stmt_text )
+30064771077 | CALL | myquery ( rc )
+30064771078 | CALL | 
+        stmt_text = "CREATE TABLE t1 (c1 varchar(10), c2 varchar(10), c3 varchar(10)," " c4 varchar(10), c5 varchar(10), c6 varchar(10)," " c7 varchar(10), c8 varchar(10), c9 varchar(10)," "c10 varchar(10))"
+      
+30064771079 | CALL | rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771080 | CALL | mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771081 | CALL | strlen ( stmt_text )
+30064771082 | CALL | myquery ( rc )
+30064771083 | CALL | stmt_text = "INSERT INTO t1 VALUES (1,2,3,4,5,6,7,8,9,10)"
+30064771084 | CALL | rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771085 | CALL | mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771086 | CALL | strlen ( stmt_text )
+30064771087 | CALL | myquery ( rc )
+30064771088 | CALL | stmt_text = "CREATE VIEW v1 AS SELECT * FROM t1"
+30064771089 | CALL | rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771090 | CALL | mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771091 | CALL | strlen ( stmt_text )
+30064771092 | CALL | myquery ( rc )
+30064771093 | CALL | stmt = mysql_stmt_init ( mysql )
+30064771094 | CALL | mysql_stmt_init ( mysql )
+30064771095 | CALL | stmt_text = "select * from v1"
+30064771096 | CALL | rc = mysql_stmt_prepare ( stmt , stmt_text , strlen ( stmt_text ) )
+30064771097 | CALL | mysql_stmt_prepare ( stmt , stmt_text , strlen ( stmt_text ) )
+30064771098 | CALL | strlen ( stmt_text )
+30064771099 | CALL | check_execute ( stmt , rc )
+30064771100 | CALL | mysql_stmt_close ( stmt )
+30064771101 | CALL | stmt_text = "drop table if exists t1, v1"
+30064771102 | CALL | rc = mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771103 | CALL | mysql_real_query ( mysql , stmt_text , strlen ( stmt_text ) )
+30064771104 | CALL | strlen ( stmt_text )
+30064771105 | CALL | myquery ( rc )
+68719476736 | IDENTIFIER | stmt_text
+68719476737 | IDENTIFIER | rc
+68719476738 | IDENTIFIER | <unknown> mysql
+68719476739 | IDENTIFIER | stmt_text
+68719476740 | IDENTIFIER | stmt_text
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771105 [AST]
+30064771072 -> 68719476736 [CFG]
+30064771072 -> 68719476736 [DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 68719476737 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476738 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACH
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

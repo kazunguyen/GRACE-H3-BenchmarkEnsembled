@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int evhttp_hostportfile ( char * url , char * * phost , u_short * pport , char * * pfile ) {
+ static char host [ 1024 ] ;
+ static char file [ 1024 ] ;
+ char * p ;
+ const char * p2 ;
+ int len ;
+ u_short port ;
+ len = strlen ( HTTP_PREFIX ) ;
+ if ( strncasecmp ( url , HTTP_PREFIX , len ) ) return ( - 1 ) ;
+ url += len ;
+ if ( strlcpy ( host , url , sizeof ( host ) ) >= sizeof ( host ) ) return ( - 1 ) ;
+ p = strchr ( host , '/' ) ;
+ if ( p != NULL ) {
+ * p = '\0' ;
+ p2 = p + 1 ;
+ }
+ else p2 = NULL ;
+ if ( pfile != NULL ) {
+ if ( p2 == NULL ) p2 = "" ;
+ evutil_snprintf ( file , sizeof ( file ) , "/%s" , p2 ) ;
+ }
+ p = strchr ( host , ':' ) ;
+ if ( p != NULL ) {
+ * p = '\0' ;
+ port = atoi ( p + 1 ) ;
+ if ( port == 0 ) return ( - 1 ) ;
+ }
+ else port = HTTP_DEFAULTPORT ;
+ if ( phost != NULL ) * phost = host ;
+ if ( pport != NULL ) * pport = port ;
+ if ( pfile != NULL ) * pfile = file ;
+ return ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static char host [ 1024 ] ;
+ static char file [ 1024 ] ;
+ char * p ;
+ const char * p2 ;
+ int len ;
+ u_short port ;
+ len = strlen ( HTTP_PREFIX ) ;
+ if ( strncasecmp ( url , HTTP_PREFIX , len ) ) return ( - 1 ) ;
+ url += len ;
+ if ( strlcpy ( host , url , sizeof ( host ) ) >= sizeof ( host ) ) return ( - 1 ) ;
+ p = strchr ( host , '/' ) ;
+ if ( p != NULL ) {
+ * p = '\0' ;
+ p2 = p + 1 ;
+ }
+ else p2 = NULL ;
+ if ( pfile != NULL ) {
+ if ( p2 == NULL ) p2 = "" ;
+ evutil_snprintf ( file , sizeof ( file ) , "/%s" , p2 ) ;
+ }
+ p = strchr ( host , ':' ) ;
+ if ( p != NULL ) {
+ * p = '\0' ;
+ port = atoi ( p + 1 ) ;
+ if ( port == 0 ) return ( - 1 ) ;
+ }
+ else port = HTTP_DEFAULTPORT ;
+ if ( phost != NULL ) * phost = host ;
+ if ( pport != NULL ) * pport = port ;
+ if ( pfile != NULL ) * pfile = file ;
+ return ( 0 ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { * p = '\0' ; p2 = p + 1 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ if ( p2 == NULL ) p2 = "" ;
+ evutil_snprintf ( file , sizeof ( file ) , "/%s" , p2 ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { * p = '\0' ; port = atoi ( p + 1 ) ; if ( port == 0 ) return ( - 1 ) ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | host [ 1024 ]
+30064771073 | CALL | host [ 1024 ]
+30064771074 | CALL | file [ 1024 ]
+30064771075 | CALL | file [ 1024 ]
+30064771076 | CALL | len = strlen ( HTTP_PREFIX )
+30064771077 | CALL | strlen ( HTTP_PREFIX )
+30064771078 | CALL | strncasecmp ( url , HTTP_PREFIX , len )
+30064771079 | CALL | - 1
+30064771080 | CALL | url += len
+30064771081 | CALL | strlcpy ( host , url , sizeof ( host ) ) >= sizeof ( host )
+30064771082 | CALL | strlcpy ( host , url , sizeof ( host ) )
+30064771083 | CALL | sizeof ( host )
+30064771084 | CALL | sizeof ( host )
+30064771085 | CALL | - 1
+30064771086 | CALL | p = strchr ( host , '/' )
+30064771087 | CALL | strchr ( host , '/' )
+30064771088 | CALL | p != NULL
+30064771089 | CALL | * p = '\0'
+30064771090 | CALL | * p
+30064771091 | CALL | p2 = p + 1
+30064771092 | CALL | p + 1
+30064771093 | CALL | p2 = NULL
+30064771094 | CALL | pfile != NULL
+30064771095 | CALL | p2 == NULL
+30064771096 | CALL | p2 = ""
+30064771097 | CALL | evutil_snprintf ( file , sizeof ( file ) , "/%s" , p2 )
+30064771098 | CALL | sizeof ( file )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771086 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771091 [AST]
+25769803780 -> 30064771093 [AST]
+25769803781 -> 30064771097 [AST]
+25769803782 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771084 [AST]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771081 [CFG]
+30064771084 -> 30064771081 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771094 -> 30064771098 [CDG]
+30064771094 -> 30064771095 [CDG]
+30064771094 -> 30064771097 [CDG]
+30064771095 -> 30064771096 [CDG]
+30064771097 -> 30064771098 [ARGUMENT]
+30064771097 -> 30064771098 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int get_path_component ( char * name , size_t n , const char * fn ) {
+ char * p ;
+ size_t l ;
+ p = strchr ( fn , '/' ) ;
+ if ( p == NULL ) {
+ if ( ( l = strlen ( fn ) ) == 0 ) return ( 0 ) ;
+ }
+ else l = p - fn ;
+ if ( l > n - 1 ) return ( - 1 ) ;
+ memcpy ( name , fn , l ) ;
+ name [ l ] = '\0' ;
+ return ( ( int ) l ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,215 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dumpDatabases ( PGconn * conn ) {
+ PGresult * res ;
+ int i ;
+ if ( server_version >= 70100 ) res = executeQuery ( conn , "SELECT datname FROM pg_database WHERE datallowconn ORDER BY 1" ) ;
+ else res = executeQuery ( conn , "SELECT datname FROM pg_database ORDER BY 1" ) ;
+ for ( i = 0 ;
+ i < PQntuples ( res ) ;
+ i ++ ) {
+ int ret ;
+ char * dbname = PQgetvalue ( res , i , 0 ) ;
+ if ( verbose ) fprintf ( stderr , _ ( "%s: dumping database \"%s\"...\n" ) , progname , dbname ) ;
+ fprintf ( OPF , "\\connect %s\n\n" , fmtId ( dbname ) ) ;
+ fprintf ( OPF , "SET default_transaction_read_only = off;
+\n\n" ) ;
+ if ( filename ) fclose ( OPF ) ;
+ ret = runPgDump ( dbname ) ;
+ if ( ret != 0 ) {
+ fprintf ( stderr , _ ( "%s: pg_dump failed on database \"%s\", exiting\n" ) , progname , dbname ) ;
+ exit_nicely ( 1 ) ;
+ }
+ if ( filename ) {
+ OPF = fopen ( filename , PG_BINARY_A ) ;
+ if ( ! OPF ) {
+ fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) ) ;
+ exit_nicely ( 1 ) ;
+ }
+ }
+ }
+ PQclear ( res ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PGresult * res ;
+ int i ;
+ if ( server_version >= 70100 ) res = executeQuery ( conn , "SELECT datname FROM pg_database WHERE datallowconn ORDER BY 1" ) ;
+ else res = executeQuery ( conn , "SELECT datname FROM pg_database ORDER BY 1" ) ;
+ for ( i = 0 ;
+ i < PQntuples ( res ) ;
+ i ++ ) {
+ int ret ;
+ char * dbname = PQgetvalue ( res , i , 0 ) ;
+ if ( verbose ) fprintf ( stderr , _ ( "%s: dumping database \"%s\"...\n" ) , progname , dbname ) ;
+ fprintf ( OPF , "\\connect %s\n\n" , fmtId ( dbname ) ) ;
+ fprintf ( OPF , "SET default_transaction_read_only = off;
+\n\n" ) ;
+ if ( filename ) fclose ( OPF ) ;
+ ret = runPgDump ( dbname ) ;
+ if ( ret != 0 ) {
+ fprintf ( stderr , _ ( "%s: pg_dump failed on database \"%s\", exiting\n" ) , progname , dbname ) ;
+ exit_nicely ( 1 ) ;
+ }
+ if ( filename ) {
+ OPF = fopen ( filename , PG_BINARY_A ) ;
+ if ( ! OPF ) {
+ fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) ) ;
+ exit_nicel...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ int ret ;
+ char * dbname = PQgetvalue ( res , i , 0 ) ;
+ if ( verbose ) fprintf ( stderr , _ ( "%s: dumping database \"%s\"...\n" ) , progname , dbname ) ;
+ fprintf ( OPF , "\\connect %s\n\n" , fmtId ( dbname ) ) ;
+ fprintf ( OPF , "SET default_transaction_read_only = off;
+\n\n" ) ;
+ if ( filename ) fclose ( OPF ) ;
+ ret = runPgDump ( dbname ) ;
+ if ( ret != 0 ) {
+ fprintf ( stderr , _ ( "%s: pg_dump failed on database \"%s\", exiting\n" ) , progname , dbname ) ;
+ exit_nicely ( 1 ) ;
+ }
+ if ( filename ) {
+ OPF = fopen ( filename , PG_BINARY_A ) ;
+ if ( ! OPF ) {
+ fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) ) ;
+ exit_nicely ( 1 ) ;
+ }
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ fprintf ( stderr , _ ( "%s: pg_dump failed on database \"%s\", exiting\n" ) , progname , dbname ) ;
+ exit_nicely ( 1 ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ OPF = fopen ( filename , PG_BINARY_A ) ;
+ if ( ! OPF ) {
+ fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) ) ;
+ exit_nicely ( 1 ) ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) ) ;
+ exit_nicely ( 1 ) ;
+ }
+      
+30064771072 | CALL | server_version >= 70100
+30064771073 | CALL | 
+        res = executeQuery ( conn , "SELECT datname FROM pg_database WHERE datallowconn ORDER BY 1" )
+      
+30064771074 | CALL | 
+        executeQuery ( conn , "SELECT datname FROM pg_database WHERE datallowconn ORDER BY 1" )
+      
+30064771075 | CALL | 
+        res = executeQuery ( conn , "SELECT datname FROM pg_database ORDER BY 1" )
+      
+30064771076 | CALL | executeQuery ( conn , "SELECT datname FROM pg_database ORDER BY 1" )
+30064771077 | CALL | i = 0
+30064771078 | CALL | i < PQntuples ( res )
+30064771079 | CALL | PQntuples ( res )
+30064771080 | CALL | i ++
+30064771081 | CALL | dbname = PQgetvalue ( res , i , 0 )
+30064771082 | CALL | PQgetvalue ( res , i , 0 )
+30064771083 | CALL | verbose != 0
+30064771084 | CALL | 
+        fprintf ( stderr , _ ( "%s: dumping database \"%s\"...\n" ) , progname , dbname )
+      
+30064771085 | CALL | _ ( "%s: dumping database \"%s\"...\n" )
+30064771086 | CALL | fprintf ( OPF , "\\connect %s\n\n" , fmtId ( dbname ) )
+30064771087 | CALL | fmtId ( dbname )
+30064771088 | CALL | ret = runPgDump ( dbname )
+30064771089 | CALL | runPgDump ( dbname )
+30064771090 | CALL | ret != 0
+30064771091 | CALL | 
+        fprintf ( stderr , _ ( "%s: pg_dump failed on database \"%s\", exiting\n" ) , progname , dbname )
+      
+30064771092 | CALL | _ ( "%s: pg_dump failed on database \"%s\", exiting\n" )
+30064771093 | CALL | exit_nicely ( 1 )
+30064771094 | CALL | filename != 0
+30064771095 | CALL | OPF = fopen ( filename , PG_BINARY_A )
+30064771096 | CALL | fopen ( filename , PG_BINARY_A )
+30064771097 | CALL | ! OPF
+30064771098 | CALL | 
+        fprintf ( stderr , _ ( "%s: could not re-open the output file \"%s\": %s\n" ) , progname , filename , strerror ( errno ) )
+      
+30064771099 | CALL | _ ( "%s: could not re-open the output file \"%s\": %s\n" )
+30064771100 | CALL | strerror ( errno )
+30064771101 | CALL | exit_nicely ( 1 )
+30064771102 | CALL | PQclear ( res )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( server_version >= 70100 ) res = executeQuery ( conn , "SELECT datname FROM pg_database WHERE datallowconn ORDER BY 1" ) ;
+ else res = executeQuery ( conn , "SELECT datname FROM pg_database ORDER BY 1" ) ;
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771075 [AST]
+25769803779 -> 30064771081 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771088 [AST]
+25769803780 -> 30064771084 [AST]
+25769803781 -> 30064771091 [AST]
+25769803781 -> 30064771093 [AST]
+25769803782 -> 30064771095 [AST]
+25769803783 -> 30064771098 [AST]
+25769803783 -> 30064771101 [AST]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771078 -> 30064771094 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

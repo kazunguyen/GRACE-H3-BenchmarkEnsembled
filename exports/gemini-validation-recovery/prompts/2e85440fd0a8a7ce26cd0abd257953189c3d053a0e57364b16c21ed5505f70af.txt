@@ -1,0 +1,209 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pfkey_sendmsg ( struct kiocb * kiocb , struct socket * sock , struct msghdr * msg , size_t len ) {
+ struct sock * sk = sock -> sk ;
+ struct sk_buff * skb = NULL ;
+ struct sadb_msg * hdr = NULL ;
+ int err ;
+ err = - EOPNOTSUPP ;
+ if ( msg -> msg_flags & MSG_OOB ) goto out ;
+ err = - EMSGSIZE ;
+ if ( ( unsigned int ) len > sk -> sk_sndbuf - 32 ) goto out ;
+ err = - ENOBUFS ;
+ skb = alloc_skb ( len , GFP_KERNEL ) ;
+ if ( skb == NULL ) goto out ;
+ err = - EFAULT ;
+ if ( memcpy_fromiovec ( skb_put ( skb , len ) , msg -> msg_iov , len ) ) goto out ;
+ hdr = pfkey_get_base_msg ( skb , & err ) ;
+ if ( ! hdr ) goto out ;
+ mutex_lock ( & xfrm_cfg_mutex ) ;
+ err = pfkey_process ( sk , skb , hdr ) ;
+ mutex_unlock ( & xfrm_cfg_mutex ) ;
+ out : if ( err && hdr && pfkey_error ( hdr , err , sk ) == 0 ) err = 0 ;
+ kfree_skb ( skb ) ;
+ return err ? : len ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct sock * sk = sock -> sk ;
+ struct sk_buff * skb = NULL ;
+ struct sadb_msg * hdr = NULL ;
+ int err ;
+ err = - EOPNOTSUPP ;
+ if ( msg -> msg_flags & MSG_OOB ) goto out ;
+ err = - EMSGSIZE ;
+ if ( ( unsigned int ) len > sk -> sk_sndbuf - 32 ) goto out ;
+ err = - ENOBUFS ;
+ skb = alloc_skb ( len , GFP_KERNEL ) ;
+ if ( skb == NULL ) goto out ;
+ err = - EFAULT ;
+ if ( memcpy_fromiovec ( skb_put ( skb , len ) , msg -> msg_iov , len ) ) goto out ;
+ hdr = pfkey_get_base_msg ( skb , & err ) ;
+ if ( ! hdr ) goto out ;
+ mutex_lock ( & xfrm_cfg_mutex ) ;
+ err = pfkey_process ( sk , skb , hdr ) ;
+ mutex_unlock ( & xfrm_cfg_mutex ) ;
+ out : if ( err && hdr && pfkey_error ( hdr , err , sk ) == 0 ) err = 0 ;
+ kfree_skb ( skb ) ;
+ return err ? : len ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | sk = sock -> sk
+30064771073 | CALL | sock -> sk
+30064771074 | CALL | skb = NULL
+30064771075 | CALL | hdr = NULL
+30064771076 | CALL | err = - EOPNOTSUPP
+30064771077 | CALL | - EOPNOTSUPP
+30064771078 | CALL | msg -> msg_flags & MSG_OOB
+30064771079 | CALL | msg -> msg_flags
+30064771080 | CALL | err = - EMSGSIZE
+30064771081 | CALL | - EMSGSIZE
+30064771082 | CALL | ( unsigned int ) len > sk -> sk_sndbuf - 32
+30064771083 | CALL | ( unsigned int ) len
+30064771084 | CALL | sk -> sk_sndbuf - 32
+30064771085 | CALL | sk -> sk_sndbuf
+30064771086 | CALL | err = - ENOBUFS
+30064771087 | CALL | - ENOBUFS
+30064771088 | CALL | skb = alloc_skb ( len , GFP_KERNEL )
+30064771089 | CALL | alloc_skb ( len , GFP_KERNEL )
+30064771090 | CALL | skb == NULL
+30064771091 | CALL | err = - EFAULT
+30064771092 | CALL | - EFAULT
+30064771093 | CALL | memcpy_fromiovec ( skb_put ( skb , len ) , msg -> msg_iov , len )
+30064771094 | CALL | skb_put ( skb , len )
+30064771095 | CALL | msg -> msg_iov
+30064771096 | CALL | hdr = pfkey_get_base_msg ( skb , & err )
+30064771097 | CALL | pfkey_get_base_msg ( skb , & err )
+30064771098 | CALL | & err
+30064771099 | CALL | ! hdr
+30064771100 | CALL | mutex_lock ( & xfrm_cfg_mutex )
+30064771101 | CALL | & xfrm_cfg_mutex
+30064771102 | CALL | err = pfkey_process ( sk , skb , hdr )
+30064771103 | CALL | pfkey_process ( sk , skb , hdr )
+30064771104 | CALL | mutex_unlock ( & xfrm_cfg_mutex )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771095 [CDG]
+30064771090 -> 30064771092 [CDG]
+30064771090 -> 30064771091 [CDG]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771093 [CDG]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int pfkey_recvmsg ( struct kiocb * kiocb , struct socket * sock , struct msghdr * msg , size_t len , int flags ) {
+ struct sock * sk = sock -> sk ;
+ struct pfkey_sock * pfk = pfkey_sk ( sk ) ;
+ struct sk_buff * skb ;
+ int copied , err ;
+ err = - EINVAL ;
+ if ( flags & ~ ( MSG_PEEK | MSG_DONTWAIT | MSG_TRUNC | MSG_CMSG_COMPAT ) ) goto out ;
+ msg -> msg_namelen = 0 ;
+ skb = skb_recv_datagram ( sk , flags , flags & MSG_DONTWAIT , & err ) ;
+ if ( skb == NULL ) goto out ;
+ copied = skb -> len ;
+ if ( copied > len ) {
+ msg -> msg_flags |= MSG_TRUNC ;
+ copied = len ;
+ }
+ skb_reset_transport_header ( skb ) ;
+ err = skb_copy_datagram_iovec ( skb , 0 , msg -> msg_iov , copied ) ;
+ if ( err ) goto out_free ;
+ sock_recv_ts_and_drops ( msg , sk , skb ) ;
+ err = ( flags & MSG_TRUNC ) ? skb -> len : copied ;
+ if ( pfk -> dump . dump != NULL && * atomic_read ( & sk -> sk_rmem_alloc ) <= sk -> sk_rcvbuf ) pfkey_do_dump ( pfk ) ;
+ out_free : skb_free_datagram ( sk , skb ) ;
+ out : return err ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

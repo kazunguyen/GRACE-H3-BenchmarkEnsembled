@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void init_uncompress ( compress_filter_context_t * zfx , z_stream * zs ) {
+ int rc ;
+ if ( ( rc = zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs ) ) != Z_OK ) {
+ log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" ) ;
+ }
+ zfx -> inbufsize = 2048 ;
+ zfx -> inbuf = xmalloc ( zfx -> inbufsize ) ;
+ zs -> avail_in = 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int rc ;
+ if ( ( rc = zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs ) ) != Z_OK ) {
+ log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" ) ;
+ }
+ zfx -> inbufsize = 2048 ;
+ zfx -> inbuf = xmalloc ( zfx -> inbufsize ) ;
+ zs -> avail_in = 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" ) ;
+ }
+      
+30064771072 | CALL | 
+        ( rc = zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs ) ) != Z_OK
+      
+30064771073 | CALL | rc = zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs )
+30064771074 | CALL | zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs )
+30064771075 | CALL | zfx -> algo == 1
+30064771076 | CALL | zfx -> algo
+30064771077 | CALL | inflateInit2 ( zs , - 15 )
+30064771078 | CALL | - 15
+30064771079 | CALL | inflateInit ( zs )
+30064771080 | CALL | 
+        log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" )
+      
+30064771081 | CALL | 
+        zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error"
+      
+30064771082 | CALL | zs -> msg
+30064771083 | CALL | zs -> msg
+30064771084 | CALL | 
+        rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error"
+      
+30064771085 | CALL | rc == Z_MEM_ERROR
+30064771086 | CALL | rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error"
+30064771087 | CALL | rc == Z_VERSION_ERROR
+30064771088 | CALL | zfx -> inbufsize = 2048
+30064771089 | CALL | zfx -> inbufsize
+30064771090 | CALL | zfx -> inbuf = xmalloc ( zfx -> inbufsize )
+30064771091 | CALL | zfx -> inbuf
+30064771092 | CALL | xmalloc ( zfx -> inbufsize )
+30064771093 | CALL | zfx -> inbufsize
+30064771094 | CALL | zs -> avail_in = 0
+30064771095 | CALL | zs -> avail_in
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( rc = zfx -> algo == 1 ? inflateInit2 ( zs , - 15 ) : inflateInit ( zs ) ) != Z_OK ) {
+ log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | algo
+55834574849 | FIELD_IDENTIFIER | msg
+55834574850 | FIELD_IDENTIFIER | msg
+55834574851 | FIELD_IDENTIFIER | inbufsize
+55834574852 | FIELD_IDENTIFIER | inbuf
+55834574853 | FIELD_IDENTIFIER | inbufsize
+55834574854 | FIELD_IDENTIFIER | avail_in
+68719476736 | IDENTIFIER | rc
+68719476737 | IDENTIFIER | zfx
+68719476738 | IDENTIFIER | zs
+68719476739 | IDENTIFIER | zs
+68719476740 | IDENTIFIER | <unknown> Z_OK
+68719476741 | IDENTIFIER | zs
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771080 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476740 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476740 [AST]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 68719476740 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30064771074 -> 68719476736 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476738 [CDG]
+30064771075 -> 68719476739 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 68719476738 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476738 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476738 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476739 [ARGUMENT]
+30064771079 -> 68719476739 [AST]
+30064771079 -> 30064771074 [CFG]
+30064771079 -> 68719476739 [POST_DOMINATE]
+30064771079 -> 30064771074 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771084 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771084 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void init_compress ( compress_filter_context_t * zfx , z_stream * zs ) {
+ int rc ;
+ int level ;
+ # if defined ( __riscos__ ) && defined ( USE_ZLIBRISCOS ) static int zlib_initialized = 0 ;
+ if ( ! zlib_initialized ) zlib_initialized = riscos_load_module ( "ZLib" , zlib_path , 1 ) ;
+ # endif if ( opt . compress_level >= 1 && opt . compress_level <= 9 ) level = opt . compress_level ;
+ else if ( opt . compress_level == - 1 ) level = Z_DEFAULT_COMPRESSION ;
+ else {
+ log_error ( "invalid compression level;
+ using default level\n" ) ;
+ level = Z_DEFAULT_COMPRESSION ;
+ }
+ if ( ( rc = zfx -> algo == 1 ? deflateInit2 ( zs , level , Z_DEFLATED , - 13 , 8 , Z_DEFAULT_STRATEGY ) : deflateInit ( zs , level ) ) != Z_OK ) {
+ log_fatal ( "zlib problem: %s\n" , zs -> msg ? zs -> msg : rc == Z_MEM_ERROR ? "out of core" : rc == Z_VERSION_ERROR ? "invalid lib version" : "unknown error" ) ;
+ }
+ zfx -> outbufsize = 8192 ;
+ zfx -> outbuf = xmalloc ( zfx -> outbufsize ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

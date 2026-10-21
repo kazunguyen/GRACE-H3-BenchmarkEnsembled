@@ -1,0 +1,226 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int best_effort_strncat_to_utf16 ( struct archive_string * as16 , const void * _p , size_t length , struct archive_string_conv * sc , int bigendian ) {
+ const char * s = ( const char * ) _p ;
+ char * utf16 ;
+ size_t remaining ;
+ int ret ;
+ ( void ) sc ;
+ ret = 0 ;
+ remaining = length ;
+ if ( archive_string_ensure ( as16 , as16 -> length + ( length + 1 ) * 2 ) == NULL ) return ( - 1 ) ;
+ utf16 = as16 -> s + as16 -> length ;
+ while ( remaining -- ) {
+ unsigned c = * s ++ ;
+ if ( c > 127 ) {
+ c = UNICODE_R_CHAR ;
+ ret = - 1 ;
+ }
+ if ( bigendian ) archive_be16enc ( utf16 , c ) ;
+ else archive_le16enc ( utf16 , c ) ;
+ utf16 += 2 ;
+ }
+ as16 -> length = utf16 - as16 -> s ;
+ as16 -> s [ as16 -> length ] = 0 ;
+ as16 -> s [ as16 -> length + 1 ] = 0 ;
+ return ( ret ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * s = ( const char * ) _p ;
+ char * utf16 ;
+ size_t remaining ;
+ int ret ;
+ ( void ) sc ;
+ ret = 0 ;
+ remaining = length ;
+ if ( archive_string_ensure ( as16 , as16 -> length + ( length + 1 ) * 2 ) == NULL ) return ( - 1 ) ;
+ utf16 = as16 -> s + as16 -> length ;
+ while ( remaining -- ) {
+ unsigned c = * s ++ ;
+ if ( c > 127 ) {
+ c = UNICODE_R_CHAR ;
+ ret = - 1 ;
+ }
+ if ( bigendian ) archive_be16enc ( utf16 , c ) ;
+ else archive_le16enc ( utf16 , c ) ;
+ utf16 += 2 ;
+ }
+ as16 -> length = utf16 - as16 -> s ;
+ as16 -> s [ as16 -> length ] = 0 ;
+ as16 -> s [ as16 -> length + 1 ] = 0 ;
+ return ( ret ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ unsigned c = * s ++ ;
+ if ( c > 127 ) {
+ c = UNICODE_R_CHAR ;
+ ret = - 1 ;
+ }
+ if ( bigendian ) archive_be16enc ( utf16 , c ) ;
+ else archive_le16enc ( utf16 , c ) ;
+ utf16 += 2 ;
+ }
+      
+25769803779 | BLOCK | { c = UNICODE_R_CHAR ; ret = - 1 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | s = ( const char * ) _p
+30064771073 | CALL | ( const char * ) _p
+30064771074 | CALL | ( void ) sc
+30064771075 | CALL | ret = 0
+30064771076 | CALL | remaining = length
+30064771077 | CALL | archive_string_ensure ( as16 , as16 -> length + ( length + 1 ) * 2 ) == NULL
+30064771078 | CALL | archive_string_ensure ( as16 , as16 -> length + ( length + 1 ) * 2 )
+30064771079 | CALL | as16 -> length + ( length + 1 ) * 2
+30064771080 | CALL | as16 -> length
+30064771081 | CALL | ( length + 1 ) * 2
+30064771082 | CALL | length + 1
+30064771083 | CALL | - 1
+30064771084 | CALL | utf16 = as16 -> s + as16 -> length
+30064771085 | CALL | as16 -> s + as16 -> length
+30064771086 | CALL | as16 -> s
+30064771087 | CALL | as16 -> length
+30064771088 | CALL | remaining --
+30064771089 | CALL | c = * s ++
+30064771090 | CALL | * s ++
+30064771091 | CALL | s ++
+30064771092 | CALL | c > 127
+30064771093 | CALL | c = UNICODE_R_CHAR
+30064771094 | CALL | ret = - 1
+30064771095 | CALL | - 1
+30064771096 | CALL | bigendian != 0
+30064771097 | CALL | archive_be16enc ( utf16 , c )
+30064771098 | CALL | archive_le16enc ( utf16 , c )
+30064771099 | CALL | utf16 += 2
+30064771100 | CALL | as16 -> length = utf16 - as16 -> s
+30064771101 | CALL | as16 -> length
+30064771102 | CALL | utf16 - as16 -> s
+30064771103 | CALL | as16 -> s
+30064771104 | CALL | as16 -> s [ as16 -> length ] = 0
+30064771105 | CALL | as16 -> s [ as16 -> length ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771099 [AST]
+25769803779 -> 30064771093 [AST]
+25769803779 -> 30064771094 [AST]
+25769803780 -> 30064771097 [AST]
+25769803781 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771104 [CDG]
+30064771077 -> 30064771105 [CDG]
+30064771077 -> 30064771102 [CDG]
+30064771077 -> 30064771103 [CDG]
+30064771077 -> 30064771100 [CDG]
+30064771077 -> 30064771101 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771087 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771103 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771096 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771088 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int best_effort_strncat_from_utf16 ( struct archive_string * as , const void * _p , size_t bytes , struct archive_string_conv * sc , int be ) {
+ const char * utf16 = ( const char * ) _p ;
+ char * mbs ;
+ uint32_t uc ;
+ int n , ret ;
+ ( void ) sc ;
+ ret = 0 ;
+ if ( archive_string_ensure ( as , as -> length + bytes + 1 ) == NULL ) return ( - 1 ) ;
+ mbs = as -> s + as -> length ;
+ while ( ( n = utf16_to_unicode ( & uc , utf16 , bytes , be ) ) != 0 ) {
+ if ( n < 0 ) {
+ n *= - 1 ;
+ ret = - 1 ;
+ }
+ bytes -= n ;
+ utf16 += n ;
+ if ( uc > 127 ) {
+ * mbs ++ = '?' ;
+ ret = - 1 ;
+ }
+ else * mbs ++ = ( char ) uc ;
+ }
+ as -> length = mbs - as -> s ;
+ as -> s [ as -> length ] = '\0' ;
+ return ( ret ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

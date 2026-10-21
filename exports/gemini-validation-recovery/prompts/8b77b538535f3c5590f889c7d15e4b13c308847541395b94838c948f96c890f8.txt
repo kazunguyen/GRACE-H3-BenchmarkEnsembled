@@ -1,0 +1,234 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_h263_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ MpegEncContext * s = avctx -> priv_data ;
+ int ret ;
+ AVFrame * pict = data ;
+ # ifdef PRINT_FRAME_TIME uint64_t time = rdtsc ( ) ;
+ # endif s -> flags = avctx -> flags ;
+ s -> flags2 = avctx -> flags2 ;
+ if ( buf_size == 0 ) {
+ if ( s -> low_delay == 0 && s -> next_picture_ptr ) {
+ * pict = s -> next_picture_ptr -> f ;
+ s -> next_picture_ptr = NULL ;
+ * got_frame = 1 ;
+ }
+ return 0 ;
+ }
+ if ( s -> flags & CODEC_FLAG_TRUNCATED ) {
+ int next ;
+ if ( CONFIG_MPEG4_DECODER && s -> codec_id == AV_CODEC_ID_MPEG4 ) {
+ next = ff_mpeg4_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else if ( CONFIG_H263_DECODER && s -> codec_id == AV_CODEC_ID_H263 ) {
+ next = ff_h263_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else {
+ av_log ( s -> avctx , AV_LOG_ERROR , "this codec does not support truncated bitstreams\n" ) ;
+ return - 1 ;
+ }
+ if ( ff_combine_frame ( & s -> parse_context , next , ( const uint8_t * * ) & buf , & buf_size ) < 0 ) return buf_size ;
+ }
+ retry : if ( s -> bitstream_buffer_size && ( s -> divx_packed || buf_size < 20 ) ) {
+ init_get_bits ( & s -> gb , s -> bitstream_buffer , s -> bitstream_buffer_size * 8 ) ;
+ }
+ else init_get_bits ( & s -> gb , buf , buf_size * 8 ) ;
+ s -> bitstream_buffer_size = 0 ;
+ if ( ! s -> context_initialized ) {
+ if ( ff_MPV_common_init ( s ) < 0 ) return - 1 ;
+ }
+ if ( s -> current_picture_ptr == NULL || s -> current_picture_ptr -> f . data [ 0 ] ) {
+ int i = ff_find_unused_picture ( s , 0 ) ;
+ if ( i < 0 ) return i ;
+ s -> current_picture_ptr = & s -> picture [ i ] ;
+ }
+ if ( CONFIG_WMV2_DECODER && s -> msmpeg4_version == 5 ) {
+ ret = ff_wmv2_decode_picture_header ( s ) ;
+ }
+ else if ( CONFIG_MSMPEG4_DECODER && s -> msmpeg4_version ) {
+ ret = ff_msmpeg4_decode_picture_header ( s ) ;
+ }
+ else if ( CONFIG_MPEG4_DECODER && s -> h263_pred ) {
+ if ( s -> avctx -> extradata_size && s -> picture_number == 0 ) {
+ GetBitContext gb ;
+ init_get_bits ( & gb , s -> avctx -> extradata , s -> avctx -> extradata_size * 8 ) ;
+ ret = ff_mpeg4_decode_picture_header ( s , & gb ) ;
+ }
+ ret = ff_mpeg4_decode_picture_header ( s , & s -> gb ) ;
+ }
+ else if ( CONFIG_H263I_DECODER && s -> codec_id == AV_CODEC_ID_H263I ) {
+ ret = ff_intel_h263_decode_picture_header ( s ) ;
+ }
+ else if ( CONFIG_FLV_DECODER && s -> h263_flv ) {
+ ret = ff_flv_decode_picture_header ( s ) ;
+ }
+ else {
+ ret = ff_h263_decode_picture_header ( s ) ;
+ }
+ if ( ret == FRAME_SKIPPED ) return get_consumed_bytes ( s , buf_size ) ;
+ if ( ret < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "header damaged\n" ) ;
+ return - 1 ;
+ }
+ avctx -> has_b_frames = ! s -> low_delay ;
+ if ( s -> xvid_build == - 1 && s -> divx_version == - 1 && s -> lavc_build == - 1 ) {
+ if ( s -> stream_codec_tag == AV_RL32 ( "XVID" ) || s -> codec_tag == AV_RL32 ( "XVID" ) || s -> codec_tag == AV_R
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ MpegEncContext * s = avctx -> priv_data ;
+ int ret ;
+ AVFrame * pict = data ;
+ # ifdef PRINT_FRAME_TIME uint64_t time = rdtsc ( ) ;
+ # endif s -> flags = avctx -> flags ;
+ s -> flags2 = avctx -> flags2 ;
+ if ( buf_size == 0 ) {
+ if ( s -> low_delay == 0 && s -> next_picture_ptr ) {
+ * pict = s -> next_picture_ptr -> f ;
+ s -> next_picture_ptr = NULL ;
+ * got_frame = 1 ;
+ }
+ return 0 ;
+ }
+ if ( s -> flags & CODEC_FLAG_TRUNCATED ) {
+ int next ;
+ if ( CONFIG_MPEG4_DECODER && s -> codec_id == AV_CODEC_ID_MPEG4 ) {
+ next = ff_mpeg4_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else if ( CONFIG_H263_DECODER && s -> codec_id == AV_CODEC_ID_H263 ) {
+ next = ff_h263_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else {
+ av_log ( s -> avctx , AV_LOG_ERROR , "this codec does not support truncated bitstreams\n" ) ;
+ return - 1 ;
+ }
+ if ( ff_combine_frame ( & s -> parse_context , next , ( c...
+      
+25769803777 | BLOCK | 
+        {
+ if ( s -> low_delay == 0 && s -> next_picture_ptr ) {
+ * pict = s -> next_picture_ptr -> f ;
+ s -> next_picture_ptr = NULL ;
+ * got_frame = 1 ;
+ }
+ return 0 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ * pict = s -> next_picture_ptr -> f ;
+ s -> next_picture_ptr = NULL ;
+ * got_frame = 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int next ;
+ if ( CONFIG_MPEG4_DECODER && s -> codec_id == AV_CODEC_ID_MPEG4 ) {
+ next = ff_mpeg4_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else if ( CONFIG_H263_DECODER && s -> codec_id == AV_CODEC_ID_H263 ) {
+ next = ff_h263_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+ else {
+ av_log ( s -> avctx , AV_LOG_ERROR , "this codec does not support truncated bitstreams\n" ) ;
+ return - 1 ;
+ }
+ if ( ff_combine_frame ( & s -> parse_context , next , ( const uint8_t * * ) & buf , & buf_size ) < 0 ) return buf_size ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ next = ff_mpeg4_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ next = ff_h263_find_frame_end ( & s -> parse_context , buf , buf_size ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "this codec does not support truncated bitstreams\n" ) ;
+ return - 1 ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ init_get_bits ( & s -> gb , s -> bitstream_buffer , s -> bitstream_buffer_size * 8 ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | { if ( ff_MPV_common_init ( s ) < 0 ) return - 1 ; }
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ int i = ff_find_unused_picture ( s , 0 ) ;
+ if ( i < 0 ) return i ;
+ s -> current_picture_ptr = & s -> picture [ i ] ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | { ret = ff_wmv2_decode_picture_header ( s ) ; }
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | { ret = ff_msmpeg4_decode_picture_header ( s ) ; }
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ if ( s -> avctx -> extradata_size && s -> picture_number == 0 ) {
+ GetBitContext gb ;
+ init_get_bits ( & gb , s -> avctx -> extradata , s -> avctx -> extradata_size * 8 ) ;
+ ret = ff_mpeg4_decode_picture_header ( s , & gb ) ;
+ }
+ ret = ff_mpeg4_decode_picture_header ( s , & s -> gb ) ;
+ }
+      
+25769803796 | BLOCK | 
+        {
+ GetBitContext gb ;
+ init_get_bits ( & gb , s -> avctx -> extradata , s -> avctx -> extradata_size * 8 ) ;
+ ret = ff_mpeg4_decode_picture_header ( s , & gb ) ;
+ }
+      
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | { ret = ff_intel_h263_decode_picture_header ( s ) ; }
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | { ret = ff_flv_decode_picture_header ( s ) ; }
+25769803801 | BLOCK | { ret = ff_h263_decode_picture_header ( s ) ; }
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "header damaged\n" ) ;
+ return - 1 ;
+ }
+      
+30064771072 | CALL | buf = avpkt -> data
+30064771073 | CALL | avpkt -> data
+30064771074 | CALL | buf_size = avpkt -> size
+30064771075 | CALL | avpkt -> size
+30064771076 | CALL | s = avctx -> priv_data
+30064771077 | CALL | avctx -> priv_data
+30064771078 | CALL | pict = data
+30064771079 | CALL | s -> flags2 = avctx -> flags2
+30064771080 | CALL 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

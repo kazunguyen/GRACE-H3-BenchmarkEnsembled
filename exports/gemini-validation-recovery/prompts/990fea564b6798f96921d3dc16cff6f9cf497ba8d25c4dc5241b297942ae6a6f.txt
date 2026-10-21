@@ -1,0 +1,235 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void usbredir_handle_bulk_data(USBRedirDevice *dev, USBPacket *p,
+
+                                      uint8_t ep)
+
+{
+
+    struct usb_redir_bulk_packet_header bulk_packet;
+
+    size_t size = (p->combined) ? p->combined->iov.size : p->iov.size;
+
+
+
+    DPRINTF("bulk-out ep %02X len %zd id %"PRIu64"\n", ep, size, p->id);
+
+
+
+    if (usbredir_already_in_flight(dev, p->id)) {
+
+        p->status = USB_RET_ASYNC;
+
+        return;
+
+    }
+
+
+
+    bulk_packet.endpoint  = ep;
+
+    bulk_packet.length    = size;
+
+    bulk_packet.stream_id = 0;
+
+    bulk_packet.length_high = size >> 16;
+
+    assert(bulk_packet.length_high == 0 ||
+
+           usbredirparser_peer_has_cap(dev->parser,
+
+                                       usb_redir_cap_32bits_bulk_length));
+
+
+
+    if (ep & USB_DIR_IN) {
+
+        usbredirparser_send_bulk_packet(dev->parser, p->id,
+
+                                        &bulk_packet, NULL, 0);
+
+    } else {
+
+        uint8_t buf[size];
+
+        if (p->combined) {
+
+            iov_to_buf(p->combined->iov.iov, p->combined->iov.niov,
+
+                       0, buf, size);
+
+        } else {
+
+            usb_packet_copy(p, buf, size);
+
+        }
+
+        usbredir_log_data(dev, "bulk data out:", buf, size);
+
+        usbredirparser_send_bulk_packet(dev->parser, p->id,
+
+                                        &bulk_packet, buf, size);
+
+    }
+
+    usbredirparser_do_write(dev->parser);
+
+    p->status = USB_RET_ASYNC;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 25 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 26 [IS_AST_PARENT]
+15 -> 20 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 31 [IS_AST_PARENT]
+15 -> 27 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+47 -> 59 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 72 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 78 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+4 -> 79 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int usbredir_handle_bulk_data(USBRedirDevice *dev, USBPacket *p,
+
+                                      uint8_t ep)
+
+{
+
+    AsyncURB *aurb = async_alloc(dev, p);
+
+    struct usb_redir_bulk_packet_header bulk_packet;
+
+
+
+    DPRINTF("bulk-out ep %02X len %zd id %u\n", ep,
+
+            p->iov.size, aurb->packet_id);
+
+
+
+    bulk_packet.endpoint  = ep;
+
+    bulk_packet.length    = p->iov.size;
+
+    bulk_packet.stream_id = 0;
+
+    aurb->bulk_packet = bulk_packet;
+
+
+
+    if (ep & USB_DIR_IN) {
+
+        usbredirparser_send_bulk_packet(dev->parser, aurb->packet_id,
+
+                                        &bulk_packet, NULL, 0);
+
+    } else {
+
+        uint8_t buf[p->iov.size];
+
+        usb_packet_copy(p, buf, p->iov.size);
+
+        usbredir_log_data(dev, "bulk data out:", buf, p->iov.size);
+
+        usbredirparser_send_bulk_packet(dev->parser, aurb->packet_id,
+
+                                        &bulk_packet, buf, p->iov.size);
+
+    }
+
+    usbredirparser_do_write(dev->parser);
+
+    return USB_RET_ASYNC;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

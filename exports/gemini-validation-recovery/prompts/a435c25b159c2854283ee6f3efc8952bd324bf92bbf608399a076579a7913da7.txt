@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint32 parse_wbxml_tag ( proto_tree * tree , tvbuff_t * tvb , guint32 offset , guint32 str_tbl , guint8 * level , guint8 * codepage_stag , guint8 * codepage_attr ) {
+ guint32 tvb_len = tvb_reported_length ( tvb ) ;
+ guint32 off = offset ;
+ guint32 len ;
+ guint str_len ;
+ guint32 ent ;
+ guint32 idx ;
+ guint8 peek ;
+ guint32 tag_len ;
+ guint8 tag_save_known = 0 ;
+ guint8 tag_new_known = 0 ;
+ const char * tag_save_literal ;
+ const char * tag_new_literal ;
+ char * tag_save_buf = NULL ;
+ char * tag_new_buf = NULL ;
+ guint8 parsing_tag_content = FALSE ;
+ tag_save_literal = NULL ;
+ DebugLog ( ( "parse_wbxml_tag (level = %u, offset = %u)\n" , * level , offset ) ) ;
+ while ( off < tvb_len ) {
+ peek = tvb_get_guint8 ( tvb , off ) ;
+ DebugLog ( ( "STAG: (top of while) level = %3u, peek = 0x%02X, off = %u, tvb_len = %u\n" , * level , peek , off , tvb_len ) ) ;
+ if ( ( peek & 0x3F ) < 4 ) switch ( peek ) {
+ case 0x00 : * codepage_stag = tvb_get_guint8 ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 2 , " | Tag | T -->%3d " "| SWITCH_PAGE (Tag code page) " "|" , * codepage_stag ) ;
+ off += 2 ;
+ break ;
+ case 0x01 : if ( tag_save_known ) {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Known Tag 0x%02X) " "| %s</%s>" , * level , * codepage_stag , tag_save_known , Indent ( * level ) , tag_save_literal ) ;
+ }
+ else {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Literal Tag) " "| %s</%s>" , * level , * codepage_stag , Indent ( * level ) , tag_save_literal ? tag_save_literal : "" ) ;
+ }
+ ( * level ) -- ;
+ off ++ ;
+ DebugLog ( ( "STAG: level = %u, Return: len = %u\n" , * level , off - offset ) ) ;
+ return ( off - offset ) ;
+ case 0x02 : ent = tvb_get_guintvar ( tvb , off + 1 , & len ) ;
+ proto_tree_add_text ( tree , tvb , off , 1 + len , " %3d | Tag | T %3d " "| ENTITY " "| %s'&#%u;
+'" , * level , * codepage_stag , Indent ( * level ) , ent ) ;
+ off += 1 + len ;
+ break ;
+ case 0x03 : len = tvb_strsize ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 1 + len , " %3d | Tag | T %3d " "| STR_I (Inline string) " "| %s\'%s\'" , * level , * codepage_stag , Indent ( * level ) , tvb_format_text ( tvb , off + 1 , len - 1 ) ) ;
+ off += 1 + len ;
+ break ;
+ case 0x40 : case 0x41 : case 0x42 : len = tvb_strsize ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 1 + len , " %3d | Tag | T %3d " "| EXT_I_%1x (Extension Token) " "| %s(Inline string extension: \'%s\')" , * level , * codepage_stag , peek & 0x0f , Indent ( * level ) , tvb_format_text ( tvb , off + 1 , len - 1 ) ) ;
+ off += 1 + len ;
+ break ;
+ case 0x43 : proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| PI (XML Processing Instruction) " "| %s<?xml" , * level , * codepage_stag , Indent ( * level ) ) ;
+ len = parse_wbxml_attribute_list ( tree , tvb , off , str_tbl , * level , codepage_attr ) ;
+ off += len ;
+ if ( off >= tvb_len ) {
+ DebugLog ( ( "STAG: level = %u, ThrowException: len = %u (short fra
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint32 tvb_len = tvb_reported_length ( tvb ) ;
+ guint32 off = offset ;
+ guint32 len ;
+ guint str_len ;
+ guint32 ent ;
+ guint32 idx ;
+ guint8 peek ;
+ guint32 tag_len ;
+ guint8 tag_save_known = 0 ;
+ guint8 tag_new_known = 0 ;
+ const char * tag_save_literal ;
+ const char * tag_new_literal ;
+ char * tag_save_buf = NULL ;
+ char * tag_new_buf = NULL ;
+ guint8 parsing_tag_content = FALSE ;
+ tag_save_literal = NULL ;
+ DebugLog ( ( "parse_wbxml_tag (level = %u, offset = %u)\n" , * level , offset ) ) ;
+ while ( off < tvb_len ) {
+ peek = tvb_get_guint8 ( tvb , off ) ;
+ DebugLog ( ( "STAG: (top of while) level = %3u, peek = 0x%02X, off = %u, tvb_len = %u\n" , * level , peek , off , tvb_len ) ) ;
+ if ( ( peek & 0x3F ) < 4 ) switch ( peek ) {
+ case 0x00 : * codepage_stag = tvb_get_guint8 ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 2 , " | Tag | T -->%3d " "| SWITCH_PAGE (Tag code page) " "|" , * codepage_stag ) ;
+ off += 2 ;
+ break ;
+ case 0x01 : if ( tag_save_known ) {
+ pro...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ peek = tvb_get_guint8 ( tvb , off ) ;
+ DebugLog ( ( "STAG: (top of while) level = %3u, peek = 0x%02X, off = %u, tvb_len = %u\n" , * level , peek , off , tvb_len ) ) ;
+ if ( ( peek & 0x3F ) < 4 ) switch ( peek ) {
+ case 0x00 : * codepage_stag = tvb_get_guint8 ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 2 , " | Tag | T -->%3d " "| SWITCH_PAGE (Tag code page) " "|" , * codepage_stag ) ;
+ off += 2 ;
+ break ;
+ case 0x01 : if ( tag_save_known ) {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Known Tag 0x%02X) " "| %s</%s>" , * level , * codepage_stag , tag_save_known , Indent ( * level ) , tag_save_literal ) ;
+ }
+ else {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Literal Tag) " "| %s</%s>" , * level , * codepage_stag , Indent ( * level ) , tag_save_literal ? tag_save_literal : "" ) ;
+ }
+ ( * level ) -- ;
+ off ++ ;
+ DebugLog ( ( "STAG: level = %u, Return: len = %u\n" , * level , off - offset ) ) ;
+ return (...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ case 0x00 : * codepage_stag = tvb_get_guint8 ( tvb , off + 1 ) ;
+ proto_tree_add_text ( tree , tvb , off , 2 , " | Tag | T -->%3d " "| SWITCH_PAGE (Tag code page) " "|" , * codepage_stag ) ;
+ off += 2 ;
+ break ;
+ case 0x01 : if ( tag_save_known ) {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Known Tag 0x%02X) " "| %s</%s>" , * level , * codepage_stag , tag_save_known , Indent ( * level ) , tag_save_literal ) ;
+ }
+ else {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Literal Tag) " "| %s</%s>" , * level , * codepage_stag , Indent ( * level ) , tag_save_literal ? tag_save_literal : "" ) ;
+ }
+ ( * level ) -- ;
+ off ++ ;
+ DebugLog ( ( "STAG: level = %u, Return: len = %u\n" , * level , off - offset ) ) ;
+ return ( off - offset ) ;
+ case 0x02 : ent = tvb_get_guintvar ( tvb , off + 1 , & len ) ;
+ proto_tree_add_text ( tree , tvb , off , 1 + len , " %3d | Tag | T %3d " "| ENTITY " "| %s'&#%u;
+'" , * level , * codepage_stag , I...
+      
+25769803782 | BLOCK | 
+        {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Known Tag 0x%02X) " "| %s</%s>" , * level , * codepage_stag , tag_save_known , Indent ( * level ) , tag_save_literal ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| END (Literal Tag) " "| %s</%s>" , * level , * codepage_stag , Indent ( * level ) , tag_save_literal ? tag_save_literal : "" ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ DebugLog ( ( "STAG: level = %u, ThrowException: len = %u (short frame)\n" , * level , off - offset ) ) ;
+ THROW ( ReportedBoundsError ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ idx = tvb_get_guintvar ( tvb , off + 1 , & len ) ;
+ proto_tree_add_text ( tree , tvb , off , 1 + len + idx , " %3d | Tag | T %3d " "| OPAQUE (Opaque data) " "| %s(%d bytes of opaque data)" , * level , * codepage_stag , Indent ( * level ) , idx ) ;
+ off += 1 + len + idx ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ proto_tree_add_text ( tree , tvb , off , 1 , " %3d | Tag | T %3d " "| RESERVED_2 (Invalid Token!) " "
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,336 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int flashsv_decode_frame(AVCodecContext *avctx, void *data,
+
+                                int *got_frame, AVPacket *avpkt)
+
+{
+
+    int buf_size       = avpkt->size;
+
+    FlashSVContext *s  = avctx->priv_data;
+
+    int h_blocks, v_blocks, h_part, v_part, i, j;
+
+    GetBitContext gb;
+
+
+
+    /* no supplementary picture */
+
+    if (buf_size == 0)
+
+        return 0;
+
+    if (buf_size < 4)
+
+        return -1;
+
+
+
+    init_get_bits(&gb, avpkt->data, buf_size * 8);
+
+
+
+    /* start to parse the bitstream */
+
+    s->block_width  = 16 * (get_bits(&gb,  4) + 1);
+
+    s->image_width  =       get_bits(&gb, 12);
+
+    s->block_height = 16 * (get_bits(&gb,  4) + 1);
+
+    s->image_height =       get_bits(&gb, 12);
+
+
+
+    if (s->ver == 2) {
+
+        skip_bits(&gb, 6);
+
+        if (get_bits1(&gb)) {
+
+            av_log_missing_feature(avctx, "iframe", 1);
+
+            return AVERROR_PATCHWELCOME;
+
+        }
+
+        if (get_bits1(&gb)) {
+
+            av_log_missing_feature(avctx, "Custom palette", 1);
+
+            return AVERROR_PATCHWELCOME;
+
+        }
+
+    }
+
+
+
+    /* calculate number of blocks and size of border (partial) blocks */
+
+    h_blocks = s->image_width  / s->block_width;
+
+    h_part   = s->image_width  % s->block_width;
+
+    v_blocks = s->image_height / s->block_height;
+
+    v_part   = s->image_height % s->block_height;
+
+
+
+    /* the block size could change between frames, make sure the buffer
+
+     * is large enough, if not, get a larger one */
+
+    if (s->block_size < s->block_width * s->block_height) {
+
+        int tmpblock_size = 3 * s->block_width * s->block_height;
+
+
+
+        s->tmpblock = av_realloc(s->tmpblock, tmpblock_size);
+
+        if (!s->tmpblock) {
+
+            av_log(avctx, AV_LOG_ERROR, "Can't allocate decompression buffer.\n");
+
+            return AVERROR(ENOMEM);
+
+        }
+
+        if (s->ver == 2) {
+
+            s->deflate_block_size = calc_deflate_block_size(tmpblock_size);
+
+            if (s->deflate_block_size <= 0) {
+
+                av_log(avctx, AV_LOG_ERROR, "Can't determine deflate buffer size.\n");
+
+                return -1;
+
+            }
+
+            s->deflate_block = av_realloc(s->deflate_block, s->deflate_block_size);
+
+            if (!s->deflate_block) {
+
+                av_log(avctx, AV_LOG_ERROR, "Can't allocate deflate buffer.\n");
+
+                return AVERROR(ENOMEM);
+
+            }
+
+        }
+
+    }
+
+    s->block_size = s->block_width * s->block_height;
+
+
+
+    /* initialize the image size once */
+
+    if (avctx->width == 0 && avctx->height == 0) {
+
+        avcodec_set_dimensions(avctx, s->image_width, s->image_height);
+
+    }
+
+
+
+    /* check for changes of image width and image height */
+
+    if (avctx->width != s->image_width || avctx->height != s->image_height) {
+
+        av_log(avctx, AV_LOG_ERROR,
+
+               "Frame width or height differs from first frame!\n");
+
+        av_log(avctx, AV_LOG_ERROR, "fh = %d, fv %d  vs  ch = %d, cv = %d\n",
+
+               avctx->height, avctx->width, s->image
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+23 -> 30 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+23 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+23 -> 36 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+23 -> 39 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+46 -> 51 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+53 -> 58 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+66 -> 71 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+66 -> 75 [IS_AST_PARENT]
+63 -> 66 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int flashsv_decode_frame(AVCodecContext *avctx, void *data,
+
+                                int *data_size, AVPacket *avpkt)
+
+{
+
+    int buf_size       = avpkt->size;
+
+    FlashSVContext *s  = avctx->priv_data;
+
+    int h_blocks, v_blocks, h_part, v_part, i, j;
+
+    GetBitContext gb;
+
+
+
+    /* no supplementary picture */
+
+    if (buf_size == 0)
+
+        return 0;
+
+    if (buf_size < 4)
+
+        return -1;
+
+
+
+    init_get_bits(&gb, avpkt->data, buf_size * 8);
+
+
+
+    /* start to parse the bitstream */
+
+    s->block_width  = 16 * (get_bits(&gb,  4) + 1);
+
+    s->image_width  =       get_bits(&gb, 12);
+
+    s->block_height = 16 * (get_bits(&gb,  4) + 1);
+
+    s->image_height =       get_bits(&gb, 12);
+
+
+
+    if (s->ver == 2) {
+
+        skip_bits(&gb, 6);
+
+        if (get_bits1(&gb)) {
+
+            av_log_missing_feature(avctx, "iframe", 1);
+
+            return AVERROR_PATCHWELCOME;
+
+
+        if (get_bits1(&gb)) {
+
+            av_log_missing_feature(avctx, "Custom palette", 1);
+
+            return AVERROR_PATCHWELCOME;
+
+
+
+
+
+    /* calculate number of blocks and size of border (partial) blocks */
+
+    h_blocks = s->image_width  / s->block_width;
+
+    h_part   = s->image_width  % s->block_width;
+
+    v_blocks = s->image_height / s->block_height;
+
+    v_part   = s->image_height % s->block_height;
+
+
+
+    /* the block size could change between frames, make sure the buffer
+
+     * is large enough, if not, get a larger one */
+
+    if (s->block_size < s->block_width * s->block_hei
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

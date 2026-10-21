@@ -1,0 +1,160 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( PageLoadMetricsBrowserTest , PayloadSizeIgnoresDownloads ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ bool prev_io_allowed = base : : ThreadRestrictions : : SetIOAllowed ( true ) ;
+ {
+ base : : ScopedTempDir downloads_directory ;
+ ASSERT_TRUE ( downloads_directory . CreateUniqueTempDir ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , downloads_directory . GetPath ( ) ) ;
+ content : : DownloadTestObserverTerminal downloads_observer ( content : : BrowserContext : : GetDownloadManager ( browser ( ) -> profile ( ) ) , 1 , content : : DownloadTestObserver : : ON_DANGEROUS_DOWNLOAD_FAIL ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/page_load_metrics/download_anchor_click.html" ) ) ;
+ downloads_observer . WaitForFinished ( ) ;
+ }
+ base : : ThreadRestrictions : : SetIOAllowed ( prev_io_allowed ) ;
+ NavigateToUntrackedUrl ( ) ;
+ histogram_tester_ . ExpectUniqueSample ( internal : : kHistogramPageLoadTotalBytes , 0 , 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ bool prev_io_allowed = base : : ThreadRestrictions : : SetIOAllowed ( true ) ;
+ {
+ base : : ScopedTempDir downloads_directory ;
+ ASSERT_TRUE ( downloads_directory . CreateUniqueTempDir ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , downloads_directory . GetPath ( ) ) ;
+ content : : DownloadTestObserverTerminal downloads_observer ( content : : BrowserContext : : GetDownloadManager ( browser ( ) -> profile ( ) ) , 1 , content : : DownloadTestObserver : : ON_DANGEROUS_DOWNLOAD_FAIL ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/page_load_metrics/download_anchor_click.html" ) ) ;
+ downloads_observer . WaitForFinished ( ) ;
+ }
+ base : : ThreadRestrictions : : SetIOAllowed ( prev_io_allowed ) ;
+ NavigateToUntrackedUrl ( ) ;
+ histogram_tester_ . ExpectUniqueSample ( internal : : kHistogramPageLoadTotalBytes , 0 , 1 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ base : : ScopedTempDir downloads_directory ;
+ ASSERT_TRUE ( downloads_directory . CreateUniqueTempDir ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , downloads_directory . GetPath ( ) ) ;
+ content : : DownloadTestObserverTerminal downloads_observer ( content : : BrowserContext : : GetDownloadManager ( browser ( ) -> profile ( ) ) , 1 , content : : DownloadTestObserver : : ON_DANGEROUS_DOWNLOAD_FAIL ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/page_load_metrics/download_anchor_click.html" ) ) ;
+ downloads_observer . WaitForFinished ( ) ;
+ }
+      
+30064771072 | CALL | ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) )
+30064771073 | CALL | embedded_test_server ( ) -> Start ( )
+30064771074 | CALL | embedded_test_server ( ) -> Start
+30064771075 | CALL | embedded_test_server ( )
+30064771076 | CALL | prev_io_allowed = base
+30064771077 | CALL | ASSERT_TRUE ( downloads_directory . CreateUniqueTempDir ( ) )
+30064771078 | CALL | downloads_directory . CreateUniqueTempDir ( )
+30064771079 | CALL | downloads_directory . CreateUniqueTempDir
+30064771080 | CALL | downloads_observer . WaitForFinished ( )
+30064771081 | CALL | downloads_observer . WaitForFinished
+30064771082 | CALL | NavigateToUntrackedUrl ( )
+55834574848 | FIELD_IDENTIFIER | Start
+55834574849 | FIELD_IDENTIFIER | CreateUniqueTempDir
+55834574850 | FIELD_IDENTIFIER | WaitForFinished
+68719476736 | IDENTIFIER | prev_io_allowed
+68719476737 | IDENTIFIER | <unknown> base
+68719476738 | IDENTIFIER | <unknown> downloads_directory
+68719476739 | IDENTIFIER | <unknown> downloads_observer
+94489280512 | LOCAL | bool prev_io_allowed
+94489280513 | LOCAL | <unknown> downloads_observer
+94489280514 | LOCAL | <unknown> downloads_directory
+94489280515 | LOCAL | <unknown> base
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( PageLoadMetricsBrowserTest , PayloadSizeIgnoresDownloads ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ bool prev_io_allowed = base : : ThreadRestrictions : : SetIOAllowed ( true ) ;
+ {
+ base : : ScopedTempDir downloads_directory ;
+ ASSERT_TRUE ( downloads_directory . CreateUniqueTempDir ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetFilePath ( prefs : : kDownloadDefaultDirectory , downloads_directory . GetPath ( ) ) ;
+ content : : DownloadTestObserverTerminal downloads_observer ( content : : BrowserContext : : GetDownloadManager ( browser ( ) -> profile ( ) ) , 1 , content : : DownloadTestObserver : : ON_DANGEROUS_DOWNLOAD_FAIL ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/page_load_metrics/download_anchor_click.html" ) ) ;
+ downloads_observer . WaitForFinished ( ) ;
+ }
+ base : : ThreadRestrictions : : SetIOAllowed ( prev_io_allowed ) ;
+ NavigateToUntrackedUrl ( ) ;
+ histogram_tester_ ....
+      
+111669149696 | METHOD_PARAMETER_IN | PageLoadMetricsBrowserTest
+111669149697 | METHOD_PARAMETER_IN | PayloadSizeIgnoresDownloads
+115964116992 | METHOD_PARAMETER_OUT | PageLoadMetricsBrowserTest
+115964116993 | METHOD_PARAMETER_OUT | PayloadSizeIgnoresDownloads
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [CFG]
+25769803777 -> 30064771082 [DOMINATE]
+25769803777 -> 30064771080 [POST_DOMINATE]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476736 [CFG]
+30064771072 -> 68719476736 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771075 -> 107374182400 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476736 [ARGUMENT]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 68719476736 [AST]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 68719476738 [CFG]
+30064771076 -> 68719476738 [DOMINATE]
+30064771076 -> 68719476737 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476739 [CFG]
+30064771077 -> 68719476739 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [R
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

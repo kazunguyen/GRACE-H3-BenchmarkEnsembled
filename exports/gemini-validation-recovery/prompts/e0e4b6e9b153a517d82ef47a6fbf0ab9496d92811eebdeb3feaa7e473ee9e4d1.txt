@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void config_auth ( config_tree * ptree ) {
+ attr_val * my_val ;
+ int first ;
+ int last ;
+ int i ;
+ # ifdef AUTOKEY int item ;
+ # endif # ifdef AUTOKEY item = - 1 ;
+ my_val = HEAD_PFIFO ( ptree -> auth . crypto_cmd_list ) ;
+ for ( ;
+ my_val != NULL ;
+ my_val = my_val -> link ) {
+ switch ( my_val -> attr ) {
+ default : NTP_INSIST ( 0 ) ;
+ break ;
+ case T_Host : item = CRYPTO_CONF_PRIV ;
+ break ;
+ case T_Ident : item = CRYPTO_CONF_IDENT ;
+ break ;
+ case T_Pw : item = CRYPTO_CONF_PW ;
+ break ;
+ case T_Randfile : item = CRYPTO_CONF_RAND ;
+ break ;
+ case T_Digest : item = CRYPTO_CONF_NID ;
+ break ;
+ }
+ crypto_config ( item , my_val -> value . s ) ;
+ }
+ # endif if ( ptree -> auth . keysdir ) {
+ if ( keysdir != default_keysdir ) free ( keysdir ) ;
+ keysdir = estrdup ( ptree -> auth . keysdir ) ;
+ }
+ if ( ptree -> auth . ntp_signd_socket ) {
+ if ( ntp_signd_socket != default_ntp_signd_socket ) free ( ntp_signd_socket ) ;
+ ntp_signd_socket = estrdup ( ptree -> auth . ntp_signd_socket ) ;
+ }
+ # ifdef AUTOKEY if ( ptree -> auth . cryptosw && ! cryptosw ) {
+ crypto_setup ( ) ;
+ cryptosw = 1 ;
+ }
+ # endif if ( ptree -> auth . keys ) getauthkeys ( ptree -> auth . keys ) ;
+ if ( ptree -> auth . control_key ) ctl_auth_keyid = ( keyid_t ) ptree -> auth . control_key ;
+ if ( ptree -> auth . request_key ) {
+ DPRINTF ( 4 , ( "set info_auth_keyid to %08lx\n" , ( u_long ) ptree -> auth . request_key ) ) ;
+ info_auth_keyid = ( keyid_t ) ptree -> auth . request_key ;
+ }
+ my_val = HEAD_PFIFO ( ptree -> auth . trusted_key_list ) ;
+ for ( ;
+ my_val != NULL ;
+ my_val = my_val -> link ) {
+ if ( T_Integer == my_val -> type ) authtrust ( my_val -> value . i , 1 ) ;
+ else if ( T_Intrange == my_val -> type ) {
+ first = my_val -> value . r . first ;
+ last = my_val -> value . r . last ;
+ if ( first > last || first < 1 || last > 65534 ) msyslog ( LOG_NOTICE , "Ignoring invalid trustedkey range %d ... %d, min 1 max 65534." , first , last ) ;
+ else for ( i = first ;
+ i <= last ;
+ i ++ ) authtrust ( ( keyid_t ) i , 1 ) ;
+ }
+ }
+ # ifdef AUTOKEY if ( ptree -> auth . revoke ) sys_revoke = 1 << ptree -> auth . revoke ;
+ # endif }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ attr_val * my_val ;
+ int first ;
+ int last ;
+ int i ;
+ # ifdef AUTOKEY int item ;
+ # endif # ifdef AUTOKEY item = - 1 ;
+ my_val = HEAD_PFIFO ( ptree -> auth . crypto_cmd_list ) ;
+ for ( ;
+ my_val != NULL ;
+ my_val = my_val -> link ) {
+ switch ( my_val -> attr ) {
+ default : NTP_INSIST ( 0 ) ;
+ break ;
+ case T_Host : item = CRYPTO_CONF_PRIV ;
+ break ;
+ case T_Ident : item = CRYPTO_CONF_IDENT ;
+ break ;
+ case T_Pw : item = CRYPTO_CONF_PW ;
+ break ;
+ case T_Randfile : item = CRYPTO_CONF_RAND ;
+ break ;
+ case T_Digest : item = CRYPTO_CONF_NID ;
+ break ;
+ }
+ crypto_config ( item , my_val -> value . s ) ;
+ }
+ # endif if ( ptree -> auth . keysdir ) {
+ if ( keysdir != default_keysdir ) free ( keysdir ) ;
+ keysdir = estrdup ( ptree -> auth . keysdir ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ switch ( my_val -> attr ) {
+ default : NTP_INSIST ( 0 ) ;
+ break ;
+ case T_Host : item = CRYPTO_CONF_PRIV ;
+ break ;
+ case T_Ident : item = CRYPTO_CONF_IDENT ;
+ break ;
+ case T_Pw : item = CRYPTO_CONF_PW ;
+ break ;
+ case T_Randfile : item = CRYPTO_CONF_RAND ;
+ break ;
+ case T_Digest : item = CRYPTO_CONF_NID ;
+ break ;
+ }
+ crypto_config ( item , my_val -> value . s ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ default : NTP_INSIST ( 0 ) ;
+ break ;
+ case T_Host : item = CRYPTO_CONF_PRIV ;
+ break ;
+ case T_Ident : item = CRYPTO_CONF_IDENT ;
+ break ;
+ case T_Pw : item = CRYPTO_CONF_PW ;
+ break ;
+ case T_Randfile : item = CRYPTO_CONF_RAND ;
+ break ;
+ case T_Digest : item = CRYPTO_CONF_NID ;
+ break ;
+ }
+      
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | my_val = HEAD_PFIFO ( ptree -> auth . crypto_cmd_list )
+30064771073 | CALL | HEAD_PFIFO ( ptree -> auth . crypto_cmd_list )
+30064771074 | CALL | ptree -> auth . crypto_cmd_list
+30064771075 | CALL | ptree -> auth
+30064771076 | CALL | my_val != NULL
+30064771077 | CALL | my_val = my_val -> link
+30064771078 | CALL | my_val -> link
+30064771079 | CALL | my_val -> attr
+30064771080 | CALL | NTP_INSIST ( 0 )
+30064771081 | CALL | item = CRYPTO_CONF_PRIV
+30064771082 | CALL | item = CRYPTO_CONF_IDENT
+30064771083 | CALL | item = CRYPTO_CONF_PW
+30064771084 | CALL | item = CRYPTO_CONF_RAND
+30064771085 | CALL | item = CRYPTO_CONF_NID
+30064771086 | CALL | crypto_config ( item , my_val -> value . s )
+30064771087 | CALL | my_val -> value . s
+30064771088 | CALL | my_val -> value
+30064771089 | CALL | keysdir != default_keysdir
+30064771090 | CALL | free ( keysdir )
+30064771091 | CALL | keysdir = estrdup ( ptree -> auth . keysdir )
+30064771092 | CALL | estrdup ( ptree -> auth . keysdir )
+30064771093 | CALL | ptree -> auth . keysdir
+30064771094 | CALL | ptree -> auth
+47244640256 | CONTROL_STRUCTURE | for (;my_val != NULL;my_val = my_val -> link)
+47244640257 | CONTROL_STRUCTURE | 
+        switch ( my_val -> attr ) {
+ default : NTP_INSIST ( 0 ) ;
+ break ;
+ case T_Host : item = CRYPTO_CONF_PRIV ;
+ break ;
+ case T_Ident : item = CRYPTO_CONF_IDENT ;
+ break ;
+ case T_Pw : item = CRYPTO_CONF_PW ;
+ break ;
+ case T_Randfile : item = CRYPTO_CONF_RAND ;
+ break ;
+ case T_Digest : item = CRYPTO_CONF_NID ;
+ break ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | break ;
+47244640261 | CONTROL_STRUCTURE | break ;
+47244640262 | CONTROL_STRUCTURE | break ;
+47244640263 | CONTROL_STRUCTURE | break ;
+47244640264 | CONTROL_STRUCTURE | if ( keysdir != default_keysdir ) free ( keysdir ) ;
+55834574848 | FIELD_IDENTIFIER | auth
+55834574849 | FIELD_IDENTIFIER | crypto_cmd_list
+55834574850 | FIELD_IDENTIFIER | link
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640264 [AST]
+25769803776 -> 30064771091 [AST]
+25769803778 -> 47244640257 [AST]
+25769803778 -> 30064771086 [AST]
+25769803779 -> 30064771080 [AST]
+25769803779 -> 47244640258 [AST]
+25769803779 -> 30064771081 [AST]
+25769803779 -> 47244640259 [AST]
+25769803779 -> 30064771082 [AST]
+25769803779 -> 47244640260 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 47244640261 [AST]
+25769803779 -> 30064771084 [AST]
+25769803779 -> 47244640262 [AST]
+25769803779 -> 30064771085 [AST]
+25769803779 -> 47244640263 [AST]
+25769803780 -> 30064771090 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771094 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 55834574849 [CFG]
+30064771075 -> 55834574849 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

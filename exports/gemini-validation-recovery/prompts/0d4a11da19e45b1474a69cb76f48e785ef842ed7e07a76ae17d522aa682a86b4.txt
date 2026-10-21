@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_rc_set_gf_max_interval ( const VP9_COMP * const cpi , RATE_CONTROL * const rc ) {
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ rc -> max_gf_interval = 16 ;
+ rc -> static_scene_max_gf_interval = oxcf -> key_freq >> 1 ;
+ if ( rc -> static_scene_max_gf_interval > ( MAX_LAG_BUFFERS * 2 ) ) rc -> static_scene_max_gf_interval = MAX_LAG_BUFFERS * 2 ;
+ if ( is_altref_enabled ( cpi ) ) {
+ if ( rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1 ) rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1 ;
+ }
+ if ( rc -> max_gf_interval > rc -> static_scene_max_gf_interval ) rc -> max_gf_interval = rc -> static_scene_max_gf_interval ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ rc -> max_gf_interval = 16 ;
+ rc -> static_scene_max_gf_interval = oxcf -> key_freq >> 1 ;
+ if ( rc -> static_scene_max_gf_interval > ( MAX_LAG_BUFFERS * 2 ) ) rc -> static_scene_max_gf_interval = MAX_LAG_BUFFERS * 2 ;
+ if ( is_altref_enabled ( cpi ) ) {
+ if ( rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1 ) rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1 ;
+ }
+ if ( rc -> max_gf_interval > rc -> static_scene_max_gf_interval ) rc -> max_gf_interval = rc -> static_scene_max_gf_interval ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1 ) rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | const oxcf = & cpi -> oxcf
+30064771073 | CALL | & cpi -> oxcf
+30064771074 | CALL | cpi -> oxcf
+30064771075 | CALL | rc -> max_gf_interval = 16
+30064771076 | CALL | rc -> max_gf_interval
+30064771077 | CALL | rc -> static_scene_max_gf_interval = oxcf -> key_freq >> 1
+30064771078 | CALL | rc -> static_scene_max_gf_interval
+30064771079 | CALL | oxcf -> key_freq >> 1
+30064771080 | CALL | oxcf -> key_freq
+30064771081 | CALL | rc -> static_scene_max_gf_interval > ( MAX_LAG_BUFFERS * 2 )
+30064771082 | CALL | rc -> static_scene_max_gf_interval
+30064771083 | CALL | MAX_LAG_BUFFERS * 2
+30064771084 | CALL | rc -> static_scene_max_gf_interval = MAX_LAG_BUFFERS * 2
+30064771085 | CALL | rc -> static_scene_max_gf_interval
+30064771086 | CALL | MAX_LAG_BUFFERS * 2
+30064771087 | CALL | is_altref_enabled ( cpi )
+30064771088 | CALL | rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1
+30064771089 | CALL | rc -> static_scene_max_gf_interval
+30064771090 | CALL | oxcf -> lag_in_frames - 1
+30064771091 | CALL | oxcf -> lag_in_frames
+30064771092 | CALL | rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1
+30064771093 | CALL | rc -> static_scene_max_gf_interval
+30064771094 | CALL | oxcf -> lag_in_frames - 1
+30064771095 | CALL | oxcf -> lag_in_frames
+30064771096 | CALL | rc -> max_gf_interval > rc -> static_scene_max_gf_interval
+30064771097 | CALL | rc -> max_gf_interval
+30064771098 | CALL | rc -> static_scene_max_gf_interval
+30064771099 | CALL | rc -> max_gf_interval = rc -> static_scene_max_gf_interval
+30064771100 | CALL | rc -> max_gf_interval
+30064771101 | CALL | rc -> static_scene_max_gf_interval
+47244640256 | CONTROL_STRUCTURE | 
+        if ( rc -> static_scene_max_gf_interval > ( MAX_LAG_BUFFERS * 2 ) ) rc -> static_scene_max_gf_interval = MAX_LAG_BUFFERS * 2 ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( is_altref_enabled ( cpi ) ) {
+ if ( rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1 ) rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1 ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( rc -> static_scene_max_gf_interval > oxcf -> lag_in_frames - 1 ) rc -> static_scene_max_gf_interval = oxcf -> lag_in_frames - 1 ;
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( rc -> max_gf_interval > rc -> static_scene_max_gf_interval ) rc -> max_gf_interval = rc -> static_scene_max_gf_interval ;
+      
+55834574848 | FIELD_IDENTIFIER | oxcf
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640259 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771092 [AST]
+25769803780 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771097 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771098 [REACHING_DEF]
+30064771082 -> 30064771089 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771098 [REACHING_DEF]
+30064771085 -> 30064771089 [REACHING_DEF]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int vp9_rc_clamp_iframe_target_size ( const VP9_COMP * const cpi , int target ) {
+ const RATE_CONTROL * rc = & cpi -> rc ;
+ const VP9EncoderConfig * oxcf = & cpi -> oxcf ;
+ if ( oxcf -> rc_max_intra_bitrate_pct ) {
+ const int max_rate = rc -> avg_frame_bandwidth * oxcf -> rc_max_intra_bitrate_pct / 100 ;
+ target = MIN ( target , max_rate ) ;
+ }
+ if ( target > rc -> max_frame_bandwidth ) ta
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

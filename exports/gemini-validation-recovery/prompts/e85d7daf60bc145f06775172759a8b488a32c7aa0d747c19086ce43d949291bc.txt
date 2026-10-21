@@ -1,0 +1,347 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void virtio_pci_common_write(void *opaque, hwaddr addr,
+
+                                    uint64_t val, unsigned size)
+
+{
+
+    VirtIOPCIProxy *proxy = opaque;
+
+    VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
+
+
+
+    switch (addr) {
+
+    case VIRTIO_PCI_COMMON_DFSELECT:
+
+        proxy->dfselect = val;
+
+        break;
+
+    case VIRTIO_PCI_COMMON_GFSELECT:
+
+        proxy->gfselect = val;
+
+        break;
+
+    case VIRTIO_PCI_COMMON_GF:
+
+        if (proxy->gfselect <= ARRAY_SIZE(proxy->guest_features)) {
+
+            proxy->guest_features[proxy->gfselect] = val;
+
+            virtio_set_features(vdev,
+
+                                (((uint64_t)proxy->guest_features[1]) << 32) |
+
+                                proxy->guest_features[0]);
+
+        }
+
+        break;
+
+    case VIRTIO_PCI_COMMON_MSIX:
+
+        msix_vector_unuse(&proxy->pci_dev, vdev->config_vector);
+
+        /* Make it possible for guest to discover an error took place. */
+
+        if (msix_vector_use(&proxy->pci_dev, val) < 0) {
+
+            val = VIRTIO_NO_VECTOR;
+
+        }
+
+        vdev->config_vector = val;
+
+        break;
+
+    case VIRTIO_PCI_COMMON_STATUS:
+
+        if (!(val & VIRTIO_CONFIG_S_DRIVER_OK)) {
+
+            virtio_pci_stop_ioeventfd(proxy);
+
+        }
+
+
+
+        virtio_set_status(vdev, val & 0xFF);
+
+
+
+        if (val & VIRTIO_CONFIG_S_DRIVER_OK) {
+
+            virtio_pci_start_ioeventfd(proxy);
+
+        }
+
+
+
+        if (vdev->status == 0) {
+
+            virtio_reset(vdev);
+
+            msix_unuse_all_vectors(&proxy->pci_dev);
+
+        }
+
+
+
+        break;
+
+    case VIRTIO_PCI_COMMON_Q_SELECT:
+
+        if (val < VIRTIO_QUEUE_MAX) {
+
+            vdev->queue_sel = val;
+
+        }
+
+        break;
+
+    case VIRTIO_PCI_COMMON_Q_SIZE:
+
+        proxy->vqs[vdev->queue_sel].num = val;
+
+        break;
+
+    case VIRTIO_PCI_COMMON_Q_MSIX:
+
+        msix_vector_unuse(&proxy->pci_dev,
+
+                          virtio_queue_vector(vdev, vdev->queue_sel));
+
+        /* Make it possible for guest to discover an error took place. */
+
+        if (msix_vector_use(&proxy->pci_dev, val) < 0) {
+
+            val = VIRTIO_NO_VECTOR;
+
+        }
+
+        virtio_queue_set_vector(vdev, vdev->queue_sel, val);
+
+        break;
+
+    case VIRTIO_PCI_COMMON_Q_ENABLE:
+
+        /* TODO: need a way to put num back on reset. */
+
+        virtio_queue_set_num(vdev, vdev->queue_sel,
+
+                             proxy->vqs[vdev->queue_sel].num);
+
+        virtio_queue_set_rings(vdev, vdev->queue_sel,
+
+                       ((uint64_t)proxy->vqs[vdev->queue_sel].desc[1]) << 32 |
+
+                       proxy->vqs[vdev->queue_sel].desc[0],
+
+                       ((uint64_t)proxy->vqs[vdev->queue_sel].avail[1]) << 32 |
+
+                       proxy->vqs[vdev->queue_sel].avail[0],
+
+                       ((uint64_t)proxy->vqs[vdev->queue_sel].used[1]) << 32 |
+
+                       proxy->vqs[vdev->queue_sel].used[0]);
+
+        break;
+
+    case VIRTIO_PCI_COMMON_Q_DESCLO:
+
+        proxy->vqs[vd
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+31 -> 40 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+31 -> 41 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+31 -> 43 [IS_AST_PARENT]
+31 -> 49 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+31 -> 50 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+54 -> 58 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 76 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+90 -> 92 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+89 -> 93 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 94 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
+
+{
+
+    VirtIOPCIProxy *proxy = opaque;
+
+    VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
+
+    hwaddr pa;
+
+
+
+    switch (addr) {
+
+    case VIRTIO_PCI_GUEST_FEATURES:
+
+        /* Guest does not negotiate properly?  We have to assume nothing. */
+
+        if (val & (1 << VIRTIO_F_BAD_FEATURE)) {
+
+            val = virtio_bus_get_vdev_bad_features(&proxy->bus);
+
+        }
+
+        virtio_set_features(vdev, val);
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_PFN:
+
+        pa = (hwaddr)val << VIRTIO_PCI_QUEUE_ADDR_SHIFT;
+
+        if (pa == 0) {
+
+            virtio_pci_stop_ioeventfd(proxy);
+
+            virtio_reset(vdev);
+
+            msix_unuse_all_vectors(&proxy->pci_dev);
+
+        }
+
+        else
+
+            virtio_queue_set_addr(vdev, vdev->queue_sel, pa);
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_SEL:
+
+        if (val < VIRTIO_PCI_QUEUE_MAX)
+
+            vdev->queue_sel = val;
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_NOTIFY:
+
+        if (val < VIRTIO_PCI_QUEUE_MAX) {
+
+            virtio_queue_notify(vdev, val);
+
+        }
+
+        break;
+
+    case VIRTIO_PCI_STATUS:
+
+        if (!(val & VIRTIO_CONFIG_S_DRIVER_OK)) {
+
+            virtio_pci_stop_ioeventfd(proxy);
+
+        }
+
+
+
+        virtio_set_status(vdev, val & 0xFF);
+
+
+
+        if (val & VIRTIO_CONFIG_S_DRIVER_OK) {
+
+            virtio_pci_start_ioeventfd(proxy);
+
+        }
+
+
+
+        if (vdev->status == 0) {
+
+            virtio_reset(v
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,146 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+hidden_proto ( _nss_dns_gethostbyaddr2_r ) enum nss_status _nss_dns_gethostbyaddr2_r ( const void * addr , socklen_t len , int af , struct hostent * result , char * buffer , size_t buflen , int * errnop , int * h_errnop , int32_t * ttlp ) {
+ static const u_char mapped [ ] = {
+ 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0xff , 0xff }
+ ;
+ static const u_char tunnelled [ ] = {
+ 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 }
+ ;
+ static const u_char v6local [ ] = {
+ 0 , 0 , 0 , 1 }
+ ;
+ const u_char * uaddr = ( const u_char * ) addr ;
+ struct host_data {
+ char * aliases [ MAX_NR_ALIASES ] ;
+ unsigned char host_addr [ 16 ] ;
+ char * h_addr_ptrs [ MAX_NR_ADDRS + 1 ] ;
+ char linebuffer [ 0 ] ;
+ }
+ * host_data = ( struct host_data * ) buffer ;
+ union {
+ querybuf * buf ;
+ u_char * ptr ;
+ }
+ host_buffer ;
+ querybuf * orig_host_buffer ;
+ char qbuf [ MAXDNAME + 1 ] , * qp = NULL ;
+ size_t size ;
+ int n , status ;
+ int olderr = errno ;
+ uintptr_t pad = - ( uintptr_t ) buffer % __alignof__ ( struct host_data ) ;
+ buffer += pad ;
+ buflen = buflen > pad ? buflen - pad : 0 ;
+ if ( __glibc_unlikely ( buflen < sizeof ( struct host_data ) ) ) {
+ * errnop = ERANGE ;
+ * h_errnop = NETDB_INTERNAL ;
+ return NSS_STATUS_TRYAGAIN ;
+ }
+ host_data = ( struct host_data * ) buffer ;
+ if ( __res_maybe_init ( & _res , 0 ) == - 1 ) return NSS_STATUS_UNAVAIL ;
+ if ( af == AF_INET6 && len == IN6ADDRSZ && ( memcmp ( uaddr , mapped , sizeof mapped ) == 0 || ( memcmp ( uaddr , tunnelled , sizeof tunnelled ) == 0 && memcmp ( & uaddr [ sizeof tunnelled ] , v6local , sizeof v6local ) ) ) ) {
+ addr += sizeof mapped ;
+ uaddr += sizeof mapped ;
+ af = AF_INET ;
+ len = INADDRSZ ;
+ }
+ switch ( af ) {
+ case AF_INET : size = INADDRSZ ;
+ break ;
+ case AF_INET6 : size = IN6ADDRSZ ;
+ break ;
+ default : * errnop = EAFNOSUPPORT ;
+ * h_errnop = NETDB_INTERNAL ;
+ return NSS_STATUS_UNAVAIL ;
+ }
+ if ( size > len ) {
+ * errnop = EAFNOSUPPORT ;
+ * h_errnop = NETDB_INTERNAL ;
+ return NSS_STATUS_UNAVAIL ;
+ }
+ host_buffer . buf = orig_host_buffer = ( querybuf * ) alloca ( 1024 ) ;
+ switch ( af ) {
+ case AF_INET : sprintf ( qbuf , "%u.%u.%u.%u.in-addr.arpa" , ( uaddr [ 3 ] & 0xff ) , ( uaddr [ 2 ] & 0xff ) , ( uaddr [ 1 ] & 0xff ) , ( uaddr [ 0 ] & 0xff ) ) ;
+ break ;
+ case AF_INET6 : if ( __glibc_unlikely ( _res . options & RES_USEBSTRING ) ) {
+ qp = stpcpy ( qbuf , "\\[x" ) ;
+ for ( n = 0 ;
+ n < IN6ADDRSZ ;
+ ++ n ) qp += sprintf ( qp , "%02hhx" , uaddr [ n ] ) ;
+ strcpy ( qp , "].ip6.arpa" ) ;
+ n = __libc_res_nquery ( & _res , qbuf , C_IN , T_PTR , host_buffer . buf -> buf , 1024 , & host_buffer . ptr , NULL , NULL , NULL , NULL ) ;
+ if ( n >= 0 ) goto got_it_already ;
+ }
+ qp = qbuf ;
+ for ( n = IN6ADDRSZ - 1 ;
+ n >= 0 ;
+ n -- ) {
+ static const char nibblechar [ 16 ] = "0123456789abcdef" ;
+ * qp ++ = nibblechar [ uaddr [ n ] & 0xf ] ;
+ * qp ++ = '.' ;
+ * qp ++ = nibblechar [ ( uaddr [ n ] >> 4 ) & 0xf ] ;
+ * qp ++ = '.' ;
+ }
+ strcpy ( qp , "ip6.arpa" ) ;
+ break ;
+ default : break ;
+ }
+ n = __libc_res_nquery ( & 
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+hidden_proto ( _nss_dns_gethostbyname3_r ) enum nss_status _nss_dns_gethostbyname3_r ( const char * name , int af , struct hostent * result , char * buffer , size_t buflen , int * errnop , int * h_errnop , int32_t * ttlp , char * * canonp ) {
+ union {
+ querybuf * buf ;
+ u_char * ptr ;
+ }
+ host_buffer ;
+ querybuf * orig_host_buffer ;
+ char tmp [ NS_MAXDNAME ] ;
+ int size , type , n ;
+ const char * cp ;
+ int map = 0 ;
+ int olderr = errno ;
+ enum nss_status status ;
+ if ( __res_maybe_init ( & _res , 0 ) == - 1 ) return NSS_STATUS_UNAVAIL ;
+ switch ( af ) {
+ case AF_INET : size = INADDRSZ ;
+ type = T_A ;
+ break ;
+ case AF_INET6 : size = IN6ADDRSZ ;
+ type = T_AAAA ;
+ break ;
+ default : * h_errnop = NO_DATA ;
+ * errnop = EAFNOSUPPORT ;
+ return NSS_STATUS_UNAVAIL ;
+ }
+ result -> h_addrtype = af ;
+ result -> h_length = size ;
+ if ( strchr ( name , '.' ) == NULL && ( cp = res_hostalias ( & _res , name , tmp , sizeof ( tmp ) ) ) != NULL ) name = cp ;
+ host_buffer . buf = orig_host_buffer = ( querybuf * ) alloca ( 1024 ) ;
+ n = __libc_res_nsearch ( & _res , name , C_IN , type , host_buffer . buf -> buf , 1024 , & host_buffer . ptr , NULL , NULL , NULL , NULL ) ;
+ if ( n < 0 ) {
+ switch ( errno ) {
+ case ESRCH : status = NSS_STATUS_TRYAGAIN ;
+ h_errno = TRY_AGAIN ;
+ break ;
+ case EMFILE : case ENFILE : h_errno = NETDB_INTERNAL ;
+ case ECONNREFUSED : case ETIMEDOUT : status = NSS_STATUS_UNAVAIL ;
+ break ;
+ default : status = NSS_STATUS_NOTFOUND ;
+ break ;
+ }
+ * h_errnop = h_errno ;
+ if ( 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

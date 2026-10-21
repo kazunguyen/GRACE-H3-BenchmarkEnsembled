@@ -1,0 +1,247 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int convert_to_string ( const gs_memory_t * mem , os_ptr op1 , os_ptr op ) {
+ uint len ;
+ const byte * pstr = 0 ;
+ int code = obj_cvs ( mem , op1 , op -> value . bytes , r_size ( op ) , & len , & pstr ) ;
+ if ( code < 0 ) {
+ if ( code == gs_error_rangecheck ) switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+ return code ;
+ }
+ ok : * op1 = * op ;
+ r_set_size ( op1 , len ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint len ;
+ const byte * pstr = 0 ;
+ int code = obj_cvs ( mem , op1 , op -> value . bytes , r_size ( op ) , & len , & pstr ) ;
+ if ( code < 0 ) {
+ if ( code == gs_error_rangecheck ) switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+ return code ;
+ }
+ ok : * op1 = * op ;
+ r_set_size ( op1 , len ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( code == gs_error_rangecheck ) switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+ return code ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+      
+30064771072 | CALL | pstr = 0
+30064771073 | CALL | 
+        code = obj_cvs ( mem , op1 , op -> value . bytes , r_size ( op ) , & len , & pstr )
+      
+30064771074 | CALL | 
+        obj_cvs ( mem , op1 , op -> value . bytes , r_size ( op ) , & len , & pstr )
+      
+30064771075 | CALL | op -> value . bytes
+30064771076 | CALL | op -> value
+30064771077 | CALL | r_size ( op )
+30064771078 | CALL | & len
+30064771079 | CALL | & pstr
+30064771080 | CALL | code < 0
+30064771081 | CALL | code == gs_error_rangecheck
+30064771082 | CALL | r_btype ( op1 )
+30064771083 | CALL | pstr != 0
+30064771084 | CALL | * pstr
+30064771085 | CALL | len = r_size ( op )
+30064771086 | CALL | r_size ( op )
+30064771087 | CALL | memcpy ( op -> value . bytes , pstr , len )
+30064771088 | CALL | op -> value . bytes
+30064771089 | CALL | op -> value
+30064771090 | CALL | * op1 = * op
+30064771091 | CALL | * op1
+30064771092 | CALL | * op
+30064771093 | CALL | r_set_size ( op1 , len )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( code < 0 ) {
+ if ( code == gs_error_rangecheck ) switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+ return code ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( code == gs_error_rangecheck ) switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        switch ( r_btype ( op1 ) ) {
+ case t_oparray : case t_operator : if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( pstr != 0 ) switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | 
+        switch ( * pstr ) {
+ case '%' : case '.' : case '@' : len = r_size ( op ) ;
+ memcpy ( op -> value . bytes , pstr , len ) ;
+ goto ok ;
+ }
+      
+47244640261 | CONTROL_STRUCTURE | goto ok;
+55834574848 | FIELD_IDENTIFIER | value
+55834574849 | FIELD_IDENTIFIER | bytes
+55834574850 | FIELD_IDENTIFIER | value
+55834574851 | FIELD_IDENTIFIER | bytes
+68719476736 | IDENTIFIER | pstr
+68719476737 | IDENTIFIER | code
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 47244640259 [AST]
+25769803780 -> 47244640260 [AST]
+25769803781 -> 30064771085 [AST]
+25769803781 -> 30064771087 [AST]
+25769803781 -> 47244640261 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771078 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771078 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771075 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574849 [CFG]
+30064771076 -> 55834574849 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771074 [CFG]
+30064771079 -> 30064771074 [DOMINATE]
+30064771079 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771074 [REACHING_DEF]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771093 [CDG]
+30064771084 -> 30064771092 [CDG]
+30064771084 -> 30064771091 [CDG]
+30064771084 -> 30064771090 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 55834574851 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int zcvi ( i_ctx_t * i_ctx_p ) {
+ os_ptr op = osp ;
+ float fval ;
+ switc
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

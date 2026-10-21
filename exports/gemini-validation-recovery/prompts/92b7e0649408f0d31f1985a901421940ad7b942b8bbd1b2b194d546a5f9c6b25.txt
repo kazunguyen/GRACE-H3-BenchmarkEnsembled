@@ -1,0 +1,337 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int tiff_unpack_strip(TiffContext *s, AVFrame *p, uint8_t *dst, int stride,
+
+                             const uint8_t *src, int size, int strip_start, int lines)
+
+{
+
+    PutByteContext pb;
+
+    int c, line, pixels, code, ret;
+
+    const uint8_t *ssrc = src;
+
+    int width = ((s->width * s->bpp) + 7) >> 3;
+
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(p->format);
+
+    int is_yuv = !(desc->flags & AV_PIX_FMT_FLAG_RGB) && desc->nb_components >= 2;
+
+
+
+    if (s->planar)
+
+        width /= s->bppcount;
+
+
+
+    if (size <= 0)
+
+        return AVERROR_INVALIDDATA;
+
+
+
+    if (is_yuv) {
+
+        int bytes_per_row = (((s->width - 1) / s->subsampling[0] + 1) * s->bpp *
+
+                            s->subsampling[0] * s->subsampling[1] + 7) >> 3;
+
+        av_fast_padded_malloc(&s->yuv_line, &s->yuv_line_size, bytes_per_row);
+
+        if (s->yuv_line == NULL) {
+
+            av_log(s->avctx, AV_LOG_ERROR, "Not enough memory\n");
+
+            return AVERROR(ENOMEM);
+
+        }
+
+        dst = s->yuv_line;
+
+        stride = 0;
+
+        width = s->width * s->subsampling[1] + 2*(s->width / s->subsampling[0]);
+
+        av_assert0(width <= bytes_per_row);
+
+        av_assert0(s->bpp == 24);
+
+    }
+
+
+
+    if (s->compr == TIFF_DEFLATE || s->compr == TIFF_ADOBE_DEFLATE) {
+
+#if CONFIG_ZLIB
+
+        return tiff_unpack_zlib(s, p, dst, stride, src, size, width, lines,
+
+                                strip_start, is_yuv);
+
+#else
+
+        av_log(s->avctx, AV_LOG_ERROR,
+
+               "zlib support not enabled, "
+
+               "deflate compression not supported\n");
+
+        return AVERROR(ENOSYS);
+
+#endif
+
+    }
+
+    if (s->compr == TIFF_LZMA) {
+
+#if CONFIG_LZMA
+
+        return tiff_unpack_lzma(s, p, dst, stride, src, size, width, lines,
+
+                                strip_start, is_yuv);
+
+#else
+
+        av_log(s->avctx, AV_LOG_ERROR,
+
+               "LZMA support not enabled\n");
+
+        return AVERROR(ENOSYS);
+
+#endif
+
+    }
+
+    if (s->compr == TIFF_LZW) {
+
+        if (s->fill_order) {
+
+            if ((ret = deinvert_buffer(s, src, size)) < 0)
+
+                return ret;
+
+            ssrc = src = s->deinvert_buf;
+
+        }
+
+        if (size > 1 && !src[0] && (src[1]&1)) {
+
+            av_log(s->avctx, AV_LOG_ERROR, "Old style LZW is unsupported\n");
+
+        }
+
+        if ((ret = ff_lzw_decode_init(s->lzw, 8, src, size, FF_LZW_TIFF)) < 0) {
+
+            av_log(s->avctx, AV_LOG_ERROR, "Error initializing LZW decoder\n");
+
+            return ret;
+
+        }
+
+        for (line = 0; line < lines; line++) {
+
+            pixels = ff_lzw_decode(s->lzw, dst, width);
+
+            if (pixels < width) {
+
+                av_log(s->avctx, AV_LOG_ERROR, "Decoded only %i bytes of %i\n",
+
+                       pixels, width);
+
+                return AVERROR_INVALIDDATA;
+
+            }
+
+            if (s->bpp < 8 && s->avctx->pix_fmt == AV_PIX_FMT_PAL8)
+
+                horizontal_fill(s->bpp, dst, 1, dst, 0, width, 0);
+
+            if (is_yuv) {
+
+             
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+9 -> 16 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+9 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+9 -> 22 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 47 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 48 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 76 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+69 -> 77 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int tiff_unpack_strip(TiffContext *s, uint8_t *dst, int stride,
+
+                             const uint8_t *src, int size, int lines)
+
+{
+
+    int c, line, pixels, code, ret;
+
+    const uint8_t *ssrc = src;
+
+    int width           = ((s->width * s->bpp) + 7) >> 3;
+
+
+
+    if (size <= 0)
+
+        return AVERROR_INVALIDDATA;
+
+
+
+    if (s->compr == TIFF_DEFLATE || s->compr == TIFF_ADOBE_DEFLATE) {
+
+#if CONFIG_ZLIB
+
+        return tiff_unpack_zlib(s, dst, stride, src, size, width, lines);
+
+#else
+
+        av_log(s->avctx, AV_LOG_ERROR,
+
+               "zlib support not enabled, "
+
+               "deflate compression not supported\n");
+
+        return AVERROR(ENOSYS);
+
+#endif
+
+    }
+
+    if (s->compr == TIFF_LZW) {
+
+        if ((ret = ff_lzw_decode_init(s->lzw, 8, src, size, FF_LZW_TIFF)) < 0) {
+
+            av_log(s->avctx, AV_LOG_ERROR, "Error initializing LZW decoder\n");
+
+            return ret;
+
+        }
+
+    }
+
+    if (s->compr == TIFF_CCITT_RLE ||
+
+        s->compr == TIFF_G3        ||
+
+        s->compr == TIFF_G4) {
+
+        return tiff_unpack_fax(s, dst, stride, src, size, lines);
+
+    }
+
+    for (line = 0; line < lines; line++) {
+
+        if (src - ssrc > size) {
+
+            av_log(s->avctx, AV_LOG_ERROR, "Source data overread\n");
+
+            return AVERROR_INVALIDDATA;
+
+        }
+
+        switch (s->compr) {
+
+        case TIFF_RAW:
+
+            if (ssrc + size - src < width)
+
+                return AVERROR_INVALIDDATA;
+
+            if (!s->fill_order) {
+
+     
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

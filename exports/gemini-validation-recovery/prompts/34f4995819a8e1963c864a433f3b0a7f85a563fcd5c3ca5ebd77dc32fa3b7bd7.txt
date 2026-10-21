@@ -1,0 +1,209 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int qemuAgentIOWrite ( qemuAgentPtr mon ) {
+ int done ;
+ if ( ! mon -> msg || mon -> msg -> txOffset == mon -> msg -> txLength ) return 0 ;
+ done = safewrite ( mon -> fd , mon -> msg -> txBuffer + mon -> msg -> txOffset , mon -> msg -> txLength - mon -> msg -> txOffset ) ;
+ if ( done < 0 ) {
+ if ( errno == EAGAIN ) return 0 ;
+ virReportSystemError ( errno , "%s" , _ ( "Unable to write to monitor" ) ) ;
+ return - 1 ;
+ }
+ mon -> msg -> txOffset += done ;
+ return done ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int done ;
+ if ( ! mon -> msg || mon -> msg -> txOffset == mon -> msg -> txLength ) return 0 ;
+ done = safewrite ( mon -> fd , mon -> msg -> txBuffer + mon -> msg -> txOffset , mon -> msg -> txLength - mon -> msg -> txOffset ) ;
+ if ( done < 0 ) {
+ if ( errno == EAGAIN ) return 0 ;
+ virReportSystemError ( errno , "%s" , _ ( "Unable to write to monitor" ) ) ;
+ return - 1 ;
+ }
+ mon -> msg -> txOffset += done ;
+ return done ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( errno == EAGAIN ) return 0 ;
+ virReportSystemError ( errno , "%s" , _ ( "Unable to write to monitor" ) ) ;
+ return - 1 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | ! mon -> msg || mon -> msg -> txOffset == mon -> msg -> txLength
+30064771073 | CALL | ! mon -> msg
+30064771074 | CALL | mon -> msg
+30064771075 | CALL | mon -> msg -> txOffset == mon -> msg -> txLength
+30064771076 | CALL | mon -> msg -> txOffset
+30064771077 | CALL | mon -> msg
+30064771078 | CALL | mon -> msg -> txLength
+30064771079 | CALL | mon -> msg
+30064771080 | CALL | 
+        done = safewrite ( mon -> fd , mon -> msg -> txBuffer + mon -> msg -> txOffset , mon -> msg -> txLength - mon -> msg -> txOffset )
+      
+30064771081 | CALL | 
+        safewrite ( mon -> fd , mon -> msg -> txBuffer + mon -> msg -> txOffset , mon -> msg -> txLength - mon -> msg -> txOffset )
+      
+30064771082 | CALL | mon -> fd
+30064771083 | CALL | mon -> msg -> txBuffer + mon -> msg -> txOffset
+30064771084 | CALL | mon -> msg -> txBuffer
+30064771085 | CALL | mon -> msg
+30064771086 | CALL | mon -> msg -> txOffset
+30064771087 | CALL | mon -> msg
+30064771088 | CALL | mon -> msg -> txLength - mon -> msg -> txOffset
+30064771089 | CALL | mon -> msg -> txLength
+30064771090 | CALL | mon -> msg
+30064771091 | CALL | mon -> msg -> txOffset
+30064771092 | CALL | mon -> msg
+30064771093 | CALL | done < 0
+30064771094 | CALL | errno == EAGAIN
+30064771095 | CALL | 
+        virReportSystemError ( errno , "%s" , _ ( "Unable to write to monitor" ) )
+      
+30064771096 | CALL | _ ( "Unable to write to monitor" )
+30064771097 | CALL | - 1
+30064771098 | CALL | mon -> msg -> txOffset += done
+30064771099 | CALL | mon -> msg -> txOffset
+30064771100 | CALL | mon -> msg
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! mon -> msg || mon -> msg -> txOffset == mon -> msg -> txLength ) return 0 ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( done < 0 ) {
+ if ( errno == EAGAIN ) return 0 ;
+ virReportSystemError ( errno , "%s" , _ ( "Unable to write to monitor" ) ) ;
+ return - 1 ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | if ( errno == EAGAIN ) return 0 ;
+55834574848 | FIELD_IDENTIFIER | msg
+55834574849 | FIELD_IDENTIFIER | msg
+55834574850 | FIELD_IDENTIFIER | txOffset
+55834574851 | FIELD_IDENTIFIER | msg
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771098 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771092 [CDG]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771093 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 55834574850 [CDG]
+30064771073 -> 55834574849 [CDG]
+30064771073 -> 55834574851 [CDG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771087 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771092 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771085 [REACHING_DEF]
+30064771074 -> 30064771100 [REACHING_DEF]
+30064771074 -> 30064771090 [REACHING_DEF]
+30064771074 -> 30064771079 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771072 [CFG]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 55834574850 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 55834574850 [AST]
+30064771076 -> 55834574850 [POST_DOMINATE]
+30064771076 -> 30064771087 [REACHING_DEF]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771086 [REACHING_DEF]
+30064771076 -> 30064771085 [REACHING_DEF]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 55834574850 [CFG]
+30064771077 -> 55834574850 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771075 [CFG]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int qemuAgentIORead ( qemuAgentPtr mon ) {
+ size_t avail = mon -> bufferLength - mon -> bufferOffset ;
+ int ret = 0 ;
+ if ( avail < 1024 ) {
+ if ( VIR_REALLOC_N ( mon -> buffer , mon -> bufferLength + 1024 ) < 0 ) return - 1 ;
+ mon -> bufferLength += 1024 ;
+ avail += 1024 ;
+ }
+ while ( avail > 1 ) {
+ int got ;
+ got = read ( mon -> fd , mon -> buffer + mon -> bufferOffset , avail - 1 ) ;
+ if ( got < 0 ) {
+ if ( errno == EAGAIN ) break ;
+ virReportSystemError ( errno , "%s" , _ ( "Unable to read from monitor" ) ) ;
+ ret = - 1 ;
+ break ;
+ }
+ if ( got == 0 ) break ;
+ ret += got ;
+ avail -= got ;
+ mon -> bufferOffset += got ;
+ mon -> buffer [ mon -> bufferOffset ] = '\0' ;
+ }
+ # if DEBUG_IO VIR_DEBUG ( "Now read %zu bytes of data" , mon -> bufferOffset ) ;
+ # endif return ret ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

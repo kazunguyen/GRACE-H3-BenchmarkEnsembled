@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_init_poc ( H264Context * h , int pic_field_poc [ 2 ] , int * pic_poc ) {
+ const int max_frame_num = 1 << h -> sps . log2_max_frame_num ;
+ int field_poc [ 2 ] ;
+ h -> frame_num_offset = h -> prev_frame_num_offset ;
+ if ( h -> frame_num < h -> prev_frame_num ) h -> frame_num_offset += max_frame_num ;
+ if ( h -> sps . poc_type == 0 ) {
+ const int max_poc_lsb = 1 << h -> sps . log2_max_poc_lsb ;
+ if ( h -> poc_lsb < h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb >= max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb + max_poc_lsb ;
+ else if ( h -> poc_lsb > h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb < - max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb - max_poc_lsb ;
+ else h -> poc_msb = h -> prev_poc_msb ;
+ field_poc [ 0 ] = field_poc [ 1 ] = h -> poc_msb + h -> poc_lsb ;
+ if ( h -> picture_structure == PICT_FRAME ) field_poc [ 1 ] += h -> delta_poc_bottom ;
+ }
+ else if ( h -> sps . poc_type == 1 ) {
+ int abs_frame_num , expected_delta_per_poc_cycle , expectedpoc ;
+ int i ;
+ if ( h -> sps . poc_cycle_length != 0 ) abs_frame_num = h -> frame_num_offset + h -> frame_num ;
+ else abs_frame_num = 0 ;
+ if ( h -> nal_ref_idc == 0 && abs_frame_num > 0 ) abs_frame_num -- ;
+ expected_delta_per_poc_cycle = 0 ;
+ for ( i = 0 ;
+ i < h -> sps . poc_cycle_length ;
+ i ++ ) expected_delta_per_poc_cycle += h -> sps . offset_for_ref_frame [ i ] ;
+ if ( abs_frame_num > 0 ) {
+ int poc_cycle_cnt = ( abs_frame_num - 1 ) / h -> sps . poc_cycle_length ;
+ int frame_num_in_poc_cycle = ( abs_frame_num - 1 ) % h -> sps . poc_cycle_length ;
+ expectedpoc = poc_cycle_cnt * expected_delta_per_poc_cycle ;
+ for ( i = 0 ;
+ i <= frame_num_in_poc_cycle ;
+ i ++ ) expectedpoc = expectedpoc + h -> sps . offset_for_ref_frame [ i ] ;
+ }
+ else expectedpoc = 0 ;
+ if ( h -> nal_ref_idc == 0 ) expectedpoc = expectedpoc + h -> sps . offset_for_non_ref_pic ;
+ field_poc [ 0 ] = expectedpoc + h -> delta_poc [ 0 ] ;
+ field_poc [ 1 ] = field_poc [ 0 ] + h -> sps . offset_for_top_to_bottom_field ;
+ if ( h -> picture_structure == PICT_FRAME ) field_poc [ 1 ] += h -> delta_poc [ 1 ] ;
+ }
+ else {
+ int poc = 2 * ( h -> frame_num_offset + h -> frame_num ) ;
+ if ( ! h -> nal_ref_idc ) poc -- ;
+ field_poc [ 0 ] = poc ;
+ field_poc [ 1 ] = poc ;
+ }
+ if ( h -> picture_structure != PICT_BOTTOM_FIELD ) pic_field_poc [ 0 ] = field_poc [ 0 ] ;
+ if ( h -> picture_structure != PICT_TOP_FIELD ) pic_field_poc [ 1 ] = field_poc [ 1 ] ;
+ * pic_poc = FFMIN ( pic_field_poc [ 0 ] , pic_field_poc [ 1 ] ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int max_frame_num = 1 << h -> sps . log2_max_frame_num ;
+ int field_poc [ 2 ] ;
+ h -> frame_num_offset = h -> prev_frame_num_offset ;
+ if ( h -> frame_num < h -> prev_frame_num ) h -> frame_num_offset += max_frame_num ;
+ if ( h -> sps . poc_type == 0 ) {
+ const int max_poc_lsb = 1 << h -> sps . log2_max_poc_lsb ;
+ if ( h -> poc_lsb < h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb >= max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb + max_poc_lsb ;
+ else if ( h -> poc_lsb > h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb < - max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb - max_poc_lsb ;
+ else h -> poc_msb = h -> prev_poc_msb ;
+ field_poc [ 0 ] = field_poc [ 1 ] = h -> poc_msb + h -> poc_lsb ;
+ if ( h -> picture_structure == PICT_FRAME ) field_poc [ 1 ] += h -> delta_poc_bottom ;
+ }
+ else if ( h -> sps . poc_type == 1 ) {
+ int abs_frame_num , expected_delta_per_poc_cycle , expectedpoc ;
+ int i ;
+ if ( h -> sps . poc_cycle_length != 0 ) abs_frame_num = h -> f...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ const int max_poc_lsb = 1 << h -> sps . log2_max_poc_lsb ;
+ if ( h -> poc_lsb < h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb >= max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb + max_poc_lsb ;
+ else if ( h -> poc_lsb > h -> prev_poc_lsb && h -> prev_poc_lsb - h -> poc_lsb < - max_poc_lsb / 2 ) h -> poc_msb = h -> prev_poc_msb - max_poc_lsb ;
+ else h -> poc_msb = h -> prev_poc_msb ;
+ field_poc [ 0 ] = field_poc [ 1 ] = h -> poc_msb + h -> poc_lsb ;
+ if ( h -> picture_structure == PICT_FRAME ) field_poc [ 1 ] += h -> delta_poc_bottom ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ int abs_frame_num , expected_delta_per_poc_cycle , expectedpoc ;
+ int i ;
+ if ( h -> sps . poc_cycle_length != 0 ) abs_frame_num = h -> frame_num_offset + h -> frame_num ;
+ else abs_frame_num = 0 ;
+ if ( h -> nal_ref_idc == 0 && abs_frame_num > 0 ) abs_frame_num -- ;
+ expected_delta_per_poc_cycle = 0 ;
+ for ( i = 0 ;
+ i < h -> sps . poc_cycle_length ;
+ i ++ ) expected_delta_per_poc_cycle += h -> sps . offset_for_ref_frame [ i ] ;
+ if ( abs_frame_num > 0 ) {
+ int poc_cycle_cnt = ( abs_frame_num - 1 ) / h -> sps . poc_cycle_length ;
+ int frame_num_in_poc_cycle = ( abs_frame_num - 1 ) % h -> sps . poc_cycle_length ;
+ expectedpoc = poc_cycle_cnt * expected_delta_per_poc_cycle ;
+ for ( i = 0 ;
+ i <= frame_num_in_poc_cycle ;
+ i ++ ) expectedpoc = expectedpoc + h -> sps . offset_for_ref_frame [ i ] ;
+ }
+ else expectedpoc = 0 ;
+ if ( h -> nal_ref_idc == 0 ) expectedpoc = expectedpoc + h -> sps . offset_for_non_ref_pic ;
+ field_poc [ 0 ] = expectedpoc + h -> delta_poc [ 0 ] ;
+ field_poc [...
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ int poc_cycle_cnt = ( abs_frame_num - 1 ) / h -> sps . poc_cycle_length ;
+ int frame_num_in_poc_cycle = ( abs_frame_num - 1 ) % h -> sps . poc_cycle_length ;
+ expectedpoc = poc_cycle_cnt * expected_delta_per_poc_cycle ;
+ for ( i = 0 ;
+ i <= frame_num_in_poc_cycle ;
+ i ++ ) expectedpoc = expectedpoc + h -> sps . offset_for_ref_frame [ i ] ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | 
+        {
+ int poc = 2 * ( h -> frame_num_offset + h -> frame_num ) ;
+ if ( ! h -> nal_ref_idc ) poc -- ;
+ field_poc [ 0 ] = poc ;
+ field_poc [ 1 ] = poc ;
+ }
+      
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+30064771072 | CALL | max_frame_num = 1 << h -> sps . log2_max_frame_num
+30064771073 | CALL | 1 << h -> sps . log2_max_frame_num
+30064771074 | CALL | h -> sps . log2_max_frame_num
+30064771075 | CALL | h -> sps
+30064771076 | CALL | field_poc [ 2 ]
+30064771077 | CALL | field_poc [ 2 ]
+30064771078 | CALL | h -> frame_num_offset = h -> prev_frame_num_offset
+30064771079 | CALL | h -> frame_num_offset
+30064771080 | CALL | h -> prev_frame_num_offset
+30064771081 | CALL | h -> frame_num < h -> prev_frame_num
+30064771082 | CALL | h -> frame_num
+30064771083 | CALL | h -> prev_frame_num
+30064771084 | CALL | h -> frame_num_offset += max_frame_num
+30064771085 | CALL | h -> frame_num_offset
+30064771086 | CALL | h -> sps . poc_type == 0
+30064771087 | CALL | h -> sps . poc_type
+30064771088 | CALL | h -> sps
+30064771089 | CALL | max_poc_lsb = 1 << h -> sps . log2_max_poc_lsb
+30064771090 | CALL | 1 << h -> sps . log2_max_poc_lsb
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

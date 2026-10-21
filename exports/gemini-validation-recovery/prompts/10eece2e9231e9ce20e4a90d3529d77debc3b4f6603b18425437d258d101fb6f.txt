@@ -1,0 +1,355 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void omap_rfbi_transfer_start(struct omap_dss_s *s)
+
+{
+
+    void *data;
+
+    hwaddr len;
+
+    hwaddr data_addr;
+
+    int pitch;
+
+    static void *bounce_buffer;
+
+    static hwaddr bounce_len;
+
+
+
+    if (!s->rfbi.enable || s->rfbi.busy)
+
+        return;
+
+
+
+    if (s->rfbi.control & (1 << 1)) {				/* BYPASS */
+
+        /* TODO: in non-Bypass mode we probably need to just assert the
+
+         * DRQ and wait for DMA to write the pixels.  */
+
+        fprintf(stderr, "%s: Bypass mode unimplemented\n", __FUNCTION__);
+
+        return;
+
+    }
+
+
+
+    if (!(s->dispc.control & (1 << 11)))			/* RFBIMODE */
+
+        return;
+
+    /* TODO: check that LCD output is enabled in DISPC.  */
+
+
+
+    s->rfbi.busy = 1;
+
+
+
+    len = s->rfbi.pixels * 2;
+
+
+
+    data_addr = s->dispc.l[0].addr[0];
+
+    data = cpu_physical_memory_map(data_addr, &len, 0);
+
+    if (data && len != s->rfbi.pixels * 2) {
+
+        cpu_physical_memory_unmap(data, len, 0, 0);
+
+        data = NULL;
+
+        len = s->rfbi.pixels * 2;
+
+    }
+
+    if (!data) {
+
+        if (len > bounce_len) {
+
+            bounce_buffer = g_realloc(bounce_buffer, len);
+
+        }
+
+        data = bounce_buffer;
+
+        cpu_physical_memory_read(data_addr, data, len);
+
+    }
+
+
+
+    /* TODO bpp */
+
+    s->rfbi.pixels = 0;
+
+
+
+    /* TODO: negative values */
+
+    pitch = s->dispc.l[0].nx + (s->dispc.l[0].rowinc - 1) / 2;
+
+
+
+    if ((s->rfbi.control & (1 << 2)) && s->rfbi.chip[0])
+
+        s->rfbi.chip[0]->block(s->rfbi.chip[0]->opaque, 1, data, len, pitch);
+
+    if ((s->rfbi.control & (1 << 3)) && s->rfbi.chip[1])
+
+        s->rfbi.chip[1]->block(s->rfbi.chip[1]->opaque, 1, data, len, pitch);
+
+
+
+    if (data != bounce_buffer) {
+
+        cpu_physical_memory_unmap(data, len, 0, len);
+
+    }
+
+
+
+    omap_rfbi_transfer_stop(s);
+
+
+
+    /* TODO */
+
+    s->dispc.irqst |= 1;					/* FRAMEDONE */
+
+    omap_dispc_interrupt_update(s);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    void *data;
+
+    hwaddr len;
+
+    hwaddr data_addr;
+
+    int pitch;
+
+    static void *bounce_buffer;
+
+    static hwaddr bounce_len;
+
+
+
+    if (!s->rfbi.enable || s->rfbi.busy)
+
+        return;
+
+
+
+    if (s->rfbi.control & (1 << 1)) {				/* BYPASS */
+
+        /* TODO: in non-Bypass mode we probably need to just assert the
+
+         * DRQ and wait for DMA to write the pixels.  */
+
+        fprintf(stderr, "%s: Bypass mode unimplemented\n", __FUNCTION__);
+
+        return;
+
+    }
+
+
+
+    if (!(s->dispc.control & (1 << 11)))			/* RFBIMODE */
+
+        return;
+
+    /* TODO: check that LCD output is enabled in DISPC.  */
+
+
+
+    s->rfbi.busy = 1;
+
+
+
+    len = s->rfbi.pixels * 2;
+
+
+
+    data_addr = s->dispc.l[0].addr[0];
+
+    data = cpu_physical_memory_map(data_addr, &len, 0);
+
+    if (data && len != s->rfbi.pixels * 2) {
+
+        cpu_physical_memory_unmap(data, len, 0, 0);
+
+        data = NULL;
+
+        len = s->rfbi.pixels * 2;
+
+    }
+
+    if (!data) {
+
+        if (len > bounce_len) {
+...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {				/* BYPASS */
+
+        /* TODO: in non-Bypass mode we probably need to just assert the
+
+         * DRQ and wait for DMA to write the pixels.  */
+
+        fprintf(stderr, "%s: Bypass mode unimplemented\n", __FUNCTION__);
+
+        return;
+
+    }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+
+        cpu_physical_memory_unmap(data, len, 0, 0);
+
+        data = NULL;
+
+        len = s->rfbi.pixels * 2;
+
+    }
+      
+25769803781 | BLOCK | 
+        {
+
+        if (len > bounce_len) {
+
+            bounce_buffer = g_realloc(bounce_buffer, len);
+
+        }
+
+        data = bounce_buffer;
+
+        cpu_physical_memory_read(data_addr, data, len);
+
+    }
+      
+25769803782 | BLOCK | { bounce_buffer = g_realloc(bounce_buffer, len); }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { cpu_physical_memory_unmap(data, len, 0, len); }
+30064771072 | CALL | !s->rfbi.enable || s->rfbi.busy
+30064771073 | CALL | !s->rfbi.enable
+30064771074 | CALL | s->rfbi.enable
+30064771075 | CALL | s->rfbi
+30064771076 | CALL | s->rfbi.busy
+30064771077 | CALL | s->rfbi
+30064771078 | CALL | s->rfbi.control & (1 << 1)
+30064771079 | CALL | s->rfbi.control
+30064771080 | CALL | s->rfbi
+30064771081 | CALL | 1 << 1
+30064771082 | CALL | fprintf(stderr, "%s: Bypass mode unimplemented\n", __FUNCTION__)
+30064771083 | CALL | !(s->dispc.control & (1 << 11))
+30064771084 | CALL | s->dispc.control & (1 << 11)
+30064771085 | CALL | s->dispc.control
+30064771086 | CALL | s->dispc
+30064771087 | CALL | 1 << 11
+30064771088 | CALL | s->rfbi.busy = 1
+30064771089 | CALL | s->rfbi.busy
+30064771090 | CALL | s->rfbi
+30064771091 | CALL | len = s->rfbi.pixels * 2
+30064771092 | CALL | s->rfbi.pixels * 2
+30064771093 | CALL | s->rfbi.pixels
+30064771094 | CALL | s->rfbi
+30064771095 | CALL | data_addr = s->dispc.l[0].addr[0]
+30064771096 | CALL | s->dispc.l[0].addr[0]
+30064771097 | CALL | s->dispc.l[0].addr
+30064771098 | CALL | s->dispc.l[0]
+30064771099 | CALL | s->dispc.l
+30064771100 | CALL | s->dispc
+30064771101 | CALL | data = cpu_physical_memory_map(data_addr, &len, 0)
+EDGES:
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771101 [AST]
+25769803778 -> 30064771082 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771076 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771076 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 30064771076 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771076 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771094 [REACHING_DEF]
+30064771074 -> 30064771080 [REACHING_DEF]
+30064771074 -> 30064771090 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771072 [CFG]
+30064771076 -> 30064771080 [REACHING_DEF]
+30064771076 -> 30064771090 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771072 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771094 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771090 [REACHING_DEF]
+30064771081 -> 30064771078 [CFG]
+30064771081 -> 30064771078 [DOMINATE]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

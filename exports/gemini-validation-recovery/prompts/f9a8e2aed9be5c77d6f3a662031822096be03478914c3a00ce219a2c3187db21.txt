@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static afs_int32 addToGroup ( struct rx_call * call , afs_int32 aid , afs_int32 gid , afs_int32 * cid ) {
+ afs_int32 code ;
+ struct ubik_trans * tt ;
+ afs_int32 tempu ;
+ afs_int32 tempg ;
+ struct prentry tentry ;
+ struct prentry uentry ;
+ code = Initdb ( ) ;
+ if ( code != PRSUCCESS ) return code ;
+ if ( gid == ANYUSERID || gid == AUTHUSERID ) return PRPERM ;
+ if ( aid == ANONYMOUSID ) return PRPERM ;
+ code = ubik_BeginTrans ( dbase , UBIK_WRITETRANS , & tt ) ;
+ if ( code ) return code ;
+ code = ubik_SetLock ( tt , 1 , 1 , LOCKWRITE ) ;
+ if ( code ) ABORT_WITH ( tt , code ) ;
+ code = read_DbHeader ( tt ) ;
+ if ( code ) ABORT_WITH ( tt , code ) ;
+ code = WhoIsThis ( call , tt , cid ) ;
+ if ( code ) ABORT_WITH ( tt , PRPERM ) ;
+ tempu = FindByID ( tt , aid ) ;
+ if ( ! tempu ) ABORT_WITH ( tt , PRNOENT ) ;
+ memset ( & uentry , 0 , sizeof ( uentry ) ) ;
+ code = pr_ReadEntry ( tt , 0 , tempu , & uentry ) ;
+ if ( code != 0 ) ABORT_WITH ( tt , code ) ;
+ # if ! defined ( SUPERGROUPS ) if ( uentry . flags & PRGRP ) ABORT_WITH ( tt , PRNOTUSER ) ;
+ # endif tempg = FindByID ( tt , gid ) ;
+ if ( ! tempg ) ABORT_WITH ( tt , PRNOENT ) ;
+ code = pr_ReadEntry ( tt , 0 , tempg , & tentry ) ;
+ if ( code != 0 ) ABORT_WITH ( tt , code ) ;
+ if ( ! ( tentry . flags & PRGRP ) ) ABORT_WITH ( tt , PRNOTGROUP ) ;
+ if ( ! AccessOK ( tt , * cid , & tentry , PRP_ADD_MEM , PRP_ADD_ANY ) ) ABORT_WITH ( tt , PRPERM ) ;
+ code = AddToEntry ( tt , & tentry , tempg , aid ) ;
+ if ( code != PRSUCCESS ) ABORT_WITH ( tt , code ) ;
+ # if defined ( SUPERGROUPS ) if ( uentry . flags & PRGRP ) code = AddToSGEntry ( tt , & uentry , tempu , gid ) ;
+ else # endif code = AddToEntry ( tt , & uentry , tempu , gid ) ;
+ if ( code != PRSUCCESS ) ABORT_WITH ( tt , code ) ;
+ code = ubik_EndTrans ( tt ) ;
+ if ( code ) return code ;
+ return PRSUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ afs_int32 code ;
+ struct ubik_trans * tt ;
+ afs_int32 tempu ;
+ afs_int32 tempg ;
+ struct prentry tentry ;
+ struct prentry uentry ;
+ code = Initdb ( ) ;
+ if ( code != PRSUCCESS ) return code ;
+ if ( gid == ANYUSERID || gid == AUTHUSERID ) return PRPERM ;
+ if ( aid == ANONYMOUSID ) return PRPERM ;
+ code = ubik_BeginTrans ( dbase , UBIK_WRITETRANS , & tt ) ;
+ if ( code ) return code ;
+ code = ubik_SetLock ( tt , 1 , 1 , LOCKWRITE ) ;
+ if ( code ) ABORT_WITH ( tt , code ) ;
+ code = read_DbHeader ( tt ) ;
+ if ( code ) ABORT_WITH ( tt , code ) ;
+ code = WhoIsThis ( call , tt , cid ) ;
+ if ( code ) ABORT_WITH ( tt , PRPERM ) ;
+ tempu = FindByID ( tt , aid ) ;
+ if ( ! tempu ) ABORT_WITH ( tt , PRNOENT ) ;
+ memset ( & uentry , 0 , sizeof ( uentry ) ) ;
+ code = pr_ReadEntry ( tt , 0 , tempu , & uentry ) ;
+ if ( code != 0 ) ABORT_WITH ( tt , code ) ;
+ # if ! defined ( SUPERGROUPS ) if ( uentry . flags & PRGRP ) ABORT_WITH ( tt , PRNOTUSER ) ;
+ # endif tempg = FindByID ( tt , gid ) ;
+ if ( !...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+30064771072 | CALL | code = Initdb ( )
+30064771073 | CALL | Initdb ( )
+30064771074 | CALL | code != PRSUCCESS
+30064771075 | CALL | gid == ANYUSERID || gid == AUTHUSERID
+30064771076 | CALL | gid == ANYUSERID
+30064771077 | CALL | gid == AUTHUSERID
+30064771078 | CALL | aid == ANONYMOUSID
+30064771079 | CALL | code = ubik_BeginTrans ( dbase , UBIK_WRITETRANS , & tt )
+30064771080 | CALL | ubik_BeginTrans ( dbase , UBIK_WRITETRANS , & tt )
+30064771081 | CALL | & tt
+30064771082 | CALL | code != 0
+30064771083 | CALL | code = ubik_SetLock ( tt , 1 , 1 , LOCKWRITE )
+30064771084 | CALL | ubik_SetLock ( tt , 1 , 1 , LOCKWRITE )
+30064771085 | CALL | code != 0
+30064771086 | CALL | ABORT_WITH ( tt , code )
+30064771087 | CALL | code = read_DbHeader ( tt )
+30064771088 | CALL | read_DbHeader ( tt )
+30064771089 | CALL | code != 0
+30064771090 | CALL | ABORT_WITH ( tt , code )
+30064771091 | CALL | code = WhoIsThis ( call , tt , cid )
+30064771092 | CALL | WhoIsThis ( call , tt , cid )
+30064771093 | CALL | code != 0
+30064771094 | CALL | ABORT_WITH ( tt , PRPERM )
+30064771095 | CALL | tempu = FindByID ( tt , aid )
+30064771096 | CALL | FindByID ( tt , aid )
+30064771097 | CALL | ! tempu
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771095 [AST]
+25769803781 -> 30064771086 [AST]
+25769803782 -> 30064771090 [AST]
+25769803783 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771096 [CDG]
+30064771082 -> 30064771097 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [CDG]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+30064771092 -> 30064771091 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static afs_int32 removeFromGroup ( struct rx_call * ca
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

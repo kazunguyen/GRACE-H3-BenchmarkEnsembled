@@ -1,0 +1,357 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pfpu_decode_insn(MilkymistPFPUState *s)
+
+{
+
+    uint32_t pc = s->regs[R_PC];
+
+    uint32_t insn = s->microcode[pc];
+
+    uint32_t reg_a = (insn >> 18) & 0x7f;
+
+    uint32_t reg_b = (insn >> 11) & 0x7f;
+
+    uint32_t op = (insn >> 7) & 0xf;
+
+    uint32_t reg_d = insn & 0x7f;
+
+    uint32_t r = 0;
+
+    int latency = 0;
+
+
+
+    switch (op) {
+
+    case OP_NOP:
+
+        break;
+
+    case OP_FADD:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a + b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FADD;
+
+        D_EXEC(qemu_log("ADD a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FSUB:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a - b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FSUB;
+
+        D_EXEC(qemu_log("SUB a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FMUL:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a * b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FMUL;
+
+        D_EXEC(qemu_log("MUL a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FABS:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float t = fabsf(a);
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FABS;
+
+        D_EXEC(qemu_log("ABS a=%f t=%f, r=%08x\n", a, t, r));
+
+    } break;
+
+    case OP_F2I:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        int32_t t = a;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_F2I;
+
+        D_EXEC(qemu_log("F2I a=%f t=%d, r=%08x\n", a, t, r));
+
+    } break;
+
+    case OP_I2F:
+
+    {
+
+        int32_t a = REINTERPRET_CAST(int32_t, s->gp_regs[reg_a]);
+
+        float t = a;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_I2F;
+
+        D_EXEC(qemu_log("I2F a=%08x t=%f, r=%08x\n", a, t, r));
+
+    } break;
+
+    case OP_VECTOUT:
+
+    {
+
+        uint32_t a = cpu_to_be32(s->gp_regs[reg_a]);
+
+        uint32_t b = cpu_to_be32(s->gp_regs[reg_b]);
+
+        target_phys_addr_t dma_ptr =
+
+            get_dma_address(s->regs[R_MESHBASE],
+
+                    s->gp_regs[GPR_X], s->gp_regs[GPR_Y]);
+
+        cpu_physical_memory_write(dma_ptr, (uint8_t *)&a, 4);
+
+        cpu_physical_memory_write(dma_ptr + 4, (uint8_t *)&b, 4);
+
+        s->regs[R_LASTDMA] = dma_ptr + 4;
+
+        D_EXEC(qemu_log("VECTOUT a=%08x b=%08x dma=%08x\n", a, b, dma_ptr));
+
+        trace_milkymist_pfpu_vectout(a, b, dma_ptr);
+
+    } break;
+
+    case OP_SIN:
+
+    {
+
+        int32_t a = REINTERPRET_CAST(int32_t, s->gp_regs[reg_a]);
+
+        float t = sinf(a * (1.0f / (M_PI * 4096.0f)));
+
+        r = REINTERPRET_CAST(uint32_t
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 15 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 26 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 37 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int pfpu_decode_insn(MilkymistPFPUState *s)
+
+{
+
+    uint32_t pc = s->regs[R_PC];
+
+    uint32_t insn = s->microcode[pc];
+
+    uint32_t reg_a = (insn >> 18) & 0x7f;
+
+    uint32_t reg_b = (insn >> 11) & 0x7f;
+
+    uint32_t op = (insn >> 7) & 0xf;
+
+    uint32_t reg_d = insn & 0x7f;
+
+    uint32_t r;
+
+    int latency = 0;
+
+
+
+    switch (op) {
+
+    case OP_NOP:
+
+        break;
+
+    case OP_FADD:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a + b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FADD;
+
+        D_EXEC(qemu_log("ADD a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FSUB:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a - b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FSUB;
+
+        D_EXEC(qemu_log("SUB a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FMUL:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        float b = REINTERPRET_CAST(float, s->gp_regs[reg_b]);
+
+        float t = a * b;
+
+        r = REINTERPRET_CAST(uint32_t, t);
+
+        latency = LATENCY_FMUL;
+
+        D_EXEC(qemu_log("MUL a=%f b=%f t=%f, r=%08x\n", a, b, t, r));
+
+    } break;
+
+    case OP_FABS:
+
+    {
+
+        float a = REINTERPRET_CAST(float, s->gp_regs[reg_a]);
+
+        fl
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

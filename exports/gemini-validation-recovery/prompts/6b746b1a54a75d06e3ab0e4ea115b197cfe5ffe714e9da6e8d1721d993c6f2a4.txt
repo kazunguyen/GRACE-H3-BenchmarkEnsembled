@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void delta_decode ( uint8_t * dst , const uint8_t * src , int src_size , uint8_t * state , const int8_t * table ) {
+ uint8_t val = * state ;
+ while ( src_size -- ) {
+ uint8_t d = * src ++ ;
+ val = av_clip_uint8 ( val + table [ d & 0xF ] ) ;
+ * dst ++ = val ;
+ val = av_clip_uint8 ( val + table [ d >> 4 ] ) ;
+ * dst ++ = val ;
+ }
+ * state = val ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t val = * state ;
+ while ( src_size -- ) {
+ uint8_t d = * src ++ ;
+ val = av_clip_uint8 ( val + table [ d & 0xF ] ) ;
+ * dst ++ = val ;
+ val = av_clip_uint8 ( val + table [ d >> 4 ] ) ;
+ * dst ++ = val ;
+ }
+ * state = val ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ uint8_t d = * src ++ ;
+ val = av_clip_uint8 ( val + table [ d & 0xF ] ) ;
+ * dst ++ = val ;
+ val = av_clip_uint8 ( val + table [ d >> 4 ] ) ;
+ * dst ++ = val ;
+ }
+      
+30064771072 | CALL | val = * state
+30064771073 | CALL | * state
+30064771074 | CALL | src_size --
+30064771075 | CALL | d = * src ++
+30064771076 | CALL | * src ++
+30064771077 | CALL | src ++
+30064771078 | CALL | val = av_clip_uint8 ( val + table [ d & 0xF ] )
+30064771079 | CALL | av_clip_uint8 ( val + table [ d & 0xF ] )
+30064771080 | CALL | val + table [ d & 0xF ]
+30064771081 | CALL | table [ d & 0xF ]
+30064771082 | CALL | d & 0xF
+30064771083 | CALL | * dst ++ = val
+30064771084 | CALL | * dst ++
+30064771085 | CALL | dst ++
+30064771086 | CALL | val = av_clip_uint8 ( val + table [ d >> 4 ] )
+30064771087 | CALL | av_clip_uint8 ( val + table [ d >> 4 ] )
+30064771088 | CALL | val + table [ d >> 4 ]
+30064771089 | CALL | table [ d >> 4 ]
+30064771090 | CALL | d >> 4
+30064771091 | CALL | * dst ++ = val
+30064771092 | CALL | * dst ++
+30064771093 | CALL | dst ++
+30064771094 | CALL | * state = val
+30064771095 | CALL | * state
+47244640256 | CONTROL_STRUCTURE | while (src_size --)
+68719476736 | IDENTIFIER | val
+68719476737 | IDENTIFIER | state
+68719476738 | IDENTIFIER | src_size
+68719476739 | IDENTIFIER | d
+68719476740 | IDENTIFIER | src
+68719476741 | IDENTIFIER | val
+68719476742 | IDENTIFIER | val
+68719476743 | IDENTIFIER | table
+68719476744 | IDENTIFIER | d
+68719476745 | IDENTIFIER | dst
+68719476746 | IDENTIFIER | val
+68719476747 | IDENTIFIER | val
+68719476748 | IDENTIFIER | val
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771091 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476745 [CDG]
+30064771074 -> 68719476746 [CDG]
+30064771074 -> 68719476747 [CDG]
+30064771074 -> 68719476748 [CDG]
+30064771074 -> 68719476738 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771074 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void raw_decode ( uint8_t * dst , const int8_t * src , int src_size ) {
+ while ( src_size -- ) * dst ++ = * src ++ + 128 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

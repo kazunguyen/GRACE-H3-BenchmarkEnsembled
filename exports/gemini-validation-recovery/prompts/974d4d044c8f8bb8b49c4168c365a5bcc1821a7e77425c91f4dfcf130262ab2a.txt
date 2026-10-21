@@ -1,0 +1,373 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int libopenjpeg_decode_frame(AVCodecContext *avctx,
+
+                                    void *data, int *data_size,
+
+                                    AVPacket *avpkt)
+
+{
+
+    uint8_t *buf = avpkt->data;
+
+    int buf_size = avpkt->size;
+
+    LibOpenJPEGContext *ctx = avctx->priv_data;
+
+    AVFrame *picture = &ctx->image, *output = data;
+
+    opj_dinfo_t *dec;
+
+    opj_cio_t *stream;
+
+    opj_image_t *image;
+
+    int width, height, ret = -1;
+
+    int pixel_size = 0;
+
+    int ispacked = 0;
+
+
+
+    *data_size = 0;
+
+
+
+    // Check if input is a raw jpeg2k codestream or in jp2 wrapping
+
+    if((AV_RB32(buf) == 12) &&
+
+       (AV_RB32(buf + 4) == JP2_SIG_TYPE) &&
+
+       (AV_RB32(buf + 8) == JP2_SIG_VALUE)) {
+
+        dec = opj_create_decompress(CODEC_JP2);
+
+    } else {
+
+        // If the AVPacket contains a jp2c box, then skip to
+
+        // the starting byte of the codestream.
+
+        if (AV_RB32(buf + 4) == AV_RB32("jp2c"))
+
+            buf += 8;
+
+        dec = opj_create_decompress(CODEC_J2K);
+
+
+
+
+    if(!dec) {
+
+        av_log(avctx, AV_LOG_ERROR, "Error initializing decoder.\n");
+
+
+
+    opj_set_event_mgr((opj_common_ptr)dec, NULL, NULL);
+
+
+
+    ctx->dec_params.cp_limit_decoding = LIMIT_TO_MAIN_HEADER;
+
+    // Tie decoder with decoding parameters
+
+    opj_setup_decoder(dec, &ctx->dec_params);
+
+    stream = opj_cio_open((opj_common_ptr)dec, buf, buf_size);
+
+    if(!stream) {
+
+        av_log(avctx, AV_LOG_ERROR, "Codestream could not be opened for reading.\n");
+
+
+
+
+
+
+    // Decode the header only
+
+    image = opj_decode_with_info(dec, stream, NULL);
+
+    opj_cio_close(stream);
+
+
+
+
+
+
+    width  = image->x1 - image->x0;
+
+    height = image->y1 - image->y0;
+
+    if(av_image_check_size(width, height, 0, avctx) < 0) {
+
+        av_log(avctx, AV_LOG_ERROR, "%dx%d dimension invalid.\n", width, height);
+
+        goto done;
+
+
+    avcodec_set_dimensions(avctx, width, height);
+
+
+
+    switch (image->numcomps) {
+
+    case 1:  avctx->pix_fmt = (image->comps[0].bpp == 8) ? PIX_FMT_GRAY8 : PIX_FMT_GRAY16;
+
+             break;
+
+    case 2:  avctx->pix_fmt = PIX_FMT_GRAY8A;
+
+             break;
+
+    case 3:
+
+    case 4:  avctx->pix_fmt = check_image_attributes(avctx, image);
+
+             break;
+
+    default: av_log(avctx, AV_LOG_ERROR, "%d components unsupported.\n", image->numcomps);
+
+             goto done;
+
+
+
+
+    if(picture->data[0])
+
+        ff_thread_release_buffer(avctx, picture);
+
+
+
+    if(ff_thread_get_buffer(avctx, picture) < 0){
+
+        av_log(avctx, AV_LOG_ERROR, "ff_thread_get_buffer() failed\n");
+
+
+
+
+
+    ctx->dec_params.cp_limit_decoding = NO_LIMITATION;
+
+    ctx->dec_params.cp_reduce = avctx->lowres;
+
+    // Tie decoder with decoding parameters
+
+    opj_setup_decoder(dec, &ctx->dec_params);
+
+    stream = opj_cio_open((opj_common_ptr)dec, buf, buf_size);
+
+    if(!stream) {
+
+        av_log(avctx, AV_LOG_ERROR, "Codestream could not be opened for reading.\n");
+
+
+
+
+
+
+    // Decode the codestream
+
+    image = opj_decode_with_info(dec, stream, N
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+32 -> 43 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+61 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+61 -> 68 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int decode_frame(AVCodecContext *avctx,
+
+                        void *data,
+
+                        int *data_size,
+
+                        AVPacket *avpkt)
+
+{
+
+    const uint8_t *buf = avpkt->data;
+
+    const uint8_t *buf_end = avpkt->data + avpkt->size;
+
+    int buf_size       = avpkt->size;
+
+    DPXContext *const s = avctx->priv_data;
+
+    AVFrame *picture  = data;
+
+    AVFrame *const p = &s->picture;
+
+    uint8_t *ptr;
+
+
+
+    int magic_num, offset, endian;
+
+    int x, y;
+
+    int w, h, stride, bits_per_color, descriptor, elements, target_packet_size, source_packet_size;
+
+
+
+    unsigned int rgbBuffer;
+
+
+
+    magic_num = AV_RB32(buf);
+
+    buf += 4;
+
+
+
+    /* Check if the files "magic number" is "SDPX" which means it uses
+
+     * big-endian or XPDS which is for little-endian files */
+
+    if (magic_num == AV_RL32("SDPX")) {
+
+        endian = 0;
+
+    } else if (magic_num == AV_RB32("SDPX")) {
+
+        endian = 1;
+
+    } else {
+
+        av_log(avctx, AV_LOG_ERROR, "DPX marker not found\n");
+
+
+
+
+
+    offset = read32(&buf, endian);
+
+    // Need to end in 0x304 offset from start of file
+
+    buf = avpkt->data + 0x304;
+
+    w = read32(&buf, endian);
+
+    h = read32(&buf, endian);
+
+
+
+    // Need to end in 0x320 to read the descriptor
+
+    buf += 20;
+
+    descriptor = buf[0];
+
+
+
+    // Need to end in 0x323 to read the bits per color
+
+    buf += 3;
+
+    avctx->bits_per_raw_sample =
+
+    bits_per_color = buf[0];
+
+
+
+    switch (descriptor) {
+
+        case 51: // RGBA
+
+      
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

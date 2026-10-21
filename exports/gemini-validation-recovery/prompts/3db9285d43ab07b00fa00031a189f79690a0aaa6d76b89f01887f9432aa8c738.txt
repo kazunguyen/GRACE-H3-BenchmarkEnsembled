@@ -1,0 +1,135 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestJavascriptEnableDisable ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ EXPECT_TRUE ( browser ( ) -> profile ( ) -> GetPrefs ( ) -> GetBoolean ( prefs : : kWebKitJavascriptEnabled ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "Title from script javascript enabled" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetBoolean ( prefs : : kWebKitJavascriptEnabled , false ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "This is html title" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ EXPECT_TRUE ( browser ( ) -> profile ( ) -> GetPrefs ( ) -> GetBoolean ( prefs : : kWebKitJavascriptEnabled ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "Title from script javascript enabled" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetBoolean ( prefs : : kWebKitJavascriptEnabled , false ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "This is html title" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ }
+      
+30064771072 | CALL | ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) )
+30064771073 | CALL | embedded_test_server ( ) -> Start ( )
+30064771074 | CALL | embedded_test_server ( ) -> Start
+30064771075 | CALL | embedded_test_server ( )
+55834574848 | FIELD_IDENTIFIER | Start
+107374182400 | METHOD | 
+        IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestJavascriptEnableDisable ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ EXPECT_TRUE ( browser ( ) -> profile ( ) -> GetPrefs ( ) -> GetBoolean ( prefs : : kWebKitJavascriptEnabled ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "Title from script javascript enabled" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetBoolean ( prefs : : kWebKitJavascriptEnabled , false ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/javaScriptTitle.html" ) ) ;
+ EXPECT_EQ ( base : : ASCIIToUTF16 ( "This is html title" ) , browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) -> GetTitle ( ) ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | PrefsFunctionalTest
+111669149697 | METHOD_PARAMETER_IN | TestJavascriptEnableDisable
+115964116992 | METHOD_PARAMETER_OUT | PrefsFunctionalTest
+115964116993 | METHOD_PARAMETER_OUT | TestJavascriptEnableDisable
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 124554051584 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771075 -> 107374182400 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+55834574848 -> 30064771074 [CFG]
+55834574848 -> 30064771074 [DOMINATE]
+55834574848 -> 30064771075 [POST_DOMINATE]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 30064771075 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 30064771072 [CONTAINS]
+107374182400 -> 30064771073 [CONTAINS]
+107374182400 -> 30064771074 [CONTAINS]
+107374182400 -> 30064771075 [CONTAINS]
+107374182400 -> 55834574848 [CONTAINS]
+107374182400 -> 30064771075 [DOMINATE]
+107374182400 -> 30064771073 [REACHING_DEF]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 30064771075 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 30064771072 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+IN_PROC_BROWSER_TEST_F ( PrefsFunctionalTest , TestImageContentSettings ) {
+ ASSERT_TRUE ( embedded_test_server ( ) -> Start ( ) ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/settings/image_page.html" ) ) ;
+ bool result = false ;
+ std : : string script = "for (i=0;
+ i < document.images.length;
+ i++) {
+" " if ((document.images[i].naturalWidth != 0) &&" " (document.images[i].naturalHeight != 0)) {
+" " window.domAutomationController.send(true);
+" " }
+" "}
+" "window.domAutomationController.send(false);
+" ;
+ EXPECT_TRUE ( content : : ExecuteScriptAndExtractBool ( browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) , script , & result ) ) ;
+ EXPECT_TRUE ( result ) ;
+ browser ( ) -> profile ( ) -> GetPrefs ( ) -> SetInteger ( content_settings : : WebsiteSettingsRegistry : : GetInstance ( ) -> Get ( CONTENT_SETTINGS_TYPE_IMAGES ) -> default_value_pref_name ( ) , CONTENT_SETTING_BLOCK ) ;
+ ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/settings/image_page.html" ) ) ;
+ result = false ;
+ EXPECT_TRUE ( content : : ExecuteScriptAndExtractBool ( browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) , script , & result ) ) ;
+ EXPECT_FALSE ( result ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

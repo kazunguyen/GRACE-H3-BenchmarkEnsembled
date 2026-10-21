@@ -1,0 +1,245 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qxl_create_guest_primary(PCIQXLDevice *qxl, int loadvm,
+
+                                     qxl_async_io async)
+
+{
+
+    QXLDevSurfaceCreate surface;
+
+    QXLSurfaceCreate *sc = &qxl->guest_primary.surface;
+
+    int size;
+
+    int requested_height = le32_to_cpu(sc->height);
+
+    int requested_stride = le32_to_cpu(sc->stride);
+
+
+
+    size = abs(requested_stride) * requested_height;
+
+    if (size > qxl->vgamem_size) {
+
+        qxl_set_guest_bug(qxl, "%s: requested primary larger then framebuffer"
+
+                               " size", __func__);
+
+        return;
+
+    }
+
+
+
+    if (qxl->mode == QXL_MODE_NATIVE) {
+
+        qxl_set_guest_bug(qxl, "%s: nop since already in QXL_MODE_NATIVE",
+
+                      __func__);
+
+    }
+
+    qxl_exit_vga_mode(qxl);
+
+
+
+    surface.format     = le32_to_cpu(sc->format);
+
+    surface.height     = le32_to_cpu(sc->height);
+
+    surface.mem        = le64_to_cpu(sc->mem);
+
+    surface.position   = le32_to_cpu(sc->position);
+
+    surface.stride     = le32_to_cpu(sc->stride);
+
+    surface.width      = le32_to_cpu(sc->width);
+
+    surface.type       = le32_to_cpu(sc->type);
+
+    surface.flags      = le32_to_cpu(sc->flags);
+
+    trace_qxl_create_guest_primary(qxl->id, sc->width, sc->height, sc->mem,
+
+                                   sc->format, sc->position);
+
+    trace_qxl_create_guest_primary_rest(qxl->id, sc->stride, sc->type,
+
+                                        sc->flags);
+
+
+
+    if ((surface.stride & 0x3) != 0) {
+
+        qxl_set_guest_bug(qxl, "primary surface stride = %d %% 4 != 0",
+
+                          surface.stride);
+
+        return;
+
+    }
+
+
+
+    surface.mouse_mode = true;
+
+    surface.group_id   = MEMSLOT_GROUP_GUEST;
+
+    if (loadvm) {
+
+        surface.flags |= QXL_SURF_FLAG_KEEP_DATA;
+
+    }
+
+
+
+    qxl->mode = QXL_MODE_NATIVE;
+
+    qxl->cmdflags = 0;
+
+    qemu_spice_create_primary_surface(&qxl->ssd, 0, &surface, async);
+
+
+
+    if (async == QXL_SYNC) {
+
+        qxl_create_guest_primary_complete(qxl);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 21 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+58 -> 61 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 64 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 74 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+72 -> 76 [IS_AST_PARENT]
+72 -> 77 [IS_AST_PARENT]
+72 -> 78 [IS_AST_PARENT]
+72 -> 79 [IS_AST_PARENT]
+72 -> 80 [IS_AST_PARENT]
+72 -> 81 [IS_AST_PARENT]
+72 -> 82 [IS_AST_PARENT]
+72 -> 83 [IS_AST_PARENT]
+65 -> 72 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void qxl_create_guest_primary(PCIQXLDevice *qxl, int loadvm,
+                                     qxl_async_io async)
+{
+    QXLDevSurfaceCreate surface;
+    QXLSurfaceCreate *sc = &qxl->guest_primary.surface;
+    int size;
+    int requested_height = le32_to_cpu(sc->height);
+    int requested_stride = le32_to_cpu(sc->stride);
+    size = abs(requested_stride) * requested_height;
+    if (size > qxl->vgamem_size) {
+        qxl_set_guest_bug(qxl, "%s: requested primary larger then framebuffer"
+                               " size", __func__);
+    if (qxl->mode == QXL_MODE_NATIVE) {
+        qxl_set_guest_bug(qxl, "%s: nop since already in QXL_MODE_NATIVE",
+                      __func__);
+    qxl_exit_vga_mode(qxl);
+    surface.format     = le32_to_cpu(sc->format);
+    surface.height     = le32_to_cpu(sc->height);
+    surface.mem        = le64_to_cpu(sc->mem);
+    surface.position   = le32_to_cpu(sc->position);
+    surface.stride     = le32_to_cpu(sc->stride);
+    surface.width      = le32_to_cpu(sc->width);
+    surface.type       = le32_to_cpu(sc->type);
+    surface.flags      = le32_to_cpu(sc->flags);
+    trace_qxl_create_guest_primary(qxl->id, sc->width, sc->height, sc->mem,
+                                   sc->format, sc->position);
+    trace_qxl_create_guest_primary_rest(qxl->id, sc->stride, sc->type,
+                                        sc->flags);
+    surface.mouse_mode = true;
+    surface.group_id   = MEMSLOT_GROUP_GUEST;
+    if (loadvm) {
+        surface.flags
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

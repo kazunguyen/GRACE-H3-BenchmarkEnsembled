@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int aes_ccm_ctrl ( EVP_CIPHER_CTX * c , int type , int arg , void * ptr ) {
+ EVP_AES_CCM_CTX * cctx = EVP_C_DATA ( EVP_AES_CCM_CTX , c ) ;
+ switch ( type ) {
+ case EVP_CTRL_INIT : cctx -> key_set = 0 ;
+ cctx -> iv_set = 0 ;
+ cctx -> L = 8 ;
+ cctx -> M = 12 ;
+ cctx -> tag_set = 0 ;
+ cctx -> len_set = 0 ;
+ cctx -> tls_aad_len = - 1 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_TLS1_AAD : if ( arg != EVP_AEAD_TLS1_AAD_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg ) ;
+ cctx -> tls_aad_len = arg ;
+ {
+ uint16_t len = EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] << 8 | EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] ;
+ if ( len < EVP_CCM_TLS_EXPLICIT_IV_LEN ) return 0 ;
+ len -= EVP_CCM_TLS_EXPLICIT_IV_LEN ;
+ if ( ! EVP_CIPHER_CTX_encrypting ( c ) ) {
+ if ( len < cctx -> M ) return 0 ;
+ len -= cctx -> M ;
+ }
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] = len >> 8 ;
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] = len & 0xff ;
+ }
+ return cctx -> M ;
+ case EVP_CTRL_CCM_SET_IV_FIXED : if ( arg != EVP_CCM_TLS_FIXED_IV_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_CTX_iv_noconst ( c ) , ptr , arg ) ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_IVLEN : arg = 15 - arg ;
+ case EVP_CTRL_CCM_SET_L : if ( arg < 2 || arg > 8 ) return 0 ;
+ cctx -> L = arg ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_TAG : if ( ( arg & 1 ) || arg < 4 || arg > 16 ) return 0 ;
+ if ( EVP_CIPHER_CTX_encrypting ( c ) && ptr ) return 0 ;
+ if ( ptr ) {
+ cctx -> tag_set = 1 ;
+ memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg ) ;
+ }
+ cctx -> M = arg ;
+ return 1 ;
+ case EVP_CTRL_AEAD_GET_TAG : if ( ! EVP_CIPHER_CTX_encrypting ( c ) || ! cctx -> tag_set ) return 0 ;
+ if ( ! CRYPTO_ccm128_tag ( & cctx -> ccm , ptr , ( size_t ) arg ) ) return 0 ;
+ cctx -> tag_set = 0 ;
+ cctx -> iv_set = 0 ;
+ cctx -> len_set = 0 ;
+ return 1 ;
+ case EVP_CTRL_COPY : {
+ EVP_CIPHER_CTX * out = ptr ;
+ EVP_AES_CCM_CTX * cctx_out = EVP_C_DATA ( EVP_AES_CCM_CTX , out ) ;
+ if ( cctx -> ccm . key ) {
+ if ( cctx -> ccm . key != & cctx -> ks ) return 0 ;
+ cctx_out -> ccm . key = & cctx_out -> ks ;
+ }
+ return 1 ;
+ }
+ default : return - 1 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ EVP_AES_CCM_CTX * cctx = EVP_C_DATA ( EVP_AES_CCM_CTX , c ) ;
+ switch ( type ) {
+ case EVP_CTRL_INIT : cctx -> key_set = 0 ;
+ cctx -> iv_set = 0 ;
+ cctx -> L = 8 ;
+ cctx -> M = 12 ;
+ cctx -> tag_set = 0 ;
+ cctx -> len_set = 0 ;
+ cctx -> tls_aad_len = - 1 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_TLS1_AAD : if ( arg != EVP_AEAD_TLS1_AAD_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg ) ;
+ cctx -> tls_aad_len = arg ;
+ {
+ uint16_t len = EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] << 8 | EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] ;
+ if ( len < EVP_CCM_TLS_EXPLICIT_IV_LEN ) return 0 ;
+ len -= EVP_CCM_TLS_EXPLICIT_IV_LEN ;
+ if ( ! EVP_CIPHER_CTX_encrypting ( c ) ) {
+ if ( len < cctx -> M ) return 0 ;
+ len -= cctx -> M ;
+ }
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] = len >> 8 ;
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] = len & 0xff ;
+ }
+ return cctx -> M ;
+ case EVP_CTRL_CCM_SET_IV_FIXED : if ( arg != EVP_CCM_TLS_FIXED_IV_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_...
+      
+25769803777 | BLOCK | 
+        {
+ case EVP_CTRL_INIT : cctx -> key_set = 0 ;
+ cctx -> iv_set = 0 ;
+ cctx -> L = 8 ;
+ cctx -> M = 12 ;
+ cctx -> tag_set = 0 ;
+ cctx -> len_set = 0 ;
+ cctx -> tls_aad_len = - 1 ;
+ return 1 ;
+ case EVP_CTRL_AEAD_TLS1_AAD : if ( arg != EVP_AEAD_TLS1_AAD_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg ) ;
+ cctx -> tls_aad_len = arg ;
+ {
+ uint16_t len = EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] << 8 | EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] ;
+ if ( len < EVP_CCM_TLS_EXPLICIT_IV_LEN ) return 0 ;
+ len -= EVP_CCM_TLS_EXPLICIT_IV_LEN ;
+ if ( ! EVP_CIPHER_CTX_encrypting ( c ) ) {
+ if ( len < cctx -> M ) return 0 ;
+ len -= cctx -> M ;
+ }
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] = len >> 8 ;
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] = len & 0xff ;
+ }
+ return cctx -> M ;
+ case EVP_CTRL_CCM_SET_IV_FIXED : if ( arg != EVP_CCM_TLS_FIXED_IV_LEN ) return 0 ;
+ memcpy ( EVP_CIPHER_CTX_iv_noconst ( c ) , ptr , arg ) ;
+ return 1 ;
+ case EVP_CTRL_AEAD_SET_IVLEN : a...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ uint16_t len = EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] << 8 | EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] ;
+ if ( len < EVP_CCM_TLS_EXPLICIT_IV_LEN ) return 0 ;
+ len -= EVP_CCM_TLS_EXPLICIT_IV_LEN ;
+ if ( ! EVP_CIPHER_CTX_encrypting ( c ) ) {
+ if ( len < cctx -> M ) return 0 ;
+ len -= cctx -> M ;
+ }
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] = len >> 8 ;
+ EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ] = len & 0xff ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { if ( len < cctx -> M ) return 0 ; len -= cctx -> M ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ cctx -> tag_set = 1 ;
+ memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ EVP_CIPHER_CTX * out = ptr ;
+ EVP_AES_CCM_CTX * cctx_out = EVP_C_DATA ( EVP_AES_CCM_CTX , out ) ;
+ if ( cctx -> ccm . key ) {
+ if ( cctx -> ccm . key != & cctx -> ks ) return 0 ;
+ cctx_out -> ccm . key = & cctx_out -> ks ;
+ }
+ return 1 ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ if ( cctx -> ccm . key != & cctx -> ks ) return 0 ;
+ cctx_out -> ccm . key = & cctx_out -> ks ;
+ }
+      
+25769803792 | BLOCK | <empty>
+30064771072 | CALL | cctx = EVP_C_DATA ( EVP_AES_CCM_CTX , c )
+30064771073 | CALL | EVP_C_DATA ( EVP_AES_CCM_CTX , c )
+30064771074 | CALL | cctx -> key_set = 0
+30064771075 | CALL | cctx -> key_set
+30064771076 | CALL | cctx -> iv_set = 0
+30064771077 | CALL | cctx -> iv_set
+30064771078 | CALL | cctx -> L = 8
+30064771079 | CALL | cctx -> L
+30064771080 | CALL | cctx -> M = 12
+30064771081 | CALL | cctx -> M
+30064771082 | CALL | cctx -> tag_set = 0
+30064771083 | CALL | cctx -> tag_set
+30064771084 | CALL | cctx -> len_set = 0
+30064771085 | CALL | cctx -> len_set
+30064771086 | CALL | cctx -> tls_aad_len = - 1
+30064771087 | CALL | cctx -> tls_aad_len
+30064771088 | CALL | - 1
+30064771089 | CALL | arg != EVP_AEAD_TLS1_AAD_LEN
+30064771090 | CALL | memcpy ( EVP_CIPHER_CTX_buf_noconst ( c ) , ptr , arg )
+30064771091 | CALL | EVP_CIPHER_CTX_buf_noconst ( c )
+30064771092 | CALL | cctx -> tls_aad_len = arg
+30064771093 | CALL | cctx -> tls_aad_len
+30064771094 | CALL | 
+        len = EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 2 ] << 8 | EVP_CIPHER_CTX_buf_noconst ( c ) [ arg - 1 ]
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 25769803779 [AST]
+25769803777 -> 25769803790 [AST]
+25769803779 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

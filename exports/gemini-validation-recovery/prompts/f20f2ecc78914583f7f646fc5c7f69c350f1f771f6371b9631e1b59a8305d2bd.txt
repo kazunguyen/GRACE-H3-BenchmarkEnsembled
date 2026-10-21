@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void search_state_decref ( struct search_state * const state ) {
+ if ( ! state ) return ;
+ state -> refcount -- ;
+ if ( ! state -> refcount ) {
+ struct search_domain * next , * dom ;
+ for ( dom = state -> head ;
+ dom ;
+ dom = next ) {
+ next = dom -> next ;
+ free ( dom ) ;
+ }
+ free ( state ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ! state ) return ;
+ state -> refcount -- ;
+ if ( ! state -> refcount ) {
+ struct search_domain * next , * dom ;
+ for ( dom = state -> head ;
+ dom ;
+ dom = next ) {
+ next = dom -> next ;
+ free ( dom ) ;
+ }
+ free ( state ) ;
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ struct search_domain * next , * dom ;
+ for ( dom = state -> head ;
+ dom ;
+ dom = next ) {
+ next = dom -> next ;
+ free ( dom ) ;
+ }
+ free ( state ) ;
+ }
+      
+25769803779 | BLOCK | { next = dom -> next ; free ( dom ) ; }
+30064771072 | CALL | ! state
+30064771073 | CALL | state -> refcount --
+30064771074 | CALL | state -> refcount
+30064771075 | CALL | ! state -> refcount
+30064771076 | CALL | state -> refcount
+30064771077 | CALL | dom = state -> head
+30064771078 | CALL | state -> head
+30064771079 | CALL | dom != NULL
+30064771080 | CALL | dom = next
+30064771081 | CALL | next = dom -> next
+30064771082 | CALL | dom -> next
+30064771083 | CALL | free ( dom )
+30064771084 | CALL | free ( state )
+47244640256 | CONTROL_STRUCTURE | if ( ! state ) return ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! state -> refcount ) {
+ struct search_domain * next , * dom ;
+ for ( dom = state -> head ;
+ dom ;
+ dom = next ) {
+ next = dom -> next ;
+ free ( dom ) ;
+ }
+ free ( state ) ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | for (dom = state -> head ;dom;dom = next)
+55834574848 | FIELD_IDENTIFIER | refcount
+55834574849 | FIELD_IDENTIFIER | refcount
+55834574850 | FIELD_IDENTIFIER | head
+55834574851 | FIELD_IDENTIFIER | next
+68719476736 | IDENTIFIER | state
+68719476737 | IDENTIFIER | state
+68719476738 | IDENTIFIER | state
+68719476739 | IDENTIFIER | dom
+68719476740 | IDENTIFIER | state
+68719476741 | IDENTIFIER | dom
+68719476742 | IDENTIFIER | dom
+68719476743 | IDENTIFIER | next
+68719476744 | IDENTIFIER | next
+68719476745 | IDENTIFIER | dom
+68719476746 | IDENTIFIER | dom
+68719476747 | IDENTIFIER | state
+90194313216 | LITERAL | NULL
+94489280512 | LOCAL | struct search_domain * next
+94489280513 | LOCAL | struct search_domain * dom
+107374182400 | METHOD | 
+        static void search_state_decref ( struct search_state * const state ) {
+ if ( ! state ) return ;
+ state -> refcount -- ;
+ if ( ! state -> refcount ) {
+ struct search_domain * next , * dom ;
+ for ( dom = state -> head ;
+ dom ;
+ dom = next ) {
+ next = dom -> next ;
+ free ( dom ) ;
+ }
+ free ( state ) ;
+ }
+ }
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 94489280512 [AST]
+25769803778 -> 94489280513 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771081 [AST]
+25769803779 -> 30064771083 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 68719476739 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 90194313216 [CDG]
+30064771075 -> 55834574850 [CDG]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 68719476747 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476741 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 68719476747 [REACHING_DEF]
+30064771079 -> 68719476741 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static struct search_state * search_state_new ( void ) {
+ struct search_state * state = ( struct search_state * ) malloc ( sizeof ( struct search_state ) ) ;
+ if ( ! state ) return NULL ;
+ memset ( state , 0 , sizeof ( struct search_state ) ) ;
+ state -> refcount = 1 ;
+ state -> ndots = 1 ;
+ return state ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

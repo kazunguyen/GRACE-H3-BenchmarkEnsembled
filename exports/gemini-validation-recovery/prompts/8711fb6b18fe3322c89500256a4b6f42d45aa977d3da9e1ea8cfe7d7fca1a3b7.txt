@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gint32 get_int_value ( proto_tree * tree , tvbuff_t * tvb , gint offset , gint length , const guint encoding ) {
+ gint32 value ;
+ gboolean length_error ;
+ switch ( length ) {
+ case 1 : value = ( gint8 ) tvb_get_guint8 ( tvb , offset ) ;
+ break ;
+ case 2 : value = ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) ) ;
+ break ;
+ case 3 : value = encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset ) ;
+ if ( value & 0x00800000 ) {
+ value |= 0xFF000000 ;
+ }
+ break ;
+ case 4 : value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ break ;
+ default : if ( length < 1 ) {
+ length_error = TRUE ;
+ value = 0 ;
+ }
+ else {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+ report_type_length_mismatch ( tree , "a signed integer" , length , length_error ) ;
+ break ;
+ }
+ return value ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gint32 value ;
+ gboolean length_error ;
+ switch ( length ) {
+ case 1 : value = ( gint8 ) tvb_get_guint8 ( tvb , offset ) ;
+ break ;
+ case 2 : value = ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) ) ;
+ break ;
+ case 3 : value = encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset ) ;
+ if ( value & 0x00800000 ) {
+ value |= 0xFF000000 ;
+ }
+ break ;
+ case 4 : value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ break ;
+ default : if ( length < 1 ) {
+ length_error = TRUE ;
+ value = 0 ;
+ }
+ else {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+ report_type_length_mismatch ( tree , "a signed integer" , length , length_error ) ;
+ break ;
+ }
+ return value ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case 1 : value = ( gint8 ) tvb_get_guint8 ( tvb , offset ) ;
+ break ;
+ case 2 : value = ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) ) ;
+ break ;
+ case 3 : value = encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset ) ;
+ if ( value & 0x00800000 ) {
+ value |= 0xFF000000 ;
+ }
+ break ;
+ case 4 : value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ break ;
+ default : if ( length < 1 ) {
+ length_error = TRUE ;
+ value = 0 ;
+ }
+ else {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+ report_type_length_mismatch ( tree , "a signed integer" , length , length_error ) ;
+ break ;
+ }
+      
+25769803778 | BLOCK | { value |= 0xFF000000 ; }
+25769803779 | BLOCK | { length_error = TRUE ; value = 0 ; }
+25769803780 | BLOCK | 
+        {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+      
+30064771072 | CALL | value = ( gint8 ) tvb_get_guint8 ( tvb , offset )
+30064771073 | CALL | ( gint8 ) tvb_get_guint8 ( tvb , offset )
+30064771074 | CALL | tvb_get_guint8 ( tvb , offset )
+30064771075 | CALL | 
+        value = ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) )
+      
+30064771076 | CALL | 
+        ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) )
+      
+30064771077 | CALL | encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset )
+30064771078 | CALL | tvb_get_letohs ( tvb , offset )
+30064771079 | CALL | tvb_get_ntohs ( tvb , offset )
+30064771080 | CALL | 
+        value = encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset )
+      
+30064771081 | CALL | encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset )
+30064771082 | CALL | tvb_get_letoh24 ( tvb , offset )
+30064771083 | CALL | tvb_get_ntoh24 ( tvb , offset )
+30064771084 | CALL | value & 0x00800000
+30064771085 | CALL | value |= 0xFF000000
+30064771086 | CALL | value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset )
+30064771087 | CALL | encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset )
+30064771088 | CALL | tvb_get_letohl ( tvb , offset )
+30064771089 | CALL | tvb_get_ntohl ( tvb , offset )
+30064771090 | CALL | length < 1
+30064771091 | CALL | length_error = TRUE
+30064771092 | CALL | value = 0
+30064771093 | CALL | length_error = FALSE
+30064771094 | CALL | value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset )
+30064771095 | CALL | encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset )
+30064771096 | CALL | tvb_get_letohl ( tvb , offset )
+30064771097 | CALL | tvb_get_ntohl ( tvb , offset )
+30064771098 | CALL | 
+        report_type_length_mismatch ( tree , "a signed integer" , length , length_error )
+      
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( length ) {
+ case 1 : value = ( gint8 ) tvb_get_guint8 ( tvb , offset ) ;
+ break ;
+ case 2 : value = ( gint16 ) ( encoding ? tvb_get_letohs ( tvb , offset ) : tvb_get_ntohs ( tvb , offset ) ) ;
+ break ;
+ case 3 : value = encoding ? tvb_get_letoh24 ( tvb , offset ) : tvb_get_ntoh24 ( tvb , offset ) ;
+ if ( value & 0x00800000 ) {
+ value |= 0xFF000000 ;
+ }
+ break ;
+ case 4 : value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ break ;
+ default : if ( length < 1 ) {
+ length_error = TRUE ;
+ value = 0 ;
+ }
+ else {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+ report_type_length_mismatch ( tree , "a signed integer" , length , length_error ) ;
+ break ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | if ( value & 0x00800000 ) { value |= 0xFF000000 ; }
+47244640260 | CONTROL_STRUCTURE | break ;
+47244640261 | CONTROL_STRUCTURE | break ;
+47244640262 | CONTROL_STRUCTURE | 
+        if ( length < 1 ) {
+ length_error = TRUE ;
+ value = 0 ;
+ }
+ else {
+ length_error = FALSE ;
+ value = encoding ? tvb_get_letohl ( tvb , offset ) : tvb_get_ntohl ( tvb , offset ) ;
+ }
+      
+47244640263 | CONTROL_STRUCTURE | break ;
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771072 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 47244640259 [AST]
+25769803777 -> 47244640260 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 47244640261 [AST]
+25769803777 -> 47244640262 [AST]
+25769803777 -> 30064771098 [AST]
+25769803777 -> 47244640263 [AST]
+25769803778 -> 30064771085 [AST]
+25769803779 -> 30064771091 [AST]
+25769803779 -> 30064771092 [AST]
+25769803780 -> 30064771093 [AST]
+25769803780 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 47244640257 [CFG]
+30064771072 -> 47244640257 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 47244640258 [CFG]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

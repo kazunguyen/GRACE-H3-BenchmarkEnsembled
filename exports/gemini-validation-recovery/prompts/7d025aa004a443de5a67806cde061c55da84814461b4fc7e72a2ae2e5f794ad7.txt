@@ -1,0 +1,273 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void RENAME(rgb32tobgr24)(const uint8_t *src, uint8_t *dst, long src_size)
+
+{
+
+    uint8_t *dest = dst;
+
+    const uint8_t *s = src;
+
+    const uint8_t *end;
+
+#if COMPILE_TEMPLATE_MMX
+
+    const uint8_t *mm_end;
+
+#endif
+
+    end = s + src_size;
+
+#if COMPILE_TEMPLATE_MMX
+
+    __asm__ volatile(PREFETCH"    %0"::"m"(*s):"memory");
+
+    mm_end = end - 31;
+
+    while (s < mm_end) {
+
+        __asm__ volatile(
+
+            PREFETCH"    32%1           \n\t"
+
+            "movq          %1, %%mm0    \n\t"
+
+            "movq         8%1, %%mm1    \n\t"
+
+            "movq        16%1, %%mm4    \n\t"
+
+            "movq        24%1, %%mm5    \n\t"
+
+            "movq       %%mm0, %%mm2    \n\t"
+
+            "movq       %%mm1, %%mm3    \n\t"
+
+            "movq       %%mm4, %%mm6    \n\t"
+
+            "movq       %%mm5, %%mm7    \n\t"
+
+            STORE_BGR24_MMX
+
+            :"=m"(*dest)
+
+            :"m"(*s)
+
+            :"memory");
+
+        dest += 24;
+
+        s += 32;
+
+    }
+
+    __asm__ volatile(SFENCE:::"memory");
+
+    __asm__ volatile(EMMS:::"memory");
+
+#endif
+
+    while (s < end) {
+
+#if HAVE_BIGENDIAN
+
+        /* RGB32 (= A,B,G,R) -> RGB24 (= R,G,B) */
+
+        s++;
+
+        dest[2] = *s++;
+
+        dest[1] = *s++;
+
+        dest[0] = *s++;
+
+        dest += 3;
+
+#else
+
+        *dest++ = *s++;
+
+        *dest++ = *s++;
+
+        *dest++ = *s++;
+
+        s++;
+
+#endif
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+59 -> 64 [IS_AST_PARENT]
+59 -> 65 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+59 -> 67 [IS_AST_PARENT]
+59 -> 68 [IS_AST_PARENT]
+59 -> 69 [IS_AST_PARENT]
+59 -> 70 [IS_AST_PARENT]
+59 -> 71 [IS_AST_PARENT]
+59 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+59 -> 73 [IS_AST_PARENT]
+59 -> 75 [IS_AST_PARENT]
+59 -> 76 [IS_AST_PARENT]
+59 -> 77 [IS_AST_PARENT]
+59 -> 78 [IS_AST_PARENT]
+59 -> 79 [IS_AST_PARENT]
+59 -> 80 [IS_AST_PARENT]
+59 -> 81 [IS_AST_PARENT]
+59 -> 82 [IS_AST_PARENT]
+59 -> 83 [IS_AST_PARENT]
+59 -> 84 [IS_AST_PARENT]
+59 -> 85 [IS_AST_PARENT]
+59 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static inline void RENAME(rgb32tobgr24)(const uint8_t *src, uint8_t *dst, int src_size)
+
+{
+
+    uint8_t *dest = dst;
+
+    const uint8_t *s = src;
+
+    const uint8_t *end;
+
+    const uint8_t *mm_end;
+
+    end = s + src_size;
+
+    __asm__ volatile(PREFETCH"    %0"::"m"(*s):"memory");
+
+    mm_end = end - 31;
+
+    while (s < mm_end) {
+
+        __asm__ volatile(
+
+            PREFETCH"    32%1           \n\t"
+
+            "movq          %1, %%mm0    \n\t"
+
+            "movq         8%1, %%mm1    \n\t"
+
+            "movq        16%1, %%mm4    \n\t"
+
+            "movq        24%1, %%mm5    \n\t"
+
+            "movq       %%mm0, %%mm2    \n\t"
+
+            "movq       %%mm1, %%mm3    \n\t"
+
+            "movq       %%mm4, %%mm6    \n\t"
+
+            "movq       %%mm5, %%mm7    \n\t"
+
+            STORE_BGR24_MMX
+
+            :"=m"(*dest)
+
+            :"m"(*s)
+
+            :"memory");
+
+        dest += 24;
+
+        s += 32;
+
+    }
+
+    __asm__ volatile(SFENCE:::"memory");
+
+    __asm__ volatile(EMMS:::"memory");
+
+    while (s < end) {
+
+        *dest++ = *s++;
+
+        *dest++ = *s++;
+
+        *dest++ = *s++;
+
+        s++;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

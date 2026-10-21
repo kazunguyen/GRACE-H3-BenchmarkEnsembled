@@ -1,0 +1,357 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void sun4uv_init(MemoryRegion *address_space_mem,
+
+                        MachineState *machine,
+
+                        const struct hwdef *hwdef)
+
+{
+
+    SPARCCPU *cpu;
+
+    Nvram *nvram;
+
+    unsigned int i;
+
+    uint64_t initrd_addr, initrd_size, kernel_addr, kernel_size, kernel_entry;
+
+    PCIBus *pci_bus, *pci_bus2, *pci_bus3;
+
+    ISABus *isa_bus;
+
+    SysBusDevice *s;
+
+    qemu_irq *ivec_irqs, *pbm_irqs;
+
+    DriveInfo *hd[MAX_IDE_BUS * MAX_IDE_DEVS];
+
+    DriveInfo *fd[MAX_FD];
+
+    FWCfgState *fw_cfg;
+
+
+
+    /* init CPUs */
+
+    cpu = cpu_devinit(machine->cpu_model, hwdef);
+
+
+
+    /* set up devices */
+
+    ram_init(0, machine->ram_size);
+
+
+
+    prom_init(hwdef->prom_addr, bios_name);
+
+
+
+    ivec_irqs = qemu_allocate_irqs(cpu_set_ivec_irq, cpu, IVEC_MAX);
+
+    pci_bus = pci_apb_init(APB_SPECIAL_BASE, APB_MEM_BASE, ivec_irqs, &pci_bus2,
+
+                           &pci_bus3, &pbm_irqs);
+
+    pci_vga_init(pci_bus);
+
+
+
+    // XXX Should be pci_bus3
+
+    isa_bus = pci_ebus_init(pci_bus, -1, pbm_irqs);
+
+
+
+    i = 0;
+
+    if (hwdef->console_serial_base) {
+
+        serial_mm_init(address_space_mem, hwdef->console_serial_base, 0,
+
+                       NULL, 115200, serial_hds[i], DEVICE_BIG_ENDIAN);
+
+        i++;
+
+    }
+
+
+
+    serial_hds_isa_init(isa_bus, MAX_SERIAL_PORTS);
+
+    parallel_hds_isa_init(isa_bus, MAX_PARALLEL_PORTS);
+
+
+
+    for(i = 0; i < nb_nics; i++)
+
+        pci_nic_init_nofail(&nd_table[i], pci_bus, "ne2k_pci", NULL);
+
+
+
+    ide_drive_get(hd, ARRAY_SIZE(hd));
+
+
+
+    pci_cmd646_ide_init(pci_bus, hd, 1);
+
+
+
+    isa_create_simple(isa_bus, "i8042");
+
+    for(i = 0; i < MAX_FD; i++) {
+
+        fd[i] = drive_get(IF_FLOPPY, 0, i);
+
+    }
+
+    fdctrl_init_isa(isa_bus, fd);
+
+
+
+    /* Map NVRAM into I/O (ebus) space */
+
+    nvram = m48t59_init(NULL, 0, 0, NVRAM_SIZE, 1968, 59);
+
+    s = SYS_BUS_DEVICE(nvram);
+
+    memory_region_add_subregion(get_system_io(), 0x2000,
+
+                                sysbus_mmio_get_region(s, 0));
+
+ 
+
+    initrd_size = 0;
+
+    initrd_addr = 0;
+
+    kernel_size = sun4u_load_kernel(machine->kernel_filename,
+
+                                    machine->initrd_filename,
+
+                                    ram_size, &initrd_size, &initrd_addr,
+
+                                    &kernel_addr, &kernel_entry);
+
+
+
+    sun4u_NVRAM_set_params(nvram, NVRAM_SIZE, "Sun4u", machine->ram_size,
+
+                           machine->boot_order,
+
+                           kernel_addr, kernel_size,
+
+                           machine->kernel_cmdline,
+
+                           initrd_addr, initrd_size,
+
+                           /* XXX: need an option to load a NVRAM image */
+
+                           0,
+
+                           graphic_width, graphic_height, graphic_depth,
+
+                           (uint8_t *)&nd_table[0].macaddr);
+
+
+
+    fw_cfg = fw_cfg_init_io(BIOS_CFG_IOPORT);
+
+    fw_cfg_add_i16(fw_cfg, FW_CFG_MAX_CPUS, (uint16_t)max_cpus);
+
+    fw_cfg_add_i32(fw_cfg, FW_CFG_ID, 1);
+
+    fw_cfg_add
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+17 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+17 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+17 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+17 -> 30 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+33 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+33 -> 40 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+51 -> 55 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+80 -> 85 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void sun4uv_init(MemoryRegion *address_space_mem,
+
+                        MachineState *machine,
+
+                        const struct hwdef *hwdef)
+
+{
+
+    SPARCCPU *cpu;
+
+    M48t59State *nvram;
+
+    unsigned int i;
+
+    uint64_t initrd_addr, initrd_size, kernel_addr, kernel_size, kernel_entry;
+
+    PCIBus *pci_bus, *pci_bus2, *pci_bus3;
+
+    ISABus *isa_bus;
+
+    qemu_irq *ivec_irqs, *pbm_irqs;
+
+    DriveInfo *hd[MAX_IDE_BUS * MAX_IDE_DEVS];
+
+    DriveInfo *fd[MAX_FD];
+
+    FWCfgState *fw_cfg;
+
+
+
+    /* init CPUs */
+
+    cpu = cpu_devinit(machine->cpu_model, hwdef);
+
+
+
+    /* set up devices */
+
+    ram_init(0, machine->ram_size);
+
+
+
+    prom_init(hwdef->prom_addr, bios_name);
+
+
+
+    ivec_irqs = qemu_allocate_irqs(cpu_set_ivec_irq, cpu, IVEC_MAX);
+
+    pci_bus = pci_apb_init(APB_SPECIAL_BASE, APB_MEM_BASE, ivec_irqs, &pci_bus2,
+
+                           &pci_bus3, &pbm_irqs);
+
+    pci_vga_init(pci_bus);
+
+
+
+    // XXX Should be pci_bus3
+
+    isa_bus = pci_ebus_init(pci_bus, -1, pbm_irqs);
+
+
+
+    i = 0;
+
+    if (hwdef->console_serial_base) {
+
+        serial_mm_init(address_space_mem, hwdef->console_serial_base, 0,
+
+                       NULL, 115200, serial_hds[i], DEVICE_BIG_ENDIAN);
+
+        i++;
+
+    }
+
+    for(; i < MAX_SERIAL_PORTS; i++) {
+
+        if (serial_hds[i]) {
+
+            serial_isa_init(isa_bus, i, serial_hds[i]);
+
+        }
+
+    }
+
+
+
+    for(i = 0; i < MAX_PARALLEL_PORTS; i++) {
+
+        if (parallel_hds[i]) {
+
+            parallel_init(isa_bus, i,
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

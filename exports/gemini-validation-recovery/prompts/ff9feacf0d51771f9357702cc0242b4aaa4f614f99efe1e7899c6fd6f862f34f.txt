@@ -1,0 +1,281 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void tokenize_init_one ( TOKENVALUE * t , const vp9_extra_bit * const e , int16_t * value_cost , int max_value ) {
+ int i = - max_value ;
+ int sign = 1 ;
+ do {
+ if ( ! i ) sign = 0 ;
+ {
+ const int a = sign ? - i : i ;
+ int eb = sign ;
+ if ( a > 4 ) {
+ int j = 4 ;
+ while ( ++ j < 11 && e [ j ] . base_val <= a ) {
+ }
+ t [ i ] . token = -- j ;
+ eb |= ( a - e [ j ] . base_val ) << 1 ;
+ }
+ else {
+ t [ i ] . token = a ;
+ }
+ t [ i ] . extra = eb ;
+ }
+ {
+ int cost = 0 ;
+ const vp9_extra_bit * p = & e [ t [ i ] . token ] ;
+ if ( p -> base_val ) {
+ const int extra = t [ i ] . extra ;
+ const int length = p -> len ;
+ if ( length ) cost += treed_cost ( p -> tree , p -> prob , extra >> 1 , length ) ;
+ cost += vp9_cost_bit ( vp9_prob_half , extra & 1 ) ;
+ value_cost [ i ] = cost ;
+ }
+ }
+ }
+ while ( ++ i < max_value ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i = - max_value ;
+ int sign = 1 ;
+ do {
+ if ( ! i ) sign = 0 ;
+ {
+ const int a = sign ? - i : i ;
+ int eb = sign ;
+ if ( a > 4 ) {
+ int j = 4 ;
+ while ( ++ j < 11 && e [ j ] . base_val <= a ) {
+ }
+ t [ i ] . token = -- j ;
+ eb |= ( a - e [ j ] . base_val ) << 1 ;
+ }
+ else {
+ t [ i ] . token = a ;
+ }
+ t [ i ] . extra = eb ;
+ }
+ {
+ int cost = 0 ;
+ const vp9_extra_bit * p = & e [ t [ i ] . token ] ;
+ if ( p -> base_val ) {
+ const int extra = t [ i ] . extra ;
+ const int length = p -> len ;
+ if ( length ) cost += treed_cost ( p -> tree , p -> prob , extra >> 1 , length ) ;
+ cost += vp9_cost_bit ( vp9_prob_half , extra & 1 ) ;
+ value_cost [ i ] = cost ;
+ }
+ }
+ }
+ while ( ++ i < max_value ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! i ) sign = 0 ;
+ {
+ const int a = sign ? - i : i ;
+ int eb = sign ;
+ if ( a > 4 ) {
+ int j = 4 ;
+ while ( ++ j < 11 && e [ j ] . base_val <= a ) {
+ }
+ t [ i ] . token = -- j ;
+ eb |= ( a - e [ j ] . base_val ) << 1 ;
+ }
+ else {
+ t [ i ] . token = a ;
+ }
+ t [ i ] . extra = eb ;
+ }
+ {
+ int cost = 0 ;
+ const vp9_extra_bit * p = & e [ t [ i ] . token ] ;
+ if ( p -> base_val ) {
+ const int extra = t [ i ] . extra ;
+ const int length = p -> len ;
+ if ( length ) cost += treed_cost ( p -> tree , p -> prob , extra >> 1 , length ) ;
+ cost += vp9_cost_bit ( vp9_prob_half , extra & 1 ) ;
+ value_cost [ i ] = cost ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ const int a = sign ? - i : i ;
+ int eb = sign ;
+ if ( a > 4 ) {
+ int j = 4 ;
+ while ( ++ j < 11 && e [ j ] . base_val <= a ) {
+ }
+ t [ i ] . token = -- j ;
+ eb |= ( a - e [ j ] . base_val ) << 1 ;
+ }
+ else {
+ t [ i ] . token = a ;
+ }
+ t [ i ] . extra = eb ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ int j = 4 ;
+ while ( ++ j < 11 && e [ j ] . base_val <= a ) {
+ }
+ t [ i ] . token = -- j ;
+ eb |= ( a - e [ j ] . base_val ) << 1 ;
+ }
+      
+25769803781 | BLOCK | { }
+25769803782 | BLOCK | { t [ i ] . token = a ; }
+25769803783 | BLOCK | 
+        {
+ int cost = 0 ;
+ const vp9_extra_bit * p = & e [ t [ i ] . token ] ;
+ if ( p -> base_val ) {
+ const int extra = t [ i ] . extra ;
+ const int length = p -> len ;
+ if ( length ) cost += treed_cost ( p -> tree , p -> prob , extra >> 1 , length ) ;
+ cost += vp9_cost_bit ( vp9_prob_half , extra & 1 ) ;
+ value_cost [ i ] = cost ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ const int extra = t [ i ] . extra ;
+ const int length = p -> len ;
+ if ( length ) cost += treed_cost ( p -> tree , p -> prob , extra >> 1 , length ) ;
+ cost += vp9_cost_bit ( vp9_prob_half , extra & 1 ) ;
+ value_cost [ i ] = cost ;
+ }
+      
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | i = - max_value
+30064771073 | CALL | - max_value
+30064771074 | CALL | sign = 1
+30064771075 | CALL | ! i
+30064771076 | CALL | sign = 0
+30064771077 | CALL | a = sign ? - i : i
+30064771078 | CALL | sign ? - i : i
+30064771079 | CALL | - i
+30064771080 | CALL | eb = sign
+30064771081 | CALL | a > 4
+30064771082 | CALL | j = 4
+30064771083 | CALL | ++ j < 11 && e [ j ] . base_val <= a
+30064771084 | CALL | ++ j < 11
+30064771085 | CALL | ++ j
+30064771086 | CALL | e [ j ] . base_val <= a
+30064771087 | CALL | e [ j ] . base_val
+30064771088 | CALL | e [ j ]
+30064771089 | CALL | t [ i ] . token = -- j
+30064771090 | CALL | t [ i ] . token
+30064771091 | CALL | t [ i ]
+30064771092 | CALL | -- j
+30064771093 | CALL | eb |= ( a - e [ j ] . base_val ) << 1
+30064771094 | CALL | ( a - e [ j ] . base_val ) << 1
+30064771095 | CALL | a - e [ j ] . base_val
+30064771096 | CALL | e [ j ] . base_val
+30064771097 | CALL | e [ j ]
+30064771098 | CALL | t [ i ] . token = a
+30064771099 | CALL | t [ i ] . token
+30064771100 | CALL | t [ i ]
+30064771101 | CALL | t [ i ] . extra = eb
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 25769803779 [AST]
+25769803777 -> 25769803783 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771077 [AST]
+25769803779 -> 30064771080 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771101 [POST_DOMINATE]
+25769803780 -> 30064771082 [AST]
+25769803780 -> 30064771089 [AST]
+25769803780 -> 30064771093 [AST]
+25769803782 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771100 [CDG]
+30064771081 -> 30064771099 [CDG]
+30064771081 -> 30064771098 [CDG]
+30064771081 -> 30064771097 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771086 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771086 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771086 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771083 [CFG]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771083 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771092 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771092 [AST]
+30064771089 -> 30064771092 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

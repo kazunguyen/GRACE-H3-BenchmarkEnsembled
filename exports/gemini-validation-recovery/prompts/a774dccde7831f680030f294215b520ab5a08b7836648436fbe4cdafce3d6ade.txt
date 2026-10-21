@@ -1,0 +1,367 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int hls_write_header(AVFormatContext *s)
+
+{
+
+    HLSContext *hls = s->priv_data;
+
+    int ret, i;
+
+    char *p;
+
+    const char *pattern = "%d.ts";
+
+    int basename_size = strlen(s->filename) + strlen(pattern);
+
+
+
+    hls->number      = 0;
+
+
+
+    hls->recording_time = hls->time * 1000000;
+
+    hls->start_pts      = AV_NOPTS_VALUE;
+
+
+
+    for (i = 0; i < s->nb_streams; i++)
+
+        hls->has_video +=
+
+            s->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO;
+
+
+
+    if (hls->has_video > 1)
+
+        av_log(s, AV_LOG_WARNING,
+
+               "More than a single video stream present, "
+
+               "expect issues decoding it.\n");
+
+
+
+    hls->oformat = av_guess_format("mpegts", NULL, NULL);
+
+
+
+    if (!hls->oformat) {
+
+        ret = AVERROR_MUXER_NOT_FOUND;
+
+        goto fail;
+
+    }
+
+
+
+    hls->basename = av_malloc(basename_size);
+
+
+
+    if (!hls->basename) {
+
+        ret = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+
+
+    strcpy(hls->basename, s->filename);
+
+
+
+    p = strrchr(hls->basename, '.');
+
+
+
+    if (p)
+
+        *p = '\0';
+
+
+
+    av_strlcat(hls->basename, "%d.ts", basename_size);
+
+
+
+    if ((ret = hls_mux_init(s)) < 0)
+
+        goto fail;
+
+
+
+    if ((ret = hls_start(s)) < 0)
+
+        goto fail;
+
+
+
+    if ((ret = avformat_write_header(hls->avf, NULL)) < 0)
+
+        return ret;
+
+
+
+
+
+fail:
+
+    if (ret) {
+
+        av_free(hls->basename);
+
+        if (hls->avf)
+
+            avformat_free_context(hls->avf);
+
+    }
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    HLSContext *hls = s->priv_data;
+
+    int ret, i;
+
+    char *p;
+
+    const char *pattern = "%d.ts";
+
+    int basename_size = strlen(s->filename) + strlen(pattern);
+
+
+
+    hls->number      = 0;
+
+
+
+    hls->recording_time = hls->time * 1000000;
+
+    hls->start_pts      = AV_NOPTS_VALUE;
+
+
+
+    for (i = 0; i < s->nb_streams; i++)
+
+        hls->has_video +=
+
+            s->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO;
+
+
+
+    if (hls->has_video > 1)
+
+        av_log(s, AV_LOG_WARNING,
+
+               "More than a single video stream present, "
+
+               "expect issues decoding it.\n");
+
+
+
+    hls->oformat = av_guess_format("mpegts", NULL, NULL);
+
+
+
+    if (!hls->oformat) {
+
+        ret = AVERROR_MUXER_NOT_FOUND;
+
+        goto fail;
+
+    }
+
+
+
+    hls->basename = av_malloc(basename_size);
+
+
+
+    if (!hls->basename) {
+
+        ret = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+
+
+    strcpy(hls->basename, s->filename);
+
+
+
+    p = strrchr(hls->basename, '.');
+
+
+
+    if (p)
+
+...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { ret = AVERROR_MUXER_NOT_FOUND; goto fail; }
+25769803779 | BLOCK | { ret = AVERROR(ENOMEM); goto fail; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+
+        av_free(hls->basename);
+
+        if (hls->avf)
+
+            avformat_free_context(hls->avf);
+
+    }
+      
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | hls = s->priv_data
+30064771073 | CALL | s->priv_data
+30064771074 | CALL | pattern = "%d.ts"
+30064771075 | CALL | basename_size = strlen(s->filename) + strlen(pattern)
+30064771076 | CALL | strlen(s->filename) + strlen(pattern)
+30064771077 | CALL | strlen(s->filename)
+30064771078 | CALL | s->filename
+30064771079 | CALL | strlen(pattern)
+30064771080 | CALL | hls->number = 0
+30064771081 | CALL | hls->number
+30064771082 | CALL | hls->recording_time = hls->time * 1000000
+30064771083 | CALL | hls->recording_time
+30064771084 | CALL | hls->time * 1000000
+30064771085 | CALL | hls->time
+30064771086 | CALL | hls->start_pts = AV_NOPTS_VALUE
+30064771087 | CALL | hls->start_pts
+30064771088 | CALL | i = 0
+30064771089 | CALL | i < s->nb_streams
+30064771090 | CALL | s->nb_streams
+30064771091 | CALL | i++
+30064771092 | CALL | 
+        hls->has_video +=
+
+            s->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO
+      
+30064771093 | CALL | hls->has_video
+30064771094 | CALL | s->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO
+30064771095 | CALL | s->streams[i]->codec->codec_type
+30064771096 | CALL | s->streams[i]->codec
+30064771097 | CALL | s->streams[i]
+30064771098 | CALL | s->streams
+30064771099 | CALL | hls->has_video > 1
+30064771100 | CALL | hls->has_video
+30064771101 | CALL | 
+        av_log(s, AV_LOG_WARNING,
+
+               "More than a single video stream present, "
+
+               "expect issues decoding it.\n")
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803777 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771076 [CFG]
+30064771079 -> 30064771076 [DOMINATE]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771089 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771097 [CDG]
+30064771089 -> 30064771098 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771096 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771094 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771094 [AST]
+30064771092 -> 30064771094 [POST_DOMINATE]
+30064771093 -> 30064771100 [REACHING_DEF]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771092 [CFG]
+30064771094 -> 30064771092 [DOMIN
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

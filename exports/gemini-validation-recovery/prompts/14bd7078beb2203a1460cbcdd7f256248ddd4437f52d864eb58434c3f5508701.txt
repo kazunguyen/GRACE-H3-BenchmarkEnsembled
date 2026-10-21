@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dtls1_reassemble_fragment ( SSL * s , const struct hm_header_st * msg_hdr , int * ok ) {
+ hm_fragment * frag = NULL ;
+ pitem * item = NULL ;
+ int i = - 1 , is_complete ;
+ unsigned char seq64be [ 8 ] ;
+ unsigned long frag_len = msg_hdr -> frag_len ;
+ if ( ( msg_hdr -> frag_off + frag_len ) > msg_hdr -> msg_len || msg_hdr -> msg_len > dtls1_max_handshake_message_len ( s ) ) goto err ;
+ if ( frag_len == 0 ) return DTLS1_HM_FRAGMENT_RETRY ;
+ memset ( seq64be , 0 , sizeof ( seq64be ) ) ;
+ seq64be [ 6 ] = ( unsigned char ) ( msg_hdr -> seq >> 8 ) ;
+ seq64be [ 7 ] = ( unsigned char ) msg_hdr -> seq ;
+ item = pqueue_find ( s -> d1 -> buffered_messages , seq64be ) ;
+ if ( item == NULL ) {
+ frag = dtls1_hm_fragment_new ( msg_hdr -> msg_len , 1 ) ;
+ if ( frag == NULL ) goto err ;
+ memcpy ( & ( frag -> msg_header ) , msg_hdr , sizeof ( * msg_hdr ) ) ;
+ frag -> msg_header . frag_len = frag -> msg_header . msg_len ;
+ frag -> msg_header . frag_off = 0 ;
+ }
+ else {
+ frag = ( hm_fragment * ) item -> data ;
+ if ( frag -> msg_header . msg_len != msg_hdr -> msg_len ) {
+ item = NULL ;
+ frag = NULL ;
+ goto err ;
+ }
+ }
+ if ( frag -> reassembly == NULL ) {
+ unsigned char devnull [ 256 ] ;
+ while ( frag_len ) {
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , NULL , devnull , frag_len > sizeof ( devnull ) ? sizeof ( devnull ) : frag_len , 0 ) ;
+ if ( i <= 0 ) goto err ;
+ frag_len -= i ;
+ }
+ return DTLS1_HM_FRAGMENT_RETRY ;
+ }
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , NULL , frag -> fragment + msg_hdr -> frag_off , frag_len , 0 ) ;
+ if ( ( unsigned long ) i != frag_len ) i = - 1 ;
+ if ( i <= 0 ) goto err ;
+ RSMBLY_BITMASK_MARK ( frag -> reassembly , ( long ) msg_hdr -> frag_off , ( long ) ( msg_hdr -> frag_off + frag_len ) ) ;
+ RSMBLY_BITMASK_IS_COMPLETE ( frag -> reassembly , ( long ) msg_hdr -> msg_len , is_complete ) ;
+ if ( is_complete ) {
+ OPENSSL_free ( frag -> reassembly ) ;
+ frag -> reassembly = NULL ;
+ }
+ if ( item == NULL ) {
+ item = pitem_new ( seq64be , frag ) ;
+ if ( item == NULL ) {
+ i = - 1 ;
+ goto err ;
+ }
+ item = pqueue_insert ( s -> d1 -> buffered_messages , item ) ;
+ OPENSSL_assert ( item != NULL ) ;
+ }
+ return DTLS1_HM_FRAGMENT_RETRY ;
+ err : if ( item == NULL ) dtls1_hm_fragment_free ( frag ) ;
+ * ok = 0 ;
+ return i ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ hm_fragment * frag = NULL ;
+ pitem * item = NULL ;
+ int i = - 1 , is_complete ;
+ unsigned char seq64be [ 8 ] ;
+ unsigned long frag_len = msg_hdr -> frag_len ;
+ if ( ( msg_hdr -> frag_off + frag_len ) > msg_hdr -> msg_len || msg_hdr -> msg_len > dtls1_max_handshake_message_len ( s ) ) goto err ;
+ if ( frag_len == 0 ) return DTLS1_HM_FRAGMENT_RETRY ;
+ memset ( seq64be , 0 , sizeof ( seq64be ) ) ;
+ seq64be [ 6 ] = ( unsigned char ) ( msg_hdr -> seq >> 8 ) ;
+ seq64be [ 7 ] = ( unsigned char ) msg_hdr -> seq ;
+ item = pqueue_find ( s -> d1 -> buffered_messages , seq64be ) ;
+ if ( item == NULL ) {
+ frag = dtls1_hm_fragment_new ( msg_hdr -> msg_len , 1 ) ;
+ if ( frag == NULL ) goto err ;
+ memcpy ( & ( frag -> msg_header ) , msg_hdr , sizeof ( * msg_hdr ) ) ;
+ frag -> msg_header . frag_len = frag -> msg_header . msg_len ;
+ frag -> msg_header . frag_off = 0 ;
+ }
+ else {
+ frag = ( hm_fragment * ) item -> data ;
+ if ( frag -> msg_header . msg_len != msg_hdr -> msg_len ) {
+ item = NULL ;
+ fr...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ frag = dtls1_hm_fragment_new ( msg_hdr -> msg_len , 1 ) ;
+ if ( frag == NULL ) goto err ;
+ memcpy ( & ( frag -> msg_header ) , msg_hdr , sizeof ( * msg_hdr ) ) ;
+ frag -> msg_header . frag_len = frag -> msg_header . msg_len ;
+ frag -> msg_header . frag_off = 0 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ frag = ( hm_fragment * ) item -> data ;
+ if ( frag -> msg_header . msg_len != msg_hdr -> msg_len ) {
+ item = NULL ;
+ frag = NULL ;
+ goto err ;
+ }
+ }
+      
+25769803782 | BLOCK | { item = NULL ; frag = NULL ; goto err ; }
+25769803783 | BLOCK | 
+        {
+ unsigned char devnull [ 256 ] ;
+ while ( frag_len ) {
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , NULL , devnull , frag_len > sizeof ( devnull ) ? sizeof ( devnull ) : frag_len , 0 ) ;
+ if ( i <= 0 ) goto err ;
+ frag_len -= i ;
+ }
+ return DTLS1_HM_FRAGMENT_RETRY ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ i = s -> method -> ssl_read_bytes ( s , SSL3_RT_HANDSHAKE , NULL , devnull , frag_len > sizeof ( devnull ) ? sizeof ( devnull ) : frag_len , 0 ) ;
+ if ( i <= 0 ) goto err ;
+ frag_len -= i ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | { OPENSSL_free ( frag -> reassembly ) ; frag -> reassembly = NULL ; }
+25769803789 | BLOCK | 
+        {
+ item = pitem_new ( seq64be , frag ) ;
+ if ( item == NULL ) {
+ i = - 1 ;
+ goto err ;
+ }
+ item = pqueue_insert ( s -> d1 -> buffered_messages , item ) ;
+ OPENSSL_assert ( item != NULL ) ;
+ }
+      
+25769803790 | BLOCK | { i = - 1 ; goto err ; }
+25769803791 | BLOCK | <empty>
+30064771072 | CALL | frag = NULL
+30064771073 | CALL | item = NULL
+30064771074 | CALL | i = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | seq64be [ 8 ]
+30064771077 | CALL | seq64be [ 8 ]
+30064771078 | CALL | frag_len = msg_hdr -> frag_len
+30064771079 | CALL | msg_hdr -> frag_len
+30064771080 | CALL | 
+        ( msg_hdr -> frag_off + frag_len ) > msg_hdr -> msg_len || msg_hdr -> msg_len > dtls1_max_handshake_message_len ( s )
+      
+30064771081 | CALL | ( msg_hdr -> frag_off + frag_len ) > msg_hdr -> msg_len
+30064771082 | CALL | msg_hdr -> frag_off + frag_len
+30064771083 | CALL | msg_hdr -> frag_off
+30064771084 | CALL | msg_hdr -> msg_len
+30064771085 | CALL | msg_hdr -> msg_len > dtls1_max_handshake_message_len ( s )
+30064771086 | CALL | msg_hdr -> msg_len
+30064771087 | CALL | dtls1_max_handshake_message_len ( s )
+30064771088 | CALL | frag_len == 0
+30064771089 | CALL | memset ( seq64be , 0 , sizeof ( seq64be ) )
+30064771090 | CALL | sizeof ( seq64be )
+30064771091 | CALL | seq64be [ 6 ] = ( unsigned char ) ( msg_hdr -> seq >> 8 )
+30064771092 | CALL | seq64be [ 6 ]
+30064771093 | CALL | ( unsigned char ) ( msg_hdr -> seq >> 8 )
+30064771094 | CALL | msg_hdr -> seq >> 8
+30064771095 | CALL | msg_hdr -> seq
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771085 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771085 [AST]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771081 [PO
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

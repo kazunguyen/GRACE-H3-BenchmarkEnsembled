@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int inverse_quant_coeff ( IMCContext * q , IMCChannel * chctx , int stream_format_code ) {
+ int i , j ;
+ int middle_value , cw_len , max_size ;
+ const float * quantizer ;
+ for ( i = 0 ;
+ i < BANDS ;
+ i ++ ) {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> CWdecoded [ j ] = 0 ;
+ cw_len = chctx -> CWlengthT [ j ] ;
+ if ( cw_len <= 0 || chctx -> skipFlags [ j ] ) continue ;
+ max_size = 1 << cw_len ;
+ middle_value = max_size >> 1 ;
+ if ( chctx -> codewords [ j ] >= max_size || chctx -> codewords [ j ] < 0 ) return AVERROR_INVALIDDATA ;
+ if ( cw_len >= 4 ) {
+ quantizer = imc_quantizer2 [ ( stream_format_code & 2 ) >> 1 ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 8 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - chctx -> codewords [ j ] - 8 - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ }
+ else {
+ quantizer = imc_quantizer1 [ ( ( stream_format_code & 2 ) >> 1 ) | ( chctx -> bandFlagsBuf [ i ] << 1 ) ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - 2 - chctx -> codewords [ j ] ] * chctx -> flcoeffs6 [ i ] ;
+ }
+ }
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ int middle_value , cw_len , max_size ;
+ const float * quantizer ;
+ for ( i = 0 ;
+ i < BANDS ;
+ i ++ ) {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> CWdecoded [ j ] = 0 ;
+ cw_len = chctx -> CWlengthT [ j ] ;
+ if ( cw_len <= 0 || chctx -> skipFlags [ j ] ) continue ;
+ max_size = 1 << cw_len ;
+ middle_value = max_size >> 1 ;
+ if ( chctx -> codewords [ j ] >= max_size || chctx -> codewords [ j ] < 0 ) return AVERROR_INVALIDDATA ;
+ if ( cw_len >= 4 ) {
+ quantizer = imc_quantizer2 [ ( stream_format_code & 2 ) >> 1 ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 8 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - chctx -> codewords [ j ] - 8 - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ }
+ else {
+ quantizer = imc_quantizer1 [ ( ( stream_format_code & 2 ) >> 1 ) | ( chctx -> bandFlagsBuf [ i ] << 1 ) ] ;
+ if ( chctx -> codewords [ j ] >= middle_va...
+      
+25769803777 | BLOCK | 
+        {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> CWdecoded [ j ] = 0 ;
+ cw_len = chctx -> CWlengthT [ j ] ;
+ if ( cw_len <= 0 || chctx -> skipFlags [ j ] ) continue ;
+ max_size = 1 << cw_len ;
+ middle_value = max_size >> 1 ;
+ if ( chctx -> codewords [ j ] >= max_size || chctx -> codewords [ j ] < 0 ) return AVERROR_INVALIDDATA ;
+ if ( cw_len >= 4 ) {
+ quantizer = imc_quantizer2 [ ( stream_format_code & 2 ) >> 1 ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 8 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - chctx -> codewords [ j ] - 8 - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ }
+ else {
+ quantizer = imc_quantizer1 [ ( ( stream_format_code & 2 ) >> 1 ) | ( chctx -> bandFlagsBuf [ i ] << 1 ) ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -...
+      
+25769803778 | BLOCK | 
+        {
+ chctx -> CWdecoded [ j ] = 0 ;
+ cw_len = chctx -> CWlengthT [ j ] ;
+ if ( cw_len <= 0 || chctx -> skipFlags [ j ] ) continue ;
+ max_size = 1 << cw_len ;
+ middle_value = max_size >> 1 ;
+ if ( chctx -> codewords [ j ] >= max_size || chctx -> codewords [ j ] < 0 ) return AVERROR_INVALIDDATA ;
+ if ( cw_len >= 4 ) {
+ quantizer = imc_quantizer2 [ ( stream_format_code & 2 ) >> 1 ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 8 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - chctx -> codewords [ j ] - 8 - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ }
+ else {
+ quantizer = imc_quantizer1 [ ( ( stream_format_code & 2 ) >> 1 ) | ( chctx -> bandFlagsBuf [ i ] << 1 ) ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - 2 - chctx -> codewo...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ quantizer = imc_quantizer2 [ ( stream_format_code & 2 ) >> 1 ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 8 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - chctx -> codewords [ j ] - 8 - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ quantizer = imc_quantizer1 [ ( ( stream_format_code & 2 ) >> 1 ) | ( chctx -> bandFlagsBuf [ i ] << 1 ) ] ;
+ if ( chctx -> codewords [ j ] >= middle_value ) chctx -> CWdecoded [ j ] = quantizer [ chctx -> codewords [ j ] - 1 ] * chctx -> flcoeffs6 [ i ] ;
+ else chctx -> CWdecoded [ j ] = - quantizer [ max_size - 2 - chctx -> codewords [ j ] ] * chctx -> flcoeffs6 [ i ] ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < BANDS
+30064771074 | CALL | i ++
+30064771075 | CALL | j = band_tab [ i ]
+30064771076 | CALL | band_tab [ i ]
+30064771077 | CALL | j < band_tab [ i + 1 ]
+30064771078 | CALL | band_tab [ i + 1 ]
+30064771079 | CALL | i + 1
+30064771080 | CALL | j ++
+30064771081 | CALL | chctx -> CWdecoded [ j ] = 0
+30064771082 | CALL | chctx -> CWdecoded [ j ]
+30064771083 | CALL | chctx -> CWdecoded
+30064771084 | CALL | cw_len = chctx -> CWlengthT [ j ]
+30064771085 | CALL | chctx -> CWlengthT [ j ]
+30064771086 | CALL | chctx -> CWlengthT
+30064771087 | CALL | cw_len <= 0 || chctx -> skipFlags [ j ]
+30064771088 | CALL | cw_len <= 0
+30064771089 | CALL | chctx -> skipFlags [ j ]
+30064771090 | CALL | chctx -> skipFlags
+30064771091 | CALL | max_size = 1 << cw_len
+30064771092 | CALL | 1 << cw_len
+30064771093 | CALL | middle_value = max_size >> 1
+30064771094 | CALL | max_size >> 1
+30064771095 | CALL | chctx -> codewords [ j ] >= max_size || chctx -> codewords [ j ] < 0
+30064771096 | CALL | chctx -> codewords [ j ] >= max_size
+30064771097 | CALL | chctx -> codewords [ j ]
+30064771098 | CALL | chctx -> codewords
+30064771099 | CALL | chctx -> codewords [ j ] < 0
+30064771100 | CALL | chctx -> codewords [ j ]
+EDGES:
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771091 [AST]
+25769803778 -> 30064771093 [AST]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

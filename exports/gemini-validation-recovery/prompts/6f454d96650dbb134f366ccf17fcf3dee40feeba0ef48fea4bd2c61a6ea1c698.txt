@@ -1,0 +1,216 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ReadBlobLZWByte ( LZWInfo * lzw_info ) {
+ int code ;
+ size_t one , value ;
+ ssize_t count ;
+ if ( lzw_info -> stack -> index != lzw_info -> stack -> codes ) return ( PopLZWStack ( lzw_info -> stack ) ) ;
+ if ( lzw_info -> genesis != MagickFalse ) {
+ lzw_info -> genesis = MagickFalse ;
+ do {
+ lzw_info -> first_code = ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ lzw_info -> last_code = lzw_info -> first_code ;
+ }
+ while ( lzw_info -> first_code == lzw_info -> clear_code ) ;
+ return ( ( int ) lzw_info -> first_code ) ;
+ }
+ code = GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ if ( code < 0 ) return ( code ) ;
+ if ( ( size_t ) code == lzw_info -> clear_code ) {
+ ResetLZWInfo ( lzw_info ) ;
+ return ( ReadBlobLZWByte ( lzw_info ) ) ;
+ }
+ if ( ( size_t ) code == lzw_info -> end_code ) return ( - 1 ) ;
+ if ( ( size_t ) code < lzw_info -> slot ) value = ( size_t ) code ;
+ else {
+ PushLZWStack ( lzw_info -> stack , lzw_info -> first_code ) ;
+ value = lzw_info -> last_code ;
+ }
+ count = 0 ;
+ while ( value > lzw_info -> maximum_data_value ) {
+ if ( ( size_t ) count > MaximumLZWCode ) return ( - 1 ) ;
+ count ++ ;
+ if ( ( size_t ) value > MaximumLZWCode ) return ( - 1 ) ;
+ PushLZWStack ( lzw_info -> stack , lzw_info -> table [ 1 ] [ value ] ) ;
+ value = lzw_info -> table [ 0 ] [ value ] ;
+ }
+ lzw_info -> first_code = lzw_info -> table [ 1 ] [ value ] ;
+ PushLZWStack ( lzw_info -> stack , lzw_info -> first_code ) ;
+ one = 1 ;
+ if ( lzw_info -> slot < MaximumLZWCode ) {
+ lzw_info -> table [ 0 ] [ lzw_info -> slot ] = lzw_info -> last_code ;
+ lzw_info -> table [ 1 ] [ lzw_info -> slot ] = lzw_info -> first_code ;
+ lzw_info -> slot ++ ;
+ if ( ( lzw_info -> slot >= lzw_info -> maximum_code ) && ( lzw_info -> bits < MaximumLZWBits ) ) {
+ lzw_info -> bits ++ ;
+ lzw_info -> maximum_code = one << lzw_info -> bits ;
+ }
+ }
+ lzw_info -> last_code = ( size_t ) code ;
+ return ( PopLZWStack ( lzw_info -> stack ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int code ;
+ size_t one , value ;
+ ssize_t count ;
+ if ( lzw_info -> stack -> index != lzw_info -> stack -> codes ) return ( PopLZWStack ( lzw_info -> stack ) ) ;
+ if ( lzw_info -> genesis != MagickFalse ) {
+ lzw_info -> genesis = MagickFalse ;
+ do {
+ lzw_info -> first_code = ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ lzw_info -> last_code = lzw_info -> first_code ;
+ }
+ while ( lzw_info -> first_code == lzw_info -> clear_code ) ;
+ return ( ( int ) lzw_info -> first_code ) ;
+ }
+ code = GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ if ( code < 0 ) return ( code ) ;
+ if ( ( size_t ) code == lzw_info -> clear_code ) {
+ ResetLZWInfo ( lzw_info ) ;
+ return ( ReadBlobLZWByte ( lzw_info ) ) ;
+ }
+ if ( ( size_t ) code == lzw_info -> end_code ) return ( - 1 ) ;
+ if ( ( size_t ) code < lzw_info -> slot ) value = ( size_t ) code ;
+ else {
+ PushLZWStack ( lzw_info -> stack , lzw_info -> first_code ) ;
+ value = lzw_info -> last_code ;
+ }
+ count = 0 ;
+ while ( value > lzw_i...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ lzw_info -> genesis = MagickFalse ;
+ do {
+ lzw_info -> first_code = ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ lzw_info -> last_code = lzw_info -> first_code ;
+ }
+ while ( lzw_info -> first_code == lzw_info -> clear_code ) ;
+ return ( ( int ) lzw_info -> first_code ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ lzw_info -> first_code = ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits ) ;
+ lzw_info -> last_code = lzw_info -> first_code ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { ResetLZWInfo ( lzw_info ) ; return ( ReadBlobLZWByte ( lzw_info ) ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ PushLZWStack ( lzw_info -> stack , lzw_info -> first_code ) ;
+ value = lzw_info -> last_code ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ if ( ( size_t ) count > MaximumLZWCode ) return ( - 1 ) ;
+ count ++ ;
+ if ( ( size_t ) value > MaximumLZWCode ) return ( - 1 ) ;
+ PushLZWStack ( lzw_info -> stack , lzw_info -> table [ 1 ] [ value ] ) ;
+ value = lzw_info -> table [ 0 ] [ value ] ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ lzw_info -> table [ 0 ] [ lzw_info -> slot ] = lzw_info -> last_code ;
+ lzw_info -> table [ 1 ] [ lzw_info -> slot ] = lzw_info -> first_code ;
+ lzw_info -> slot ++ ;
+ if ( ( lzw_info -> slot >= lzw_info -> maximum_code ) && ( lzw_info -> bits < MaximumLZWBits ) ) {
+ lzw_info -> bits ++ ;
+ lzw_info -> maximum_code = one << lzw_info -> bits ;
+ }
+ }
+      
+25769803789 | BLOCK | 
+        {
+ lzw_info -> bits ++ ;
+ lzw_info -> maximum_code = one << lzw_info -> bits ;
+ }
+      
+30064771072 | CALL | lzw_info -> stack -> index != lzw_info -> stack -> codes
+30064771073 | CALL | lzw_info -> stack -> index
+30064771074 | CALL | lzw_info -> stack
+30064771075 | CALL | lzw_info -> stack -> codes
+30064771076 | CALL | lzw_info -> stack
+30064771077 | CALL | PopLZWStack ( lzw_info -> stack )
+30064771078 | CALL | lzw_info -> stack
+30064771079 | CALL | lzw_info -> genesis != MagickFalse
+30064771080 | CALL | lzw_info -> genesis
+30064771081 | CALL | lzw_info -> genesis = MagickFalse
+30064771082 | CALL | lzw_info -> genesis
+30064771083 | CALL | 
+        lzw_info -> first_code = ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits )
+      
+30064771084 | CALL | lzw_info -> first_code
+30064771085 | CALL | ( size_t ) GetNextLZWCode ( lzw_info , lzw_info -> bits )
+30064771086 | CALL | GetNextLZWCode ( lzw_info , lzw_info -> bits )
+30064771087 | CALL | lzw_info -> bits
+30064771088 | CALL | lzw_info -> last_code = lzw_info -> first_code
+30064771089 | CALL | lzw_info -> last_code
+30064771090 | CALL | lzw_info -> first_code
+30064771091 | CALL | lzw_info -> first_code == lzw_info -> clear_code
+30064771092 | CALL | lzw_info -> first_code
+30064771093 | CALL | lzw_info -> clear_code
+30064771094 | CALL | ( int ) lzw_info -> first_code
+30064771095 | CALL | lzw_info -> first_code
+30064771096 | CALL | code = GetNextLZWCode ( lzw_info , lzw_info -> bits )
+30064771097 | CALL | GetNextLZWCode ( lzw_info , lzw_info -> bits )
+EDGES:
+25769803776 -> 30064771096 [AST]
+25769803778 -> 30064771081 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771088 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [AST]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771078 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771072 [CFG]
+30064771075 -> 30064771072 [DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

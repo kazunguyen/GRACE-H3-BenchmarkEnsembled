@@ -1,0 +1,169 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp8_de_noise ( VP8_COMMON * cm , YV12_BUFFER_CONFIG * source , YV12_BUFFER_CONFIG * post , int q , int low_var_thresh , int flag , int uvfilter ) {
+ int mbr ;
+ double level = 6.0e-05 * q * q * q - .0067 * q * q + .306 * q + .0065 ;
+ int ppl = ( int ) ( level + .5 ) ;
+ int mb_rows = cm -> mb_rows ;
+ int mb_cols = cm -> mb_cols ;
+ unsigned char * limits = cm -> pp_limits_buffer ;
+ ;
+ ( void ) post ;
+ ( void ) low_var_thresh ;
+ ( void ) flag ;
+ vpx_memset ( limits , ( unsigned char ) ppl , 16 * mb_cols ) ;
+ for ( mbr = 0 ;
+ mbr < mb_rows ;
+ mbr ++ ) {
+ vp8_post_proc_down_and_across_mb_row ( source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_stride , source -> y_stride , source -> y_width , limits , 16 ) ;
+ if ( uvfilter == 1 ) {
+ vp8_post_proc_down_and_across_mb_row ( source -> u_buffer + 8 * mbr * source -> uv_stride , source -> u_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ vp8_post_proc_down_and_across_mb_row ( source -> v_buffer + 8 * mbr * source -> uv_stride , source -> v_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int mbr ;
+ double level = 6.0e-05 * q * q * q - .0067 * q * q + .306 * q + .0065 ;
+ int ppl = ( int ) ( level + .5 ) ;
+ int mb_rows = cm -> mb_rows ;
+ int mb_cols = cm -> mb_cols ;
+ unsigned char * limits = cm -> pp_limits_buffer ;
+ ;
+ ( void ) post ;
+ ( void ) low_var_thresh ;
+ ( void ) flag ;
+ vpx_memset ( limits , ( unsigned char ) ppl , 16 * mb_cols ) ;
+ for ( mbr = 0 ;
+ mbr < mb_rows ;
+ mbr ++ ) {
+ vp8_post_proc_down_and_across_mb_row ( source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_stride , source -> y_stride , source -> y_width , limits , 16 ) ;
+ if ( uvfilter == 1 ) {
+ vp8_post_proc_down_and_across_mb_row ( source -> u_buffer + 8 * mbr * source -> uv_stride , source -> u_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ vp8_post_proc_down_and_across_mb_row ( source -> v_buffer + 8 * mbr * source -> uv_stride , source -> v_buffer + ...
+      
+25769803777 | BLOCK | 
+        {
+ vp8_post_proc_down_and_across_mb_row ( source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_stride , source -> y_stride , source -> y_width , limits , 16 ) ;
+ if ( uvfilter == 1 ) {
+ vp8_post_proc_down_and_across_mb_row ( source -> u_buffer + 8 * mbr * source -> uv_stride , source -> u_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ vp8_post_proc_down_and_across_mb_row ( source -> v_buffer + 8 * mbr * source -> uv_stride , source -> v_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ vp8_post_proc_down_and_across_mb_row ( source -> u_buffer + 8 * mbr * source -> uv_stride , source -> u_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ vp8_post_proc_down_and_across_mb_row ( source -> v_buffer + 8 * mbr * source -> uv_stride , source -> v_buffer + 8 * mbr * source -> uv_stride , source -> uv_stride , source -> uv_stride , source -> uv_width , limits , 8 ) ;
+ }
+      
+30064771072 | CALL | level = 6.0e-05 * q * q * q - .0067 * q * q + .306 * q + .0065
+30064771073 | CALL | 6.0e-05 * q * q * q - .0067 * q * q + .306 * q + .0065
+30064771074 | CALL | 6.0e-05 * q * q * q - .0067 * q * q + .306 * q
+30064771075 | CALL | 6.0e-05 * q * q * q - .0067 * q * q
+30064771076 | CALL | 6.0e-05 * q * q * q
+30064771077 | CALL | 6.0e-05 * q * q
+30064771078 | CALL | 6.0e-05 * q
+30064771079 | CALL | .0067 * q * q
+30064771080 | CALL | .0067 * q
+30064771081 | CALL | .306 * q
+30064771082 | CALL | ppl = ( int ) ( level + .5 )
+30064771083 | CALL | ( int ) ( level + .5 )
+30064771084 | CALL | level + .5
+30064771085 | CALL | mb_rows = cm -> mb_rows
+30064771086 | CALL | cm -> mb_rows
+30064771087 | CALL | mb_cols = cm -> mb_cols
+30064771088 | CALL | cm -> mb_cols
+30064771089 | CALL | limits = cm -> pp_limits_buffer
+30064771090 | CALL | cm -> pp_limits_buffer
+30064771091 | CALL | ( void ) post
+30064771092 | CALL | ( void ) low_var_thresh
+30064771093 | CALL | ( void ) flag
+30064771094 | CALL | vpx_memset ( limits , ( unsigned char ) ppl , 16 * mb_cols )
+30064771095 | CALL | ( unsigned char ) ppl
+30064771096 | CALL | 16 * mb_cols
+30064771097 | CALL | mbr = 0
+30064771098 | CALL | mbr < mb_rows
+30064771099 | CALL | mbr ++
+30064771100 | CALL | 
+        vp8_post_proc_down_and_across_mb_row ( source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_buffer + 16 * mbr * source -> y_stride , source -> y_stride , source -> y_stride , source -> y_width , limits , 16 )
+      
+30064771101 | CALL | source -> y_buffer + 16 * mbr * source -> y_stride
+30064771102 | CALL | source -> y_buffer
+30064771103 | CALL | 16 * mbr * source -> y_stride
+30064771104 | CALL | 16 * mbr
+30064771105 | CALL | source -> y_stride
+30064771106 | CALL | source -> y_buffer + 16 * mbr * source -> y_stride
+30064771107 | CALL | source -> y_buffer
+30064771108 | CALL | 16 * mbr * source -> y_stride
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771081 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771081 [AST]
+30064771074 -> 30064771081 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771079 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771079 [AST]
+30064771075 -> 30064771079 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771075 [CFG]
+30064771079 -> 30064771075 [DOMINATE]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771075 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771074 [CFG]
+30064771081 -> 30064771074 [DOMINATE]
+30064771081 -> 30064771074 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

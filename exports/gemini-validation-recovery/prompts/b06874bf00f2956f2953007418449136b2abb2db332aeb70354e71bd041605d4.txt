@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pimv2_print ( netdissect_options * ndo , register const u_char * bp , register u_int len , const u_char * bp2 ) {
+ register const u_char * ep ;
+ register const struct pim * pim = ( const struct pim * ) bp ;
+ int advance ;
+ enum checksum_status cksum_status ;
+ ep = ( const u_char * ) ndo -> ndo_snapend ;
+ if ( bp >= ep ) return ;
+ if ( ep > bp + len ) ep = bp + len ;
+ ND_TCHECK ( pim -> pim_rsv ) ;
+ pimv2_addr_len = pim -> pim_rsv ;
+ if ( pimv2_addr_len != 0 ) ND_PRINT ( ( ndo , ", RFC2117-encoding" ) ) ;
+ ND_PRINT ( ( ndo , ", cksum 0x%04x " , EXTRACT_16BITS ( & pim -> pim_cksum ) ) ) ;
+ if ( EXTRACT_16BITS ( & pim -> pim_cksum ) == 0 ) {
+ ND_PRINT ( ( ndo , "(unverified)" ) ) ;
+ }
+ else {
+ if ( PIM_TYPE ( pim -> pim_typever ) == PIMV2_TYPE_REGISTER ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , 8 ) ;
+ if ( cksum_status == INCORRECT ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ }
+ else {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ switch ( cksum_status ) {
+ case CORRECT : ND_PRINT ( ( ndo , "(correct)" ) ) ;
+ break ;
+ case INCORRECT : ND_PRINT ( ( ndo , "(incorrect)" ) ) ;
+ break ;
+ case UNVERIFIED : ND_PRINT ( ( ndo , "(unverified)" ) ) ;
+ break ;
+ }
+ }
+ switch ( PIM_TYPE ( pim -> pim_typever ) ) {
+ case PIMV2_TYPE_HELLO : {
+ uint16_t otype , olen ;
+ bp += 4 ;
+ while ( bp < ep ) {
+ ND_TCHECK2 ( bp [ 0 ] , 4 ) ;
+ otype = EXTRACT_16BITS ( & bp [ 0 ] ) ;
+ olen = EXTRACT_16BITS ( & bp [ 2 ] ) ;
+ ND_TCHECK2 ( bp [ 0 ] , 4 + olen ) ;
+ ND_PRINT ( ( ndo , "\n\t %s Option (%u), length %u, Value: " , tok2str ( pimv2_hello_option_values , "Unknown" , otype ) , otype , olen ) ) ;
+ bp += 4 ;
+ switch ( otype ) {
+ case PIMV2_HELLO_OPTION_HOLDTIME : unsigned_relts_print ( ndo , EXTRACT_16BITS ( bp ) ) ;
+ break ;
+ case PIMV2_HELLO_OPTION_LANPRUNEDELAY : if ( olen != 4 ) {
+ ND_PRINT ( ( ndo , "ERROR: Option Length != 4 Bytes (%u)" , olen ) ) ;
+ }
+ else {
+ char t_bit ;
+ uint16_t lan_delay , override_interval ;
+ lan_delay = EXTRACT_16BITS ( bp ) ;
+ override_interval = EXTRACT_16BITS ( bp + 2 ) ;
+ t_bit = ( lan_delay & 0x8000 ) ? 1 : 0 ;
+ lan_delay &= ~ 0x8000 ;
+ ND_PRINT ( ( ndo , "\n\t T-bit=%d, LAN delay %dms, Override interval %dms" , t_bit , lan_delay , override_interval ) ) ;
+ }
+ break ;
+ case PIMV2_HELLO_OPTION_DR_PRIORITY_OLD : case PIMV2_HELLO_OPTION_DR_PRIORITY : switch ( olen ) {
+ case 0 : ND_PRINT ( ( ndo , "Bi-Directional Capability (Old)" ) ) ;
+ break ;
+ case 4 : ND_PRINT ( ( ndo , "%u" , EXTRACT_32BITS ( bp ) ) ) ;
+ break ;
+ default : ND_PRINT ( ( ndo , "ERROR: Option Length != 4 Bytes (%u)" , olen ) ) ;
+ break ;
+ }
+ break ;
+ case PIMV2_HELLO_OPTION_GENID : ND_PRINT ( ( ndo , "0x%08x" , EXTRACT_32BITS ( bp ) ) ) ;
+ break ;
+ case PIMV2_HELLO_OPTION_REFRESH_CAP : ND_PRINT ( ( ndo , "v%d" , * bp ) ) ;
+ if ( * ( bp + 1 ) != 0 ) {
+ ND_PRINT ( ( ndo , ", interval " ) ) ;
+ unsigned_relts_print ( ndo , * ( bp + 1 ) ) ;
+ }
+ if ( EXTRACT_16BITS ( bp + 2 ) != 0 ) {
+ ND_PRINT ( ( ndo , " ?
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ register const u_char * ep ;
+ register const struct pim * pim = ( const struct pim * ) bp ;
+ int advance ;
+ enum checksum_status cksum_status ;
+ ep = ( const u_char * ) ndo -> ndo_snapend ;
+ if ( bp >= ep ) return ;
+ if ( ep > bp + len ) ep = bp + len ;
+ ND_TCHECK ( pim -> pim_rsv ) ;
+ pimv2_addr_len = pim -> pim_rsv ;
+ if ( pimv2_addr_len != 0 ) ND_PRINT ( ( ndo , ", RFC2117-encoding" ) ) ;
+ ND_PRINT ( ( ndo , ", cksum 0x%04x " , EXTRACT_16BITS ( & pim -> pim_cksum ) ) ) ;
+ if ( EXTRACT_16BITS ( & pim -> pim_cksum ) == 0 ) {
+ ND_PRINT ( ( ndo , "(unverified)" ) ) ;
+ }
+ else {
+ if ( PIM_TYPE ( pim -> pim_typever ) == PIMV2_TYPE_REGISTER ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , 8 ) ;
+ if ( cksum_status == INCORRECT ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ }
+ else {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ switch ( cksum_status ) {
+ case CORRECT : ND_PRINT ( ( ndo , "(correct)" ) ) ;
+ break ;
+ case INCORRE...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { ND_PRINT ( ( ndo , "(unverified)" ) ) ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( PIM_TYPE ( pim -> pim_typever ) == PIMV2_TYPE_REGISTER ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , 8 ) ;
+ if ( cksum_status == INCORRECT ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ }
+ else {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ switch ( cksum_status ) {
+ case CORRECT : ND_PRINT ( ( ndo , "(correct)" ) ) ;
+ break ;
+ case INCORRECT : ND_PRINT ( ( ndo , "(incorrect)" ) ) ;
+ break ;
+ case UNVERIFIED : ND_PRINT ( ( ndo , "(unverified)" ) ) ;
+ break ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , 8 ) ;
+ if ( cksum_status == INCORRECT ) {
+ cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ;
+ }
+ }
+      
+25769803786 | BLOCK | { cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ; }
+25769803787 | BLOCK | { cksum_status = pimv2_check_checksum ( ndo , bp , bp2 , len ) ; }
+25769803788 | BLOCK | 
+        {
+ case CORRECT : ND_PRINT ( ( ndo , "(correct)" ) ) ;
+ break ;
+ case INCORRECT : ND_PRINT ( ( ndo , "(incorrect)" ) ) ;
+ break ;
+ case UNVERIFIED : ND_PRINT ( ( ndo , "(unverified)" ) ) ;
+ break ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ case PIMV2_TYPE_HELLO : {
+ uint16_t otype , olen ;
+ bp += 4 ;
+ while ( bp < ep ) {
+ ND_TCHECK2 ( bp [ 0 ] , 4 ) ;
+ otype = EXTRACT_16BITS ( & bp [ 0 ] ) ;
+ olen = EXTRACT_16BITS ( & bp [ 2 ] ) ;
+ ND_TCHECK2 ( bp [ 0 ] , 4 + olen ) ;
+ ND_PRINT ( ( ndo , "\n\t %s Option (%u), length %u, Value: " , tok2str ( pimv2_hello_option_values , "Unknown" , otype ) , otype , olen ) ) ;
+ bp += 4 ;
+ switch ( otype ) {
+ case PIMV2_HELLO_OPTION_HOLDTIME : unsigned_relts_print ( ndo , EXTRACT_16BITS ( bp ) ) ;
+ break ;
+ case PIMV2_HELLO_OPTION_LANPRUNEDELAY : if ( olen != 4 ) {
+ ND_PRINT ( ( ndo , "ERROR: Option Length != 4 Bytes (%u)" , olen ) ) ;
+ }
+ else {
+ char t_bit ;
+ uint16_t lan_delay , override_interval ;
+ lan_delay = EXTRACT_16BITS ( bp ) ;
+ override_interval = EXTRACT_16BITS ( bp + 2 ) ;
+ t_bit = ( lan_delay & 0x8000 ) ? 1 : 0 ;
+ lan_delay &= ~ 0x8000 ;
+ ND_PRINT ( ( ndo , "\n\t T-bit=%d, LAN delay %dms, Override interval %dms" , t_bit , lan_delay , override_interval ) ) ;
+ }
+ break ;
+ ...
+      
+25769803793 | BLOCK | 
+        {
+ uint16_t otype , olen ;
+ bp += 4 ;
+ while ( bp < ep ) {
+ ND_TCHECK2 ( bp [ 0 ] , 4 ) ;
+ otype = EXTRACT_16BITS ( & bp [ 0 ] ) ;
+ olen = EXTRACT_16BITS ( & bp [ 2 ] ) ;
+ ND_TCHECK2 ( bp [ 0 ] , 4 + olen ) ;
+ ND_PRINT ( ( ndo , "\n\t %s Option (%u), length %u, Value: " , tok2str ( pimv2_hello_option_values , "Unknown" , otype ) , otype , olen ) ) ;
+ bp += 4 ;
+ switch ( otype ) {
+ case PIMV2_HELLO_OPTION_HOLDTIME : unsigned_relts_print ( ndo , EXTRACT_16BITS ( bp ) ) ;
+ break ;
+ case PIMV2_HELLO_OPTION_LANPRUNEDELAY : if ( olen != 4 ) {
+ ND_PRINT ( ( ndo , "ERROR: Option Length != 4 Bytes (%u)" , olen ) ) ;
+ }
+ else {
+ char t_bit ;
+ uint16_t lan_delay , override_interval ;
+ lan_delay = EXTRACT_16BITS ( bp ) ;
+ override_interval =
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,236 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int xmlHashAddEntry3 ( xmlHashTablePtr table , const xmlChar * name , const xmlChar * name2 , const xmlChar * name3 , void * userdata ) {
+ unsigned long key , len = 0 ;
+ xmlHashEntryPtr entry ;
+ xmlHashEntryPtr insert ;
+ if ( ( table == NULL ) || ( name == NULL ) ) return ( - 1 ) ;
+ if ( table -> dict ) {
+ if ( ! xmlDictOwns ( table -> dict , name ) ) {
+ name = xmlDictLookup ( table -> dict , name , - 1 ) ;
+ if ( name == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name2 != NULL ) && ( ! xmlDictOwns ( table -> dict , name2 ) ) ) {
+ name2 = xmlDictLookup ( table -> dict , name2 , - 1 ) ;
+ if ( name2 == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name3 != NULL ) && ( ! xmlDictOwns ( table -> dict , name3 ) ) ) {
+ name3 = xmlDictLookup ( table -> dict , name3 , - 1 ) ;
+ if ( name3 == NULL ) return ( - 1 ) ;
+ }
+ }
+ key = xmlHashComputeKey ( table , name , name2 , name3 ) ;
+ if ( table -> table [ key ] . valid == 0 ) {
+ insert = NULL ;
+ }
+ else {
+ if ( table -> dict ) {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ }
+ else {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ }
+ }
+ if ( insert == NULL ) {
+ entry = & ( table -> table [ key ] ) ;
+ }
+ else {
+ entry = xmlMalloc ( sizeof ( xmlHashEntry ) ) ;
+ if ( entry == NULL ) return ( - 1 ) ;
+ }
+ if ( table -> dict != NULL ) {
+ entry -> name = ( xmlChar * ) name ;
+ entry -> name2 = ( xmlChar * ) name2 ;
+ entry -> name3 = ( xmlChar * ) name3 ;
+ }
+ else {
+ entry -> name = xmlStrdup ( name ) ;
+ entry -> name2 = xmlStrdup ( name2 ) ;
+ entry -> name3 = xmlStrdup ( name3 ) ;
+ }
+ entry -> payload = userdata ;
+ entry -> next = NULL ;
+ entry -> valid = 1 ;
+ if ( insert != NULL ) insert -> next = entry ;
+ table -> nbElems ++ ;
+ if ( len > MAX_HASH_LEN ) xmlHashGrow ( table , MAX_HASH_LEN * table -> size ) ;
+ return ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned long key , len = 0 ;
+ xmlHashEntryPtr entry ;
+ xmlHashEntryPtr insert ;
+ if ( ( table == NULL ) || ( name == NULL ) ) return ( - 1 ) ;
+ if ( table -> dict ) {
+ if ( ! xmlDictOwns ( table -> dict , name ) ) {
+ name = xmlDictLookup ( table -> dict , name , - 1 ) ;
+ if ( name == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name2 != NULL ) && ( ! xmlDictOwns ( table -> dict , name2 ) ) ) {
+ name2 = xmlDictLookup ( table -> dict , name2 , - 1 ) ;
+ if ( name2 == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name3 != NULL ) && ( ! xmlDictOwns ( table -> dict , name3 ) ) ) {
+ name3 = xmlDictLookup ( table -> dict , name3 , - 1 ) ;
+ if ( name3 == NULL ) return ( - 1 ) ;
+ }
+ }
+ key = xmlHashComputeKey ( table , name , name2 , name3 ) ;
+ if ( table -> table [ key ] . valid == 0 ) {
+ insert = NULL ;
+ }
+ else {
+ if ( table -> dict ) {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( ! xmlDictOwns ( table -> dict , name ) ) {
+ name = xmlDictLookup ( table -> dict , name , - 1 ) ;
+ if ( name == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name2 != NULL ) && ( ! xmlDictOwns ( table -> dict , name2 ) ) ) {
+ name2 = xmlDictLookup ( table -> dict , name2 , - 1 ) ;
+ if ( name2 == NULL ) return ( - 1 ) ;
+ }
+ if ( ( name3 != NULL ) && ( ! xmlDictOwns ( table -> dict , name3 ) ) ) {
+ name3 = xmlDictLookup ( table -> dict , name3 , - 1 ) ;
+ if ( name3 == NULL ) return ( - 1 ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ name = xmlDictLookup ( table -> dict , name , - 1 ) ;
+ if ( name == NULL ) return ( - 1 ) ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ name2 = xmlDictLookup ( table -> dict , name2 , - 1 ) ;
+ if ( name2 == NULL ) return ( - 1 ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ name3 = xmlDictLookup ( table -> dict , name3 , - 1 ) ;
+ if ( name3 == NULL ) return ( - 1 ) ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { insert = NULL ; }
+25769803786 | BLOCK | 
+        {
+ if ( table -> dict ) {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ }
+ else {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ if ( ( insert -> name == name ) && ( insert -> name2 == name2 ) && ( insert -> name3 == name3 ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ for ( insert = & ( table -> table [ key ] ) ;
+ insert -> next != NULL ;
+ insert = insert -> next ) {
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ }
+      
+25769803792 | BLOCK | 
+        {
+ if ( ( xmlStrEqual ( insert -> name , name ) ) && ( xmlStrEqual ( insert -> name2 , name2 ) ) && ( xmlStrEqual ( insert -> name3 , name3 ) ) ) return ( - 1 ) ;
+ len ++ ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | { entry = & ( table -> table [ key ] ) ; }
+25769803796 | BLOCK | 
+        {
+ entry = xmlMalloc ( sizeof ( xmlHashEntry ) ) ;
+ if ( entry == NULL ) return ( - 1 ) ;
+ }
+      
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ entry -> name = ( xmlChar * ) name ;
+ entry -> name2 = ( xmlChar * ) name2 ;
+ entry -> name3 = ( xmlChar * ) name3 ;
+ }
+      
+25769803799 | BLOCK | 
+        {
+ entry -> name = xmlStrdup ( name ) ;
+ entry -> name2 = xmlStrdup ( name2 ) ;
+ entry -> name3 = xmlStrdup ( name3 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

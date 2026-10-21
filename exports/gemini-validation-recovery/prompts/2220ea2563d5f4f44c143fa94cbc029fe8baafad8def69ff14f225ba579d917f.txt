@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _build_alloc_msg ( struct job_record * job_ptr , resource_allocation_response_msg_t * alloc_msg , int error_code , char * job_submit_user_msg ) {
+ int i ;
+ memset ( alloc_msg , 0 , sizeof ( resource_allocation_response_msg_t ) ) ;
+ if ( job_ptr -> job_resrcs && job_ptr -> job_resrcs -> cpu_array_cnt ) {
+ alloc_msg -> num_cpu_groups = job_ptr -> job_resrcs -> cpu_array_cnt ;
+ alloc_msg -> cpu_count_reps = xmalloc ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpu_count_reps , job_ptr -> job_resrcs -> cpu_array_reps , ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ alloc_msg -> cpus_per_node = xmalloc ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpus_per_node , job_ptr -> job_resrcs -> cpu_array_value , ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ }
+ alloc_msg -> error_code = error_code ;
+ alloc_msg -> job_submit_user_msg = xstrdup ( job_submit_user_msg ) ;
+ alloc_msg -> job_id = job_ptr -> job_id ;
+ alloc_msg -> node_cnt = job_ptr -> node_cnt ;
+ alloc_msg -> node_list = xstrdup ( job_ptr -> nodes ) ;
+ alloc_msg -> partition = xstrdup ( job_ptr -> partition ) ;
+ alloc_msg -> alias_list = xstrdup ( job_ptr -> alias_list ) ;
+ alloc_msg -> select_jobinfo = select_g_select_jobinfo_copy ( job_ptr -> select_jobinfo ) ;
+ if ( job_ptr -> details ) {
+ alloc_msg -> pn_min_memory = job_ptr -> details -> pn_min_memory ;
+ if ( job_ptr -> details -> mc_ptr ) {
+ alloc_msg -> ntasks_per_board = job_ptr -> details -> mc_ptr -> ntasks_per_board ;
+ alloc_msg -> ntasks_per_core = job_ptr -> details -> mc_ptr -> ntasks_per_core ;
+ alloc_msg -> ntasks_per_socket = job_ptr -> details -> mc_ptr -> ntasks_per_socket ;
+ }
+ if ( job_ptr -> details -> env_cnt ) {
+ alloc_msg -> env_size = job_ptr -> details -> env_cnt ;
+ alloc_msg -> environment = xmalloc ( sizeof ( char * ) * alloc_msg -> env_size ) ;
+ for ( i = 0 ;
+ i < alloc_msg -> env_size ;
+ i ++ ) {
+ alloc_msg -> environment [ i ] = xstrdup ( job_ptr -> details -> env_sup [ i ] ) ;
+ }
+ }
+ }
+ else {
+ alloc_msg -> pn_min_memory = 0 ;
+ alloc_msg -> ntasks_per_board = NO_VAL16 ;
+ alloc_msg -> ntasks_per_core = NO_VAL16 ;
+ alloc_msg -> ntasks_per_socket = NO_VAL16 ;
+ }
+ if ( job_ptr -> account ) alloc_msg -> account = xstrdup ( job_ptr -> account ) ;
+ if ( job_ptr -> qos_ptr ) {
+ slurmdb_qos_rec_t * qos ;
+ qos = ( slurmdb_qos_rec_t * ) job_ptr -> qos_ptr ;
+ alloc_msg -> qos = xstrdup ( qos -> name ) ;
+ }
+ if ( job_ptr -> resv_name ) alloc_msg -> resv_name = xstrdup ( job_ptr -> resv_name ) ;
+ set_remote_working_response ( alloc_msg , job_ptr , job_ptr -> origin_cluster ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ memset ( alloc_msg , 0 , sizeof ( resource_allocation_response_msg_t ) ) ;
+ if ( job_ptr -> job_resrcs && job_ptr -> job_resrcs -> cpu_array_cnt ) {
+ alloc_msg -> num_cpu_groups = job_ptr -> job_resrcs -> cpu_array_cnt ;
+ alloc_msg -> cpu_count_reps = xmalloc ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpu_count_reps , job_ptr -> job_resrcs -> cpu_array_reps , ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ alloc_msg -> cpus_per_node = xmalloc ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpus_per_node , job_ptr -> job_resrcs -> cpu_array_value , ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ }
+ alloc_msg -> error_code = error_code ;
+ alloc_msg -> job_submit_user_msg = xstrdup ( job_submit_user_msg ) ;
+ alloc_msg -> job_id = job_ptr -> job_id ;
+ alloc_msg -> node_cnt = job_ptr -> node_cnt ;
+ alloc_msg -> node_list = xstrdup ( job_ptr -> n...
+      
+25769803777 | BLOCK | 
+        {
+ alloc_msg -> num_cpu_groups = job_ptr -> job_resrcs -> cpu_array_cnt ;
+ alloc_msg -> cpu_count_reps = xmalloc ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpu_count_reps , job_ptr -> job_resrcs -> cpu_array_reps , ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ alloc_msg -> cpus_per_node = xmalloc ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ;
+ memcpy ( alloc_msg -> cpus_per_node , job_ptr -> job_resrcs -> cpu_array_value , ( sizeof ( uint16_t ) * job_ptr -> job_resrcs -> cpu_array_cnt ) ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ alloc_msg -> pn_min_memory = job_ptr -> details -> pn_min_memory ;
+ if ( job_ptr -> details -> mc_ptr ) {
+ alloc_msg -> ntasks_per_board = job_ptr -> details -> mc_ptr -> ntasks_per_board ;
+ alloc_msg -> ntasks_per_core = job_ptr -> details -> mc_ptr -> ntasks_per_core ;
+ alloc_msg -> ntasks_per_socket = job_ptr -> details -> mc_ptr -> ntasks_per_socket ;
+ }
+ if ( job_ptr -> details -> env_cnt ) {
+ alloc_msg -> env_size = job_ptr -> details -> env_cnt ;
+ alloc_msg -> environment = xmalloc ( sizeof ( char * ) * alloc_msg -> env_size ) ;
+ for ( i = 0 ;
+ i < alloc_msg -> env_size ;
+ i ++ ) {
+ alloc_msg -> environment [ i ] = xstrdup ( job_ptr -> details -> env_sup [ i ] ) ;
+ }
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ alloc_msg -> ntasks_per_board = job_ptr -> details -> mc_ptr -> ntasks_per_board ;
+ alloc_msg -> ntasks_per_core = job_ptr -> details -> mc_ptr -> ntasks_per_core ;
+ alloc_msg -> ntasks_per_socket = job_ptr -> details -> mc_ptr -> ntasks_per_socket ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ alloc_msg -> env_size = job_ptr -> details -> env_cnt ;
+ alloc_msg -> environment = xmalloc ( sizeof ( char * ) * alloc_msg -> env_size ) ;
+ for ( i = 0 ;
+ i < alloc_msg -> env_size ;
+ i ++ ) {
+ alloc_msg -> environment [ i ] = xstrdup ( job_ptr -> details -> env_sup [ i ] ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ alloc_msg -> environment [ i ] = xstrdup ( job_ptr -> details -> env_sup [ i ] ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ alloc_msg -> pn_min_memory = 0 ;
+ alloc_msg -> ntasks_per_board = NO_VAL16 ;
+ alloc_msg -> ntasks_per_core = NO_VAL16 ;
+ alloc_msg -> ntasks_per_socket = NO_VAL16 ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ slurmdb_qos_rec_t * qos ;
+ qos = ( slurmdb_qos_rec_t * ) job_ptr -> qos_ptr ;
+ alloc_msg -> qos = xstrdup ( qos -> name ) ;
+ }
+      
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | memset ( alloc_msg , 0 , sizeof ( resource_allocation_response_msg_t ) )
+30064771073 | CALL | sizeof ( resource_allocation_response_msg_t )
+30064771074 | CALL | job_ptr -> job_resrcs && job_ptr -> job_resrcs -> cpu_array_cnt
+30064771075 | CALL | job_ptr -> job_resrcs
+30064771076 | CALL | job_ptr -> job_resrcs -> cpu_array_cnt
+30064771077 | CALL | job_ptr -> job_resrcs
+30064771078 | CALL | alloc_msg -> num_cpu_groups = job_ptr -> job_resrcs -> cpu_array_cnt
+30064771079 | CALL | alloc_msg -> num_cpu_groups
+30064771080 | CALL | job_ptr -> job_resrcs -> cpu_array_cnt
+30064771081 | CALL | job_ptr -> job_resrcs
+30064771082 | CALL | 
+        alloc_msg -> cpu_count_reps = xmalloc ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt )
+      
+30064771083 | CALL | alloc_msg -> cpu_count_reps
+30064771084 | CALL | xmalloc ( sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt )
+30064771085 | CALL | sizeof ( uint32_t ) * job_ptr -> job_resrcs -> cpu_array_cnt
+30064771086 | CALL | sizeof ( uint32_t )
+30064771087 | CALL | job_ptr -> job_resrcs -> cpu_array_cnt
+30064771088 |
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

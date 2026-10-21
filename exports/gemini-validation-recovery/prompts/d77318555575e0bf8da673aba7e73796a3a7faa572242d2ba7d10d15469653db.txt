@@ -1,0 +1,238 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void pcnet_rmd_store ( PCNetState * s , struct pcnet_RMD * rmd , hwaddr addr ) {
+ if ( ! BCR_SSIZE32 ( s ) ) {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t msg_length ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 ) ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . msg_length = cpu_to_le16 ( rmd -> msg_length ) ;
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 ) ;
+ }
+ else {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t status ;
+ uint32_t msg_length ;
+ uint32_t res ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( rmd -> rbadr ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . status = cpu_to_le16 ( rmd -> status ) ;
+ rda . msg_length = cpu_to_le32 ( rmd -> msg_length ) ;
+ rda . res = cpu_to_le32 ( rmd -> res ) ;
+ if ( BCR_SWSTYLE ( s ) == 3 ) {
+ uint32_t tmp = rda . rbadr ;
+ rda . rbadr = rda . msg_length ;
+ rda . msg_length = tmp ;
+ }
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ! BCR_SSIZE32 ( s ) ) {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t msg_length ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 ) ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . msg_length = cpu_to_le16 ( rmd -> msg_length ) ;
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 ) ;
+ }
+ else {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t status ;
+ uint32_t msg_length ;
+ uint32_t res ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( rmd -> rbadr ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . status = cpu_to_le16 ( rmd -> status ) ;
+ rda . msg_length = cpu_to_le32 ( rmd -> msg_length ) ;
+ rda . res = cpu_to_le32 ( rmd -> res ) ;
+ if ( BCR_SWSTYLE ( s ) == 3 ) {
+ uint32_t tmp = rda . rbadr ;
+ rda . rbadr = rda . msg_length ;
+ rda . msg_length = tmp ;
+ }
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda...
+      
+25769803777 | BLOCK | 
+        {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t msg_length ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 ) ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . msg_length = cpu_to_le16 ( rmd -> msg_length ) ;
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ struct {
+ uint32_t rbadr ;
+ int16_t buf_length ;
+ int16_t status ;
+ uint32_t msg_length ;
+ uint32_t res ;
+ }
+ rda ;
+ rda . rbadr = cpu_to_le32 ( rmd -> rbadr ) ;
+ rda . buf_length = cpu_to_le16 ( rmd -> buf_length ) ;
+ rda . status = cpu_to_le16 ( rmd -> status ) ;
+ rda . msg_length = cpu_to_le32 ( rmd -> msg_length ) ;
+ rda . res = cpu_to_le32 ( rmd -> res ) ;
+ if ( BCR_SWSTYLE ( s ) == 3 ) {
+ uint32_t tmp = rda . rbadr ;
+ rda . rbadr = rda . msg_length ;
+ rda . msg_length = tmp ;
+ }
+ s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ uint32_t tmp = rda . rbadr ;
+ rda . rbadr = rda . msg_length ;
+ rda . msg_length = tmp ;
+ }
+      
+30064771072 | CALL | ! BCR_SSIZE32 ( s )
+30064771073 | CALL | BCR_SSIZE32 ( s )
+30064771074 | CALL | 
+        rda . rbadr = cpu_to_le32 ( ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 ) )
+      
+30064771075 | CALL | rda . rbadr
+30064771076 | CALL | 
+        cpu_to_le32 ( ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 ) )
+      
+30064771077 | CALL | 
+        ( rmd -> rbadr & 0xffffff ) | ( ( rmd -> status & 0xff00 ) << 16 )
+      
+30064771078 | CALL | rmd -> rbadr & 0xffffff
+30064771079 | CALL | rmd -> rbadr
+30064771080 | CALL | ( rmd -> status & 0xff00 ) << 16
+30064771081 | CALL | rmd -> status & 0xff00
+30064771082 | CALL | rmd -> status
+30064771083 | CALL | rda . buf_length = cpu_to_le16 ( rmd -> buf_length )
+30064771084 | CALL | rda . buf_length
+30064771085 | CALL | cpu_to_le16 ( rmd -> buf_length )
+30064771086 | CALL | rmd -> buf_length
+30064771087 | CALL | rda . msg_length = cpu_to_le16 ( rmd -> msg_length )
+30064771088 | CALL | rda . msg_length
+30064771089 | CALL | cpu_to_le16 ( rmd -> msg_length )
+30064771090 | CALL | rmd -> msg_length
+30064771091 | CALL | 
+        s -> phys_mem_write ( s -> dma_opaque , addr , ( void * ) & rda , sizeof ( rda ) , 0 )
+      
+30064771092 | CALL | s -> phys_mem_write
+30064771093 | CALL | s -> dma_opaque
+30064771094 | CALL | ( void * ) & rda
+30064771095 | CALL | & rda
+30064771096 | CALL | sizeof ( rda )
+30064771097 | CALL | rda . rbadr = cpu_to_le32 ( rmd -> rbadr )
+30064771098 | CALL | rda . rbadr
+30064771099 | CALL | cpu_to_le32 ( rmd -> rbadr )
+30064771100 | CALL | rmd -> rbadr
+30064771101 | CALL | rda . buf_length = cpu_to_le16 ( rmd -> buf_length )
+30064771102 | CALL | rda . buf_length
+30064771103 | CALL | cpu_to_le16 ( rmd -> buf_length )
+30064771104 | CALL | rmd -> buf_length
+30064771105 | CALL | rda . status = cpu_to_le16 ( rmd -> status )
+30064771106 | CALL | rda . status
+30064771107 | CALL | cpu_to_le16 ( rmd -> status )
+EDGES:
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771091 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771093 [CDG]
+30064771072 -> 30064771092 [CDG]
+30064771072 -> 30064771095 [CDG]
+30064771072 -> 30064771094 [CDG]
+30064771072 -> 30064771097 [CDG]
+30064771072 -> 30064771096 [CDG]
+30064771072 -> 30064771099 [CDG]
+30064771072 -> 30064771098 [CDG]
+30064771072 -> 30064771101 [CDG]
+30064771072 -> 30064771100 [CDG]
+30064771072 -> 30064771103 [CDG]
+30064771072 -> 30064771102 [CDG]
+30064771072 -> 30064771105 [CDG]
+30064771072 -> 30064771104 [CDG]
+30064771072 -> 30064771107 [CDG]
+30064771072 -> 30064771106 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUME
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

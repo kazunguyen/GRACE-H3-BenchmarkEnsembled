@@ -1,0 +1,170 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decSetSubnormal ( decNumber * dn , decContext * set , Int * residue , uInt * status ) {
+ decContext workset ;
+ Int etiny , adjust ;
+ # if DECSUBSET if ( ! set -> extended ) {
+ uprv_decNumberZero ( dn ) ;
+ * status |= DEC_Underflow | DEC_Subnormal | DEC_Inexact | DEC_Rounded ;
+ return ;
+ }
+ # endif etiny = set -> emin - ( set -> digits - 1 ) ;
+ if ISZERO ( dn ) {
+ # if DECCHECK if ( * residue != 0 ) {
+ printf ( "++ Subnormal 0 residue %ld\n" , ( LI ) * residue ) ;
+ * status |= DEC_Invalid_operation ;
+ }
+ # endif if ( dn -> exponent < etiny ) {
+ dn -> exponent = etiny ;
+ * status |= DEC_Clamped ;
+ }
+ return ;
+ }
+ * status |= DEC_Subnormal ;
+ adjust = etiny - dn -> exponent ;
+ if ( adjust <= 0 ) {
+ if ( * status & DEC_Inexact ) * status |= DEC_Underflow ;
+ return ;
+ }
+ workset = * set ;
+ workset . digits = dn -> digits - adjust ;
+ workset . emin -= adjust ;
+ decSetCoeff ( dn , & workset , dn -> lsu , dn -> digits , residue , status ) ;
+ decApplyRound ( dn , & workset , * residue , status ) ;
+ if ( * status & DEC_Inexact ) * status |= DEC_Underflow ;
+ if ( dn -> exponent > etiny ) {
+ dn -> digits = decShiftToMost ( dn -> lsu , dn -> digits , 1 ) ;
+ dn -> exponent -- ;
+ }
+ if ( ISZERO ( dn ) ) * status |= DEC_Clamped ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decContext workset ;
+ Int etiny , adjust ;
+ # if DECSUBSET if ( ! set -> extended ) {
+ uprv_decNumberZero ( dn ) ;
+ * status |= DEC_Underflow | DEC_Subnormal | DEC_Inexact | DEC_Rounded ;
+ return ;
+ }
+ # endif etiny = set -> emin - ( set -> digits - 1 ) ;
+ if ISZERO ( dn ) {
+ # if DECCHECK if ( * residue != 0 ) {
+ printf ( "++ Subnormal 0 residue %ld\n" , ( LI ) * residue ) ;
+ * status |= DEC_Invalid_operation ;
+ }
+ # endif if ( dn -> exponent < etiny ) {
+ dn -> exponent = etiny ;
+ * status |= DEC_Clamped ;
+ }
+ return ;
+ }
+      
+94489280512 | LOCAL | decContext workset
+94489280513 | LOCAL | Int etiny
+94489280514 | LOCAL | Int adjust
+107374182400 | METHOD | 
+        static void decSetSubnormal ( decNumber * dn , decContext * set , Int * residue , uInt * status ) {
+ decContext workset ;
+ Int etiny , adjust ;
+ # if DECSUBSET if ( ! set -> extended ) {
+ uprv_decNumberZero ( dn ) ;
+ * status |= DEC_Underflow | DEC_Subnormal | DEC_Inexact | DEC_Rounded ;
+ return ;
+ }
+ # endif etiny = set -> emin - ( set -> digits - 1 ) ;
+ if ISZERO ( dn ) {
+ # if DECCHECK if ( * residue != 0 ) {
+ printf ( "++ Subnormal 0 residue %ld\n" , ( LI ) * residue ) ;
+ * status |= DEC_Invalid_operation ;
+ }
+ # endif if ( dn -> exponent < etiny ) {
+ dn -> exponent = etiny ;
+ * status |= DEC_Clamped ;
+ }
+ return ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | decNumber * dn
+111669149697 | METHOD_PARAMETER_IN | decContext * set
+111669149698 | METHOD_PARAMETER_IN | Int * residue
+111669149699 | METHOD_PARAMETER_IN | uInt * status
+115964116992 | METHOD_PARAMETER_OUT | decNumber * dn
+115964116993 | METHOD_PARAMETER_OUT | decContext * set
+115964116994 | METHOD_PARAMETER_OUT | Int * residue
+115964116995 | METHOD_PARAMETER_OUT | uInt * status
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 141733920768 [AST]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 111669149698 [AST]
+107374182400 -> 111669149699 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 115964116994 [AST]
+107374182400 -> 115964116995 [AST]
+107374182400 -> 141733920768 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 141733920768 [CONTAINS]
+107374182400 -> 141733920768 [DOMINATE]
+107374182400 -> 111669149698 [REACHING_DEF]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 141733920768 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 111669149699 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+111669149698 -> 115964116994 [PARAMETER_LINK]
+111669149698 -> 115964116994 [REACHING_DEF]
+111669149698 -> 115964116994 [REACHING_DEF]
+111669149698 -> 124554051584 [REACHING_DEF]
+111669149699 -> 115964116995 [PARAMETER_LINK]
+111669149699 -> 115964116995 [REACHING_DEF]
+111669149699 -> 115964116995 [REACHING_DEF]
+111669149699 -> 124554051584 [REACHING_DEF]
+124554051584 -> 141733920768 [POST_DOMINATE]
+141733920768 -> 124554051584 [CFG]
+141733920768 -> 124554051584 [DOMINATE]
+141733920768 -> 107374182400 [POST_DOMINATE]
+141733920768 -> 124554051584 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void decStatus ( decNumber * dn , uInt status , decContext * set ) {
+ if ( status & DEC_NaNs ) {
+ if ( status & DEC_sNaN ) status &= ~ DEC_sNaN ;
+ else {
+ uprv_decNumberZero ( dn ) ;
+ dn -> bits = DECNAN ;
+ }
+ }
+ uprv_decContextSetStatus ( set , status ) ;
+ return ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

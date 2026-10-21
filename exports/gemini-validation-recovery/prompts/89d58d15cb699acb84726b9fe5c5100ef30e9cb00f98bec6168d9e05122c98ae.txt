@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int proto_register_field_init ( header_field_info * hfinfo , const int parent ) {
+ tmp_fld_check_assert ( hfinfo ) ;
+ hfinfo -> parent = parent ;
+ hfinfo -> same_name_next = NULL ;
+ hfinfo -> same_name_prev_id = - 1 ;
+ if ( gpa_hfinfo . len >= gpa_hfinfo . allocated_len ) {
+ if ( ! gpa_hfinfo . hfi ) {
+ gpa_hfinfo . allocated_len = PROTO_PRE_ALLOC_HF_FIELDS_MEM ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM ) ;
+ }
+ else {
+ gpa_hfinfo . allocated_len += 1000 ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len ) ;
+ }
+ }
+ gpa_hfinfo . hfi [ gpa_hfinfo . len ] = hfinfo ;
+ gpa_hfinfo . len ++ ;
+ hfinfo -> id = gpa_hfinfo . len - 1 ;
+ if ( ( hfinfo -> name [ 0 ] != 0 ) && ( hfinfo -> abbrev [ 0 ] != 0 ) ) {
+ header_field_info * same_name_next_hfinfo ;
+ guchar c ;
+ c = wrs_check_charset ( fld_abbrev_chars , hfinfo -> abbrev ) ;
+ if ( c ) {
+ if ( g_ascii_isprint ( c ) ) fprintf ( stderr , "Invalid character '%c' in filter name '%s'\n" , c , hfinfo -> abbrev ) ;
+ else fprintf ( stderr , "Invalid byte \\%03o in filter name '%s'\n" , c , hfinfo -> abbrev ) ;
+ DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+ same_name_hfinfo = NULL ;
+ g_hash_table_insert ( gpa_name_map , ( gpointer ) ( hfinfo -> abbrev ) , hfinfo ) ;
+ if ( same_name_hfinfo ) {
+ same_name_next_hfinfo = same_name_hfinfo -> same_name_next ;
+ hfinfo -> same_name_next = same_name_next_hfinfo ;
+ if ( same_name_next_hfinfo ) same_name_next_hfinfo -> same_name_prev_id = hfinfo -> id ;
+ same_name_hfinfo -> same_name_next = hfinfo ;
+ hfinfo -> same_name_prev_id = same_name_hfinfo -> id ;
+ # ifdef ENABLE_CHECK_FILTER while ( same_name_hfinfo ) {
+ if ( _ftype_common ( hfinfo -> type ) != _ftype_common ( same_name_hfinfo -> type ) ) fprintf ( stderr , "'%s' exists multiple times with NOT compatible types: %s and %s\n" , hfinfo -> abbrev , ftype_name ( hfinfo -> type ) , ftype_name ( same_name_hfinfo -> type ) ) ;
+ same_name_hfinfo = same_name_hfinfo -> same_name_next ;
+ }
+ # endif }
+ }
+ return hfinfo -> id ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ tmp_fld_check_assert ( hfinfo ) ;
+ hfinfo -> parent = parent ;
+ hfinfo -> same_name_next = NULL ;
+ hfinfo -> same_name_prev_id = - 1 ;
+ if ( gpa_hfinfo . len >= gpa_hfinfo . allocated_len ) {
+ if ( ! gpa_hfinfo . hfi ) {
+ gpa_hfinfo . allocated_len = PROTO_PRE_ALLOC_HF_FIELDS_MEM ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM ) ;
+ }
+ else {
+ gpa_hfinfo . allocated_len += 1000 ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len ) ;
+ }
+ }
+ gpa_hfinfo . hfi [ gpa_hfinfo . len ] = hfinfo ;
+ gpa_hfinfo . len ++ ;
+ hfinfo -> id = gpa_hfinfo . len - 1 ;
+ if ( ( hfinfo -> name [ 0 ] != 0 ) && ( hfinfo -> abbrev [ 0 ] != 0 ) ) {
+ header_field_info * same_name_next_hfinfo ;
+ guchar c ;
+ c = wrs_check_charset ( fld_abbrev_chars , hfinfo -> abbrev ) ;
+ if ( c ) {
+ if ( g_ascii_isprint ( c ) ) fprintf ( stderr , "Invalid character '%...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! gpa_hfinfo . hfi ) {
+ gpa_hfinfo . allocated_len = PROTO_PRE_ALLOC_HF_FIELDS_MEM ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM ) ;
+ }
+ else {
+ gpa_hfinfo . allocated_len += 1000 ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ gpa_hfinfo . allocated_len = PROTO_PRE_ALLOC_HF_FIELDS_MEM ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ gpa_hfinfo . allocated_len += 1000 ;
+ gpa_hfinfo . hfi = ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len ) ;
+ }
+      
+30064771072 | CALL | tmp_fld_check_assert ( hfinfo )
+30064771073 | CALL | hfinfo -> parent = parent
+30064771074 | CALL | hfinfo -> parent
+30064771075 | CALL | hfinfo -> same_name_next = NULL
+30064771076 | CALL | hfinfo -> same_name_next
+30064771077 | CALL | hfinfo -> same_name_prev_id = - 1
+30064771078 | CALL | hfinfo -> same_name_prev_id
+30064771079 | CALL | - 1
+30064771080 | CALL | gpa_hfinfo . len >= gpa_hfinfo . allocated_len
+30064771081 | CALL | gpa_hfinfo . len
+30064771082 | CALL | gpa_hfinfo . allocated_len
+30064771083 | CALL | ! gpa_hfinfo . hfi
+30064771084 | CALL | gpa_hfinfo . hfi
+30064771085 | CALL | gpa_hfinfo . allocated_len = PROTO_PRE_ALLOC_HF_FIELDS_MEM
+30064771086 | CALL | gpa_hfinfo . allocated_len
+30064771087 | CALL | 
+        gpa_hfinfo . hfi = ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM )
+      
+30064771088 | CALL | gpa_hfinfo . hfi
+30064771089 | CALL | 
+        ( header_field_info * * ) g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM )
+      
+30064771090 | CALL | g_malloc ( sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM )
+30064771091 | CALL | sizeof ( header_field_info * ) * PROTO_PRE_ALLOC_HF_FIELDS_MEM
+30064771092 | CALL | sizeof ( header_field_info * )
+30064771093 | CALL | gpa_hfinfo . allocated_len += 1000
+30064771094 | CALL | gpa_hfinfo . allocated_len
+30064771095 | CALL | 
+        gpa_hfinfo . hfi = ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len )
+      
+30064771096 | CALL | gpa_hfinfo . hfi
+30064771097 | CALL | 
+        ( header_field_info * * ) g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len )
+      
+30064771098 | CALL | 
+        g_realloc ( gpa_hfinfo . hfi , sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len )
+      
+30064771099 | CALL | gpa_hfinfo . hfi
+30064771100 | CALL | sizeof ( header_field_info * ) * gpa_hfinfo . allocated_len
+30064771101 | CALL | sizeof ( header_field_info * )
+30064771102 | CALL | gpa_hfinfo . allocated_len
+30064771103 | CALL | gpa_hfinfo . hfi [ gpa_hfinfo . len ] = hfinfo
+30064771104 | CALL | gpa_hfinfo . hfi [ gpa_hfinfo . len ]
+30064771105 | CALL | gpa_hfinfo . hfi
+30064771106 | CALL | gpa_hfinfo . len
+30064771107 | CALL | gpa_hfinfo . len ++
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771107 [AST]
+25769803778 -> 30064771085 [AST]
+25769803778 -> 30064771087 [AST]
+25769803779 -> 30064771093 [AST]
+25769803779 -> 30064771095 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REAC
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

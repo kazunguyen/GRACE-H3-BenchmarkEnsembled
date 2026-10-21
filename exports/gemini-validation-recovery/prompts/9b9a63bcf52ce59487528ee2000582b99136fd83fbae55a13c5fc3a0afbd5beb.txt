@@ -1,0 +1,55 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int vp9_denoiser_alloc ( VP9_DENOISER * denoiser , int width , int height , int ssx , int ssy , # if CONFIG_VP9_HIGHBITDEPTH int use_highbitdepth , # endif int border ) {
+ int i , fail ;
+ assert ( denoiser != NULL ) ;
+ for ( i = 0 ;
+ i < MAX_REF_FRAMES ;
+ ++ i ) {
+ fail = vp9_alloc_frame_buffer ( & denoiser -> running_avg_y [ i ] , width , height , ssx , ssy , # if CONFIG_VP9_HIGHBITDEPTH use_highbitdepth , # endif border ) ;
+ if ( fail ) {
+ vp9_denoiser_free ( denoiser ) ;
+ return 1 ;
+ }
+ # ifdef OUTPUT_YUV_DENOISED make_grayscale ( & denoiser -> running_avg_y [ i ] ) ;
+ # endif }
+ fail = vp9_alloc_frame_buffer ( & denoiser -> mc_running_avg_y , width , height , ssx , ssy , # if CONFIG_VP9_HIGHBITDEPTH use_highbitdepth , # endif border ) ;
+ if ( fail ) {
+ vp9_denoiser_free ( denoiser ) ;
+ return 1 ;
+ }
+ # ifdef OUTPUT_YUV_DENOISED make_grayscale ( & denoiser -> running_avg_y [ i ] ) ;
+ # endif denoiser -> increase_denoising = 0 ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void vp9_denoiser_free ( VP9_DENOISER * denoiser ) {
+ int i ;
+ if ( denoiser == NULL ) {
+ return ;
+ }
+ for ( i = 0 ;
+ i < MAX_REF_FRAMES ;
+ ++ i ) {
+ if ( & denoiser -> running_avg_y [ i ] != NULL ) {
+ vp9_free_frame_buffer ( & denoiser -> running_avg_y [ i ] ) ;
+ }
+ }
+ if ( & denoiser -> mc_running_avg_y != NULL ) {
+ vp9_free_frame_buffer ( & denoiser -> mc_running_avg_y ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

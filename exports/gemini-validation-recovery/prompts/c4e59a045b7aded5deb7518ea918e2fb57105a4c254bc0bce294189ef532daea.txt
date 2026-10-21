@@ -1,0 +1,268 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void setup_environment ( int argc , char * * argv , int * argc_out , char * * * argv_out , char * * * argv_free , char * * env_free ) {
+ int n , i , i0 ;
+ char * p , * v = getenv ( "XDELTA" ) ;
+ if ( v == NULL ) {
+ ( * argc_out ) = argc ;
+ ( * argv_out ) = argv ;
+ ( * argv_free ) = NULL ;
+ ( * env_free ) = NULL ;
+ return ;
+ }
+ ( * env_free ) = ( char * ) main_malloc ( ( usize_t ) strlen ( v ) + 1 ) ;
+ strcpy ( * env_free , v ) ;
+ n = argc + 1 ;
+ for ( p = * env_free ;
+ * p != 0 ;
+ ) {
+ if ( * p ++ == ' ' ) {
+ n ++ ;
+ }
+ }
+ ( * argv_free ) = ( char * * ) main_malloc ( sizeof ( char * ) * ( n + 1 ) ) ;
+ ( * argv_out ) = ( * argv_free ) ;
+ ( * argv_out ) [ 0 ] = argv [ 0 ] ;
+ ( * argv_out ) [ n ] = NULL ;
+ i = 1 ;
+ for ( p = * env_free ;
+ * p != 0 ;
+ ) {
+ ( * argv_out ) [ i ++ ] = p ;
+ while ( * p != ' ' && * p != 0 ) {
+ p ++ ;
+ }
+ while ( * p == ' ' ) {
+ * p ++ = 0 ;
+ }
+ }
+ for ( i0 = 1 ;
+ i0 < argc ;
+ i0 ++ ) {
+ ( * argv_out ) [ i ++ ] = argv [ i0 ] ;
+ }
+ ( * argc_out ) = i ;
+ while ( i <= n ) {
+ ( * argv_out ) [ i ++ ] = NULL ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int n , i , i0 ;
+ char * p , * v = getenv ( "XDELTA" ) ;
+ if ( v == NULL ) {
+ ( * argc_out ) = argc ;
+ ( * argv_out ) = argv ;
+ ( * argv_free ) = NULL ;
+ ( * env_free ) = NULL ;
+ return ;
+ }
+ ( * env_free ) = ( char * ) main_malloc ( ( usize_t ) strlen ( v ) + 1 ) ;
+ strcpy ( * env_free , v ) ;
+ n = argc + 1 ;
+ for ( p = * env_free ;
+ * p != 0 ;
+ ) {
+ if ( * p ++ == ' ' ) {
+ n ++ ;
+ }
+ }
+ ( * argv_free ) = ( char * * ) main_malloc ( sizeof ( char * ) * ( n + 1 ) ) ;
+ ( * argv_out ) = ( * argv_free ) ;
+ ( * argv_out ) [ 0 ] = argv [ 0 ] ;
+ ( * argv_out ) [ n ] = NULL ;
+ i = 1 ;
+ for ( p = * env_free ;
+ * p != 0 ;
+ ) {
+ ( * argv_out ) [ i ++ ] = p ;
+ while ( * p != ' ' && * p != 0 ) {
+ p ++ ;
+ }
+ while ( * p == ' ' ) {
+ * p ++ = 0 ;
+ }
+ }
+ for ( i0 = 1 ;
+ i0 < argc ;
+ i0 ++ ) {
+ ( * argv_out ) [ i ++ ] = argv [ i0 ] ;
+ }
+ ( * argc_out ) = i ;
+ while ( i <= n ) {
+ ( * argv_out ) [ i ++ ] = NULL ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ( * argc_out ) = argc ;
+ ( * argv_out ) = argv ;
+ ( * argv_free ) = NULL ;
+ ( * env_free ) = NULL ;
+ return ;
+ }
+      
+25769803778 | BLOCK | { if ( * p ++ == ' ' ) { n ++ ; } }
+25769803779 | BLOCK | { n ++ ; }
+25769803780 | BLOCK | 
+        {
+ ( * argv_out ) [ i ++ ] = p ;
+ while ( * p != ' ' && * p != 0 ) {
+ p ++ ;
+ }
+ while ( * p == ' ' ) {
+ * p ++ = 0 ;
+ }
+ }
+      
+25769803781 | BLOCK | { p ++ ; }
+25769803782 | BLOCK | { * p ++ = 0 ; }
+25769803783 | BLOCK | { ( * argv_out ) [ i ++ ] = argv [ i0 ] ; }
+25769803784 | BLOCK | { ( * argv_out ) [ i ++ ] = NULL ; }
+30064771072 | CALL | v = getenv ( "XDELTA" )
+30064771073 | CALL | getenv ( "XDELTA" )
+30064771074 | CALL | v == NULL
+30064771075 | CALL | ( * argc_out ) = argc
+30064771076 | CALL | * argc_out
+30064771077 | CALL | ( * argv_out ) = argv
+30064771078 | CALL | * argv_out
+30064771079 | CALL | ( * argv_free ) = NULL
+30064771080 | CALL | * argv_free
+30064771081 | CALL | ( * env_free ) = NULL
+30064771082 | CALL | * env_free
+30064771083 | CALL | ( * env_free ) = ( char * ) main_malloc ( ( usize_t ) strlen ( v ) + 1 )
+30064771084 | CALL | * env_free
+30064771085 | CALL | ( char * ) main_malloc ( ( usize_t ) strlen ( v ) + 1 )
+30064771086 | CALL | main_malloc ( ( usize_t ) strlen ( v ) + 1 )
+30064771087 | CALL | ( usize_t ) strlen ( v ) + 1
+30064771088 | CALL | ( usize_t ) strlen ( v )
+30064771089 | CALL | strlen ( v )
+30064771090 | CALL | strcpy ( * env_free , v )
+30064771091 | CALL | * env_free
+30064771092 | CALL | n = argc + 1
+30064771093 | CALL | argc + 1
+30064771094 | CALL | p = * env_free
+30064771095 | CALL | * env_free
+30064771096 | CALL | * p != 0
+30064771097 | CALL | * p
+30064771098 | CALL | * p ++ == ' '
+30064771099 | CALL | * p ++
+30064771100 | CALL | p ++
+30064771101 | CALL | n ++
+30064771102 | CALL | ( * argv_free ) = ( char * * ) main_malloc ( sizeof ( char * ) * ( n + 1 ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771102 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771081 [AST]
+25769803779 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771097 [CDG]
+30064771074 -> 30064771095 [CDG]
+30064771074 -> 30064771096 [CDG]
+30064771074 -> 30064771102 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771090 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771093 [CDG]
+30064771074 -> 30064771094 [CDG]
+30064771074 -> 30064771091 [CDG]
+30064771074 -> 30064771092 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * * decode_args ( char * args , int * nargs ) {
+ char * p , * q , * arg ;
+ int i = 0 ;
+ char * * parsed ;
+ * nargs = 0 ;
+ if ( ( p = strrchr ( args , ')' ) ) != NULL ) * p = '\0' ;
+ for ( ;
+ * args == ' ' ;
+ args ++ ) ;
+ for ( q = args + strlen ( args ) - 1 ;
+ * q == ' ' ;
+ q -- ) * q = '\0' ;
+ if ( ! strchr ( args , ',' ) && strlen ( args ) == 0 ) return NULL ;
+ SAFE_CALLOC ( parsed , 1 , sizeof ( char * ) ) ;
+ for ( p = strsep_quotes ( & args , ',' ) , i = 1 ;
+ p != NULL ;
+ p = strsep_quotes ( & args , ',' ) , i ++ ) {
+ SAFE_REALLOC ( parsed , ( i + 1 ) * sizeof ( char * ) ) ;
+ fo
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

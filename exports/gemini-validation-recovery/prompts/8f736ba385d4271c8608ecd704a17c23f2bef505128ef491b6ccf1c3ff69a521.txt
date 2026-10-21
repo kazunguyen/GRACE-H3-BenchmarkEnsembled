@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+Oid get_base_element_type ( Oid typid ) {
+ for ( ;
+ ;
+ ) {
+ HeapTuple tup ;
+ Form_pg_type typTup ;
+ tup = SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) ) ;
+ if ( ! HeapTupleIsValid ( tup ) ) break ;
+ typTup = ( Form_pg_type ) GETSTRUCT ( tup ) ;
+ if ( typTup -> typtype != TYPTYPE_DOMAIN ) {
+ Oid result ;
+ if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tup ) ;
+ return result ;
+ }
+ typid = typTup -> typbasetype ;
+ ReleaseSysCache ( tup ) ;
+ }
+ return InvalidOid ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ for ( ;
+ ;
+ ) {
+ HeapTuple tup ;
+ Form_pg_type typTup ;
+ tup = SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) ) ;
+ if ( ! HeapTupleIsValid ( tup ) ) break ;
+ typTup = ( Form_pg_type ) GETSTRUCT ( tup ) ;
+ if ( typTup -> typtype != TYPTYPE_DOMAIN ) {
+ Oid result ;
+ if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tup ) ;
+ return result ;
+ }
+ typid = typTup -> typbasetype ;
+ ReleaseSysCache ( tup ) ;
+ }
+ return InvalidOid ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ HeapTuple tup ;
+ Form_pg_type typTup ;
+ tup = SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) ) ;
+ if ( ! HeapTupleIsValid ( tup ) ) break ;
+ typTup = ( Form_pg_type ) GETSTRUCT ( tup ) ;
+ if ( typTup -> typtype != TYPTYPE_DOMAIN ) {
+ Oid result ;
+ if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tup ) ;
+ return result ;
+ }
+ typid = typTup -> typbasetype ;
+ ReleaseSysCache ( tup ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ Oid result ;
+ if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tup ) ;
+ return result ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | tup = SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) )
+30064771073 | CALL | SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) )
+30064771074 | CALL | ObjectIdGetDatum ( typid )
+30064771075 | CALL | ! HeapTupleIsValid ( tup )
+30064771076 | CALL | HeapTupleIsValid ( tup )
+30064771077 | CALL | typTup = ( Form_pg_type ) GETSTRUCT ( tup )
+30064771078 | CALL | ( Form_pg_type ) GETSTRUCT ( tup )
+30064771079 | CALL | GETSTRUCT ( tup )
+30064771080 | CALL | typTup -> typtype != TYPTYPE_DOMAIN
+30064771081 | CALL | typTup -> typtype
+30064771082 | CALL | typTup -> typlen == - 1
+30064771083 | CALL | typTup -> typlen
+30064771084 | CALL | - 1
+30064771085 | CALL | result = typTup -> typelem
+30064771086 | CALL | typTup -> typelem
+30064771087 | CALL | result = InvalidOid
+30064771088 | CALL | ReleaseSysCache ( tup )
+30064771089 | CALL | typid = typTup -> typbasetype
+30064771090 | CALL | typTup -> typbasetype
+30064771091 | CALL | ReleaseSysCache ( tup )
+47244640256 | CONTROL_STRUCTURE | for (;;)
+47244640257 | CONTROL_STRUCTURE | if ( ! HeapTupleIsValid ( tup ) ) break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | 
+        if ( typTup -> typtype != TYPTYPE_DOMAIN ) {
+ Oid result ;
+ if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tup ) ;
+ return result ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | 
+        if ( typTup -> typlen == - 1 ) result = typTup -> typelem ;
+ else result = InvalidOid ;
+      
+55834574848 | FIELD_IDENTIFIER | typtype
+55834574849 | FIELD_IDENTIFIER | typlen
+55834574850 | FIELD_IDENTIFIER | typelem
+55834574851 | FIELD_IDENTIFIER | typbasetype
+68719476736 | IDENTIFIER | tup
+68719476737 | IDENTIFIER | <unknown> TYPEOID
+68719476738 | IDENTIFIER | typid
+68719476739 | IDENTIFIER | tup
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803778 -> 30064771072 [AST]
+25769803778 -> 47244640257 [AST]
+25769803778 -> 30064771077 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 47244640258 [AST]
+25769803780 -> 47244640260 [AST]
+25769803780 -> 30064771088 [AST]
+25769803781 -> 30064771085 [AST]
+25769803782 -> 30064771087 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 47244640258 [CDG]
+30064771075 -> 47244640258 [CFG]
+30064771075 -> 47244640258 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 55834574849 [CDG]
+30064771080 -> 55834574851 [CDG]
+30064771080 -> 68719476736 [CDG]
+30064771080 -> 68719476739 [CDG]
+30064771080 -> 68719476737 [CDG]
+30064771080 -> 68719476738 [CDG]
+30064771080 -> 30064771076 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771088 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+Oid get_element_type ( Oid typid ) {
+ HeapTuple tp ;
+ tp = SearchSysCache1 ( TYPEOID , ObjectIdGetDatum ( typid ) ) ;
+ if ( HeapTupleIsValid ( tp ) ) {
+ Form_pg_type typtup = ( Form_pg_type ) GETSTRUCT ( tp ) ;
+ Oid result ;
+ if ( typtup -> typlen == - 1 ) result = typtup -> typelem ;
+ else result = InvalidOid ;
+ ReleaseSysCache ( tp ) ;
+ return result ;
+ }
+ else return InvalidOid ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

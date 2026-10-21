@@ -1,0 +1,334 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int encode_init(AVCodecContext * avctx){
+
+    WMACodecContext *s = avctx->priv_data;
+
+    int i, flags1, flags2;
+
+    uint8_t *extradata;
+
+
+
+    s->avctx = avctx;
+
+
+
+    if(avctx->channels > MAX_CHANNELS) {
+
+        av_log(avctx, AV_LOG_ERROR, "too many channels: got %i, need %i or fewer",
+
+               avctx->channels, MAX_CHANNELS);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    if (avctx->sample_rate > 48000) {
+
+        av_log(avctx, AV_LOG_ERROR, "sample rate is too high: %d > 48kHz",
+
+               avctx->sample_rate);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    if(avctx->bit_rate < 24*1000) {
+
+        av_log(avctx, AV_LOG_ERROR, "bitrate too low: got %i, need 24000 or higher\n",
+
+               avctx->bit_rate);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    /* extract flag infos */
+
+    flags1 = 0;
+
+    flags2 = 1;
+
+    if (avctx->codec->id == CODEC_ID_WMAV1) {
+
+        extradata= av_malloc(4);
+
+        avctx->extradata_size= 4;
+
+        AV_WL16(extradata, flags1);
+
+        AV_WL16(extradata+2, flags2);
+
+    } else if (avctx->codec->id == CODEC_ID_WMAV2) {
+
+        extradata= av_mallocz(10);
+
+        avctx->extradata_size= 10;
+
+        AV_WL32(extradata, flags1);
+
+        AV_WL16(extradata+4, flags2);
+
+    }else
+
+        av_assert0(0);
+
+    avctx->extradata= extradata;
+
+    s->use_exp_vlc = flags2 & 0x0001;
+
+    s->use_bit_reservoir = flags2 & 0x0002;
+
+    s->use_variable_block_len = flags2 & 0x0004;
+
+    if (avctx->channels == 2)
+
+        s->ms_stereo = 1;
+
+
+
+    ff_wma_init(avctx, flags2);
+
+
+
+    /* init MDCT */
+
+    for(i = 0; i < s->nb_block_sizes; i++)
+
+        ff_mdct_init(&s->mdct_ctx[i], s->frame_len_bits - i + 1, 0, 1.0);
+
+
+
+    s->block_align     = avctx->bit_rate * (int64_t)s->frame_len /
+
+                         (avctx->sample_rate * 8);
+
+    s->block_align     = FFMIN(s->block_align, MAX_CODED_SUPERFRAME_SIZE);
+
+    avctx->block_align = s->block_align;
+
+    avctx->bit_rate    = avctx->block_align * 8LL * avctx->sample_rate /
+
+                         s->frame_len;
+
+//av_log(NULL, AV_LOG_ERROR, "%d %d %d %d\n", s->block_align, avctx->bit_rate, s->frame_len, avctx->sample_rate);
+
+    avctx->frame_size = avctx->delay = s->frame_len;
+
+
+
+#if FF_API_OLD_ENCODE_AUDIO
+
+    avctx->coded_frame = &s->frame;
+
+    avcodec_get_frame_defaults(avctx->coded_frame);
+
+#endif
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+14 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+14 -> 21 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 33 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+46 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+46 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+46 -> 53 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+46 -> 57 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+41 -> 59 [IS_AST_PARENT]
+34 -> 41 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 72 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+78 -> 81 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+78 -> 83 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+78 -> 85 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int encode_init(AVCodecContext * avctx){
+
+    WMACodecContext *s = avctx->priv_data;
+
+    int i, flags1, flags2;
+
+    uint8_t *extradata;
+
+
+
+    s->avctx = avctx;
+
+
+
+    if(avctx->channels > MAX_CHANNELS) {
+
+        av_log(avctx, AV_LOG_ERROR, "too many channels: got %i, need %i or fewer",
+
+               avctx->channels, MAX_CHANNELS);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    if(avctx->bit_rate < 24*1000) {
+
+        av_log(avctx, AV_LOG_ERROR, "bitrate too low: got %i, need 24000 or higher\n",
+
+               avctx->bit_rate);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    /* extract flag infos */
+
+    flags1 = 0;
+
+    flags2 = 1;
+
+    if (avctx->codec->id == CODEC_ID_WMAV1) {
+
+        extradata= av_malloc(4);
+
+        avctx->extradata_size= 4;
+
+        AV_WL16(extradata, flags1);
+
+        AV_WL16(extradata+2, flags2);
+
+    } else if (avctx->codec->id == CODEC_ID_WMAV2) {
+
+        extradata= av_mallocz(10);
+
+        avctx->extradata_size= 10;
+
+        AV_WL32(extradata, flags1);
+
+        AV_WL16(extradata+4, flags2);
+
+    }else
+
+        assert(0);
+
+    avctx->extradata= extradata;
+
+    s->use_exp_vlc = flags2 & 0x0001;
+
+    s->use_bit_reservoir = flags2 & 0x0002;
+
+    s->use_variable_block_len = flags2 & 0x0004;
+
+
+
+    ff_wma_init(avctx, flags2);
+
+
+
+    /* init MDCT */
+
+    for(i = 0; i < s->nb_block_sizes; i++)
+
+        ff_mdct_init(&s->mdct_ctx[i], s->frame_len_bits - i + 1, 0, 1.0);
+
+
+
+    avctx->block_align=
+
+    s->block_align= avctx->bit_rate*(int64_t)s->f
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

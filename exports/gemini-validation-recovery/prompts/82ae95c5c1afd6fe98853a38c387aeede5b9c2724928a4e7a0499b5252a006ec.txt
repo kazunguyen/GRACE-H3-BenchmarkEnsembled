@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void reply_handle ( struct request * const req , u16 flags , u32 ttl , struct reply * reply ) {
+ int error ;
+ static const int error_codes [ ] = {
+ DNS_ERR_FORMAT , DNS_ERR_SERVERFAILED , DNS_ERR_NOTEXIST , DNS_ERR_NOTIMPL , DNS_ERR_REFUSED }
+ ;
+ if ( flags & 0x020f || ! reply || ! reply -> have_answer ) {
+ if ( flags & 0x0200 ) {
+ error = DNS_ERR_TRUNCATED ;
+ }
+ else {
+ u16 error_code = ( flags & 0x000f ) - 1 ;
+ if ( error_code > 4 ) {
+ error = DNS_ERR_UNKNOWN ;
+ }
+ else {
+ error = error_codes [ error_code ] ;
+ }
+ }
+ switch ( error ) {
+ case DNS_ERR_NOTIMPL : case DNS_ERR_REFUSED : if ( req -> reissue_count < global_max_reissues ) {
+ char msg [ 64 ] ;
+ evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) ) ;
+ nameserver_failed ( req -> ns , msg ) ;
+ if ( ! request_reissue ( req ) ) return ;
+ }
+ break ;
+ case DNS_ERR_SERVERFAILED : log ( EVDNS_LOG_DEBUG , "Got a SERVERFAILED from nameserver %s;
+ " "will allow the request to time out." , debug_ntoa ( req -> ns -> address ) ) ;
+ break ;
+ default : nameserver_up ( req -> ns ) ;
+ }
+ if ( req -> search_state && req -> request_type != TYPE_PTR ) {
+ if ( ! search_try_next ( req ) ) {
+ request_finished ( req , & req_head ) ;
+ return ;
+ }
+ }
+ reply_callback ( req , 0 , error , NULL ) ;
+ request_finished ( req , & req_head ) ;
+ }
+ else {
+ reply_callback ( req , ttl , 0 , reply ) ;
+ nameserver_up ( req -> ns ) ;
+ request_finished ( req , & req_head ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int error ;
+ static const int error_codes [ ] = {
+ DNS_ERR_FORMAT , DNS_ERR_SERVERFAILED , DNS_ERR_NOTEXIST , DNS_ERR_NOTIMPL , DNS_ERR_REFUSED }
+ ;
+ if ( flags & 0x020f || ! reply || ! reply -> have_answer ) {
+ if ( flags & 0x0200 ) {
+ error = DNS_ERR_TRUNCATED ;
+ }
+ else {
+ u16 error_code = ( flags & 0x000f ) - 1 ;
+ if ( error_code > 4 ) {
+ error = DNS_ERR_UNKNOWN ;
+ }
+ else {
+ error = error_codes [ error_code ] ;
+ }
+ }
+ switch ( error ) {
+ case DNS_ERR_NOTIMPL : case DNS_ERR_REFUSED : if ( req -> reissue_count < global_max_reissues ) {
+ char msg [ 64 ] ;
+ evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) ) ;
+ nameserver_failed ( req -> ns , msg ) ;
+ if ( ! request_reissue ( req ) ) return ;
+ }
+ break ;
+ case DNS_ERR_SERVERFAILED : log ( EVDNS_LOG_DEBUG , "Got a SERVERFAILED from nameserver %s;
+ " "will allow the request to time out." , debug_ntoa ( req -> ns -> address ) ) ;
+ break ;
+ default : nameserver_up ( req -> ns ) ;...
+      
+25769803777 | BLOCK | 
+        {
+ if ( flags & 0x0200 ) {
+ error = DNS_ERR_TRUNCATED ;
+ }
+ else {
+ u16 error_code = ( flags & 0x000f ) - 1 ;
+ if ( error_code > 4 ) {
+ error = DNS_ERR_UNKNOWN ;
+ }
+ else {
+ error = error_codes [ error_code ] ;
+ }
+ }
+ switch ( error ) {
+ case DNS_ERR_NOTIMPL : case DNS_ERR_REFUSED : if ( req -> reissue_count < global_max_reissues ) {
+ char msg [ 64 ] ;
+ evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) ) ;
+ nameserver_failed ( req -> ns , msg ) ;
+ if ( ! request_reissue ( req ) ) return ;
+ }
+ break ;
+ case DNS_ERR_SERVERFAILED : log ( EVDNS_LOG_DEBUG , "Got a SERVERFAILED from nameserver %s;
+ " "will allow the request to time out." , debug_ntoa ( req -> ns -> address ) ) ;
+ break ;
+ default : nameserver_up ( req -> ns ) ;
+ }
+ if ( req -> search_state && req -> request_type != TYPE_PTR ) {
+ if ( ! search_try_next ( req ) ) {
+ request_finished ( req , & req_head ) ;
+ return ;
+ }
+ }
+ reply_callback ( req , 0 , error , NULL ) ;
+ requ...
+      
+25769803778 | BLOCK | { error = DNS_ERR_TRUNCATED ; }
+25769803779 | BLOCK | 
+        {
+ u16 error_code = ( flags & 0x000f ) - 1 ;
+ if ( error_code > 4 ) {
+ error = DNS_ERR_UNKNOWN ;
+ }
+ else {
+ error = error_codes [ error_code ] ;
+ }
+ }
+      
+25769803780 | BLOCK | { error = DNS_ERR_UNKNOWN ; }
+25769803781 | BLOCK | { error = error_codes [ error_code ] ; }
+25769803782 | BLOCK | 
+        {
+ case DNS_ERR_NOTIMPL : case DNS_ERR_REFUSED : if ( req -> reissue_count < global_max_reissues ) {
+ char msg [ 64 ] ;
+ evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) ) ;
+ nameserver_failed ( req -> ns , msg ) ;
+ if ( ! request_reissue ( req ) ) return ;
+ }
+ break ;
+ case DNS_ERR_SERVERFAILED : log ( EVDNS_LOG_DEBUG , "Got a SERVERFAILED from nameserver %s;
+ " "will allow the request to time out." , debug_ntoa ( req -> ns -> address ) ) ;
+ break ;
+ default : nameserver_up ( req -> ns ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ char msg [ 64 ] ;
+ evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) ) ;
+ nameserver_failed ( req -> ns , msg ) ;
+ if ( ! request_reissue ( req ) ) return ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ if ( ! search_try_next ( req ) ) {
+ request_finished ( req , & req_head ) ;
+ return ;
+ }
+ }
+      
+25769803786 | BLOCK | { request_finished ( req , & req_head ) ; return ; }
+25769803787 | BLOCK | 
+        {
+ reply_callback ( req , ttl , 0 , reply ) ;
+ nameserver_up ( req -> ns ) ;
+ request_finished ( req , & req_head ) ;
+ }
+      
+30064771072 | CALL | 
+        error_codes [ ] = {
+ DNS_ERR_FORMAT , DNS_ERR_SERVERFAILED , DNS_ERR_NOTEXIST , DNS_ERR_NOTIMPL , DNS_ERR_REFUSED }
+      
+30064771073 | CALL | 
+        {
+ DNS_ERR_FORMAT , DNS_ERR_SERVERFAILED , DNS_ERR_NOTEXIST , DNS_ERR_NOTIMPL , DNS_ERR_REFUSED }
+      
+30064771074 | CALL | flags & 0x020f || ! reply || ! reply -> have_answer
+30064771075 | CALL | flags & 0x020f || ! reply
+30064771076 | CALL | flags & 0x020f
+30064771077 | CALL | ! reply
+30064771078 | CALL | ! reply -> have_answer
+30064771079 | CALL | reply -> have_answer
+30064771080 | CALL | flags & 0x0200
+30064771081 | CALL | error = DNS_ERR_TRUNCATED
+30064771082 | CALL | error_code = ( flags & 0x000f ) - 1
+30064771083 | CALL | ( flags & 0x000f ) - 1
+30064771084 | CALL | flags & 0x000f
+30064771085 | CALL | error_code > 4
+30064771086 | CALL | error = DNS_ERR_UNKNOWN
+30064771087 | CALL | error = error_codes [ error_code ]
+30064771088 | CALL | error_codes [ error_code ]
+30064771089 | CALL | req -> reissue_count < global_max_reissues
+30064771090 | CALL | req -> reissue_count
+30064771091 | CALL | msg [ 64 ]
+30064771092 | CALL | msg [ 64 ]
+30064771093 | CALL | 
+        evutil_snprintf ( msg , sizeof ( msg ) , "Bad response %d (%s)" , error , evdns_err_to_string ( error ) )
+      
+30064771094 | CALL | sizeof ( msg )
+30064771095 | CALL | evdns_err_to_string ( error )
+30064771096 | CALL | nameserver_failed ( req -> ns , msg )
+30064771097 | CALL | req -> ns
+30064771098 | CALL | ! request_reissue ( req )
+30064771099 | CALL | request_reissue ( req )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803778 -> 30064771081 [AST]
+25769803779 -> 30064771082 [AST]
+25769803780 -> 30064771086 [AST]
+25769803781 -> 30064771087 [AST]
+25769803783 -> 30064771091 [AST]
+25769803783 -> 30064771093 [AST]
+25769803783 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771078 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771078 [AST]
+30064771074 -> 30064771080 [CDG]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

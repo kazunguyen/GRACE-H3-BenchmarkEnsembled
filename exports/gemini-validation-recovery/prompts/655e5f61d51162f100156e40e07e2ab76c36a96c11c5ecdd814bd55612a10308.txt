@@ -1,0 +1,254 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void gic_set_irq ( void * opaque , int irq , int level ) {
+ GICState * s = ( GICState * ) opaque ;
+ int cm , target ;
+ if ( irq < ( s -> num_irq - GIC_INTERNAL ) ) {
+ cm = ALL_CPU_MASK ;
+ irq += GIC_INTERNAL ;
+ target = GIC_TARGET ( irq ) ;
+ }
+ else {
+ int cpu ;
+ irq -= ( s -> num_irq - GIC_INTERNAL ) ;
+ cpu = irq / GIC_INTERNAL ;
+ irq %= GIC_INTERNAL ;
+ cm = 1 << cpu ;
+ target = cm ;
+ }
+ if ( level == GIC_TEST_LEVEL ( irq , cm ) ) {
+ return ;
+ }
+ if ( level ) {
+ GIC_SET_LEVEL ( irq , cm ) ;
+ if ( GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm ) ) {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+ }
+ else {
+ GIC_CLEAR_LEVEL ( irq , cm ) ;
+ }
+ gic_update ( s ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GICState * s = ( GICState * ) opaque ;
+ int cm , target ;
+ if ( irq < ( s -> num_irq - GIC_INTERNAL ) ) {
+ cm = ALL_CPU_MASK ;
+ irq += GIC_INTERNAL ;
+ target = GIC_TARGET ( irq ) ;
+ }
+ else {
+ int cpu ;
+ irq -= ( s -> num_irq - GIC_INTERNAL ) ;
+ cpu = irq / GIC_INTERNAL ;
+ irq %= GIC_INTERNAL ;
+ cm = 1 << cpu ;
+ target = cm ;
+ }
+ if ( level == GIC_TEST_LEVEL ( irq , cm ) ) {
+ return ;
+ }
+ if ( level ) {
+ GIC_SET_LEVEL ( irq , cm ) ;
+ if ( GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm ) ) {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+ }
+ else {
+ GIC_CLEAR_LEVEL ( irq , cm ) ;
+ }
+ gic_update ( s ) ;
+ }
+      
+25769803777 | BLOCK | { cm = ALL_CPU_MASK ; irq += GIC_INTERNAL ; target = GIC_TARGET ( irq ) ; }
+25769803778 | BLOCK | 
+        {
+ int cpu ;
+ irq -= ( s -> num_irq - GIC_INTERNAL ) ;
+ cpu = irq / GIC_INTERNAL ;
+ irq %= GIC_INTERNAL ;
+ cm = 1 << cpu ;
+ target = cm ;
+ }
+      
+25769803779 | BLOCK | { return ; }
+25769803780 | BLOCK | 
+        {
+ GIC_SET_LEVEL ( irq , cm ) ;
+ if ( GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm ) ) {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+      
+25769803782 | BLOCK | { GIC_CLEAR_LEVEL ( irq , cm ) ; }
+30064771072 | CALL | s = ( GICState * ) opaque
+30064771073 | CALL | ( GICState * ) opaque
+30064771074 | CALL | irq < ( s -> num_irq - GIC_INTERNAL )
+30064771075 | CALL | s -> num_irq - GIC_INTERNAL
+30064771076 | CALL | s -> num_irq
+30064771077 | CALL | cm = ALL_CPU_MASK
+30064771078 | CALL | irq += GIC_INTERNAL
+30064771079 | CALL | target = GIC_TARGET ( irq )
+30064771080 | CALL | GIC_TARGET ( irq )
+30064771081 | CALL | irq -= ( s -> num_irq - GIC_INTERNAL )
+30064771082 | CALL | s -> num_irq - GIC_INTERNAL
+30064771083 | CALL | s -> num_irq
+30064771084 | CALL | cpu = irq / GIC_INTERNAL
+30064771085 | CALL | irq / GIC_INTERNAL
+30064771086 | CALL | irq %= GIC_INTERNAL
+30064771087 | CALL | cm = 1 << cpu
+30064771088 | CALL | 1 << cpu
+30064771089 | CALL | target = cm
+30064771090 | CALL | level == GIC_TEST_LEVEL ( irq , cm )
+30064771091 | CALL | GIC_TEST_LEVEL ( irq , cm )
+30064771092 | CALL | level != 0
+30064771093 | CALL | GIC_SET_LEVEL ( irq , cm )
+30064771094 | CALL | GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm )
+30064771095 | CALL | GIC_TEST_TRIGGER ( irq )
+30064771096 | CALL | GIC_TEST_ENABLED ( irq , cm )
+30064771097 | CALL | DPRINTF ( "Set %d pending mask %x\n" , irq , target )
+30064771098 | CALL | GIC_SET_PENDING ( irq , target )
+30064771099 | CALL | GIC_CLEAR_LEVEL ( irq , cm )
+30064771100 | CALL | gic_update ( s )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( irq < ( s -> num_irq - GIC_INTERNAL ) ) {
+ cm = ALL_CPU_MASK ;
+ irq += GIC_INTERNAL ;
+ target = GIC_TARGET ( irq ) ;
+ }
+ else {
+ int cpu ;
+ irq -= ( s -> num_irq - GIC_INTERNAL ) ;
+ cpu = irq / GIC_INTERNAL ;
+ irq %= GIC_INTERNAL ;
+ cm = 1 << cpu ;
+ target = cm ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | if ( level == GIC_TEST_LEVEL ( irq , cm ) ) { return ; }
+47244640258 | CONTROL_STRUCTURE | 
+        if ( level ) {
+ GIC_SET_LEVEL ( irq , cm ) ;
+ if ( GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm ) ) {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+ }
+ else {
+ GIC_CLEAR_LEVEL ( irq , cm ) ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( GIC_TEST_TRIGGER ( irq ) || GIC_TEST_ENABLED ( irq , cm ) ) {
+ DPRINTF ( "Set %d pending mask %x\n" , irq , target ) ;
+ GIC_SET_PENDING ( irq , target ) ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771087 [AST]
+25769803778 -> 30064771089 [AST]
+25769803780 -> 30064771093 [AST]
+25769803780 -> 47244640259 [AST]
+25769803781 -> 30064771097 [AST]
+25769803781 -> 30064771098 [AST]
+25769803782 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771089 [CDG]
+30064771074 -> 30064771088 [CDG]
+30064771074 -> 30064771087 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771083 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771092 [CDG]
+30064771090 -> 30064771100 [CDG]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771090 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void gic_complete_irq ( GICState * s , in
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

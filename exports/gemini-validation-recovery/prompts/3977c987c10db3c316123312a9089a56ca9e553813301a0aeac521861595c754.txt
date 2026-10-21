@@ -1,0 +1,210 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int pfkey_do_dump ( struct pfkey_sock * pfk ) {
+ struct sadb_msg * hdr ;
+ int rc ;
+ rc = pfk -> dump . dump ( pfk ) ;
+ if ( rc == - ENOBUFS ) return 0 ;
+ if ( pfk -> dump . skb ) {
+ if ( ! pfkey_can_dump ( & pfk -> sk ) ) return 0 ;
+ hdr = ( struct sadb_msg * ) pfk -> dump . skb -> data ;
+ hdr -> sadb_msg_seq = 0 ;
+ hdr -> sadb_msg_errno = rc ;
+ pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) ) ;
+ pfk -> dump . skb = NULL ;
+ }
+ pfkey_terminate_dump ( pfk ) ;
+ return rc ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct sadb_msg * hdr ;
+ int rc ;
+ rc = pfk -> dump . dump ( pfk ) ;
+ if ( rc == - ENOBUFS ) return 0 ;
+ if ( pfk -> dump . skb ) {
+ if ( ! pfkey_can_dump ( & pfk -> sk ) ) return 0 ;
+ hdr = ( struct sadb_msg * ) pfk -> dump . skb -> data ;
+ hdr -> sadb_msg_seq = 0 ;
+ hdr -> sadb_msg_errno = rc ;
+ pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) ) ;
+ pfk -> dump . skb = NULL ;
+ }
+ pfkey_terminate_dump ( pfk ) ;
+ return rc ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( ! pfkey_can_dump ( & pfk -> sk ) ) return 0 ;
+ hdr = ( struct sadb_msg * ) pfk -> dump . skb -> data ;
+ hdr -> sadb_msg_seq = 0 ;
+ hdr -> sadb_msg_errno = rc ;
+ pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) ) ;
+ pfk -> dump . skb = NULL ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | rc = pfk -> dump . dump ( pfk )
+30064771073 | CALL | pfk -> dump . dump ( pfk )
+30064771074 | CALL | pfk -> dump . dump
+30064771075 | CALL | pfk -> dump
+30064771076 | CALL | rc == - ENOBUFS
+30064771077 | CALL | - ENOBUFS
+30064771078 | CALL | pfk -> dump . skb
+30064771079 | CALL | pfk -> dump
+30064771080 | CALL | ! pfkey_can_dump ( & pfk -> sk )
+30064771081 | CALL | pfkey_can_dump ( & pfk -> sk )
+30064771082 | CALL | & pfk -> sk
+30064771083 | CALL | pfk -> sk
+30064771084 | CALL | hdr = ( struct sadb_msg * ) pfk -> dump . skb -> data
+30064771085 | CALL | ( struct sadb_msg * ) pfk -> dump . skb -> data
+30064771086 | CALL | pfk -> dump . skb -> data
+30064771087 | CALL | pfk -> dump . skb
+30064771088 | CALL | pfk -> dump
+30064771089 | CALL | hdr -> sadb_msg_seq = 0
+30064771090 | CALL | hdr -> sadb_msg_seq
+30064771091 | CALL | hdr -> sadb_msg_errno = rc
+30064771092 | CALL | hdr -> sadb_msg_errno
+30064771093 | CALL | 
+        pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) )
+      
+30064771094 | CALL | pfk -> dump . skb
+30064771095 | CALL | pfk -> dump
+30064771096 | CALL | & pfk -> sk
+30064771097 | CALL | pfk -> sk
+30064771098 | CALL | sock_net ( & pfk -> sk )
+30064771099 | CALL | & pfk -> sk
+30064771100 | CALL | pfk -> sk
+30064771101 | CALL | pfk -> dump . skb = NULL
+30064771102 | CALL | pfk -> dump . skb
+30064771103 | CALL | pfk -> dump
+30064771104 | CALL | pfkey_terminate_dump ( pfk )
+47244640256 | CONTROL_STRUCTURE | if ( rc == - ENOBUFS ) return 0 ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( pfk -> dump . skb ) {
+ if ( ! pfkey_can_dump ( & pfk -> sk ) ) return 0 ;
+ hdr = ( struct sadb_msg * ) pfk -> dump . skb -> data ;
+ hdr -> sadb_msg_seq = 0 ;
+ hdr -> sadb_msg_errno = rc ;
+ pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) ) ;
+ pfk -> dump . skb = NULL ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | if ( ! pfkey_can_dump ( & pfk -> sk ) ) return 0 ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771104 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771091 [AST]
+25769803778 -> 30064771093 [AST]
+25769803778 -> 30064771101 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771104 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771094 [CDG]
+30064771080 -> 30064771095 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771102 [CDG]
+30064771080 -> 30064771103 [CDG]
+30064771080 -> 30064771100 [CDG]
+30064771080 -> 30064771101 [CDG]
+30064771080 -> 30064771098 [CDG]
+30064771080 -> 30064771099 [CDG]
+30064771080 -> 30064771096 [CDG]
+30064771080 -> 30064771097 [CDG]
+30064771080 -> 30064771104 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771097 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771099 [REACHING_DEF]
+30064771082 -> 30064771100 [REACHING_DEF]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771097 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771099 [REACHING_DEF]
+30064771083 -> 30064771100 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dump_sa ( struct xfrm_state * x , int count , void * ptr ) {
+ struct pfkey_sock * pfk = ptr ;
+ struct sk_buff * out_skb ;
+ struct sadb_msg * out_hdr ;
+ if ( ! pfkey_can_dump ( & pfk -> sk ) ) return - ENOBUFS ;
+ out_skb = pfkey_xfrm_state2msg ( x ) ;
+ if ( IS_ERR ( out_skb ) ) return PTR_ERR ( out_skb ) ;
+ out_hdr = ( struct sadb_msg * ) out_skb -> data ;
+ out_hdr -> sadb_msg_version = pfk -> dump . msg_version ;
+ out_hdr -> sadb_msg_type = SADB_DUMP ;
+ out_hdr -> sadb_msg_satype = pfkey_proto2satype ( x -> id . proto ) ;
+ out_hdr -> sadb_msg_errno = 0 ;
+ out_hdr -> sadb_msg_reserved = 0 ;
+ out_hdr -> sadb_msg_seq = count + 1 ;
+ out_hdr -> sadb_msg_pid = pfk -> dump . msg_portid ;
+ if ( pfk -> dump . skb ) pfkey_broadcast ( pfk -> dump . skb , GFP_ATOMIC , BROADCAST_ONE , & pfk -> sk , sock_net ( & pfk -> sk ) ) ;
+ pfk -> dump . skb = out_skb ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

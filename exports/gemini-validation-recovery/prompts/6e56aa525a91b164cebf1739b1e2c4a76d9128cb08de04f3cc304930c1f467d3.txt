@@ -1,0 +1,211 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ssl_set_version_bound ( int method_version , int version , int * bound ) {
+ if ( version == 0 ) {
+ * bound = version ;
+ return 1 ;
+ }
+ switch ( method_version ) {
+ default : return 0 ;
+ case TLS_ANY_VERSION : if ( version < SSL3_VERSION || version > TLS_MAX_VERSION ) return 0 ;
+ break ;
+ case DTLS_ANY_VERSION : if ( DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER ) ) return 0 ;
+ break ;
+ }
+ * bound = version ;
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( version == 0 ) {
+ * bound = version ;
+ return 1 ;
+ }
+ switch ( method_version ) {
+ default : return 0 ;
+ case TLS_ANY_VERSION : if ( version < SSL3_VERSION || version > TLS_MAX_VERSION ) return 0 ;
+ break ;
+ case DTLS_ANY_VERSION : if ( DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER ) ) return 0 ;
+ break ;
+ }
+ * bound = version ;
+ return 1 ;
+ }
+      
+25769803777 | BLOCK | { * bound = version ; return 1 ; }
+25769803778 | BLOCK | 
+        {
+ default : return 0 ;
+ case TLS_ANY_VERSION : if ( version < SSL3_VERSION || version > TLS_MAX_VERSION ) return 0 ;
+ break ;
+ case DTLS_ANY_VERSION : if ( DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER ) ) return 0 ;
+ break ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | version == 0
+30064771073 | CALL | * bound = version
+30064771074 | CALL | * bound
+30064771075 | CALL | version < SSL3_VERSION || version > TLS_MAX_VERSION
+30064771076 | CALL | version < SSL3_VERSION
+30064771077 | CALL | version > TLS_MAX_VERSION
+30064771078 | CALL | 
+        DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER )
+      
+30064771079 | CALL | DTLS_VERSION_GT ( version , DTLS_MAX_VERSION )
+30064771080 | CALL | DTLS_VERSION_LT ( version , DTLS1_BAD_VER )
+30064771081 | CALL | * bound = version
+30064771082 | CALL | * bound
+47244640256 | CONTROL_STRUCTURE | if ( version == 0 ) { * bound = version ; return 1 ; }
+47244640257 | CONTROL_STRUCTURE | 
+        switch ( method_version ) {
+ default : return 0 ;
+ case TLS_ANY_VERSION : if ( version < SSL3_VERSION || version > TLS_MAX_VERSION ) return 0 ;
+ break ;
+ case DTLS_ANY_VERSION : if ( DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER ) ) return 0 ;
+ break ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( version < SSL3_VERSION || version > TLS_MAX_VERSION ) return 0 ;
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | 
+        if ( DTLS_VERSION_GT ( version , DTLS_MAX_VERSION ) || DTLS_VERSION_LT ( version , DTLS1_BAD_VER ) ) return 0 ;
+      
+47244640261 | CONTROL_STRUCTURE | break ;
+68719476736 | IDENTIFIER | version
+68719476737 | IDENTIFIER | bound
+68719476738 | IDENTIFIER | version
+68719476739 | IDENTIFIER | method_version
+68719476740 | IDENTIFIER | <unknown> TLS_ANY_VERSION
+68719476741 | IDENTIFIER | version
+68719476742 | IDENTIFIER | <unknown> SSL3_VERSION
+68719476743 | IDENTIFIER | version
+68719476744 | IDENTIFIER | <unknown> TLS_MAX_VERSION
+68719476745 | IDENTIFIER | <unknown> DTLS_ANY_VERSION
+68719476746 | IDENTIFIER | version
+68719476747 | IDENTIFIER | <unknown> DTLS_MAX_VERSION
+68719476748 | IDENTIFIER | version
+68719476749 | IDENTIFIER | <unknown> DTLS1_BAD_VER
+68719476750 | IDENTIFIER | bound
+68719476751 | IDENTIFIER | version
+81604378624 | JUMP_TARGET | default :
+81604378625 | JUMP_TARGET | case TLS_ANY_VERSION :
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771081 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 81604378624 [AST]
+25769803778 -> 81604378625 [AST]
+25769803778 -> 68719476740 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 68719476745 [AST]
+25769803778 -> 47244640260 [AST]
+25769803778 -> 47244640261 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 68719476750 [CDG]
+30064771075 -> 68719476751 [CDG]
+30064771075 -> 47244640259 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 47244640259 [CFG]
+30064771075 -> 47244640259 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476744 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 68719476744 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 68719476750 [CDG]
+30064771078 -> 68719476751 [CDG]
+30064771078 -> 47244640261 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 47244640261 [CFG]
+30064771078 -> 47244640261 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int oc_filter ( Filter * f , int cur , int * max ) {
+ int rc = 0 ;
+ assert ( f != NULL ) ;
+ if ( cur > * max ) * max = cur ;
+ switch ( f -> f_choice ) {
+ case LDAP_FILTER_PRESENT : if ( f -> f_desc == slap_schema . si_ad_objectClass ) {
+ rc = 1 ;
+ }
+ break ;
+ case LDAP_FILTER_AND : case LDAP_FILTER_OR : cur ++ ;
+ for ( f = f -> f_and ;
+ f ;
+ f = f -> f_next ) {
+ ( void ) oc_filter ( f , cur , max ) ;
+ }
+ break ;
+ default : break ;
+ }
+ return rc ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

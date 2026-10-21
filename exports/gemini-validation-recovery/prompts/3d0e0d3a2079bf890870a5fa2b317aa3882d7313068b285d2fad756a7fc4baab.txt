@@ -1,0 +1,401 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void realview_init(ram_addr_t ram_size,
+
+                     const char *boot_device,
+
+                     const char *kernel_filename, const char *kernel_cmdline,
+
+                     const char *initrd_filename, const char *cpu_model,
+
+                     enum realview_board_type board_type)
+
+{
+
+    CPUState *env = NULL;
+
+    ram_addr_t ram_offset;
+
+    DeviceState *dev, *sysctl, *gpio2;
+
+    SysBusDevice *busdev;
+
+    qemu_irq *irqp;
+
+    qemu_irq pic[64];
+
+    qemu_irq mmc_irq[2];
+
+    PCIBus *pci_bus;
+
+    NICInfo *nd;
+
+    i2c_bus *i2c;
+
+    int n;
+
+    int done_nic = 0;
+
+    qemu_irq cpu_irq[4];
+
+    int is_mpcore = 0;
+
+    int is_pb = 0;
+
+    uint32_t proc_id = 0;
+
+    uint32_t sys_id;
+
+    ram_addr_t low_ram_size;
+
+
+
+    switch (board_type) {
+
+    case BOARD_EB:
+
+        break;
+
+    case BOARD_EB_MPCORE:
+
+        is_mpcore = 1;
+
+        break;
+
+    case BOARD_PB_A8:
+
+        is_pb = 1;
+
+        break;
+
+    case BOARD_PBX_A9:
+
+        is_mpcore = 1;
+
+        is_pb = 1;
+
+        break;
+
+    }
+
+    for (n = 0; n < smp_cpus; n++) {
+
+        env = cpu_init(cpu_model);
+
+        if (!env) {
+
+            fprintf(stderr, "Unable to find CPU definition\n");
+
+            exit(1);
+
+        }
+
+        irqp = arm_pic_init_cpu(env);
+
+        cpu_irq[n] = irqp[ARM_PIC_CPU_IRQ];
+
+    }
+
+    if (arm_feature(env, ARM_FEATURE_V7)) {
+
+        if (is_mpcore) {
+
+            proc_id = 0x0c000000;
+
+        } else {
+
+            proc_id = 0x0e000000;
+
+        }
+
+    } else if (arm_feature(env, ARM_FEATURE_V6K)) {
+
+        proc_id = 0x06000000;
+
+    } else if (arm_feature(env, ARM_FEATURE_V6)) {
+
+        proc_id = 0x04000000;
+
+    } else {
+
+        proc_id = 0x02000000;
+
+    }
+
+
+
+    if (is_pb && ram_size > 0x20000000) {
+
+        /* Core tile RAM.  */
+
+        low_ram_size = ram_size - 0x20000000;
+
+        ram_size = 0x20000000;
+
+        ram_offset = qemu_ram_alloc(NULL, "realview.lowmem", low_ram_size);
+
+        cpu_register_physical_memory(0x20000000, low_ram_size,
+
+                                     ram_offset | IO_MEM_RAM);
+
+    }
+
+
+
+    ram_offset = qemu_ram_alloc(NULL, "realview.highmem", ram_size);
+
+    low_ram_size = ram_size;
+
+    if (low_ram_size > 0x10000000)
+
+      low_ram_size = 0x10000000;
+
+    /* SDRAM at address zero.  */
+
+    cpu_register_physical_memory(0, low_ram_size, ram_offset | IO_MEM_RAM);
+
+    if (is_pb) {
+
+        /* And again at a high address.  */
+
+        cpu_register_physical_memory(0x70000000, ram_size,
+
+                                     ram_offset | IO_MEM_RAM);
+
+    } else {
+
+        ram_size = low_ram_size;
+
+    }
+
+
+
+    sys_id = is_pb ? 0x01780500 : 0xc1400400;
+
+    sysctl = qdev_create(NULL, "realview_sysctl");
+
+    qdev_prop_set_uint32(sysctl, "sys_id", sys_id);
+
+    qdev_init_nofail(sysctl);
+
+    qdev_prop_set_uint32(sysctl, "proc_id", proc_id);
+
+    sysbus_mmio_map(sysbus_from_qdev(sysctl), 0, 0x10000000);
+
+
+
+    if (is_mpcore) {
+
+        dev = qdev_create(NULL, is_pb ? "a9mpcore_priv": "realview_mpcore");
+
+  
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+16 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+16 -> 23 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+68 -> 71 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void realview_init(ram_addr_t ram_size,
+
+                     const char *boot_device,
+
+                     const char *kernel_filename, const char *kernel_cmdline,
+
+                     const char *initrd_filename, const char *cpu_model,
+
+                     enum realview_board_type board_type)
+
+{
+
+    CPUState *env = NULL;
+
+    ram_addr_t ram_offset;
+
+    DeviceState *dev, *sysctl, *gpio2;
+
+    SysBusDevice *busdev;
+
+    qemu_irq *irqp;
+
+    qemu_irq pic[64];
+
+    qemu_irq mmc_irq[2];
+
+    PCIBus *pci_bus;
+
+    NICInfo *nd;
+
+    i2c_bus *i2c;
+
+    int n;
+
+    int done_nic = 0;
+
+    qemu_irq cpu_irq[4];
+
+    int is_mpcore = 0;
+
+    int is_pb = 0;
+
+    uint32_t proc_id = 0;
+
+    uint32_t sys_id;
+
+    ram_addr_t low_ram_size;
+
+
+
+    switch (board_type) {
+
+    case BOARD_EB:
+
+        break;
+
+    case BOARD_EB_MPCORE:
+
+        is_mpcore = 1;
+
+        break;
+
+    case BOARD_PB_A8:
+
+        is_pb = 1;
+
+        break;
+
+    case BOARD_PBX_A9:
+
+        is_mpcore = 1;
+
+        is_pb = 1;
+
+        break;
+
+    }
+
+    for (n = 0; n < smp_cpus; n++) {
+
+        env = cpu_init(cpu_model);
+
+        if (!env) {
+
+            fprintf(stderr, "Unable to find CPU definition\n");
+
+            exit(1);
+
+        }
+
+        irqp = arm_pic_init_cpu(env);
+
+        cpu_irq[n] = irqp[ARM_PIC_CPU_IRQ];
+
+    }
+
+    if (arm_feature(env, ARM_FEATURE_V7)) {
+
+        if (is_mpcore) {
+
+            proc_id = 0x0c000000;
+
+        } else {
+
+            proc_id = 0x0e000000;
+
+        }
+
+    } else if (arm_
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

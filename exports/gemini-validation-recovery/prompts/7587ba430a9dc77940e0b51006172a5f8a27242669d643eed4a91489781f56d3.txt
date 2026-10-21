@@ -1,0 +1,320 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint64_t sp804_read(void *opaque, target_phys_addr_t offset,
+
+                           unsigned size)
+
+{
+
+    sp804_state *s = (sp804_state *)opaque;
+
+
+
+    if (offset < 0x20) {
+
+        return arm_timer_read(s->timer[0], offset);
+
+    }
+
+    if (offset < 0x40) {
+
+        return arm_timer_read(s->timer[1], offset - 0x20);
+
+    }
+
+
+
+    /* TimerPeriphID */
+
+    if (offset >= 0xfe0 && offset <= 0xffc) {
+
+        return sp804_ids[(offset - 0xfe0) >> 2];
+
+    }
+
+
+
+    switch (offset) {
+
+    /* Integration Test control registers, which we won't support */
+
+    case 0xf00: /* TimerITCR */
+
+    case 0xf04: /* TimerITOP (strictly write only but..) */
+
+        return 0;
+
+    }
+
+
+
+    hw_error("%s: Bad offset %x\n", __func__, (int)offset);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    sp804_state *s = (sp804_state *)opaque;
+
+
+
+    if (offset < 0x20) {
+
+        return arm_timer_read(s->timer[0], offset);
+
+    }
+
+    if (offset < 0x40) {
+
+        return arm_timer_read(s->timer[1], offset - 0x20);
+
+    }
+
+
+
+    /* TimerPeriphID */
+
+    if (offset >= 0xfe0 && offset <= 0xffc) {
+
+        return sp804_ids[(offset - 0xfe0) >> 2];
+
+    }
+
+
+
+    switch (offset) {
+
+    /* Integration Test control registers, which we won't support */
+
+    case 0xf00: /* TimerITCR */
+
+    case 0xf04: /* TimerITOP (strictly write only but..) */
+
+        return 0;
+
+    }
+
+
+
+    hw_error("%s: Bad offset %x\n", __func__, (int)offset);
+
+    return 0;
+
+}
+      
+25769803777 | BLOCK | { return arm_timer_read(s->timer[0], offset); }
+25769803778 | BLOCK | { return arm_timer_read(s->timer[1], offset - 0x20); }
+25769803779 | BLOCK | { return sp804_ids[(offset - 0xfe0) >> 2]; }
+25769803780 | BLOCK | 
+        {
+
+    /* Integration Test control registers, which we won't support */
+
+    case 0xf00: /* TimerITCR */
+
+    case 0xf04: /* TimerITOP (strictly write only but..) */
+
+        return 0;
+
+    }
+      
+30064771072 | CALL | s = (sp804_state *)opaque
+30064771073 | CALL | (sp804_state *)opaque
+30064771074 | CALL | offset < 0x20
+30064771075 | CALL | arm_timer_read(s->timer[0], offset)
+30064771076 | CALL | s->timer[0]
+30064771077 | CALL | s->timer
+30064771078 | CALL | offset < 0x40
+30064771079 | CALL | arm_timer_read(s->timer[1], offset - 0x20)
+30064771080 | CALL | s->timer[1]
+30064771081 | CALL | s->timer
+30064771082 | CALL | offset - 0x20
+30064771083 | CALL | offset >= 0xfe0 && offset <= 0xffc
+30064771084 | CALL | offset >= 0xfe0
+30064771085 | CALL | offset <= 0xffc
+30064771086 | CALL | sp804_ids[(offset - 0xfe0) >> 2]
+30064771087 | CALL | (offset - 0xfe0) >> 2
+30064771088 | CALL | offset - 0xfe0
+30064771089 | CALL | hw_error("%s: Bad offset %x\n", __func__, (int)offset)
+30064771090 | CALL | (int)offset
+47244640256 | CONTROL_STRUCTURE | 
+        if (offset < 0x20) {
+
+        return arm_timer_read(s->timer[0], offset);
+
+    }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if (offset < 0x40) {
+
+        return arm_timer_read(s->timer[1], offset - 0x20);
+
+    }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if (offset >= 0xfe0 && offset <= 0xffc) {
+
+        return sp804_ids[(offset - 0xfe0) >> 2];
+
+    }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        switch (offset) {
+
+    /* Integration Test control registers, which we won't support */
+
+    case 0xf00: /* TimerITCR */
+
+    case 0xf04: /* TimerITOP (strictly write only but..) */
+
+        return 0;
+
+    }
+      
+55834574848 | FIELD_IDENTIFIER | timer
+55834574849 | FIELD_IDENTIFIER | timer
+68719476736 | IDENTIFIER | s
+68719476737 | IDENTIFIER | opaque
+68719476738 | IDENTIFIER | offset
+68719476739 | IDENTIFIER | s
+68719476740 | IDENTIFIER | offset
+68719476741 | IDENTIFIER | offset
+68719476742 | IDENTIFIER | s
+68719476743 | IDENTIFIER | offset
+68719476744 | IDENTIFIER | offset
+68719476745 | IDENTIFIER | offset
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 55834574848 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 68719476744 [CDG]
+30064771078 -> 68719476743 [CDG]
+30064771078 -> 68719476742 [CDG]
+30064771078 -> 55834574849 [CDG]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 68719476744 [CFG]
+30064771078 -> 68719476742 [DOMINATE]
+30064771078 -> 68719476744 [DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771082 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771082 [AST]
+30064771079 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 68719476743 [CFG]
+30064771080 -> 68719476743 [DOMINATE]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 68719476742 [ARGUMENT]
+30064771081 -> 55834574849 [ARGUMENT]
+30064771081 -> 68719476742 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void sp804_write(void *opaque, target_phys_addr_t offset,
+
+                        uint64_t value, unsigned size)
+
+{
+
+    sp804_state *s = (sp804_state *)opaque;
+
+
+
+    if (offset < 0x20) {
+
+        arm_timer_write(s->timer[0], offset, value);
+
+        return;
+
+    }
+
+
+
+    if (offset < 0x40) {
+
+        arm_timer_write(s->timer[1], offset - 0x20, value);
+
+        return;
+
+    }
+
+
+
+    /* Technically we could be writing to the Test Registers, but not likely */
+
+    hw_error("%s: Bad offset %x\n", __func__, (int)offset);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

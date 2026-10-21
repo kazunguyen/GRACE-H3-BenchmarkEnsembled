@@ -1,0 +1,293 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int s390_virtio_hypercall ( CPUState * env ) {
+ int r = 0 , i ;
+ target_ulong mem = env -> regs [ 2 ] ;
+ dprintf ( "KVM hypercall: %ld\n" , env -> regs [ 1 ] ) ;
+ switch ( env -> regs [ 1 ] ) {
+ case KVM_S390_VIRTIO_NOTIFY : if ( mem > ram_size ) {
+ VirtIOS390Device * dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i ) ;
+ if ( dev ) {
+ virtio_queue_notify ( dev -> vdev , i ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ }
+ else {
+ }
+ break ;
+ case KVM_S390_VIRTIO_RESET : {
+ break ;
+ }
+ case KVM_S390_VIRTIO_SET_STATUS : {
+ VirtIOS390Device * dev ;
+ dev = s390_virtio_bus_find_mem ( s390_bus , mem ) ;
+ if ( dev ) {
+ s390_virtio_device_update_status ( dev ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ break ;
+ }
+ default : r = - EINVAL ;
+ break ;
+ }
+ env -> regs [ 2 ] = r ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int r = 0 , i ;
+ target_ulong mem = env -> regs [ 2 ] ;
+ dprintf ( "KVM hypercall: %ld\n" , env -> regs [ 1 ] ) ;
+ switch ( env -> regs [ 1 ] ) {
+ case KVM_S390_VIRTIO_NOTIFY : if ( mem > ram_size ) {
+ VirtIOS390Device * dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i ) ;
+ if ( dev ) {
+ virtio_queue_notify ( dev -> vdev , i ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ }
+ else {
+ }
+ break ;
+ case KVM_S390_VIRTIO_RESET : {
+ break ;
+ }
+ case KVM_S390_VIRTIO_SET_STATUS : {
+ VirtIOS390Device * dev ;
+ dev = s390_virtio_bus_find_mem ( s390_bus , mem ) ;
+ if ( dev ) {
+ s390_virtio_device_update_status ( dev ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ break ;
+ }
+ default : r = - EINVAL ;
+ break ;
+ }
+ env -> regs [ 2 ] = r ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case KVM_S390_VIRTIO_NOTIFY : if ( mem > ram_size ) {
+ VirtIOS390Device * dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i ) ;
+ if ( dev ) {
+ virtio_queue_notify ( dev -> vdev , i ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ }
+ else {
+ }
+ break ;
+ case KVM_S390_VIRTIO_RESET : {
+ break ;
+ }
+ case KVM_S390_VIRTIO_SET_STATUS : {
+ VirtIOS390Device * dev ;
+ dev = s390_virtio_bus_find_mem ( s390_bus , mem ) ;
+ if ( dev ) {
+ s390_virtio_device_update_status ( dev ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ break ;
+ }
+ default : r = - EINVAL ;
+ break ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ VirtIOS390Device * dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i ) ;
+ if ( dev ) {
+ virtio_queue_notify ( dev -> vdev , i ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ }
+      
+25769803779 | BLOCK | { virtio_queue_notify ( dev -> vdev , i ) ; }
+25769803780 | BLOCK | { r = - EINVAL ; }
+25769803781 | BLOCK | { }
+25769803782 | BLOCK | { break ; }
+25769803783 | BLOCK | 
+        {
+ VirtIOS390Device * dev ;
+ dev = s390_virtio_bus_find_mem ( s390_bus , mem ) ;
+ if ( dev ) {
+ s390_virtio_device_update_status ( dev ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ break ;
+ }
+      
+25769803784 | BLOCK | { s390_virtio_device_update_status ( dev ) ; }
+25769803785 | BLOCK | { r = - EINVAL ; }
+30064771072 | CALL | r = 0
+30064771073 | CALL | mem = env -> regs [ 2 ]
+30064771074 | CALL | env -> regs [ 2 ]
+30064771075 | CALL | env -> regs
+30064771076 | CALL | dprintf ( "KVM hypercall: %ld\n" , env -> regs [ 1 ] )
+30064771077 | CALL | env -> regs [ 1 ]
+30064771078 | CALL | env -> regs
+30064771079 | CALL | env -> regs [ 1 ]
+30064771080 | CALL | env -> regs
+30064771081 | CALL | mem > ram_size
+30064771082 | CALL | dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i )
+30064771083 | CALL | s390_virtio_bus_find_vring ( s390_bus , mem , & i )
+30064771084 | CALL | & i
+30064771085 | CALL | dev != NULL
+30064771086 | CALL | virtio_queue_notify ( dev -> vdev , i )
+30064771087 | CALL | dev -> vdev
+30064771088 | CALL | r = - EINVAL
+30064771089 | CALL | - EINVAL
+30064771090 | CALL | dev = s390_virtio_bus_find_mem ( s390_bus , mem )
+30064771091 | CALL | s390_virtio_bus_find_mem ( s390_bus , mem )
+30064771092 | CALL | dev != NULL
+30064771093 | CALL | s390_virtio_device_update_status ( dev )
+30064771094 | CALL | r = - EINVAL
+30064771095 | CALL | - EINVAL
+30064771096 | CALL | r = - EINVAL
+30064771097 | CALL | - EINVAL
+30064771098 | CALL | env -> regs [ 2 ] = r
+30064771099 | CALL | env -> regs [ 2 ]
+30064771100 | CALL | env -> regs
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( env -> regs [ 1 ] ) {
+ case KVM_S390_VIRTIO_NOTIFY : if ( mem > ram_size ) {
+ VirtIOS390Device * dev = s390_virtio_bus_find_vring ( s390_bus , mem , & i ) ;
+ if ( dev ) {
+ virtio_queue_notify ( dev -> vdev , i ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ }
+ else {
+ }
+ break ;
+ case KVM_S390_VIRTIO_RESET : {
+ break ;
+ }
+ case KVM_S390_VIRTIO_SET_STATUS : {
+ VirtIOS390Device * dev ;
+ dev = s390_virtio_bus_find_mem ( s390_bus , mem ) ;
+ if ( dev ) {
+ s390_virtio_device_update_status ( dev ) ;
+ }
+ else {
+ r = - EINVAL ;
+ }
+ break ;
+ }
+ default : r = - EINVAL ;
+ break ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 25769803782 [AST]
+25769803777 -> 25769803783 [AST]
+25769803777 -> 30064771096 [AST]
+25769803778 -> 30064771082 [AST]
+25769803779 -> 30064771086 [AST]
+25769803780 -> 30064771088 [AST]
+25769803783 -> 30064771090 [AST]
+25769803784 -> 30064771093 [AST]
+25769803785 -> 30064771094 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771100 [REACHING_DEF]
+30064771074 -> 30064771080 [REACHING_DEF]
+30064771074 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771100 [REACHING_DEF]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771096 [CDG]
+30064771079 -> 30064771097 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

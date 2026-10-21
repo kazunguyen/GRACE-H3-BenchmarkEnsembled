@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void cmd_server_add_modify ( const char * data , gboolean add ) {
+ GHashTable * optlist ;
+ SERVER_SETUP_REC * rec ;
+ char * addr , * portstr , * password , * value , * chatnet ;
+ void * free_arg ;
+ int port ;
+ if ( ! cmd_get_params ( data , & free_arg , 3 | PARAM_FLAG_OPTIONS , "server add" , & optlist , & addr , & portstr , & password ) ) return ;
+ if ( * addr == '\0' ) cmd_param_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+ value = g_hash_table_lookup ( optlist , "port" ) ;
+ if ( * portstr != '\0' ) port = atoi ( portstr ) ;
+ else if ( value != NULL && * value != '\0' ) port = atoi ( value ) ;
+ else if ( g_hash_table_lookup ( optlist , "tls" ) || g_hash_table_lookup ( optlist , "ssl" ) ) port = DEFAULT_SERVER_ADD_TLS_PORT ;
+ else port = DEFAULT_SERVER_ADD_PORT ;
+ chatnet = g_hash_table_lookup ( optlist , "network" ) ;
+ rec = server_setup_find ( addr , port , chatnet ) ;
+ if ( rec == NULL ) {
+ if ( add == FALSE ) {
+ printformat ( NULL , NULL , MSGLEVEL_CLIENTNOTICE , TXT_SETUPSERVER_NOT_FOUND , addr , port ) ;
+ cmd_params_free ( free_arg ) ;
+ return ;
+ }
+ rec = create_server_setup ( optlist ) ;
+ if ( rec == NULL ) {
+ cmd_params_free ( free_arg ) ;
+ return ;
+ }
+ rec -> address = g_strdup ( addr ) ;
+ rec -> port = port ;
+ }
+ else {
+ if ( * portstr != '\0' || g_hash_table_lookup ( optlist , "port" ) ) rec -> port = port ;
+ if ( * password != '\0' ) g_free_and_null ( rec -> password ) ;
+ if ( g_hash_table_lookup ( optlist , "host" ) ) {
+ g_free_and_null ( rec -> own_host ) ;
+ rec -> own_ip4 = rec -> own_ip6 = NULL ;
+ }
+ }
+ if ( g_hash_table_lookup ( optlist , "6" ) ) rec -> family = AF_INET6 ;
+ else if ( g_hash_table_lookup ( optlist , "4" ) ) rec -> family = AF_INET ;
+ if ( g_hash_table_lookup ( optlist , "tls" ) || g_hash_table_lookup ( optlist , "ssl" ) ) {
+ rec -> use_tls = TRUE ;
+ }
+ else if ( g_hash_table_lookup ( optlist , "notls" ) || g_hash_table_lookup ( optlist , "nossl" ) ) {
+ rec -> use_tls = FALSE ;
+ rec -> tls_verify = FALSE ;
+ }
+ value = g_hash_table_lookup ( optlist , "tls_cert" ) ;
+ if ( value == NULL ) value = g_hash_table_lookup ( optlist , "ssl_cert" ) ;
+ if ( value != NULL && * value != '\0' ) rec -> tls_cert = g_strdup ( value ) ;
+ value = g_hash_table_lookup ( optlist , "tls_pkey" ) ;
+ if ( value == NULL ) value = g_hash_table_lookup ( optlist , "ssl_pkey" ) ;
+ if ( value != NULL && * value != '\0' ) rec -> tls_pkey = g_strdup ( value ) ;
+ value = g_hash_table_lookup ( optlist , "tls_pass" ) ;
+ if ( value == NULL ) value = g_hash_table_lookup ( optlist , "ssl_pass" ) ;
+ if ( value != NULL && * value != '\0' ) rec -> tls_pass = g_strdup ( value ) ;
+ if ( g_hash_table_lookup ( optlist , "tls_verify" ) || g_hash_table_lookup ( optlist , "ssl_verify" ) ) rec -> tls_verify = TRUE ;
+ else if ( g_hash_table_lookup ( optlist , "notls_verify" ) || g_hash_table_lookup ( optlist , "nossl_verify" ) ) rec -> tls_verify = FALSE ;
+ value = g_hash_table_lookup ( optlist , "tls_cafile" ) ;
+ if ( value == NULL ) value = g_hash_table_lookup ( op
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GHashTable * optlist ;
+ SERVER_SETUP_REC * rec ;
+ char * addr , * portstr , * password , * value , * chatnet ;
+ void * free_arg ;
+ int port ;
+ if ( ! cmd_get_params ( data , & free_arg , 3 | PARAM_FLAG_OPTIONS , "server add" , & optlist , & addr , & portstr , & password ) ) return ;
+ if ( * addr == '\0' ) cmd_param_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+ value = g_hash_table_lookup ( optlist , "port" ) ;
+ if ( * portstr != '\0' ) port = atoi ( portstr ) ;
+ else if ( value != NULL && * value != '\0' ) port = atoi ( value ) ;
+ else if ( g_hash_table_lookup ( optlist , "tls" ) || g_hash_table_lookup ( optlist , "ssl" ) ) port = DEFAULT_SERVER_ADD_TLS_PORT ;
+ else port = DEFAULT_SERVER_ADD_PORT ;
+ chatnet = g_hash_table_lookup ( optlist , "network" ) ;
+ rec = server_setup_find ( addr , port , chatnet ) ;
+ if ( rec == NULL ) {
+ if ( add == FALSE ) {
+ printformat ( NULL , NULL , MSGLEVEL_CLIENTNOTICE , TXT_SETUPSERVER_NOT_FOUND , addr , port ) ;
+ cmd_params_free ( free_arg ) ;
+ return ;
+...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ if ( add == FALSE ) {
+ printformat ( NULL , NULL , MSGLEVEL_CLIENTNOTICE , TXT_SETUPSERVER_NOT_FOUND , addr , port ) ;
+ cmd_params_free ( free_arg ) ;
+ return ;
+ }
+ rec = create_server_setup ( optlist ) ;
+ if ( rec == NULL ) {
+ cmd_params_free ( free_arg ) ;
+ return ;
+ }
+ rec -> address = g_strdup ( addr ) ;
+ rec -> port = port ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ printformat ( NULL , NULL , MSGLEVEL_CLIENTNOTICE , TXT_SETUPSERVER_NOT_FOUND , addr , port ) ;
+ cmd_params_free ( free_arg ) ;
+ return ;
+ }
+      
+25769803787 | BLOCK | { cmd_params_free ( free_arg ) ; return ; }
+25769803788 | BLOCK | 
+        {
+ if ( * portstr != '\0' || g_hash_table_lookup ( optlist , "port" ) ) rec -> port = port ;
+ if ( * password != '\0' ) g_free_and_null ( rec -> password ) ;
+ if ( g_hash_table_lookup ( optlist , "host" ) ) {
+ g_free_and_null ( rec -> own_host ) ;
+ rec -> own_ip4 = rec -> own_ip6 = NULL ;
+ }
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ g_free_and_null ( rec -> own_host ) ;
+ rec -> own_ip4 = rec -> own_ip6 = NULL ;
+ }
+      
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | { rec -> use_tls = TRUE ; }
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | { rec -> use_tls = FALSE ; rec -> tls_verify = FALSE ; }
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | <empty>
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | <empty>
+25769803804 | BLOCK | <empty>
+25769803805 | BLOCK | <empty>
+25769803806 | BLOCK | <empty>
+25769803807 | BLOCK | <empty>
+25769803808 | BLOCK | <empty>
+25769803809 | BLOCK | <empty>
+25769803810 | BLOCK | <empty>
+25769803811 | BLOCK | <empty>
+25769803812 | BLOCK | <empty>
+25769803813 | BLOCK | <empty>
+25769803814 | BLOCK | <empty>
+25769803815 | BLOCK | <empty>
+EDGES:
+
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void cmd_server_add_modify ( const char * data , gboolean add ) {
+ GHashTable * optlist ;
+ SERVER_SETUP_REC * rec ;
+ char * addr , * portstr , * password , * value , * chatnet ;
+ void * free_arg ;
+ int port ;
+ if ( ! cmd_get_params ( data , & free_arg , 3 | PARAM_FLAG_OPTIONS , "server add" , & optlist , & addr , & portstr , & password ) ) return ;
+ if ( * addr == '\0' ) cmd_param_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+ value = g_hash_table_lookup ( optlist , "port" ) ;
+ if ( * portstr != '\0' ) port = atoi ( portstr ) ;
+ else if ( value != NULL && * value != '\0' ) port = atoi ( value ) ;
+ else if ( g_hash_table_lookup ( optlist , "tls" ) || g_hash_table_lookup ( optlist , "ssl" ) ) port = DEFAULT_SERVER_ADD_TLS_PORT ;
+ else port = DEFAULT_SERVER_ADD_PORT ;
+ chatnet = g_hash_table_lookup ( optlist , "network" ) ;
+ rec = server_setup_find ( addr , port , chatnet ) ;
+ if ( rec == NULL ) {
+ if ( add == FALSE ) {
+ cmd_params_free ( free_arg ) ;
+ printformat ( NULL , NULL , MSGLEVEL_CLIENTNOTICE , TXT_SETUPSERVER_NOT_FOUND , addr , port ) ;
+ return ;
+ }
+ rec = create_server_setup ( optlist ) ;
+ if ( rec == NULL ) {
+ cmd_params_free ( free_arg ) ;
+ re
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

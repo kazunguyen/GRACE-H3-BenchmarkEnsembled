@@ -1,0 +1,159 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int drive_get_max_bus(BlockInterfaceType type)
+
+{
+
+    int max_bus;
+
+    DriveInfo *dinfo;
+
+
+
+    max_bus = -1;
+
+    TAILQ_FOREACH(dinfo, &drives, next) {
+
+        if(dinfo->type == type &&
+
+           dinfo->bus > max_bus)
+
+            max_bus = dinfo->bus;
+
+    }
+
+    return max_bus;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 41 [IS_AST_PARENT]
+31 -> 37 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+29 -> 42 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 50 [IS_AST_PARENT]
+3 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+3 -> 52 [IS_AST_PARENT]
+56 -> 53 [FLOWS_TO]
+53 -> 5 [FLOWS_TO]
+5 -> 9 [FLOWS_TO]
+9 -> 13 [FLOWS_TO]
+13 -> 19 [FLOWS_TO]
+19 -> 20 [FLOWS_TO]
+20 -> 21 [FLOWS_TO]
+21 -> 22 [FLOWS_TO]
+22 -> 23 [FLOWS_TO]
+23 -> 24 [FLOWS_TO]
+24 -> 25 [FLOWS_TO]
+25 -> 26 [FLOWS_TO]
+26 -> 27 [FLOWS_TO]
+27 -> 30 [FLOWS_TO]
+30 -> 42 [FLOWS_TO]
+30 -> 48 [FLOWS_TO]
+42 -> 48 [FLOWS_TO]
+48 -> 57 [FLOWS_TO]
+5 -> 58 [DEF]
+6 -> 58 [DEF]
+13 -> 58 [DEF]
+14 -> 58 [DEF]
+30 -> 58 [USE]
+42 -> 58 [DEF]
+43 -> 58 [DEF]
+48 -> 58 [USE]
+9 -> 59 [DEF]
+10 -> 59 [DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+DriveInfo *drive_get(BlockInterfaceType type, int bus, int unit)
+
+{
+
+    DriveInfo *dinfo;
+
+
+
+    /* seek interface, bus and unit */
+
+
+
+    TAILQ_FOREACH(dinfo, &drives, next) {
+
+        if (dinfo->type == type &&
+
+	    dinfo->bus == bus &&
+
+	    dinfo->unit == unit)
+
+            return dinfo;
+
+    }
+
+
+
+    return NULL;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

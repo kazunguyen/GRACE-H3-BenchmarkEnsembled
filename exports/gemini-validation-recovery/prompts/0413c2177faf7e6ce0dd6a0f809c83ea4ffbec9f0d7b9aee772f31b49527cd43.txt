@@ -1,0 +1,251 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ffserver_apply_stream_config(AVCodecContext *enc, const AVDictionary *conf, AVDictionary **opts)
+
+{
+
+    AVDictionaryEntry *e;
+
+    int ret = 0;
+
+
+
+    /* Return values from ffserver_set_*_param are ignored.
+
+       Values are initially parsed and checked before inserting to AVDictionary. */
+
+
+
+    //video params
+
+    if ((e = av_dict_get(conf, "VideoBitRateRangeMin", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_min_rate, e->value, 1000, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRateRangeMax", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_max_rate, e->value, 1000, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "Debug", NULL, 0)))
+
+        ffserver_set_int_param(&enc->debug, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "Strict", NULL, 0)))
+
+        ffserver_set_int_param(&enc->strict_std_compliance, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBufferSize", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_buffer_size, e->value, 8*1024, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRateTolerance", NULL, 0)))
+
+        ffserver_set_int_param(&enc->bit_rate_tolerance, e->value, 1000, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRate", NULL, 0)))
+
+        ffserver_set_int_param(&enc->bit_rate, e->value, 1000, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoSizeWidth", NULL, 0)))
+
+        ffserver_set_int_param(&enc->width, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoSizeHeight", NULL, 0)))
+
+        ffserver_set_int_param(&enc->height, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "PixelFormat", NULL, 0))) {
+
+        int val;
+
+        ffserver_set_int_param(&val, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+        enc->pix_fmt = val;
+
+    }
+
+    if ((e = av_dict_get(conf, "VideoGopSize", NULL, 0)))
+
+        ffserver_set_int_param(&enc->gop_size, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoFrameRateNum", NULL, 0)))
+
+        ffserver_set_int_param(&enc->time_base.num, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoFrameRateDen", NULL, 0)))
+
+        ffserver_set_int_param(&enc->time_base.den, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoQDiff", NULL, 0)))
+
+        ffserver_set_int_param(&enc->max_qdiff, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoQMax", NULL, 0)))
+
+        ffserver_set_int_param(&enc->qmax, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoQMin", NULL, 0)))
+
+        ffserver_set_int_param(&enc->qmin, e->value, 0, INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "LumiMask", NULL, 0)))
+
+        ffserver_set_float_param(&enc->l
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+23 -> 28 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+23 -> 30 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+36 -> 43 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+36 -> 47 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+36 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+36 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+36 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+36 -> 55 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+36 -> 57 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+16 -> 32 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+66 -> 69 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+66 -> 71 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+66 -> 73 [IS_AST_PARENT]
+63 -> 66 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void ffserver_apply_stream_config(AVCodecContext *enc, const AVDictionary *conf, AVDictionary **opts)
+
+{
+
+    AVDictionaryEntry *e;
+
+
+
+    /* Return values from ffserver_set_*_param are ignored.
+
+       Values are initially parsed and checked before inserting to
+
+       AVDictionary. */
+
+
+
+    //video params
+
+    if ((e = av_dict_get(conf, "VideoBitRateRangeMin", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_min_rate, e->value, 1000, INT_MIN,
+
+                INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRateRangeMax", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_max_rate, e->value, 1000, INT_MIN,
+
+                INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "Debug", NULL, 0)))
+
+        ffserver_set_int_param(&enc->debug, e->value, 0, INT_MIN, INT_MAX,
+
+                NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "Strict", NULL, 0)))
+
+        ffserver_set_int_param(&enc->strict_std_compliance, e->value, 0,
+
+                INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBufferSize", NULL, 0)))
+
+        ffserver_set_int_param(&enc->rc_buffer_size, e->value, 8*1024,
+
+                INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRateTolerance", NULL, 0)))
+
+        ffserver_set_int_param(&enc->bit_rate_tolerance, e->value, 1000,
+
+                INT_MIN, INT_MAX, NULL, 0, NULL);
+
+    if ((e = av_dict_get(conf, "VideoBitRate", NULL, 0)))
+
+        ffserver_set_int_param(&enc-
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

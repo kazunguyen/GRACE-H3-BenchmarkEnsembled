@@ -1,0 +1,215 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void lfe_interpolation_fir ( DCAContext * s , int decimation_select , int num_deci_sample , float * samples_in , float * samples_out , float scale ) {
+ int decifactor ;
+ const float * prCoeff ;
+ int deciindex ;
+ if ( decimation_select == 1 ) {
+ decifactor = 64 ;
+ prCoeff = lfe_fir_128 ;
+ }
+ else {
+ decifactor = 32 ;
+ prCoeff = lfe_fir_64 ;
+ }
+ for ( deciindex = 0 ;
+ deciindex < num_deci_sample ;
+ deciindex ++ ) {
+ s -> dcadsp . lfe_fir ( samples_out , samples_in , prCoeff , decifactor , scale ) ;
+ samples_in ++ ;
+ samples_out += 2 * decifactor ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int decifactor ;
+ const float * prCoeff ;
+ int deciindex ;
+ if ( decimation_select == 1 ) {
+ decifactor = 64 ;
+ prCoeff = lfe_fir_128 ;
+ }
+ else {
+ decifactor = 32 ;
+ prCoeff = lfe_fir_64 ;
+ }
+ for ( deciindex = 0 ;
+ deciindex < num_deci_sample ;
+ deciindex ++ ) {
+ s -> dcadsp . lfe_fir ( samples_out , samples_in , prCoeff , decifactor , scale ) ;
+ samples_in ++ ;
+ samples_out += 2 * decifactor ;
+ }
+ }
+      
+25769803777 | BLOCK | { decifactor = 64 ; prCoeff = lfe_fir_128 ; }
+25769803778 | BLOCK | { decifactor = 32 ; prCoeff = lfe_fir_64 ; }
+25769803779 | BLOCK | 
+        {
+ s -> dcadsp . lfe_fir ( samples_out , samples_in , prCoeff , decifactor , scale ) ;
+ samples_in ++ ;
+ samples_out += 2 * decifactor ;
+ }
+      
+30064771072 | CALL | decimation_select == 1
+30064771073 | CALL | decifactor = 64
+30064771074 | CALL | prCoeff = lfe_fir_128
+30064771075 | CALL | decifactor = 32
+30064771076 | CALL | prCoeff = lfe_fir_64
+30064771077 | CALL | deciindex = 0
+30064771078 | CALL | deciindex < num_deci_sample
+30064771079 | CALL | deciindex ++
+30064771080 | CALL | 
+        s -> dcadsp . lfe_fir ( samples_out , samples_in , prCoeff , decifactor , scale )
+      
+30064771081 | CALL | s -> dcadsp . lfe_fir
+30064771082 | CALL | s -> dcadsp
+30064771083 | CALL | samples_in ++
+30064771084 | CALL | samples_out += 2 * decifactor
+30064771085 | CALL | 2 * decifactor
+47244640256 | CONTROL_STRUCTURE | 
+        if ( decimation_select == 1 ) {
+ decifactor = 64 ;
+ prCoeff = lfe_fir_128 ;
+ }
+ else {
+ decifactor = 32 ;
+ prCoeff = lfe_fir_64 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | for (deciindex = 0 ;deciindex < num_deci_sample;deciindex ++)
+55834574848 | FIELD_IDENTIFIER | dcadsp
+55834574849 | FIELD_IDENTIFIER | lfe_fir
+68719476736 | IDENTIFIER | decimation_select
+68719476737 | IDENTIFIER | decifactor
+68719476738 | IDENTIFIER | prCoeff
+68719476739 | IDENTIFIER | <unknown> lfe_fir_128
+68719476740 | IDENTIFIER | decifactor
+68719476741 | IDENTIFIER | prCoeff
+68719476742 | IDENTIFIER | <unknown> lfe_fir_64
+68719476743 | IDENTIFIER | deciindex
+68719476744 | IDENTIFIER | deciindex
+68719476745 | IDENTIFIER | num_deci_sample
+68719476746 | IDENTIFIER | deciindex
+68719476747 | IDENTIFIER | s
+68719476748 | IDENTIFIER | samples_out
+68719476749 | IDENTIFIER | samples_in
+68719476750 | IDENTIFIER | prCoeff
+68719476751 | IDENTIFIER | decifactor
+68719476752 | IDENTIFIER | scale
+68719476753 | IDENTIFIER | samples_in
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771074 [AST]
+25769803778 -> 30064771075 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771080 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476740 [CFG]
+30064771072 -> 68719476743 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476744 [CFG]
+30064771077 -> 68719476744 [DOMINATE]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 55834574849 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771078 -> 55834574848 [CDG]
+30064771078 -> 68719476745 [CDG]
+30064771078 -> 68719476744 [CDG]
+30064771078 -> 68719476747 [CDG]
+30064771078 -> 68719476746 [CDG]
+30064771078 -> 68719476753 [CDG]
+30064771078 -> 68719476752 [CDG]
+30064771078 -> 68719476749 [CDG]
+30064771078 -> 68719476748 [CDG]
+30064771078 -> 68719476751 [CDG]
+30064771078 -> 68719476750 [CDG]
+30064771078 -> 68719476747 [CFG]
+30064771078 -> 68719476747 [DOMINATE]
+30064771078 -> 68719476745 [POST_DOMINATE]
+30064771079 -> 68719476746 [ARGUMENT]
+30064771079 -> 68719476746 [AST]
+30064771079 -> 68719476744 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void interpolate_float ( COOKContext * q , float * buffer , int gain_index , int gain_index_next ) {
+ int i ;
+ float fc1 , fc2 ;
+ fc1 = pow2tab [ gain_index + 63 ] ;
+ if ( gain_index == gain_index_next ) {
+ for ( i = 0 ;
+ i < q -> gain_size_factor ;
+ i ++ ) buffer [ i ] *= fc1 ;
+ }
+ else {
+ fc2 = q -> gain_table [ 11 + ( gain_index_next - gain_index ) ] ;
+ for ( i = 0 ;
+ i < q -> gain_size_factor ;
+ i ++ ) {
+ buffer [ i ] *= fc1 ;
+ fc1 *= fc2 ;
+ }
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

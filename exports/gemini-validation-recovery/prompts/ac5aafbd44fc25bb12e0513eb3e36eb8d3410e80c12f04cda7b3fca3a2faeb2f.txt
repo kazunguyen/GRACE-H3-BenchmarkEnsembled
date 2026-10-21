@@ -1,0 +1,309 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+long do_sigreturn(CPUMBState *env)
+
+{
+
+    struct target_signal_frame *frame;
+
+    abi_ulong frame_addr;
+
+    target_sigset_t target_set;
+
+    sigset_t set;
+
+    int i;
+
+
+
+    frame_addr = env->regs[R_SP];
+
+    /* Make sure the guest isn't playing games.  */
+
+    if (!lock_user_struct(VERIFY_WRITE, frame, frame_addr, 1))
+
+        goto badframe;
+
+
+
+    /* Restore blocked signals */
+
+    if (__get_user(target_set.sig[0], &frame->uc.tuc_mcontext.oldmask))
+
+        goto badframe;
+
+    for(i = 1; i < TARGET_NSIG_WORDS; i++) {
+
+        if (__get_user(target_set.sig[i], &frame->extramask[i - 1]))
+
+            goto badframe;
+
+    }
+
+    target_to_host_sigset_internal(&set, &target_set);
+
+    sigprocmask(SIG_SETMASK, &set, NULL);
+
+
+
+    restore_sigcontext(&frame->uc.tuc_mcontext, env);
+
+    /* We got here through a sigreturn syscall, our path back is via an
+
+       rtb insn so setup r14 for that.  */
+
+    env->regs[14] = env->sregs[SR_PC];
+
+ 
+
+    unlock_user_struct(frame, frame_addr, 0);
+
+    return env->regs[10];
+
+  badframe:
+
+    unlock_user_struct(frame, frame_addr, 0);
+
+    force_sig(TARGET_SIGSEGV);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    struct target_signal_frame *frame;
+
+    abi_ulong frame_addr;
+
+    target_sigset_t target_set;
+
+    sigset_t set;
+
+    int i;
+
+
+
+    frame_addr = env->regs[R_SP];
+
+    /* Make sure the guest isn't playing games.  */
+
+    if (!lock_user_struct(VERIFY_WRITE, frame, frame_addr, 1))
+
+        goto badframe;
+
+
+
+    /* Restore blocked signals */
+
+    if (__get_user(target_set.sig[0], &frame->uc.tuc_mcontext.oldmask))
+
+        goto badframe;
+
+    for(i = 1; i < TARGET_NSIG_WORDS; i++) {
+
+        if (__get_user(target_set.sig[i], &frame->extramask[i - 1]))
+
+            goto badframe;
+
+    }
+
+    target_to_host_sigset_internal(&set, &target_set);
+
+    sigprocmask(SIG_SETMASK, &set, NULL);
+
+
+
+    restore_sigcontext(&frame->uc.tuc_mcontext, env);
+
+    /* We got here through a sigreturn syscall, our path back is via an
+
+       rtb insn so setup r14 for that.  */
+
+    env->regs[14] = env->sregs[SR_PC];
+
+ 
+
+    unlock_user_struct(frame, frame_addr, 0);
+
+    return env->regs[10];
+
+  badframe...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+
+        if (__get_user(target_set.sig[i], &frame->extramask[i - 1]))
+
+            goto badframe;
+
+    }
+      
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | frame_addr = env->regs[R_SP]
+30064771073 | CALL | env->regs[R_SP]
+30064771074 | CALL | env->regs
+30064771075 | CALL | !lock_user_struct(VERIFY_WRITE, frame, frame_addr, 1)
+30064771076 | CALL | lock_user_struct(VERIFY_WRITE, frame, frame_addr, 1)
+30064771077 | CALL | __get_user(target_set.sig[0], &frame->uc.tuc_mcontext.oldmask)
+30064771078 | CALL | target_set.sig[0]
+30064771079 | CALL | target_set.sig
+30064771080 | CALL | &frame->uc.tuc_mcontext.oldmask
+30064771081 | CALL | frame->uc.tuc_mcontext.oldmask
+30064771082 | CALL | frame->uc.tuc_mcontext
+30064771083 | CALL | frame->uc
+30064771084 | CALL | i = 1
+30064771085 | CALL | i < TARGET_NSIG_WORDS
+30064771086 | CALL | i++
+30064771087 | CALL | __get_user(target_set.sig[i], &frame->extramask[i - 1])
+30064771088 | CALL | target_set.sig[i]
+30064771089 | CALL | target_set.sig
+30064771090 | CALL | &frame->extramask[i - 1]
+30064771091 | CALL | frame->extramask[i - 1]
+30064771092 | CALL | frame->extramask
+30064771093 | CALL | i - 1
+30064771094 | CALL | target_to_host_sigset_internal(&set, &target_set)
+30064771095 | CALL | &set
+30064771096 | CALL | &target_set
+30064771097 | CALL | sigprocmask(SIG_SETMASK, &set, NULL)
+30064771098 | CALL | &set
+30064771099 | CALL | restore_sigcontext(&frame->uc.tuc_mcontext, env)
+30064771100 | CALL | &frame->uc.tuc_mcontext
+30064771101 | CALL | frame->uc.tuc_mcontext
+30064771102 | CALL | frame->uc
+30064771103 | CALL | env->regs[14] = env->sregs[SR_PC]
+30064771104 | CALL | env->regs[14]
+30064771105 | CALL | env->regs
+30064771106 | CALL | env->sregs[SR_PC]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771105 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771089 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771077 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771101 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771085 -> 30064771106 [CDG]
+30064771085 -> 30064771105 [CDG]
+30064771085 -> 30064771104 [CDG]
+30064771085 -> 30064771103 [CDG]
+30064771085 -> 30064771098 [CDG]
+30064771085 -> 30064771097 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771102 [CDG]
+30064771085 -> 30064771101 [CDG]
+30064771085 -> 30064771100 [CDG]
+30064771085 -> 30064771099 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771093 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771090 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771090 [AST]
+30064771087 -> 30064771086 [CDG]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+long do_sigreturn(CPUMBState *env)
+
+{
+
+    struct target_signal_frame *frame;
+
+    abi_ulong frame_addr;
+
+    target_sigset_t target_set;
+
+    sigset_t set;
+
+    int i;
+
+
+
+    frame_addr = env->regs[R_SP];
+
+    trace_user_do_sigreturn(env, frame_addr);
+
+    /* Make sure the guest isn't playing games.  */
+
+    if (!lock_user_struct(VERIFY_WRITE, frame, frame_addr, 1))
+
+        goto badframe;
+
+
+
+    /* Restore blocked signals */
+
+    __get_user(target_set.sig[0], &frame->uc.tuc_mcontext.oldmask);
+
+    for(i = 1; i < TARGET_NSIG_WORDS; i++) {
+
+        __get_u
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

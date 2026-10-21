@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mss2_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame , AVPacket * avpkt ) {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ MSS2Context * ctx = avctx -> priv_data ;
+ MSS12Context * c = & ctx -> c ;
+ GetBitContext gb ;
+ GetByteContext gB ;
+ ArithCoder acoder ;
+ int keyframe , has_wmv9 , has_mv , is_rle , is_555 , ret ;
+ Rectangle wmv9rects [ MAX_WMV9_RECTANGLES ] , * r ;
+ int used_rects = 0 , i , implicit_rect = 0 , av_uninit ( wmv9_mask ) ;
+ av_assert0 ( FF_INPUT_BUFFER_PADDING_SIZE >= ARITH2_PADDING + ( MIN_CACHE_BITS + 7 ) / 8 ) ;
+ init_get_bits ( & gb , buf , buf_size * 8 ) ;
+ if ( keyframe = get_bits1 ( & gb ) ) skip_bits ( & gb , 7 ) ;
+ has_wmv9 = get_bits1 ( & gb ) ;
+ has_mv = keyframe ? 0 : get_bits1 ( & gb ) ;
+ is_rle = get_bits1 ( & gb ) ;
+ is_555 = is_rle && get_bits1 ( & gb ) ;
+ if ( c -> slice_split > 0 ) ctx -> split_position = c -> slice_split ;
+ else if ( c -> slice_split < 0 ) {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) ctx -> split_position = get_bits ( & gb , 16 ) ;
+ else ctx -> split_position = get_bits ( & gb , 12 ) ;
+ }
+ else ctx -> split_position = get_bits ( & gb , 8 ) << 4 ;
+ }
+ else {
+ if ( keyframe ) ctx -> split_position = avctx -> height / 2 ;
+ }
+ }
+ else ctx -> split_position = avctx -> height ;
+ if ( c -> slice_split && ( ctx -> split_position < 1 - is_555 || ctx -> split_position > avctx -> height - 1 ) ) return AVERROR_INVALIDDATA ;
+ align_get_bits ( & gb ) ;
+ buf += get_bits_count ( & gb ) >> 3 ;
+ buf_size -= get_bits_count ( & gb ) >> 3 ;
+ if ( buf_size < 1 ) return AVERROR_INVALIDDATA ;
+ if ( is_555 && ( has_wmv9 || has_mv || c -> slice_split && ctx -> split_position ) ) return AVERROR_INVALIDDATA ;
+ avctx -> pix_fmt = is_555 ? AV_PIX_FMT_RGB555 : AV_PIX_FMT_RGB24 ;
+ if ( ctx -> pic . data [ 0 ] && ctx -> pic . format != avctx -> pix_fmt ) avctx -> release_buffer ( avctx , & ctx -> pic ) ;
+ if ( has_wmv9 ) {
+ bytestream2_init ( & gB , buf , buf_size + ARITH2_PADDING ) ;
+ arith2_init ( & acoder , & gB ) ;
+ implicit_rect = ! arith2_get_bit ( & acoder ) ;
+ while ( arith2_get_bit ( & acoder ) ) {
+ if ( used_rects == MAX_WMV9_RECTANGLES ) return AVERROR_INVALIDDATA ;
+ r = & wmv9rects [ used_rects ] ;
+ if ( ! used_rects ) r -> x = arith2_get_number ( & acoder , avctx -> width ) ;
+ else r -> x = arith2_get_number ( & acoder , avctx -> width - wmv9rects [ used_rects - 1 ] . x ) + wmv9rects [ used_rects - 1 ] . x ;
+ r -> y = arith2_get_number ( & acoder , avctx -> height ) ;
+ r -> w = arith2_get_number ( & acoder , avctx -> width - r -> x ) + 1 ;
+ r -> h = arith2_get_number ( & acoder , avctx -> height - r -> y ) + 1 ;
+ used_rects ++ ;
+ }
+ if ( implicit_rect && used_rects ) {
+ av_log ( avctx , AV_LOG_ERROR , "implicit_rect && used_rects > 0\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( implicit_rect ) {
+ wmv9rects [ 0 ] . x = 0 ;
+ wmv9rects [ 0 ] . y = 0 ;
+ wmv9rects [ 0 ] . w = avctx -> width ;
+ wmv9rects [ 0 ] . h = avct
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ MSS2Context * ctx = avctx -> priv_data ;
+ MSS12Context * c = & ctx -> c ;
+ GetBitContext gb ;
+ GetByteContext gB ;
+ ArithCoder acoder ;
+ int keyframe , has_wmv9 , has_mv , is_rle , is_555 , ret ;
+ Rectangle wmv9rects [ MAX_WMV9_RECTANGLES ] , * r ;
+ int used_rects = 0 , i , implicit_rect = 0 , av_uninit ( wmv9_mask ) ;
+ av_assert0 ( FF_INPUT_BUFFER_PADDING_SIZE >= ARITH2_PADDING + ( MIN_CACHE_BITS + 7 ) / 8 ) ;
+ init_get_bits ( & gb , buf , buf_size * 8 ) ;
+ if ( keyframe = get_bits1 ( & gb ) ) skip_bits ( & gb , 7 ) ;
+ has_wmv9 = get_bits1 ( & gb ) ;
+ has_mv = keyframe ? 0 : get_bits1 ( & gb ) ;
+ is_rle = get_bits1 ( & gb ) ;
+ is_555 = is_rle && get_bits1 ( & gb ) ;
+ if ( c -> slice_split > 0 ) ctx -> split_position = c -> slice_split ;
+ else if ( c -> slice_split < 0 ) {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) ctx -> split_position = get_bits ( & gb , 16 ) ;
+ else...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) ctx -> split_position = get_bits ( & gb , 16 ) ;
+ else ctx -> split_position = get_bits ( & gb , 12 ) ;
+ }
+ else ctx -> split_position = get_bits ( & gb , 8 ) << 4 ;
+ }
+ else {
+ if ( keyframe ) ctx -> split_position = avctx -> height / 2 ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( get_bits1 ( & gb ) ) {
+ if ( get_bits1 ( & gb ) ) ctx -> split_position = get_bits ( & gb , 16 ) ;
+ else ctx -> split_position = get_bits ( & gb , 12 ) ;
+ }
+ else ctx -> split_position = get_bits ( & gb , 8 ) << 4 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( get_bits1 ( & gb ) ) ctx -> split_position = get_bits ( & gb , 16 ) ;
+ else ctx -> split_position = get_bits ( & gb , 12 ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { if ( keyframe ) ctx -> split_position = avctx -> height / 2 ; }
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | 
+        {
+ bytestream2_init ( & gB , buf , buf_size + ARITH2_PADDING ) ;
+ arith2_init ( & acoder , & gB ) ;
+ implicit_rect = ! arith2_get_bit ( & acoder ) ;
+ while ( arith2_get_bit ( & acoder ) ) {
+ if ( used_rects == MAX_WMV9_RECTANGLES ) return AVERROR_INVALIDDATA ;
+ r = & wmv9rects [ used_rects ] ;
+ if ( ! used_rects ) r -> x = arith2_get_number ( & acoder , avctx -> width ) ;
+ else r -> x = arith2_get_number ( & acoder , avctx -> width - wmv9rects [ used_rects - 1 ] . x ) + wmv9rects [ used_rects - 1 ] . x ;
+ r -> y = arith2_get_number ( & acoder , avctx -> height ) ;
+ r -> w = arith2_get_number ( & acoder , avctx -> width - r -> x ) + 1 ;
+ r -> h = arith2_get_number ( & acoder , avctx -> height - r -> y ) + 1 ;
+ used_rects ++ ;
+ }
+ if ( implicit_rect && used_rects ) {
+ av_log ( avctx , AV_LOG_ERROR , "implicit_rect && used_rects > 0\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( implicit_rect ) {
+ wmv9rects [ 0 ] . x = 0 ;
+ wmv9rects [ 0 ] . y = 0 ;
+ wmv9rects [ 0 ] . w = avctx -> width...
+      
+25769803794 | BLOCK | 
+        {
+ if ( used_rects == MAX_WMV9_RECTANGLES ) return AVERROR_INVALIDDATA ;
+ r = & wmv9rects [ used_rects ] ;
+ if ( ! used_rects ) r -> x = arith2_get_number ( & acoder , avctx -> width ) ;
+ else r -> x = arith2_get_number ( & acoder , avctx -> width - wmv9rects [ used_rects - 1 ] . x ) + wmv9rects [ used_rects - 1 ] . x ;
+ r -> y = arith2_get_number ( & acoder , avctx -> height ) ;
+ r -> w = arith2_get_number ( & acoder , avctx -> width - r -> x ) + 1 ;
+ r -> h = arith2_get_number ( & acoder , avctx -> height - r -> y ) + 1 ;
+ used_rects ++ ;
+ }
+      
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "implicit_rect && used_rects > 0\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803799 | BLOCK | 
+        {
+ wmv9rects [ 0 ] . x = 0 ;
+ wmv9rects [ 0 ] . y = 0 ;
+ wmv9rects [ 0 ] . w = avctx -> width ;
+ wmv9rects [ 0 ] . h = avctx -> height ;
+ used_rects = 1 ;
+ }
+      
+25769803800 | BLOCK | 
+   
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,168 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void usage_exit ( ) {
+ int i ;
+ fprintf ( stderr , "Usage: %s <options> filename\n\n" "Options:\n" , exec_name ) ;
+ arg_show_usage ( stderr , all_args ) ;
+ # if CONFIG_VP8_DECODER fprintf ( stderr , "\nVP8 Postprocessing Options:\n" ) ;
+ arg_show_usage ( stderr , vp8_pp_args ) ;
+ # endif fprintf ( stderr , "\nOutput File Patterns:\n\n" " The -o argument specifies the name of the file(s) to " "write to. If the\n argument does not include any escape " "characters, the output will be\n written to a single file. " "Otherwise, the filename will be calculated by\n expanding " "the following escape characters:\n" ) ;
+ fprintf ( stderr , "\n\t%%w - Frame width" "\n\t%%h - Frame height" "\n\t%%<n> - Frame number, zero padded to <n> places (1..9)" "\n\n Pattern arguments are only supported in conjunction " "with the --yv12 and\n --i420 options. If the -o option is " "not specified, the output will be\n directed to stdout.\n" ) ;
+ fprintf ( stderr , "\nIncluded decoders:\n\n" ) ;
+ for ( i = 0 ;
+ i < get_vpx_decoder_count ( ) ;
+ ++ i ) {
+ const VpxInterface * const decoder = get_vpx_decoder_by_index ( i ) ;
+ fprintf ( stderr , " %-6s - %s\n" , decoder -> name , vpx_codec_iface_name ( decoder -> codec_interface ( ) ) ) ;
+ }
+ exit ( EXIT_FAILURE ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ fprintf ( stderr , "Usage: %s <options> filename\n\n" "Options:\n" , exec_name ) ;
+ arg_show_usage ( stderr , all_args ) ;
+ # if CONFIG_VP8_DECODER fprintf ( stderr , "\nVP8 Postprocessing Options:\n" ) ;
+ arg_show_usage ( stderr , vp8_pp_args ) ;
+ # endif fprintf ( stderr , "\nOutput File Patterns:\n\n" " The -o argument specifies the name of the file(s) to " "write to. If the\n argument does not include any escape " "characters, the output will be\n written to a single file. " "Otherwise, the filename will be calculated by\n expanding " "the following escape characters:\n" ) ;
+ fprintf ( stderr , "\n\t%%w - Frame width" "\n\t%%h - Frame height" "\n\t%%<n> - Frame number, zero padded to <n> places (1..9)" "\n\n Pattern arguments are only supported in conjunction " "with the --yv12 and\n --i420 options. If the -o option is " "not specified, the output will be\n directed to stdout.\n" ) ;
+ fprintf ( stderr , "\nIncluded decoders:\n\n" ) ;
+ for ( i = 0 ;
+ i < get_vpx_decod...
+      
+25769803777 | BLOCK | 
+        {
+ const VpxInterface * const decoder = get_vpx_decoder_by_index ( i ) ;
+ fprintf ( stderr , " %-6s - %s\n" , decoder -> name , vpx_codec_iface_name ( decoder -> codec_interface ( ) ) ) ;
+ }
+      
+30064771072 | CALL | 
+        fprintf ( stderr , "Usage: %s <options> filename\n\n" "Options:\n" , exec_name )
+      
+30064771073 | CALL | arg_show_usage ( stderr , all_args )
+30064771074 | CALL | 
+        fprintf ( stderr , "\n\t%%w - Frame width" "\n\t%%h - Frame height" "\n\t%%<n> - Frame number, zero padded to <n> places (1..9)" "\n\n Pattern arguments are only supported in conjunction " "with the --yv12 and\n --i420 options. If the -o option is " "not specified, the output will be\n directed to stdout.\n" )
+      
+30064771075 | CALL | fprintf ( stderr , "\nIncluded decoders:\n\n" )
+30064771076 | CALL | i = 0
+30064771077 | CALL | i < get_vpx_decoder_count ( )
+30064771078 | CALL | get_vpx_decoder_count ( )
+30064771079 | CALL | ++ i
+30064771080 | CALL | const decoder = get_vpx_decoder_by_index ( i )
+30064771081 | CALL | get_vpx_decoder_by_index ( i )
+30064771082 | CALL | 
+        fprintf ( stderr , " %-6s - %s\n" , decoder -> name , vpx_codec_iface_name ( decoder -> codec_interface ( ) ) )
+      
+30064771083 | CALL | decoder -> name
+30064771084 | CALL | vpx_codec_iface_name ( decoder -> codec_interface ( ) )
+30064771085 | CALL | decoder -> codec_interface ( )
+30064771086 | CALL | decoder -> codec_interface
+30064771087 | CALL | exit ( EXIT_FAILURE )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < get_vpx_decoder_count ( );++ i)
+55834574848 | FIELD_IDENTIFIER | name
+55834574849 | FIELD_IDENTIFIER | codec_interface
+68719476736 | IDENTIFIER | <unknown> stderr
+68719476737 | IDENTIFIER | <unknown> exec_name
+68719476738 | IDENTIFIER | <unknown> stderr
+68719476739 | IDENTIFIER | <unknown> all_args
+68719476740 | IDENTIFIER | <unknown> stderr
+68719476741 | IDENTIFIER | <unknown> stderr
+68719476742 | IDENTIFIER | i
+68719476743 | IDENTIFIER | i
+68719476744 | IDENTIFIER | i
+68719476745 | IDENTIFIER | decoder
+68719476746 | IDENTIFIER | i
+68719476747 | IDENTIFIER | <unknown> stderr
+68719476748 | IDENTIFIER | decoder
+68719476749 | IDENTIFIER | decoder
+68719476750 | IDENTIFIER | <unknown> EXIT_FAILURE
+90194313216 | LITERAL | "Usage: %s <options> filename\n\n" "Options:\n"
+90194313217 | LITERAL | 
+        "\n\t%%w - Frame width" "\n\t%%h - Frame height" "\n\t%%<n> - Frame number, zero padded to <n> places (1..9)" "\n\n Pattern arguments are only supported in conjunction " "with the --yv12 and\n --i420 options. If the -o option is " "not specified, the output will be\n directed to stdout.\n"
+      
+90194313218 | LITERAL | "\nIncluded decoders:\n\n"
+90194313219 | LITERAL | 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 90194313217 [POST_DOMINATE]
+30064771075 -> 68719476741 [ARGUMENT]
+30064771075 -> 90194313218 [ARGUMENT]
+30064771075 -> 68719476741 [AST]
+30064771075 -> 90194313218 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 90194313218 [POST_DOMINATE]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 90194313219 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 90194313219 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 90194313219 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 68719476749 [CDG]
+30064771077 -> 68719476748 [CDG]
+30064771077 -> 68719476747 [CDG]
+30064771077 -> 68719476746 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 55834574849 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

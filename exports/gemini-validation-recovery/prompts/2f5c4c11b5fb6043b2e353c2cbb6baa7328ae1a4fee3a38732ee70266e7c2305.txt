@@ -1,0 +1,227 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void selinux_bprm_committed_creds ( struct linux_binprm * bprm ) {
+ const struct task_security_struct * tsec = current_security ( ) ;
+ struct itimerval itimer ;
+ u32 osid , sid ;
+ int rc , i ;
+ osid = tsec -> osid ;
+ sid = tsec -> sid ;
+ if ( sid == osid ) return ;
+ rc = avc_has_perm ( osid , sid , SECCLASS_PROCESS , PROCESS__SIGINH , NULL ) ;
+ if ( rc ) {
+ if ( IS_ENABLED ( CONFIG_POSIX_TIMERS ) ) {
+ memset ( & itimer , 0 , sizeof itimer ) ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) do_setitimer ( i , & itimer , NULL ) ;
+ }
+ spin_lock_irq ( & current -> sighand -> siglock ) ;
+ if ( ! fatal_signal_pending ( current ) ) {
+ flush_sigqueue ( & current -> pending ) ;
+ flush_sigqueue ( & current -> signal -> shared_pending ) ;
+ flush_signal_handlers ( current , 1 ) ;
+ sigemptyset ( & current -> blocked ) ;
+ recalc_sigpending ( ) ;
+ }
+ spin_unlock_irq ( & current -> sighand -> siglock ) ;
+ }
+ read_lock ( & tasklist_lock ) ;
+ __wake_up_parent ( current , current -> real_parent ) ;
+ read_unlock ( & tasklist_lock ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const struct task_security_struct * tsec = current_security ( ) ;
+ struct itimerval itimer ;
+ u32 osid , sid ;
+ int rc , i ;
+ osid = tsec -> osid ;
+ sid = tsec -> sid ;
+ if ( sid == osid ) return ;
+ rc = avc_has_perm ( osid , sid , SECCLASS_PROCESS , PROCESS__SIGINH , NULL ) ;
+ if ( rc ) {
+ if ( IS_ENABLED ( CONFIG_POSIX_TIMERS ) ) {
+ memset ( & itimer , 0 , sizeof itimer ) ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) do_setitimer ( i , & itimer , NULL ) ;
+ }
+ spin_lock_irq ( & current -> sighand -> siglock ) ;
+ if ( ! fatal_signal_pending ( current ) ) {
+ flush_sigqueue ( & current -> pending ) ;
+ flush_sigqueue ( & current -> signal -> shared_pending ) ;
+ flush_signal_handlers ( current , 1 ) ;
+ sigemptyset ( & current -> blocked ) ;
+ recalc_sigpending ( ) ;
+ }
+ spin_unlock_irq ( & current -> sighand -> siglock ) ;
+ }
+ read_lock ( & tasklist_lock ) ;
+ __wake_up_parent ( current , current -> real_parent ) ;
+ read_unlock ( & tasklist_lock ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( IS_ENABLED ( CONFIG_POSIX_TIMERS ) ) {
+ memset ( & itimer , 0 , sizeof itimer ) ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) do_setitimer ( i , & itimer , NULL ) ;
+ }
+ spin_lock_irq ( & current -> sighand -> siglock ) ;
+ if ( ! fatal_signal_pending ( current ) ) {
+ flush_sigqueue ( & current -> pending ) ;
+ flush_sigqueue ( & current -> signal -> shared_pending ) ;
+ flush_signal_handlers ( current , 1 ) ;
+ sigemptyset ( & current -> blocked ) ;
+ recalc_sigpending ( ) ;
+ }
+ spin_unlock_irq ( & current -> sighand -> siglock ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ memset ( & itimer , 0 , sizeof itimer ) ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) do_setitimer ( i , & itimer , NULL ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ flush_sigqueue ( & current -> pending ) ;
+ flush_sigqueue ( & current -> signal -> shared_pending ) ;
+ flush_signal_handlers ( current , 1 ) ;
+ sigemptyset ( & current -> blocked ) ;
+ recalc_sigpending ( ) ;
+ }
+      
+30064771072 | CALL | tsec = current_security ( )
+30064771073 | CALL | current_security ( )
+30064771074 | CALL | osid = tsec -> osid
+30064771075 | CALL | tsec -> osid
+30064771076 | CALL | sid = tsec -> sid
+30064771077 | CALL | tsec -> sid
+30064771078 | CALL | sid == osid
+30064771079 | CALL | rc = avc_has_perm ( osid , sid , SECCLASS_PROCESS , PROCESS__SIGINH , NULL )
+30064771080 | CALL | avc_has_perm ( osid , sid , SECCLASS_PROCESS , PROCESS__SIGINH , NULL )
+30064771081 | CALL | rc != 0
+30064771082 | CALL | IS_ENABLED ( CONFIG_POSIX_TIMERS )
+30064771083 | CALL | memset ( & itimer , 0 , sizeof itimer )
+30064771084 | CALL | & itimer
+30064771085 | CALL | sizeof itimer
+30064771086 | CALL | i = 0
+30064771087 | CALL | i < 3
+30064771088 | CALL | i ++
+30064771089 | CALL | do_setitimer ( i , & itimer , NULL )
+30064771090 | CALL | & itimer
+30064771091 | CALL | spin_lock_irq ( & current -> sighand -> siglock )
+30064771092 | CALL | & current -> sighand -> siglock
+30064771093 | CALL | current -> sighand -> siglock
+30064771094 | CALL | current -> sighand
+30064771095 | CALL | ! fatal_signal_pending ( current )
+30064771096 | CALL | fatal_signal_pending ( current )
+30064771097 | CALL | flush_sigqueue ( & current -> pending )
+30064771098 | CALL | & current -> pending
+30064771099 | CALL | current -> pending
+30064771100 | CALL | flush_sigqueue ( & current -> signal -> shared_pending )
+30064771101 | CALL | & current -> signal -> shared_pending
+30064771102 | CALL | current -> signal -> shared_pending
+30064771103 | CALL | current -> signal
+30064771104 | CALL | flush_signal_handlers ( current , 1 )
+30064771105 | CALL | sigemptyset ( & current -> blocked )
+30064771106 | CALL | & current -> blocked
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771083 [AST]
+25769803780 -> 30064771097 [AST]
+25769803780 -> 30064771100 [AST]
+25769803780 -> 30064771104 [AST]
+25769803780 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771090 [REACHING_DEF]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771087 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+30064771092 -> 30064771093 [POST_DOM
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

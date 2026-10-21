@@ -1,0 +1,164 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qemuMonitorJSONHandleVNC ( qemuMonitorPtr mon , virJSONValuePtr data , int phase ) {
+ const char * localNode , * localService , * localFamily ;
+ const char * remoteNode , * remoteService , * remoteFamily ;
+ const char * authScheme , * saslUsername , * x509dname ;
+ int localFamilyID , remoteFamilyID ;
+ virJSONValuePtr client ;
+ virJSONValuePtr server ;
+ if ( ! ( client = virJSONValueObjectGet ( data , "client" ) ) ) {
+ VIR_WARN ( "missing client info in VNC event" ) ;
+ return ;
+ }
+ if ( ! ( server = virJSONValueObjectGet ( data , "server" ) ) ) {
+ VIR_WARN ( "missing server info in VNC event" ) ;
+ return ;
+ }
+ authScheme = virJSONValueObjectGetString ( server , "auth" ) ;
+ localFamily = virJSONValueObjectGetString ( server , "family" ) ;
+ localNode = virJSONValueObjectGetString ( server , "host" ) ;
+ localService = virJSONValueObjectGetString ( server , "service" ) ;
+ remoteFamily = virJSONValueObjectGetString ( client , "family" ) ;
+ remoteNode = virJSONValueObjectGetString ( client , "host" ) ;
+ remoteService = virJSONValueObjectGetString ( client , "service" ) ;
+ saslUsername = virJSONValueObjectGetString ( client , "sasl_username" ) ;
+ x509dname = virJSONValueObjectGetString ( client , "x509_dname" ) ;
+ if ( ( localFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( localFamily ) ) < 0 ) {
+ VIR_WARN ( "unknown address family '%s'" , localFamily ) ;
+ localFamilyID = VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4 ;
+ }
+ if ( ( remoteFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( remoteFamily ) ) < 0 ) {
+ VIR_WARN ( "unknown address family '%s'" , remoteFamily ) ;
+ remoteFamilyID = VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4 ;
+ }
+ qemuMonitorEmitGraphics ( mon , phase , localFamilyID , localNode , localService , remoteFamilyID , remoteNode , remoteService , authScheme , x509dname , saslUsername ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * localNode , * localService , * localFamily ;
+ const char * remoteNode , * remoteService , * remoteFamily ;
+ const char * authScheme , * saslUsername , * x509dname ;
+ int localFamilyID , remoteFamilyID ;
+ virJSONValuePtr client ;
+ virJSONValuePtr server ;
+ if ( ! ( client = virJSONValueObjectGet ( data , "client" ) ) ) {
+ VIR_WARN ( "missing client info in VNC event" ) ;
+ return ;
+ }
+ if ( ! ( server = virJSONValueObjectGet ( data , "server" ) ) ) {
+ VIR_WARN ( "missing server info in VNC event" ) ;
+ return ;
+ }
+ authScheme = virJSONValueObjectGetString ( server , "auth" ) ;
+ localFamily = virJSONValueObjectGetString ( server , "family" ) ;
+ localNode = virJSONValueObjectGetString ( server , "host" ) ;
+ localService = virJSONValueObjectGetString ( server , "service" ) ;
+ remoteFamily = virJSONValueObjectGetString ( client , "family" ) ;
+ remoteNode = virJSONValueObjectGetString ( client , "host" ) ;
+ remoteService = virJSONValueObjectGetString ( client , "service" ) ;...
+      
+25769803777 | BLOCK | { VIR_WARN ( "missing client info in VNC event" ) ; return ; }
+25769803778 | BLOCK | { VIR_WARN ( "missing server info in VNC event" ) ; return ; }
+25769803779 | BLOCK | 
+        {
+ VIR_WARN ( "unknown address family '%s'" , localFamily ) ;
+ localFamilyID = VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ VIR_WARN ( "unknown address family '%s'" , remoteFamily ) ;
+ remoteFamilyID = VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4 ;
+ }
+      
+30064771072 | CALL | ! ( client = virJSONValueObjectGet ( data , "client" ) )
+30064771073 | CALL | client = virJSONValueObjectGet ( data , "client" )
+30064771074 | CALL | virJSONValueObjectGet ( data , "client" )
+30064771075 | CALL | VIR_WARN ( "missing client info in VNC event" )
+30064771076 | CALL | ! ( server = virJSONValueObjectGet ( data , "server" ) )
+30064771077 | CALL | server = virJSONValueObjectGet ( data , "server" )
+30064771078 | CALL | virJSONValueObjectGet ( data , "server" )
+30064771079 | CALL | VIR_WARN ( "missing server info in VNC event" )
+30064771080 | CALL | authScheme = virJSONValueObjectGetString ( server , "auth" )
+30064771081 | CALL | virJSONValueObjectGetString ( server , "auth" )
+30064771082 | CALL | localFamily = virJSONValueObjectGetString ( server , "family" )
+30064771083 | CALL | virJSONValueObjectGetString ( server , "family" )
+30064771084 | CALL | localNode = virJSONValueObjectGetString ( server , "host" )
+30064771085 | CALL | virJSONValueObjectGetString ( server , "host" )
+30064771086 | CALL | localService = virJSONValueObjectGetString ( server , "service" )
+30064771087 | CALL | virJSONValueObjectGetString ( server , "service" )
+30064771088 | CALL | remoteFamily = virJSONValueObjectGetString ( client , "family" )
+30064771089 | CALL | virJSONValueObjectGetString ( client , "family" )
+30064771090 | CALL | remoteNode = virJSONValueObjectGetString ( client , "host" )
+30064771091 | CALL | virJSONValueObjectGetString ( client , "host" )
+30064771092 | CALL | remoteService = virJSONValueObjectGetString ( client , "service" )
+30064771093 | CALL | virJSONValueObjectGetString ( client , "service" )
+30064771094 | CALL | saslUsername = virJSONValueObjectGetString ( client , "sasl_username" )
+30064771095 | CALL | virJSONValueObjectGetString ( client , "sasl_username" )
+30064771096 | CALL | x509dname = virJSONValueObjectGetString ( client , "x509_dname" )
+30064771097 | CALL | virJSONValueObjectGetString ( client , "x509_dname" )
+30064771098 | CALL | 
+        ( localFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( localFamily ) ) < 0
+      
+30064771099 | CALL | localFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( localFamily )
+30064771100 | CALL | qemuMonitorGraphicsAddressFamilyTypeFromString ( localFamily )
+30064771101 | CALL | VIR_WARN ( "unknown address family '%s'" , localFamily )
+30064771102 | CALL | localFamilyID = VIR_DOMAIN_EVENT_GRAPHICS_ADDRESS_IPV4
+30064771103 | CALL | 
+        ( remoteFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( remoteFamily ) ) < 0
+      
+30064771104 | CALL | remoteFamilyID = qemuMonitorGraphicsAddressFamilyTypeFromString ( remoteFamily )
+30064771105 | CALL | qemuMonitorGraphicsAddressFamilyTypeFromString ( remoteFamily )
+30064771106 | CALL | VIR_WARN ( "unknown address family '%s'" , remoteFamily )
+EDGES:
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771079 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771102 [AST]
+25769803780 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771085 [CDG]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

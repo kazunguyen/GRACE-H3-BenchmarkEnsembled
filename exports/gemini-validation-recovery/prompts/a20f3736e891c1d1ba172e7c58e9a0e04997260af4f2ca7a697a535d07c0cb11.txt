@@ -1,0 +1,275 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void truespeech_place_pulses ( TSContext * dec , int16_t * out , int quart ) {
+ int16_t tmp [ 7 ] ;
+ int i , j , t ;
+ const int16_t * ptr1 ;
+ int16_t * ptr2 ;
+ int coef ;
+ memset ( out , 0 , 60 * sizeof ( * out ) ) ;
+ for ( i = 0 ;
+ i < 7 ;
+ i ++ ) {
+ t = dec -> pulseval [ quart ] & 3 ;
+ dec -> pulseval [ quart ] >>= 2 ;
+ tmp [ 6 - i ] = ts_pulse_scales [ dec -> pulseoff [ quart ] * 4 + t ] ;
+ }
+ coef = dec -> pulsepos [ quart ] >> 15 ;
+ ptr1 = ts_pulse_values + 30 ;
+ ptr2 = tmp ;
+ for ( i = 0 , j = 3 ;
+ ( i < 30 ) && ( j > 0 ) ;
+ i ++ ) {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+ coef = dec -> pulsepos [ quart ] & 0x7FFF ;
+ ptr1 = ts_pulse_values ;
+ for ( i = 30 , j = 4 ;
+ ( i < 60 ) && ( j > 0 ) ;
+ i ++ ) {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int16_t tmp [ 7 ] ;
+ int i , j , t ;
+ const int16_t * ptr1 ;
+ int16_t * ptr2 ;
+ int coef ;
+ memset ( out , 0 , 60 * sizeof ( * out ) ) ;
+ for ( i = 0 ;
+ i < 7 ;
+ i ++ ) {
+ t = dec -> pulseval [ quart ] & 3 ;
+ dec -> pulseval [ quart ] >>= 2 ;
+ tmp [ 6 - i ] = ts_pulse_scales [ dec -> pulseoff [ quart ] * 4 + t ] ;
+ }
+ coef = dec -> pulsepos [ quart ] >> 15 ;
+ ptr1 = ts_pulse_values + 30 ;
+ ptr2 = tmp ;
+ for ( i = 0 , j = 3 ;
+ ( i < 30 ) && ( j > 0 ) ;
+ i ++ ) {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+ coef = dec -> pulsepos [ quart ] & 0x7FFF ;
+ ptr1 = ts_pulse_values ;
+ for ( i = 30 , j = 4 ;
+ ( i < 60 ) && ( j > 0 ) ;
+ i ++ ) {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ t = dec -> pulseval [ quart ] & 3 ;
+ dec -> pulseval [ quart ] >>= 2 ;
+ tmp [ 6 - i ] = ts_pulse_scales [ dec -> pulseoff [ quart ] * 4 + t ] ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { out [ i ] = * ptr2 ++ ; ptr1 += 30 ; j -- ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ t = * ptr1 ++ ;
+ if ( coef >= t ) coef -= t ;
+ else {
+ out [ i ] = * ptr2 ++ ;
+ ptr1 += 30 ;
+ j -- ;
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { out [ i ] = * ptr2 ++ ; ptr1 += 30 ; j -- ; }
+30064771072 | CALL | tmp [ 7 ]
+30064771073 | CALL | tmp [ 7 ]
+30064771074 | CALL | memset ( out , 0 , 60 * sizeof ( * out ) )
+30064771075 | CALL | 60 * sizeof ( * out )
+30064771076 | CALL | sizeof ( * out )
+30064771077 | CALL | * out
+30064771078 | CALL | i = 0
+30064771079 | CALL | i < 7
+30064771080 | CALL | i ++
+30064771081 | CALL | t = dec -> pulseval [ quart ] & 3
+30064771082 | CALL | dec -> pulseval [ quart ] & 3
+30064771083 | CALL | dec -> pulseval [ quart ]
+30064771084 | CALL | dec -> pulseval
+30064771085 | CALL | dec -> pulseval [ quart ] >>= 2
+30064771086 | CALL | dec -> pulseval [ quart ]
+30064771087 | CALL | dec -> pulseval
+30064771088 | CALL | tmp [ 6 - i ] = ts_pulse_scales [ dec -> pulseoff [ quart ] * 4 + t ]
+30064771089 | CALL | tmp [ 6 - i ]
+30064771090 | CALL | 6 - i
+30064771091 | CALL | ts_pulse_scales [ dec -> pulseoff [ quart ] * 4 + t ]
+30064771092 | CALL | dec -> pulseoff [ quart ] * 4 + t
+30064771093 | CALL | dec -> pulseoff [ quart ] * 4
+30064771094 | CALL | dec -> pulseoff [ quart ]
+30064771095 | CALL | dec -> pulseoff
+30064771096 | CALL | coef = dec -> pulsepos [ quart ] >> 15
+30064771097 | CALL | dec -> pulsepos [ quart ] >> 15
+30064771098 | CALL | dec -> pulsepos [ quart ]
+30064771099 | CALL | dec -> pulsepos
+30064771100 | CALL | ptr1 = ts_pulse_values + 30
+30064771101 | CALL | ts_pulse_values + 30
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771088 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771094 [CDG]
+30064771079 -> 30064771095 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771087 [REACHING_DEF]
+30064771083 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771091 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771091 [AST]
+30064771088 -> 30064771091 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771088 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void truespeech_synth ( TSContext * dec , int16_t * out , int quart ) {
+ int i , k ;
+ int t [ 8 ] ;
+ int16_t * ptr0 , * ptr1 ;
+ ptr0 = dec -> tmp1 ;
+ ptr1 = dec -> filters + quart * 8 ;
+ for ( i = 0 ;
+ i < 60 ;
+ i ++ ) {
+ int sum = 0 ;
+ for ( k = 0 ;
+ k < 8 ;
+ k ++ ) sum += ptr0 [ k ] * ptr1 [ k ] ;
+ sum = ( sum + ( out [ i ] << 12 ) + 0x800 ) >> 12 ;
+ out [ i ] = av_clip ( sum , - 0x7FFE , 0x7FFE ) ;
+ for ( k = 7 ;
+ k > 0 ;
+ k -- ) ptr0 [ k ] = ptr0 [ k - 1 ] ;
+ ptr0 [ 0 ] = out [ i ] ;
+ }
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) t [ i ] = ( ts_decay_35_64 [ i ] * ptr1 [ i ] ) >> 15 ;
+ ptr0 = dec -> tmp2 ;
+ for ( i = 0 ;
+ 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

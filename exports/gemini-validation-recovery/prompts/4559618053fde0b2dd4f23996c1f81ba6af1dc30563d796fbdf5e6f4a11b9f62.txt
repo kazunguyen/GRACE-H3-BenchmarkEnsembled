@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int filecopy ( MI_CHECK * param , File to , File from , my_off_t start , my_off_t length , const char * type ) {
+ char tmp_buff [ IO_SIZE ] , * buff ;
+ ulong buff_length ;
+ DBUG_ENTER ( "filecopy" ) ;
+ buff_length = ( ulong ) min ( param -> write_buffer_length , length ) ;
+ if ( ! ( buff = my_malloc ( buff_length , MYF ( 0 ) ) ) ) {
+ buff = tmp_buff ;
+ buff_length = IO_SIZE ;
+ }
+ mysql_file_seek ( from , start , MY_SEEK_SET , MYF ( 0 ) ) ;
+ while ( length > buff_length ) {
+ if ( mysql_file_read ( from , ( uchar * ) buff , buff_length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , buff_length , param -> myf_rw ) ) goto err ;
+ length -= buff_length ;
+ }
+ if ( mysql_file_read ( from , ( uchar * ) buff , ( uint ) length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , ( uint ) length , param -> myf_rw ) ) goto err ;
+ if ( buff != tmp_buff ) my_free ( buff ) ;
+ DBUG_RETURN ( 0 ) ;
+ err : if ( buff != tmp_buff ) my_free ( buff ) ;
+ mi_check_print_error ( param , "Can't copy %s to tempfile, error %d" , type , my_errno ) ;
+ DBUG_RETURN ( 1 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char tmp_buff [ IO_SIZE ] , * buff ;
+ ulong buff_length ;
+ DBUG_ENTER ( "filecopy" ) ;
+ buff_length = ( ulong ) min ( param -> write_buffer_length , length ) ;
+ if ( ! ( buff = my_malloc ( buff_length , MYF ( 0 ) ) ) ) {
+ buff = tmp_buff ;
+ buff_length = IO_SIZE ;
+ }
+ mysql_file_seek ( from , start , MY_SEEK_SET , MYF ( 0 ) ) ;
+ while ( length > buff_length ) {
+ if ( mysql_file_read ( from , ( uchar * ) buff , buff_length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , buff_length , param -> myf_rw ) ) goto err ;
+ length -= buff_length ;
+ }
+ if ( mysql_file_read ( from , ( uchar * ) buff , ( uint ) length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , ( uint ) length , param -> myf_rw ) ) goto err ;
+ if ( buff != tmp_buff ) my_free ( buff ) ;
+ DBUG_RETURN ( 0 ) ;
+ err : if ( buff != tmp_buff ) my_free ( buff ) ;
+ mi_check_print_error ( param , "Can't copy %s to tempfile, error %d" , type , my_errno ) ;
+ DBUG_RETURN ( 1 ) ;
+ }
+      
+25769803777 | BLOCK | { buff = tmp_buff ; buff_length = IO_SIZE ; }
+25769803778 | BLOCK | 
+        {
+ if ( mysql_file_read ( from , ( uchar * ) buff , buff_length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , buff_length , param -> myf_rw ) ) goto err ;
+ length -= buff_length ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | tmp_buff [ IO_SIZE ]
+30064771073 | CALL | tmp_buff [ IO_SIZE ]
+30064771074 | CALL | DBUG_ENTER ( "filecopy" )
+30064771075 | CALL | buff_length = ( ulong ) min ( param -> write_buffer_length , length )
+30064771076 | CALL | ( ulong ) min ( param -> write_buffer_length , length )
+30064771077 | CALL | min ( param -> write_buffer_length , length )
+30064771078 | CALL | param -> write_buffer_length
+30064771079 | CALL | ! ( buff = my_malloc ( buff_length , MYF ( 0 ) ) )
+30064771080 | CALL | buff = my_malloc ( buff_length , MYF ( 0 ) )
+30064771081 | CALL | my_malloc ( buff_length , MYF ( 0 ) )
+30064771082 | CALL | MYF ( 0 )
+30064771083 | CALL | buff = tmp_buff
+30064771084 | CALL | buff_length = IO_SIZE
+30064771085 | CALL | mysql_file_seek ( from , start , MY_SEEK_SET , MYF ( 0 ) )
+30064771086 | CALL | MYF ( 0 )
+30064771087 | CALL | length > buff_length
+30064771088 | CALL | 
+        mysql_file_read ( from , ( uchar * ) buff , buff_length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , buff_length , param -> myf_rw )
+      
+30064771089 | CALL | mysql_file_read ( from , ( uchar * ) buff , buff_length , MYF ( MY_NABP ) )
+30064771090 | CALL | ( uchar * ) buff
+30064771091 | CALL | MYF ( MY_NABP )
+30064771092 | CALL | mysql_file_write ( to , ( uchar * ) buff , buff_length , param -> myf_rw )
+30064771093 | CALL | ( uchar * ) buff
+30064771094 | CALL | param -> myf_rw
+30064771095 | CALL | length -= buff_length
+30064771096 | CALL | 
+        mysql_file_read ( from , ( uchar * ) buff , ( uint ) length , MYF ( MY_NABP ) ) || mysql_file_write ( to , ( uchar * ) buff , ( uint ) length , param -> myf_rw )
+      
+30064771097 | CALL | mysql_file_read ( from , ( uchar * ) buff , ( uint ) length , MYF ( MY_NABP ) )
+30064771098 | CALL | ( uchar * ) buff
+30064771099 | CALL | ( uint ) length
+30064771100 | CALL | MYF ( MY_NABP )
+30064771101 | CALL | mysql_file_write ( to , ( uchar * ) buff , ( uint ) length , param -> myf_rw )
+30064771102 | CALL | ( uchar * ) buff
+30064771103 | CALL | ( uint ) length
+30064771104 | CALL | param -> myf_rw
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771085 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771099 [CDG]
+30064771087 -> 30064771100 [CDG]
+30064771087 -> 30064771096 [CDG]
+30064771087 -> 30064771097 [CDG]
+30064771087 -> 30064771098 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771092 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771092 [AST]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771087 [CDG]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771092 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771091 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771091 [AST]
+30064771089 -> 30064771092 [
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void evdns_request_insert ( struct request * req , struct request * * head ) {
+ if ( ! * head ) {
+ * head = req ;
+ req -> next = req -> prev = req ;
+ return ;
+ }
+ req -> prev = ( * head ) -> prev ;
+ req -> prev -> next = req ;
+ req -> next = * head ;
+ ( * head ) -> prev = req ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ! * head ) {
+ * head = req ;
+ req -> next = req -> prev = req ;
+ return ;
+ }
+ req -> prev = ( * head ) -> prev ;
+ req -> prev -> next = req ;
+ req -> next = * head ;
+ ( * head ) -> prev = req ;
+ }
+      
+25769803777 | BLOCK | { * head = req ; req -> next = req -> prev = req ; return ; }
+30064771072 | CALL | ! * head
+30064771073 | CALL | * head
+30064771074 | CALL | * head = req
+30064771075 | CALL | * head
+30064771076 | CALL | req -> next = req -> prev = req
+30064771077 | CALL | req -> next
+30064771078 | CALL | req -> prev = req
+30064771079 | CALL | req -> prev
+30064771080 | CALL | req -> prev = ( * head ) -> prev
+30064771081 | CALL | req -> prev
+30064771082 | CALL | ( * head ) -> prev
+30064771083 | CALL | * head
+30064771084 | CALL | req -> prev -> next = req
+30064771085 | CALL | req -> prev -> next
+30064771086 | CALL | req -> prev
+30064771087 | CALL | req -> next = * head
+30064771088 | CALL | req -> next
+30064771089 | CALL | * head
+30064771090 | CALL | ( * head ) -> prev = req
+30064771091 | CALL | ( * head ) -> prev
+30064771092 | CALL | * head
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! * head ) {
+ * head = req ;
+ req -> next = req -> prev = req ;
+ return ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | next
+55834574849 | FIELD_IDENTIFIER | prev
+55834574850 | FIELD_IDENTIFIER | prev
+55834574851 | FIELD_IDENTIFIER | prev
+55834574852 | FIELD_IDENTIFIER | prev
+55834574853 | FIELD_IDENTIFIER | next
+55834574854 | FIELD_IDENTIFIER | next
+55834574855 | FIELD_IDENTIFIER | prev
+68719476736 | IDENTIFIER | head
+68719476737 | IDENTIFIER | head
+68719476738 | IDENTIFIER | req
+68719476739 | IDENTIFIER | req
+68719476740 | IDENTIFIER | req
+68719476741 | IDENTIFIER | req
+68719476742 | IDENTIFIER | req
+68719476743 | IDENTIFIER | head
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771074 [AST]
+25769803777 -> 30064771076 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771092 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 55834574853 [CDG]
+30064771072 -> 55834574854 [CDG]
+30064771072 -> 55834574855 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 55834574852 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476742 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476742 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 68719476737 [REACHING_DEF]
+30064771073 -> 30064771089 [REACHING_DEF]
+30064771073 -> 68719476743 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 68719476737 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 55834574848 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static struct request * request_find_from_trans_id ( u16 trans_id ) {
+ struct request * req = req_head , * const started_at = req_head ;
+ if ( req ) {
+ do {
+ if ( req -> trans_id == trans_id ) return req ;
+ req = req -> next ;
+ }
+ while ( req != started_at ) ;
+ }
+ return NULL ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

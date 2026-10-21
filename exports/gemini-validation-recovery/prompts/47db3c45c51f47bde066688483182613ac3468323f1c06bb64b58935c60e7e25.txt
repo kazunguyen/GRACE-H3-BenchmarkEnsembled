@@ -1,0 +1,325 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int avi_read_packet(AVFormatContext *s, AVPacket *pkt)
+
+{
+
+    AVIContext *avi = s->priv_data;
+
+    ByteIOContext *pb = &s->pb;
+
+    int n, d[8], size;
+
+    offset_t i;
+
+    void* dstr;
+
+
+
+    memset(d, -1, sizeof(int)*8);
+
+   
+
+    if (avi->dv_demux) {
+
+        size = dv_get_packet(avi->dv_demux, pkt);
+
+	if (size >= 0)
+
+	    return size;
+
+    }
+
+        
+
+    for(i=url_ftell(pb); !url_feof(pb); i++) {
+
+        int j;
+
+
+
+	if (i >= avi->movi_end) {
+
+	    if (avi->is_odml) {
+
+		url_fskip(pb, avi->riff_end - i);
+
+	        avi->riff_end = avi->movi_end = url_filesize(url_fileno(pb));
+
+	    } else
+
+	        break;
+
+	}
+
+
+
+        for(j=0; j<7; j++)
+
+            d[j]= d[j+1];
+
+        d[7]= get_byte(pb);
+
+        
+
+        size= d[4] + (d[5]<<8) + (d[6]<<16) + (d[7]<<24);
+
+        
+
+        //parse ix##
+
+        n= (d[2] - '0') * 10 + (d[3] - '0');
+
+        if(    d[2] >= '0' && d[2] <= '9'
+
+            && d[3] >= '0' && d[3] <= '9'
+
+            && d[0] == 'i' && d[1] == 'x'
+
+            && n < s->nb_streams
+
+            && i + size <= avi->movi_end){
+
+            
+
+            url_fskip(pb, size);
+
+        }
+
+
+
+	//parse JUNK
+
+        if(d[0] == 'J' && d[1] == 'U' && d[2] == 'N' && d[3] == 'K' &&
+
+           i + size <= avi->movi_end) {
+
+            
+
+            url_fskip(pb, size);
+
+        }
+
+        
+
+        //parse ##dc/##wb
+
+        n= (d[0] - '0') * 10 + (d[1] - '0');
+
+        if(    d[0] >= '0' && d[0] <= '9'
+
+            && d[1] >= '0' && d[1] <= '9'
+
+            && ((d[2] == 'd' && d[3] == 'c') || 
+
+	        (d[2] == 'w' && d[3] == 'b') || 
+
+		(d[2] == 'd' && d[3] == 'b') ||
+
+		(d[2] == '_' && d[3] == '_'))
+
+            && n < s->nb_streams
+
+            && i + size <= avi->movi_end) {
+
+        
+
+            av_new_packet(pkt, size);
+
+            get_buffer(pb, pkt->data, size);
+
+            if (size & 1) {
+
+                get_byte(pb);
+
+		size++;
+
+	    }
+
+	
+
+	    if (avi->dv_demux) {
+
+	        dstr = pkt->destruct;
+
+	        size = dv_produce_packet(avi->dv_demux, pkt,
+
+		                         pkt->data, pkt->size);
+
+		pkt->destruct = dstr;
+
+                pkt->flags |= PKT_FLAG_KEY;
+
+	    } else {
+
+                AVStream *st;
+
+                AVIStream *ast;
+
+                st = s->streams[n];
+
+                ast = st->priv_data;
+
+                
+
+                /* XXX: how to handle B frames in avi ? */
+
+                pkt->dts = ast->frame_offset;
+
+//                pkt->dts += ast->start;
+
+                if(ast->sample_size)
+
+                    pkt->dts /= ast->sample_size;
+
+//av_log(NULL, AV_LOG_DEBUG, "dts:%Ld offset:%d %d/%d smpl_siz:%d base:%d st:%d size:%d\n", pkt->dts, ast->frame_offset, ast->scale, ast->rate, ast->sample_size, AV_TIME_BASE, n, size);
+
+                pkt->stream_index = n;
+
+                /* FIXME: We really should read index for that */
+
+                if (st->codec.codec_type == CODEC_TYPE_VIDEO) {
+
+                    if (ast->frame_offset < ast->nb_index_entries) {
+
+                      
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+29 -> 32 [IS_AST_PARENT]
+25 -> 29 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+25 -> 33 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 60 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+48 -> 55 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+73 -> 78 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+80 -> 85 [IS_AST_PARENT]
+66 -> 80 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int avi_sync(AVFormatContext *s, int exit_early)
+{
+    AVIContext *avi = s->priv_data;
+    AVIOContext *pb = s->pb;
+    int n;
+    unsigned int d[8];
+    unsigned int size;
+    int64_t i, sync;
+start_sync:
+    memset(d, -1, sizeof(d));
+    for(i=sync=avio_tell(pb); !url_feof(pb); i++) {
+        int j;
+        for(j=0; j<7; j++)
+            d[j]= d[j+1];
+        d[7]= avio_r8(pb);
+        size= d[4] + (d[5]<<8) + (d[6]<<16) + (d[7]<<24);
+        n= get_stream_idx(d+2);
+//av_log(s, AV_LOG_DEBUG, "%X %X %X %X %X %X %X %X %"PRId64" %d %d\n", d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], i, size, n);
+        if(i + (uint64_t)size > avi->fsize || d[0] > 127)
+        //parse ix##
+        if(  (d[0] == 'i' && d[1] == 'x' && n < s->nb_streams)
+        //parse JUNK
+           ||(d[0] == 'J' && d[1] == 'U' && d[2] == 'N' && d[3] == 'K')
+           ||(d[0] == 'i' && d[1] == 'd' && d[2] == 'x' && d[3] == '1')){
+            avio_skip(pb, size);
+//av_log(s, AV_LOG_DEBUG, "SKIP\n");
+            goto start_sync;
+        //parse stray LIST
+        if(d[0] == 'L' && d[1] == 'I' && d[2] == 'S' && d[3] == 'T'){
+            avio_skip(pb, 4);
+            goto start_sync;
+        n= get_stream_idx(d);
+        if(!((i-avi->last_pkt_pos)&1) && get_stream_idx(d+1) < s->nb_streams)
+        //detect ##ix chunk and skip
+        if(d[2] == 'i' && d[3] == 'x' && n < s->nb_streams){
+            avio_skip(pb, size);
+            goto start_sync;
+        //parse ##dc/##wb
+        if(n < s->nb_streams){
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

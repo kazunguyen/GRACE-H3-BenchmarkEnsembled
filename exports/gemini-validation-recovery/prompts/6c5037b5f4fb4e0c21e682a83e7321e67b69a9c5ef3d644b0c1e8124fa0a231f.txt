@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_bug9735 ( ) {
+ MYSQL_RES * res ;
+ int rc ;
+ myheader ( "test_bug9735" ) ;
+ rc = mysql_query ( mysql , "drop table if exists t1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "create table t1 (a mediumtext, b longtext) " "character set latin1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "select * from t1" ) ;
+ myquery ( rc ) ;
+ res = mysql_store_result ( mysql ) ;
+ verify_prepare_field ( res , 0 , "a" , "a" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ( 1U << 24 ) - 1 , 0 ) ;
+ verify_prepare_field ( res , 1 , "b" , "b" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ~ 0U , 0 ) ;
+ mysql_free_result ( res ) ;
+ rc = mysql_query ( mysql , "drop table t1" ) ;
+ myquery ( rc ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_RES * res ;
+ int rc ;
+ myheader ( "test_bug9735" ) ;
+ rc = mysql_query ( mysql , "drop table if exists t1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "create table t1 (a mediumtext, b longtext) " "character set latin1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "select * from t1" ) ;
+ myquery ( rc ) ;
+ res = mysql_store_result ( mysql ) ;
+ verify_prepare_field ( res , 0 , "a" , "a" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ( 1U << 24 ) - 1 , 0 ) ;
+ verify_prepare_field ( res , 1 , "b" , "b" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ~ 0U , 0 ) ;
+ mysql_free_result ( res ) ;
+ rc = mysql_query ( mysql , "drop table t1" ) ;
+ myquery ( rc ) ;
+ }
+      
+30064771072 | CALL | myheader ( "test_bug9735" )
+30064771073 | CALL | rc = mysql_query ( mysql , "drop table if exists t1" )
+30064771074 | CALL | mysql_query ( mysql , "drop table if exists t1" )
+30064771075 | CALL | myquery ( rc )
+30064771076 | CALL | 
+        rc = mysql_query ( mysql , "create table t1 (a mediumtext, b longtext) " "character set latin1" )
+      
+30064771077 | CALL | 
+        mysql_query ( mysql , "create table t1 (a mediumtext, b longtext) " "character set latin1" )
+      
+30064771078 | CALL | myquery ( rc )
+30064771079 | CALL | rc = mysql_query ( mysql , "select * from t1" )
+30064771080 | CALL | mysql_query ( mysql , "select * from t1" )
+30064771081 | CALL | myquery ( rc )
+30064771082 | CALL | res = mysql_store_result ( mysql )
+30064771083 | CALL | mysql_store_result ( mysql )
+30064771084 | CALL | 
+        verify_prepare_field ( res , 0 , "a" , "a" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ( 1U << 24 ) - 1 , 0 )
+      
+30064771085 | CALL | ( 1U << 24 ) - 1
+30064771086 | CALL | 1U << 24
+30064771087 | CALL | 
+        verify_prepare_field ( res , 1 , "b" , "b" , MYSQL_TYPE_BLOB , "t1" , "t1" , current_db , ~ 0U , 0 )
+      
+30064771088 | CALL | ~ 0U
+30064771089 | CALL | mysql_free_result ( res )
+30064771090 | CALL | rc = mysql_query ( mysql , "drop table t1" )
+30064771091 | CALL | mysql_query ( mysql , "drop table t1" )
+30064771092 | CALL | myquery ( rc )
+68719476736 | IDENTIFIER | rc
+68719476737 | IDENTIFIER | <unknown> mysql
+68719476738 | IDENTIFIER | rc
+68719476739 | IDENTIFIER | rc
+68719476740 | IDENTIFIER | <unknown> mysql
+68719476741 | IDENTIFIER | rc
+68719476742 | IDENTIFIER | rc
+68719476743 | IDENTIFIER | <unknown> mysql
+68719476744 | IDENTIFIER | rc
+68719476745 | IDENTIFIER | res
+68719476746 | IDENTIFIER | <unknown> mysql
+68719476747 | IDENTIFIER | res
+68719476748 | IDENTIFIER | <unknown> MYSQL_TYPE_BLOB
+68719476749 | IDENTIFIER | <unknown> current_db
+68719476750 | IDENTIFIER | res
+68719476751 | IDENTIFIER | <unknown> MYSQL_TYPE_BLOB
+68719476752 | IDENTIFIER | <unknown> current_db
+68719476753 | IDENTIFIER | res
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+30064771072 -> 68719476736 [CFG]
+30064771072 -> 68719476736 [DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476736 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476739 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 68719476742 [CFG]
+30064771078 -> 68719476742 [DOMINATE]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 68719476743 [ARGUMENT]
+30064771080 -> 68719476743 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 68719476742 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 68719476744 [ARGUMENT]
+30064771081 -> 68719476744 [AST]
+30064771081 -> 68719476745 [CFG]
+30064771081 -> 68719476745 [DOMINATE]
+30064771081 -> 68719476744 [POST_DOMINATE]
+30064771082 -> 68719476745 [ARGUMENT]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 68719476745 [AST]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 68719476747 [CFG]
+30064771082 -> 68719476747 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 68719476746 [ARGUMENT]
+30064771083 -> 68719476746 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_list_fields ( ) {
+ MYSQL_RES * result ;
+ int rc ;
+ myheader ( "test_list_fields" ) ;
+ rc = mysql_query ( mysql , "drop table if exists t1" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "create table t1(c1 int primary key auto_increment, c2 char(10) default 'mysql')" ) ;
+ myquery ( rc ) ;
+ result = mysql_list_fields ( mysql , "t1" , NULL ) ;
+ mytest ( result ) ;
+ rc = my_process_result_set ( result ) ;
+ DIE_UNLESS ( rc == 0 ) ;
+ verify_prepare_field ( result , 0 , "c1" , "c1" , MYSQL_TYPE_LONG , "t1" , "t1" , current_db , 11 , "0" ) ;
+ verify_prepare_field ( result , 1 , "c2" , "c2" , MYSQL_TYPE_STRING , "t1" , "t1" , current_db , 10 , "mysql" ) ;
+ mysql_free_result ( result ) ;
+ myquery ( mysql_query ( mysql , "drop table t1" ) ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pmac_ide_transfer_cb ( void * opaque , int ret ) {
+ DBDMA_io * io = opaque ;
+ MACIOIDEState * m = io -> opaque ;
+ IDEState * s = idebus_active_if ( & m -> bus ) ;
+ int n = 0 ;
+ int64_t sector_num ;
+ int unaligned ;
+ if ( ret < 0 ) {
+ MACIO_DPRINTF ( "DMA error\n" ) ;
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ ide_dma_error ( s ) ;
+ io -> remainder_len = 0 ;
+ goto done ;
+ }
+ if ( -- io -> requests ) {
+ return ;
+ }
+ if ( ! m -> dma_active ) {
+ MACIO_DPRINTF ( "waiting for data (%#x - %#x - %x)\n" , s -> nsector , io -> len , s -> status ) ;
+ io -> processing = false ;
+ return ;
+ }
+ sector_num = ide_get_sector ( s ) ;
+ MACIO_DPRINTF ( "io_buffer_size = %#x\n" , s -> io_buffer_size ) ;
+ if ( s -> io_buffer_size > 0 ) {
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ n = ( s -> io_buffer_size + 0x1ff ) >> 9 ;
+ sector_num += n ;
+ ide_set_sector ( s , sector_num ) ;
+ s -> nsector -= n ;
+ }
+ if ( io -> finish_remain_read ) {
+ io -> finish_remain_read = false ;
+ cpu_physical_memory_write ( io -> finish_addr , io -> remainder , io -> finish_len ) ;
+ }
+ MACIO_DPRINTF ( "remainder: %d io->len: %d nsector: %d " "sector_num: %" PRId64 "\n" , io -> remainder_len , io -> len , s -> nsector , sector_num ) ;
+ if ( io -> remainder_len && io -> len ) {
+ int remainder_len = MIN ( io -> remainder_len , io -> len ) ;
+ uint8_t * p = & io -> remainder [ 0x200 - remainder_len ] ;
+ MACIO_DPRINTF ( "copying remainder %d bytes at %#" HWADDR_PRIx "\n" , remainder_len , io -> addr ) ;
+ switch ( s -> dma_cmd ) {
+ case IDE_DMA_READ : cpu_physical_memory_write ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_WRITE : cpu_physical_memory_read ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_TRIM : break ;
+ }
+ io -> addr += remainder_len ;
+ io -> len -= remainder_len ;
+ io -> remainder_len -= remainder_len ;
+ if ( s -> dma_cmd == IDE_DMA_WRITE && ! io -> remainder_len ) {
+ io -> requests ++ ;
+ qemu_iovec_reset ( & io -> iov ) ;
+ qemu_iovec_add ( & io -> iov , io -> remainder , 0x200 ) ;
+ m -> aiocb = blk_aio_writev ( s -> blk , sector_num - 1 , & io -> iov , 1 , pmac_ide_transfer_cb , io ) ;
+ }
+ }
+ if ( s -> nsector == 0 && ! io -> remainder_len ) {
+ MACIO_DPRINTF ( "end of transfer\n" ) ;
+ s -> status = READY_STAT | SEEK_STAT ;
+ ide_set_irq ( s -> bus ) ;
+ m -> dma_active = false ;
+ }
+ if ( io -> len == 0 ) {
+ MACIO_DPRINTF ( "end of DMA\n" ) ;
+ goto done ;
+ }
+ s -> io_buffer_index = 0 ;
+ s -> io_buffer_size = MIN ( io -> len , s -> nsector * 512 ) ;
+ unaligned = io -> len & 0x1ff ;
+ if ( unaligned ) {
+ int nsector = io -> len >> 9 ;
+ MACIO_DPRINTF ( "precopying unaligned %d bytes to %#" HWADDR_PRIx "\n" , unaligned , io -> addr + io -> len - unaligned ) ;
+ switch ( s -> dma_cmd ) {
+ case IDE_DMA_READ : io -> requests ++ ;
+ io -> finish_addr = io -> addr + io -> len - unaligned ;
+ io -> finish_len = unaligned ;
+ io -> finish_remain_read = true ;
+ qemu_iovec_reset ( & io -> iov ) ;
+ qemu_iovec_add ( & io -> iov , io -> rem
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DBDMA_io * io = opaque ;
+ MACIOIDEState * m = io -> opaque ;
+ IDEState * s = idebus_active_if ( & m -> bus ) ;
+ int n = 0 ;
+ int64_t sector_num ;
+ int unaligned ;
+ if ( ret < 0 ) {
+ MACIO_DPRINTF ( "DMA error\n" ) ;
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ ide_dma_error ( s ) ;
+ io -> remainder_len = 0 ;
+ goto done ;
+ }
+ if ( -- io -> requests ) {
+ return ;
+ }
+ if ( ! m -> dma_active ) {
+ MACIO_DPRINTF ( "waiting for data (%#x - %#x - %x)\n" , s -> nsector , io -> len , s -> status ) ;
+ io -> processing = false ;
+ return ;
+ }
+ sector_num = ide_get_sector ( s ) ;
+ MACIO_DPRINTF ( "io_buffer_size = %#x\n" , s -> io_buffer_size ) ;
+ if ( s -> io_buffer_size > 0 ) {
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ n = ( s -> io_buffer_size + 0x1ff ) >> 9 ;
+ sector_num += n ;
+ ide_set_sector ( s , sector_num ) ;
+ s -> nsector -= n ;
+ }
+ if ( io -> finish_remain_read ) {
+ io -> finish_remain_read = false ;
+ cpu_physical_memory_write ( io -> finish_addr , io ...
+      
+25769803777 | BLOCK | 
+        {
+ MACIO_DPRINTF ( "DMA error\n" ) ;
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ ide_dma_error ( s ) ;
+ io -> remainder_len = 0 ;
+ goto done ;
+ }
+      
+25769803778 | BLOCK | { return ; }
+25769803779 | BLOCK | 
+        {
+ MACIO_DPRINTF ( "waiting for data (%#x - %#x - %x)\n" , s -> nsector , io -> len , s -> status ) ;
+ io -> processing = false ;
+ return ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ m -> aiocb = NULL ;
+ qemu_sglist_destroy ( & s -> sg ) ;
+ n = ( s -> io_buffer_size + 0x1ff ) >> 9 ;
+ sector_num += n ;
+ ide_set_sector ( s , sector_num ) ;
+ s -> nsector -= n ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ io -> finish_remain_read = false ;
+ cpu_physical_memory_write ( io -> finish_addr , io -> remainder , io -> finish_len ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ int remainder_len = MIN ( io -> remainder_len , io -> len ) ;
+ uint8_t * p = & io -> remainder [ 0x200 - remainder_len ] ;
+ MACIO_DPRINTF ( "copying remainder %d bytes at %#" HWADDR_PRIx "\n" , remainder_len , io -> addr ) ;
+ switch ( s -> dma_cmd ) {
+ case IDE_DMA_READ : cpu_physical_memory_write ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_WRITE : cpu_physical_memory_read ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_TRIM : break ;
+ }
+ io -> addr += remainder_len ;
+ io -> len -= remainder_len ;
+ io -> remainder_len -= remainder_len ;
+ if ( s -> dma_cmd == IDE_DMA_WRITE && ! io -> remainder_len ) {
+ io -> requests ++ ;
+ qemu_iovec_reset ( & io -> iov ) ;
+ qemu_iovec_add ( & io -> iov , io -> remainder , 0x200 ) ;
+ m -> aiocb = blk_aio_writev ( s -> blk , sector_num - 1 , & io -> iov , 1 , pmac_ide_transfer_cb , io ) ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ case IDE_DMA_READ : cpu_physical_memory_write ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_WRITE : cpu_physical_memory_read ( io -> addr , p , remainder_len ) ;
+ break ;
+ case IDE_DMA_TRIM : break ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ io -> requests ++ ;
+ qemu_iovec_reset ( & io -> iov ) ;
+ qemu_iovec_add ( & io -> iov , io -> remainder , 0x200 ) ;
+ m -> aiocb = blk_aio_writev ( s -> blk , sector_num - 1 , & io -> iov , 1 , pmac_ide_transfer_cb , io ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ MACIO_DPRINTF ( "end of transfer\n" ) ;
+ s -> status = READY_STAT | SEEK_STAT ;
+ ide_set_irq ( s -> bus ) ;
+ m -> dma_active = false ;
+ }
+      
+25769803786 | BLOCK | { MACIO_DPRINTF ( "end of DMA\n" ) ; goto done ; }
+25769803787 | BLOCK | 
+        {
+ int nsector = io -> len >> 9 ;
+ MACIO_DPRINTF ( "precopying unaligned %d bytes to %#" HWADDR_PRIx "\n" , unaligned , io -> addr + io -> len - unaligned ) ;
+ switch ( s -> dma_cmd ) {
+ case IDE_DMA_READ : io -> requests ++ ;
+ io -> finish_addr = io -> addr + io -> len - unaligned ;
+ io -> finish_len = unaligned ;
+ io -> finish_remain_read = true ;
+ qemu_iovec_reset ( & io -> iov ) ;
+ qemu_iovec_add ( & io -> iov , io -> remainder , 0x200 ) ;
+ m -> aiocb = blk_aio_readv ( s -> blk , sector_num + nsector , & io -> iov , 1 , pmac_ide_transfer_cb , io ) ;
+ break ;
+ case IDE_DMA_WRITE : cpu_physical_memory_read ( io -> addr + io -> len - unaligned , io -> remainder + io -> remainder_len , unaligned ) ;
+ break ;
+ case IDE_DMA_TRIM : break ;
+ }
+ }
+      
+25769803788 | BLOCK | 
+        {
+ case IDE_DMA_READ : io -> requ
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

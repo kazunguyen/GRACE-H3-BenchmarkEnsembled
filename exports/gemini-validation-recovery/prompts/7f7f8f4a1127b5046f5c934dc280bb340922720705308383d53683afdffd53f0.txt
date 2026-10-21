@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int entry_to_archive ( struct cpio * cpio , struct archive_entry * entry ) {
+ const char * destpath = archive_entry_pathname ( entry ) ;
+ const char * srcpath = archive_entry_sourcepath ( entry ) ;
+ int fd = - 1 ;
+ ssize_t bytes_read ;
+ int r ;
+ if ( cpio -> verbose ) fprintf ( stderr , "%s" , destpath ) ;
+ if ( cpio -> dot ) fprintf ( stderr , "." ) ;
+ if ( cpio -> option_link && archive_entry_filetype ( entry ) == AE_IFREG ) {
+ struct archive_entry * t ;
+ t = archive_entry_clone ( entry ) ;
+ if ( t == NULL ) lafe_errc ( 1 , ENOMEM , "Can't create link" ) ;
+ archive_entry_set_hardlink ( t , srcpath ) ;
+ archive_entry_set_size ( t , 0 ) ;
+ r = archive_write_header ( cpio -> archive , t ) ;
+ archive_entry_free ( t ) ;
+ if ( r != ARCHIVE_OK ) lafe_warnc ( archive_errno ( cpio -> archive ) , "%s" , archive_error_string ( cpio -> archive ) ) ;
+ if ( r == ARCHIVE_FATAL ) exit ( 1 ) ;
+ # ifdef EXDEV if ( r != ARCHIVE_OK && archive_errno ( cpio -> archive ) == EXDEV ) {
+ lafe_warnc ( 0 , "Copying file instead" ) ;
+ }
+ else # endif return ( 0 ) ;
+ }
+ if ( archive_entry_filetype ( entry ) == AE_IFREG ) {
+ if ( archive_entry_size ( entry ) > 0 ) {
+ fd = open ( srcpath , O_RDONLY | O_BINARY ) ;
+ if ( fd < 0 ) {
+ lafe_warnc ( errno , "%s: could not open file" , srcpath ) ;
+ goto cleanup ;
+ }
+ }
+ }
+ else {
+ archive_entry_set_size ( entry , 0 ) ;
+ }
+ r = archive_write_header ( cpio -> archive , entry ) ;
+ if ( r != ARCHIVE_OK ) lafe_warnc ( archive_errno ( cpio -> archive ) , "%s: %s" , srcpath , archive_error_string ( cpio -> archive ) ) ;
+ if ( r == ARCHIVE_FATAL ) exit ( 1 ) ;
+ if ( r >= ARCHIVE_WARN && archive_entry_size ( entry ) > 0 && fd >= 0 ) {
+ bytes_read = read ( fd , cpio -> buff , ( unsigned ) cpio -> buff_size ) ;
+ while ( bytes_read > 0 ) {
+ ssize_t bytes_write ;
+ bytes_write = archive_write_data ( cpio -> archive , cpio -> buff , bytes_read ) ;
+ if ( bytes_write < 0 ) lafe_errc ( 1 , archive_errno ( cpio -> archive ) , "%s" , archive_error_string ( cpio -> archive ) ) ;
+ if ( bytes_write < bytes_read ) {
+ lafe_warnc ( 0 , "Truncated write;
+ file may have " "grown while being archived." ) ;
+ }
+ bytes_read = read ( fd , cpio -> buff , ( unsigned ) cpio -> buff_size ) ;
+ }
+ }
+ fd = restore_time ( cpio , entry , srcpath , fd ) ;
+ cleanup : if ( cpio -> verbose ) fprintf ( stderr , "\n" ) ;
+ if ( fd >= 0 ) close ( fd ) ;
+ return ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * destpath = archive_entry_pathname ( entry ) ;
+ const char * srcpath = archive_entry_sourcepath ( entry ) ;
+ int fd = - 1 ;
+ ssize_t bytes_read ;
+ int r ;
+ if ( cpio -> verbose ) fprintf ( stderr , "%s" , destpath ) ;
+ if ( cpio -> dot ) fprintf ( stderr , "." ) ;
+ if ( cpio -> option_link && archive_entry_filetype ( entry ) == AE_IFREG ) {
+ struct archive_entry * t ;
+ t = archive_entry_clone ( entry ) ;
+ if ( t == NULL ) lafe_errc ( 1 , ENOMEM , "Can't create link" ) ;
+ archive_entry_set_hardlink ( t , srcpath ) ;
+ archive_entry_set_size ( t , 0 ) ;
+ r = archive_write_header ( cpio -> archive , t ) ;
+ archive_entry_free ( t ) ;
+ if ( r != ARCHIVE_OK ) lafe_warnc ( archive_errno ( cpio -> archive ) , "%s" , archive_error_string ( cpio -> archive ) ) ;
+ if ( r == ARCHIVE_FATAL ) exit ( 1 ) ;
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | destpath = archive_entry_pathname ( entry )
+30064771073 | CALL | archive_entry_pathname ( entry )
+30064771074 | CALL | srcpath = archive_entry_sourcepath ( entry )
+30064771075 | CALL | archive_entry_sourcepath ( entry )
+30064771076 | CALL | fd = - 1
+30064771077 | CALL | - 1
+30064771078 | CALL | cpio -> verbose
+30064771079 | CALL | fprintf ( stderr , "%s" , destpath )
+30064771080 | CALL | cpio -> dot
+30064771081 | CALL | fprintf ( stderr , "." )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( cpio -> verbose ) fprintf ( stderr , "%s" , destpath ) ;
+      
+47244640257 | CONTROL_STRUCTURE | if ( cpio -> dot ) fprintf ( stderr , "." ) ;
+55834574848 | FIELD_IDENTIFIER | verbose
+55834574849 | FIELD_IDENTIFIER | dot
+68719476736 | IDENTIFIER | destpath
+68719476737 | IDENTIFIER | entry
+68719476738 | IDENTIFIER | srcpath
+68719476739 | IDENTIFIER | entry
+68719476740 | IDENTIFIER | fd
+68719476741 | IDENTIFIER | cpio
+68719476742 | IDENTIFIER | <unknown> stderr
+68719476743 | IDENTIFIER | destpath
+68719476744 | IDENTIFIER | cpio
+68719476745 | IDENTIFIER | <unknown> stderr
+90194313216 | LITERAL | 1
+90194313217 | LITERAL | "%s"
+90194313218 | LITERAL | "."
+94489280512 | LOCAL | const char * destpath
+94489280513 | LOCAL | const char * srcpath
+94489280514 | LOCAL | int fd
+94489280515 | LOCAL | ssize_t bytes_read
+94489280516 | LOCAL | int r
+94489280517 | LOCAL | <unknown> stderr
+107374182400 | METHOD | 
+        static int entry_to_archive ( struct cpio * cpio , struct archive_entry * entry ) {
+ const char * destpath = archive_entry_pathname ( entry ) ;
+ const char * srcpath = archive_entry_sourcepath ( entry ) ;
+ int fd = - 1 ;
+ ssize_t bytes_read ;
+ int r ;
+ if ( cpio -> verbose ) fprintf ( stderr , "%s" , destpath ) ;
+ if ( cpio -> dot ) fprintf ( stderr , "." ) ;
+ if ( cpio -> option_link && archive_entry_filetype ( entry ) == AE_IFREG ) {
+ struct archive_entry * t ;
+ t = archive_entry_clone ( entry ) ;
+ if ( t == NULL ) lafe_errc ( 1 , ENOMEM , "Can't create link" ) ;
+ archive_entry_set_hardlink ( t , srcpath ) ;
+ archive_entry_set_size ( t , 0 ) ;
+ r = archive_write_header ( cpio -> archive , t ) ;
+ archive_entry_free ( t ) ;
+ if ( r != ARCHIVE_OK ) lafe_warnc ( archive_errno ( cpio -> archive ) , "%s" , archive_error_string ( cpio -> archive ) ) ;
+ if ( r == ARCHIVE_FATAL ) exit ( 1 ) ;
+      
+111669149696 | METHOD_PARAMETER_IN | struct cpio * cpio
+111669149697 | METHOD_PARAMETER_IN | struct archive_entry * entry
+115964116992 | METHOD_PARAMETER_OUT | struct cpio * cpio
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 94489280517 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

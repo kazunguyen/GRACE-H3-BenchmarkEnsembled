@@ -1,0 +1,141 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ds1338_recv(I2CSlave *i2c)
+
+{
+
+    DS1338State *s = FROM_I2C_SLAVE(DS1338State, i2c);
+
+    uint8_t res;
+
+
+
+    res  = s->nvram[s->ptr];
+
+    s->ptr = (s->ptr + 1) & 0xff;
+
+    return res;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 43 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 44 [IS_AST_PARENT]
+34 -> 38 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 47 [IS_AST_PARENT]
+3 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+3 -> 49 [IS_AST_PARENT]
+53 -> 50 [FLOWS_TO]
+50 -> 5 [FLOWS_TO]
+5 -> 19 [FLOWS_TO]
+19 -> 23 [FLOWS_TO]
+23 -> 33 [FLOWS_TO]
+33 -> 45 [FLOWS_TO]
+45 -> 54 [FLOWS_TO]
+19 -> 55 [DEF]
+20 -> 55 [DEF]
+23 -> 55 [DEF]
+24 -> 55 [DEF]
+45 -> 55 [USE]
+5 -> 56 [USE]
+15 -> 56 [USE]
+5 -> 57 [DEF]
+9 -> 57 [DEF]
+6 -> 57 [DEF]
+23 -> 57 [USE]
+30 -> 57 [USE]
+27 -> 57 [USE]
+33 -> 57 [USE]
+40 -> 57 [USE]
+35 -> 57 [USE]
+23 -> 58 [USE]
+24 -> 58 [USE]
+5 -> 59 [USE]
+9 -> 59 [USE]
+23 -> 60 [USE]
+26 -> 60 [USE]
+23 -> 61 [USE]
+24 -> 61 [USE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int ssd0303_init(I2CSlave *i2c)
+
+{
+
+    ssd0303_state *s = FROM_I2C_SLAVE(ssd0303_state, i2c);
+
+
+
+    s->con = graphic_console_init(ssd0303_update_display,
+
+                                  ssd0303_invalidate_display,
+
+                                  NULL, NULL, s);
+
+    qemu_console_resize(s->con, 96 * MAGNIFY, 16 * MAGNIFY);
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

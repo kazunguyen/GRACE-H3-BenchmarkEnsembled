@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int i6300esb_init(PCIDevice *dev)
+
+{
+
+    I6300State *d = DO_UPCAST(I6300State, dev, dev);
+
+    uint8_t *pci_conf;
+
+    int io_mem;
+
+    static CPUReadMemoryFunc * const mem_read[3] = {
+
+        i6300esb_mem_readb,
+
+        i6300esb_mem_readw,
+
+        i6300esb_mem_readl,
+
+    };
+
+    static CPUWriteMemoryFunc * const mem_write[3] = {
+
+        i6300esb_mem_writeb,
+
+        i6300esb_mem_writew,
+
+        i6300esb_mem_writel,
+
+    };
+
+
+
+    i6300esb_debug("I6300State = %p\n", d);
+
+
+
+    d->timer = qemu_new_timer_ns(vm_clock, i6300esb_timer_expired, d);
+
+    d->previous_reboot_flag = 0;
+
+
+
+    pci_conf = d->dev.config;
+
+    pci_config_set_vendor_id(pci_conf, PCI_VENDOR_ID_INTEL);
+
+    pci_config_set_device_id(pci_conf, PCI_DEVICE_ID_INTEL_ESB_9);
+
+    pci_config_set_class(pci_conf, PCI_CLASS_SYSTEM_OTHER);
+
+
+
+    io_mem = cpu_register_io_memory(mem_read, mem_write, d,
+
+                                    DEVICE_NATIVE_ENDIAN);
+
+    pci_register_bar_simple(&d->dev, 0, 0x10, 0, io_mem);
+
+    /* qemu_register_coalesced_mmio (addr, 0x10); ? */
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+14 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+4 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+38 -> 41 [IS_AST_PARENT]
+38 -> 42 [IS_AST_PARENT]
+38 -> 43 [IS_AST_PARENT]
+38 -> 44 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+4 -> 45 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+4 -> 50 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+4 -> 53 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+55 -> 60 [IS_AST_PARENT]
+55 -> 61 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+4 -> 62 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+67 -> 70 [IS_AST_PARENT]
+64 -> 67 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+80 -> 85 [IS_AST_PARENT]
+77 -> 80 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int piix3_initfn(PCIDevice *dev)
+
+{
+
+    PIIX3State *d = DO_UPCAST(PIIX3State, dev, dev);
+
+    uint8_t *pci_conf;
+
+
+
+    isa_bus_new(&d->dev.qdev);
+
+
+
+    pci_conf = d->dev.config;
+
+    pci_config_set_vendor_id(pci_conf, PCI_VENDOR_ID_INTEL);
+
+    pci_config_set_device_id(pci_conf, PCI_DEVICE_ID_INTEL_82371SB_0); // 82371SB PIIX3 PCI-to-ISA bridge (Step A1)
+
+    pci_config_set_class(pci_conf, PCI_CLASS_BRIDGE_ISA);
+
+    pci_conf[PCI_HEADER_TYPE] =
+
+        PCI_HEADER_TYPE_NORMAL | PCI_HEADER_TYPE_MULTI_FUNCTION; // header_type = PCI_multifunction, generic
+
+
+
+    qemu_register_reset(piix3_reset, d);
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

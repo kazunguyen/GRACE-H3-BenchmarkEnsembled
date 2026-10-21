@@ -1,0 +1,137 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int phar_tar_flush ( phar_archive_data * phar , char * user_stub , long len , int defaultstub , char * * error TSRMLS_DC ) {
+ phar_entry_info entry = {
+ 0 }
+ ;
+ static const char newstub [ ] = "<?php // tar-based phar archive stub file\n__HALT_COMPILER();
+" ;
+ php_stream * oldfile , * newfile , * stubfile ;
+ int closeoldfile , free_user_stub , signature_length ;
+ struct _phar_pass_tar_info pass ;
+ char * buf , * signature , * tmp , sigbuf [ 8 ] ;
+ char halt_stub [ ] = "__HALT_COMPILER();
+" ;
+ entry . flags = PHAR_ENT_PERM_DEF_FILE ;
+ entry . timestamp = time ( NULL ) ;
+ entry . is_modified = 1 ;
+ entry . is_crc_checked = 1 ;
+ entry . is_tar = 1 ;
+ entry . tar_type = '0' ;
+ entry . phar = phar ;
+ entry . fp_type = PHAR_MOD ;
+ if ( phar -> is_persistent ) {
+ if ( error ) {
+ spprintf ( error , 0 , "internal error: attempt to flush cached tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ return EOF ;
+ }
+ if ( phar -> is_data ) {
+ goto nostub ;
+ }
+ if ( ! phar -> is_temporary_alias && phar -> alias_len ) {
+ entry . filename = estrndup ( ".phar/alias.txt" , sizeof ( ".phar/alias.txt" ) - 1 ) ;
+ entry . filename_len = sizeof ( ".phar/alias.txt" ) - 1 ;
+ entry . fp = php_stream_fopen_tmpfile ( ) ;
+ if ( entry . fp == NULL ) {
+ spprintf ( error , 0 , "phar error: unable to create temporary file" ) ;
+ return - 1 ;
+ }
+ if ( phar -> alias_len != ( int ) php_stream_write ( entry . fp , phar -> alias , phar -> alias_len ) ) {
+ if ( error ) {
+ spprintf ( error , 0 , "unable to set alias in tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ return EOF ;
+ }
+ entry . uncompressed_filesize = phar -> alias_len ;
+ if ( SUCCESS != zend_hash_update ( & phar -> manifest , entry . filename , entry . filename_len , ( void * ) & entry , sizeof ( phar_entry_info ) , NULL ) ) {
+ if ( error ) {
+ spprintf ( error , 0 , "unable to set alias in tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ return EOF ;
+ }
+ }
+ else {
+ zend_hash_del ( & phar -> manifest , ".phar/alias.txt" , sizeof ( ".phar/alias.txt" ) - 1 ) ;
+ }
+ if ( user_stub && ! defaultstub ) {
+ char * pos ;
+ if ( len < 0 ) {
+ if ( ! ( php_stream_from_zval_no_verify ( stubfile , ( zval * * ) user_stub ) ) ) {
+ if ( error ) {
+ spprintf ( error , 0 , "unable to access resource to copy stub to new tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ return EOF ;
+ }
+ if ( len == - 1 ) {
+ len = PHP_STREAM_COPY_ALL ;
+ }
+ else {
+ len = - len ;
+ }
+ user_stub = 0 ;
+ if ( ! ( len = php_stream_copy_to_mem ( stubfile , & user_stub , len , 0 ) ) || ! user_stub ) {
+ if ( error ) {
+ spprintf ( error , 0 , "unable to read resource to copy stub to new tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ return EOF ;
+ }
+ free_user_stub = 1 ;
+ }
+ else {
+ free_user_stub = 0 ;
+ }
+ tmp = estrndup ( user_stub , len ) ;
+ if ( ( pos = php_stristr ( tmp , halt_stub , len , sizeof ( halt_stub ) - 1 ) ) == NULL ) {
+ efree ( tmp ) ;
+ if ( error ) {
+ spprintf ( error , 0 , "illegal stub for tar-based phar \"%s\"" , phar -> fname ) ;
+ }
+ if ( free_user_stub ) {
+ efree ( us
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int phar_parse_tarfile ( php_stream * fp , char * fname , int fname_len , char * alias , int alias_len , phar_archive_data * * pphar , int is_data , php_uint32 compression , char * * error TSRMLS_DC ) {
+ char buf [ 512 ] , * actual_alias = NULL , * p ;
+ phar_entry_info entry = {
+ 0 }
+ ;
+ size_t pos = 0 , read , totalsize ;
+ tar_header * hdr ;
+ php_uint32 sum1 , sum2 , size , old ;
+ phar_archive_data * myphar , * * actual ;
+ int last_was_longlink = 0 ;
+ if ( error ) {
+ * error = NULL ;
+ }
+ php_stream_seek ( fp , 0 , SEEK_END ) ;
+ totalsize = php_stream_tell ( fp ) ;
+ php_stream_seek ( fp , 0 , SEEK_SET ) ;
+ read = php_stream_read ( fp , buf , sizeof ( buf ) ) ;
+ if ( read != sizeof ( buf ) ) {
+ if ( error ) {
+ spprintf ( error , 4096 , "phar error: \"%s\" is not a tar file or is truncated" , fname ) ;
+ }
+ php_stream_close ( fp ) ;
+ return FAILURE ;
+ }
+ hdr = ( tar_header * ) buf ;
+ old = ( memcmp ( hdr -> magic , "ustar" , sizeof ( "ustar" ) - 1 ) != 0 ) ;
+ myphar = ( phar_archive_data * ) pecalloc ( 1 , sizeof ( phar_archive_data ) , PHAR_G ( persist ) ) ;
+ myphar -> is_persistent = PHAR_G ( persist ) ;
+ zend_hash_init ( & myphar -> manifest , 2 + ( totalsize >> 12 ) , zend_get_hash_value , destroy_phar_manifest_entry , ( zend_bool ) myphar -> is_persistent ) ;
+ zend_hash_init ( & myphar -> mounted_dirs , 5 , zend_get_hash_value , NULL , ( zend_bool ) myphar -> is_persistent ) ;
+ zend_hash_init ( & myphar -> virtual_dirs , 4 + ( totalsize >> 11 ) , zend_get_hash_value , NULL 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

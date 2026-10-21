@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void close_output_file ( struct stream_state * stream , unsigned int fourcc ) {
+ const struct vpx_codec_enc_cfg * const cfg = & stream -> config . cfg ;
+ if ( cfg -> g_pass == VPX_RC_FIRST_PASS ) return ;
+ # if CONFIG_WEBM_IO if ( stream -> config . write_webm ) {
+ write_webm_file_footer ( & stream -> ebml ) ;
+ }
+ # endif if ( ! stream -> config . write_webm ) {
+ if ( ! fseek ( stream -> file , 0 , SEEK_SET ) ) ivf_write_file_header ( stream -> file , & stream -> config . cfg , fourcc , stream -> frames_out ) ;
+ }
+ fclose ( stream -> file ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const struct vpx_codec_enc_cfg * const cfg = & stream -> config . cfg ;
+ if ( cfg -> g_pass == VPX_RC_FIRST_PASS ) return ;
+ # if CONFIG_WEBM_IO if ( stream -> config . write_webm ) {
+ write_webm_file_footer ( & stream -> ebml ) ;
+ }
+ # endif if ( ! stream -> config . write_webm ) {
+ if ( ! fseek ( stream -> file , 0 , SEEK_SET ) ) ivf_write_file_header ( stream -> file , & stream -> config . cfg , fourcc , stream -> frames_out ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | const cfg = & stream -> config . cfg
+30064771073 | CALL | & stream -> config . cfg
+30064771074 | CALL | stream -> config . cfg
+30064771075 | CALL | stream -> config
+30064771076 | CALL | cfg -> g_pass == VPX_RC_FIRST_PASS
+30064771077 | CALL | cfg -> g_pass
+30064771078 | CALL | ! fseek ( stream -> file , 0 , SEEK_SET )
+30064771079 | CALL | fseek ( stream -> file , 0 , SEEK_SET )
+30064771080 | CALL | stream -> file
+30064771081 | CALL | 
+        ivf_write_file_header ( stream -> file , & stream -> config . cfg , fourcc , stream -> frames_out )
+      
+30064771082 | CALL | stream -> file
+30064771083 | CALL | & stream -> config . cfg
+30064771084 | CALL | stream -> config . cfg
+30064771085 | CALL | stream -> config
+30064771086 | CALL | stream -> frames_out
+47244640256 | CONTROL_STRUCTURE | if ( cfg -> g_pass == VPX_RC_FIRST_PASS ) return ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! fseek ( stream -> file , 0 , SEEK_SET ) ) ivf_write_file_header ( stream -> file , & stream -> config . cfg , fourcc , stream -> frames_out ) ;
+      
+55834574848 | FIELD_IDENTIFIER | config
+55834574849 | FIELD_IDENTIFIER | cfg
+55834574850 | FIELD_IDENTIFIER | g_pass
+55834574851 | FIELD_IDENTIFIER | file
+55834574852 | FIELD_IDENTIFIER | file
+55834574853 | FIELD_IDENTIFIER | config
+55834574854 | FIELD_IDENTIFIER | cfg
+55834574855 | FIELD_IDENTIFIER | frames_out
+68719476736 | IDENTIFIER | cfg
+68719476737 | IDENTIFIER | stream
+68719476738 | IDENTIFIER | cfg
+68719476739 | IDENTIFIER | <unknown> VPX_RC_FIRST_PASS
+68719476740 | IDENTIFIER | stream
+68719476741 | IDENTIFIER | <unknown> SEEK_SET
+68719476742 | IDENTIFIER | stream
+68719476743 | IDENTIFIER | stream
+68719476744 | IDENTIFIER | fourcc
+68719476745 | IDENTIFIER | stream
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | const struct vpx_codec_enc_cfg * const cfg
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771084 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771084 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771085 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 55834574849 [CFG]
+30064771075 -> 55834574849 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 90194313216 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 68719476740 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 55834574851 [CDG]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476739 [POST_DOMINATE]
+30064771077 -> 68719476738 [ARGUMENT]
+30064771077 -> 55834574850 [ARGUMENT]
+30064771077 -> 68719476738 [AST]
+30064771077 -> 55834574850 [AST]
+30064771077 -> 68719476739 [CFG]
+30064771077 -> 68719476739 [DOMINATE]
+30064771077 -> 55834574850 [POST_DOMINATE]
+30064771077 -> 68719476739 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 68719476744 [CDG]
+30064771078 -> 55834574853 [CDG]
+30064771078 -> 68719476745 [CDG]
+30064771078 -> 55834574854 [CDG]
+30064771078 -> 55834574855 [CDG]
+30064771078 -> 68719476742 [CDG]
+30064771078 -> 68719476743 [CDG]
+30064771078 -> 55834574852 [CDG]
+30064771078 -> 68719476742 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void setup_pass ( struct stream_state * stream , struct VpxEncoderConfig * global , int pass ) {
+ if ( stream -> config . stats_fn ) {
+ if ( ! stats_open_file ( & stream -> stats , stream -> config . stats_fn , pass ) ) fatal ( "Failed to open statistics store" ) ;
+ }
+ else {
+ if ( ! stats_open_mem ( & stream -> stats , pass ) ) fatal ( "Failed to open statistics store" ) ;
+ }
+ # if CONFIG_FP_MB_STATS if ( stream -> config . fpmb_stats_fn ) {
+ if ( ! stats_open_file ( & stream -> fpmb_stats , stream -> config . fpmb_stats_fn , pass ) ) fatal ( "Failed to open mb statistics store" ) ;
+ }
+ else {
+ if ( ! stats_open_mem ( & stream -> fpmb_stats , pass ) ) fatal ( "Failed to open mb statistics store" ) ;
+ }
+ # endif stream -> config . cfg . g_pass = global -> passes == 2 ? pass ? VPX_RC_LAST_PASS : VPX_RC_FIRST_PASS : VPX_RC_ONE_PASS ;
+ if ( pass ) {
+ stream -> config . cfg . rc_twopass_stats_in = stats_get ( & stream -> stats ) ;
+ # if CONFIG_FP_MB_STATS stream -> config . cfg . rc_firstpass_mb_stats_in = stats_get ( & stream -> fpmb_stats ) ;
+ # endif }
+ stream -> cx_time = 0 ;
+ stream -> nbytes = 0 ;
+ stream -> frames_out = 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,239 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mp_decode_layer3 ( MPADecodeContext * s ) {
+ int nb_granules , main_data_begin ;
+ int gr , ch , blocksplit_flag , i , j , k , n , bits_pos ;
+ GranuleDef * g ;
+ int16_t exponents [ 576 ] ;
+ if ( s -> lsf ) {
+ main_data_begin = get_bits ( & s -> gb , 8 ) ;
+ skip_bits ( & s -> gb , s -> nb_channels ) ;
+ nb_granules = 1 ;
+ }
+ else {
+ main_data_begin = get_bits ( & s -> gb , 9 ) ;
+ if ( s -> nb_channels == 2 ) skip_bits ( & s -> gb , 3 ) ;
+ else skip_bits ( & s -> gb , 5 ) ;
+ nb_granules = 2 ;
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ s -> granules [ ch ] [ 0 ] . scfsi = 0 ;
+ s -> granules [ ch ] [ 1 ] . scfsi = get_bits ( & s -> gb , 4 ) ;
+ }
+ }
+ for ( gr = 0 ;
+ gr < nb_granules ;
+ gr ++ ) {
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ av_dlog ( s -> avctx , "gr=%d ch=%d: side_info\n" , gr , ch ) ;
+ g = & s -> granules [ ch ] [ gr ] ;
+ g -> part2_3_length = get_bits ( & s -> gb , 12 ) ;
+ g -> big_values = get_bits ( & s -> gb , 9 ) ;
+ if ( g -> big_values > 288 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "big_values too big\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> global_gain = get_bits ( & s -> gb , 8 ) ;
+ if ( ( s -> mode_ext & ( MODE_EXT_MS_STEREO | MODE_EXT_I_STEREO ) ) == MODE_EXT_MS_STEREO ) g -> global_gain -= 2 ;
+ if ( s -> lsf ) g -> scalefac_compress = get_bits ( & s -> gb , 9 ) ;
+ else g -> scalefac_compress = get_bits ( & s -> gb , 4 ) ;
+ blocksplit_flag = get_bits1 ( & s -> gb ) ;
+ if ( blocksplit_flag ) {
+ g -> block_type = get_bits ( & s -> gb , 2 ) ;
+ if ( g -> block_type == 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid block type\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> switch_point = get_bits1 ( & s -> gb ) ;
+ for ( i = 0 ;
+ i < 2 ;
+ i ++ ) g -> table_select [ i ] = get_bits ( & s -> gb , 5 ) ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) g -> subblock_gain [ i ] = get_bits ( & s -> gb , 3 ) ;
+ ff_init_short_region ( s , g ) ;
+ }
+ else {
+ int region_address1 , region_address2 ;
+ g -> block_type = 0 ;
+ g -> switch_point = 0 ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) g -> table_select [ i ] = get_bits ( & s -> gb , 5 ) ;
+ region_address1 = get_bits ( & s -> gb , 4 ) ;
+ region_address2 = get_bits ( & s -> gb , 3 ) ;
+ av_dlog ( s -> avctx , "region1=%d region2=%d\n" , region_address1 , region_address2 ) ;
+ ff_init_long_region ( s , g , region_address1 , region_address2 ) ;
+ }
+ ff_region_offset2size ( g ) ;
+ ff_compute_band_indexes ( s , g ) ;
+ g -> preflag = 0 ;
+ if ( ! s -> lsf ) g -> preflag = get_bits1 ( & s -> gb ) ;
+ g -> scalefac_scale = get_bits1 ( & s -> gb ) ;
+ g -> count1table_select = get_bits1 ( & s -> gb ) ;
+ av_dlog ( s -> avctx , "block_type=%d switch_point=%d\n" , g -> block_type , g -> switch_point ) ;
+ }
+ }
+ if ( ! s -> adu_mode ) {
+ int skip ;
+ const uint8_t * ptr = s -> gb . buffer + ( get_bits_count ( & s -> gb ) >> 3 ) ;
+ int extrasize = av_clip ( get_bits_left ( & s -> gb ) >> 3 , 0 , FFMAX ( 0 , LAST_BUF_SIZE - s -> last_buf_size ) ) ;
+ assert ( ( get_bits_count ( & s -> gb ) & 7 ) == 0 ) ;
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int nb_granules , main_data_begin ;
+ int gr , ch , blocksplit_flag , i , j , k , n , bits_pos ;
+ GranuleDef * g ;
+ int16_t exponents [ 576 ] ;
+ if ( s -> lsf ) {
+ main_data_begin = get_bits ( & s -> gb , 8 ) ;
+ skip_bits ( & s -> gb , s -> nb_channels ) ;
+ nb_granules = 1 ;
+ }
+ else {
+ main_data_begin = get_bits ( & s -> gb , 9 ) ;
+ if ( s -> nb_channels == 2 ) skip_bits ( & s -> gb , 3 ) ;
+ else skip_bits ( & s -> gb , 5 ) ;
+ nb_granules = 2 ;
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ s -> granules [ ch ] [ 0 ] . scfsi = 0 ;
+ s -> granules [ ch ] [ 1 ] . scfsi = get_bits ( & s -> gb , 4 ) ;
+ }
+ }
+ for ( gr = 0 ;
+ gr < nb_granules ;
+ gr ++ ) {
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ av_dlog ( s -> avctx , "gr=%d ch=%d: side_info\n" , gr , ch ) ;
+ g = & s -> granules [ ch ] [ gr ] ;
+ g -> part2_3_length = get_bits ( & s -> gb , 12 ) ;
+ g -> big_values = get_bits ( & s -> gb , 9 ) ;
+ if ( g -> big_values > 288 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "big_v...
+      
+25769803777 | BLOCK | 
+        {
+ main_data_begin = get_bits ( & s -> gb , 8 ) ;
+ skip_bits ( & s -> gb , s -> nb_channels ) ;
+ nb_granules = 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ main_data_begin = get_bits ( & s -> gb , 9 ) ;
+ if ( s -> nb_channels == 2 ) skip_bits ( & s -> gb , 3 ) ;
+ else skip_bits ( & s -> gb , 5 ) ;
+ nb_granules = 2 ;
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ s -> granules [ ch ] [ 0 ] . scfsi = 0 ;
+ s -> granules [ ch ] [ 1 ] . scfsi = get_bits ( & s -> gb , 4 ) ;
+ }
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ s -> granules [ ch ] [ 0 ] . scfsi = 0 ;
+ s -> granules [ ch ] [ 1 ] . scfsi = get_bits ( & s -> gb , 4 ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ for ( ch = 0 ;
+ ch < s -> nb_channels ;
+ ch ++ ) {
+ av_dlog ( s -> avctx , "gr=%d ch=%d: side_info\n" , gr , ch ) ;
+ g = & s -> granules [ ch ] [ gr ] ;
+ g -> part2_3_length = get_bits ( & s -> gb , 12 ) ;
+ g -> big_values = get_bits ( & s -> gb , 9 ) ;
+ if ( g -> big_values > 288 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "big_values too big\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> global_gain = get_bits ( & s -> gb , 8 ) ;
+ if ( ( s -> mode_ext & ( MODE_EXT_MS_STEREO | MODE_EXT_I_STEREO ) ) == MODE_EXT_MS_STEREO ) g -> global_gain -= 2 ;
+ if ( s -> lsf ) g -> scalefac_compress = get_bits ( & s -> gb , 9 ) ;
+ else g -> scalefac_compress = get_bits ( & s -> gb , 4 ) ;
+ blocksplit_flag = get_bits1 ( & s -> gb ) ;
+ if ( blocksplit_flag ) {
+ g -> block_type = get_bits ( & s -> gb , 2 ) ;
+ if ( g -> block_type == 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid block type\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> switch_point = get_bits1 ( & s -> gb ) ;
+ for ( i = 0 ;
+ i ...
+      
+25769803783 | BLOCK | 
+        {
+ av_dlog ( s -> avctx , "gr=%d ch=%d: side_info\n" , gr , ch ) ;
+ g = & s -> granules [ ch ] [ gr ] ;
+ g -> part2_3_length = get_bits ( & s -> gb , 12 ) ;
+ g -> big_values = get_bits ( & s -> gb , 9 ) ;
+ if ( g -> big_values > 288 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "big_values too big\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> global_gain = get_bits ( & s -> gb , 8 ) ;
+ if ( ( s -> mode_ext & ( MODE_EXT_MS_STEREO | MODE_EXT_I_STEREO ) ) == MODE_EXT_MS_STEREO ) g -> global_gain -= 2 ;
+ if ( s -> lsf ) g -> scalefac_compress = get_bits ( & s -> gb , 9 ) ;
+ else g -> scalefac_compress = get_bits ( & s -> gb , 4 ) ;
+ blocksplit_flag = get_bits1 ( & s -> gb ) ;
+ if ( blocksplit_flag ) {
+ g -> block_type = get_bits ( & s -> gb , 2 ) ;
+ if ( g -> block_type == 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid block type\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> switch_point = get_bits1 ( & s -> gb ) ;
+ for ( i = 0 ;
+ i < 2 ;
+ i ++ ) g -> table_select [ i ] = get_bits ( &...
+      
+25769803784 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "big_values too big\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ g -> block_type = get_bits ( & s -> gb , 2 ) ;
+ if ( g -> block_type == 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid block type\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ g -> switch_point = get_bits1 ( & s -> gb ) ;
+ for ( i = 0 ;
+ i < 2 ;
+ i ++ ) g -> table
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

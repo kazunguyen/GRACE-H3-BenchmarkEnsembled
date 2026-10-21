@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void TSMimeHdrPrint ( TSMBuffer bufp , TSMLoc obj , TSIOBuffer iobufp ) {
+ sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS ) ;
+ sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( obj ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( obj ) == TS_SUCCESS ) ) ;
+ sdk_assert ( sdk_sanity_check_iocore_structure ( iobufp ) == TS_SUCCESS ) ;
+ HdrHeap * heap = ( ( HdrHeapSDKHandle * ) bufp ) -> m_heap ;
+ MIMEHdrImpl * mh = _hdr_mloc_to_mime_hdr_impl ( obj ) ;
+ MIOBuffer * b = ( MIOBuffer * ) iobufp ;
+ IOBufferBlock * blk ;
+ int bufindex ;
+ int tmp , dumpoffset = 0 ;
+ int done ;
+ do {
+ blk = b -> get_current_block ( ) ;
+ if ( ! blk || blk -> write_avail ( ) == 0 ) {
+ b -> add_block ( ) ;
+ blk = b -> get_current_block ( ) ;
+ }
+ bufindex = 0 ;
+ tmp = dumpoffset ;
+ done = mime_hdr_print ( heap , mh , blk -> end ( ) , blk -> write_avail ( ) , & bufindex , & tmp ) ;
+ dumpoffset += bufindex ;
+ b -> fill ( bufindex ) ;
+ }
+ while ( ! done ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS ) ;
+ sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( obj ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( obj ) == TS_SUCCESS ) ) ;
+ sdk_assert ( sdk_sanity_check_iocore_structure ( iobufp ) == TS_SUCCESS ) ;
+ HdrHeap * heap = ( ( HdrHeapSDKHandle * ) bufp ) -> m_heap ;
+ MIMEHdrImpl * mh = _hdr_mloc_to_mime_hdr_impl ( obj ) ;
+ MIOBuffer * b = ( MIOBuffer * ) iobufp ;
+ IOBufferBlock * blk ;
+ int bufindex ;
+ int tmp , dumpoffset = 0 ;
+ int done ;
+ do {
+ blk = b -> get_current_block ( ) ;
+ if ( ! blk || blk -> write_avail ( ) == 0 ) {
+ b -> add_block ( ) ;
+ blk = b -> get_current_block ( ) ;
+ }
+ bufindex = 0 ;
+ tmp = dumpoffset ;
+ done = mime_hdr_print ( heap , mh , blk -> end ( ) , blk -> write_avail ( ) , & bufindex , & tmp ) ;
+ dumpoffset += bufindex ;
+ b -> fill ( bufindex ) ;
+ }
+ while ( ! done ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ blk = b -> get_current_block ( ) ;
+ if ( ! blk || blk -> write_avail ( ) == 0 ) {
+ b -> add_block ( ) ;
+ blk = b -> get_current_block ( ) ;
+ }
+ bufindex = 0 ;
+ tmp = dumpoffset ;
+ done = mime_hdr_print ( heap , mh , blk -> end ( ) , blk -> write_avail ( ) , & bufindex , & tmp ) ;
+ dumpoffset += bufindex ;
+ b -> fill ( bufindex ) ;
+ }
+      
+25769803778 | BLOCK | { b -> add_block ( ) ; blk = b -> get_current_block ( ) ; }
+30064771072 | CALL | sdk_assert ( sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS )
+30064771073 | CALL | sdk_sanity_check_mbuffer ( bufp ) == TS_SUCCESS
+30064771074 | CALL | sdk_sanity_check_mbuffer ( bufp )
+30064771075 | CALL | 
+        sdk_assert ( ( sdk_sanity_check_mime_hdr_handle ( obj ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( obj ) == TS_SUCCESS ) )
+      
+30064771076 | CALL | 
+        ( sdk_sanity_check_mime_hdr_handle ( obj ) == TS_SUCCESS ) || ( sdk_sanity_check_http_hdr_handle ( obj ) == TS_SUCCESS )
+      
+30064771077 | CALL | sdk_sanity_check_mime_hdr_handle ( obj ) == TS_SUCCESS
+30064771078 | CALL | sdk_sanity_check_mime_hdr_handle ( obj )
+30064771079 | CALL | sdk_sanity_check_http_hdr_handle ( obj ) == TS_SUCCESS
+30064771080 | CALL | sdk_sanity_check_http_hdr_handle ( obj )
+30064771081 | CALL | sdk_assert ( sdk_sanity_check_iocore_structure ( iobufp ) == TS_SUCCESS )
+30064771082 | CALL | sdk_sanity_check_iocore_structure ( iobufp ) == TS_SUCCESS
+30064771083 | CALL | sdk_sanity_check_iocore_structure ( iobufp )
+30064771084 | CALL | heap = ( ( HdrHeapSDKHandle * ) bufp ) -> m_heap
+30064771085 | CALL | ( ( HdrHeapSDKHandle * ) bufp ) -> m_heap
+30064771086 | CALL | ( HdrHeapSDKHandle * ) bufp
+30064771087 | CALL | mh = _hdr_mloc_to_mime_hdr_impl ( obj )
+30064771088 | CALL | _hdr_mloc_to_mime_hdr_impl ( obj )
+30064771089 | CALL | b = ( MIOBuffer * ) iobufp
+30064771090 | CALL | ( MIOBuffer * ) iobufp
+30064771091 | CALL | dumpoffset = 0
+30064771092 | CALL | blk = b -> get_current_block ( )
+30064771093 | CALL | b -> get_current_block ( )
+30064771094 | CALL | b -> get_current_block
+30064771095 | CALL | ! blk || blk -> write_avail ( ) == 0
+30064771096 | CALL | ! blk
+30064771097 | CALL | blk -> write_avail ( ) == 0
+30064771098 | CALL | blk -> write_avail ( )
+30064771099 | CALL | blk -> write_avail
+30064771100 | CALL | b -> add_block ( )
+30064771101 | CALL | b -> add_block
+30064771102 | CALL | blk = b -> get_current_block ( )
+30064771103 | CALL | b -> get_current_block ( )
+30064771104 | CALL | b -> get_current_block
+30064771105 | CALL | bufindex = 0
+30064771106 | CALL | tmp = dumpoffset
+30064771107 | CALL | 
+        done = mime_hdr_print ( heap , mh , blk -> end ( ) , blk -> write_avail ( ) , & bufindex , & tmp )
+      
+30064771108 | CALL | 
+        mime_hdr_print ( heap , mh , blk -> end ( ) , blk -> write_avail ( ) , & bufindex , & tmp )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771105 [AST]
+25769803777 -> 30064771106 [AST]
+25769803777 -> 30064771107 [AST]
+25769803778 -> 30064771100 [AST]
+25769803778 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771076 [CFG]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

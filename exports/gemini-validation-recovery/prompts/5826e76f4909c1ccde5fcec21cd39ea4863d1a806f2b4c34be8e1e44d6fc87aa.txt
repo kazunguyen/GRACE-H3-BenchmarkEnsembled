@@ -1,0 +1,337 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int zmbv_decode_xor_16 ( ZmbvContext * c ) {
+ uint8_t * src = c -> decomp_buf ;
+ uint16_t * output , * prev ;
+ int8_t * mvec ;
+ int x , y ;
+ int d , dx , dy , bw2 , bh2 ;
+ int block ;
+ int i , j ;
+ int mx , my ;
+ output = ( uint16_t * ) c -> cur ;
+ prev = ( uint16_t * ) c -> prev ;
+ mvec = ( int8_t * ) src ;
+ src += ( ( c -> bx * c -> by * 2 + 3 ) & ~ 3 ) ;
+ block = 0 ;
+ for ( y = 0 ;
+ y < c -> height ;
+ y += c -> bh ) {
+ bh2 = ( ( c -> height - y ) > c -> bh ) ? c -> bh : ( c -> height - y ) ;
+ for ( x = 0 ;
+ x < c -> width ;
+ x += c -> bw ) {
+ uint16_t * out , * tprev ;
+ d = mvec [ block ] & 1 ;
+ dx = mvec [ block ] >> 1 ;
+ dy = mvec [ block + 1 ] >> 1 ;
+ block += 2 ;
+ bw2 = ( ( c -> width - x ) > c -> bw ) ? c -> bw : ( c -> width - x ) ;
+ out = output + x ;
+ tprev = prev + x + dx + dy * c -> width ;
+ mx = x + dx ;
+ my = y + dy ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ if ( my + j < 0 || my + j >= c -> height ) {
+ memset ( out , 0 , bw2 * 2 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+ }
+ out += c -> width ;
+ tprev += c -> width ;
+ }
+ if ( d ) {
+ out = output + x ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ out [ i ] ^= * ( ( uint16_t * ) src ) ;
+ src += 2 ;
+ }
+ out += c -> width ;
+ }
+ }
+ }
+ output += c -> width * c -> bh ;
+ prev += c -> width * c -> bh ;
+ }
+ if ( src - c -> decomp_buf != c -> decomp_len ) av_log ( c -> avctx , AV_LOG_ERROR , "Used %ti of %i bytes\n" , src - c -> decomp_buf , c -> decomp_len ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t * src = c -> decomp_buf ;
+ uint16_t * output , * prev ;
+ int8_t * mvec ;
+ int x , y ;
+ int d , dx , dy , bw2 , bh2 ;
+ int block ;
+ int i , j ;
+ int mx , my ;
+ output = ( uint16_t * ) c -> cur ;
+ prev = ( uint16_t * ) c -> prev ;
+ mvec = ( int8_t * ) src ;
+ src += ( ( c -> bx * c -> by * 2 + 3 ) & ~ 3 ) ;
+ block = 0 ;
+ for ( y = 0 ;
+ y < c -> height ;
+ y += c -> bh ) {
+ bh2 = ( ( c -> height - y ) > c -> bh ) ? c -> bh : ( c -> height - y ) ;
+ for ( x = 0 ;
+ x < c -> width ;
+ x += c -> bw ) {
+ uint16_t * out , * tprev ;
+ d = mvec [ block ] & 1 ;
+ dx = mvec [ block ] >> 1 ;
+ dy = mvec [ block + 1 ] >> 1 ;
+ block += 2 ;
+ bw2 = ( ( c -> width - x ) > c -> bw ) ? c -> bw : ( c -> width - x ) ;
+ out = output + x ;
+ tprev = prev + x + dx + dy * c -> width ;
+ mx = x + dx ;
+ my = y + dy ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ if ( my + j < 0 || my + j >= c -> height ) {
+ memset ( out , 0 , bw2 * 2 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c ->...
+      
+25769803777 | BLOCK | 
+        {
+ bh2 = ( ( c -> height - y ) > c -> bh ) ? c -> bh : ( c -> height - y ) ;
+ for ( x = 0 ;
+ x < c -> width ;
+ x += c -> bw ) {
+ uint16_t * out , * tprev ;
+ d = mvec [ block ] & 1 ;
+ dx = mvec [ block ] >> 1 ;
+ dy = mvec [ block + 1 ] >> 1 ;
+ block += 2 ;
+ bw2 = ( ( c -> width - x ) > c -> bw ) ? c -> bw : ( c -> width - x ) ;
+ out = output + x ;
+ tprev = prev + x + dx + dy * c -> width ;
+ mx = x + dx ;
+ my = y + dy ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ if ( my + j < 0 || my + j >= c -> height ) {
+ memset ( out , 0 , bw2 * 2 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+ }
+ out += c -> width ;
+ tprev += c -> width ;
+ }
+ if ( d ) {
+ out = output + x ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ out [ i ] ^= * ( ( uint16_t * ) src ) ;
+ src += 2 ;
+ }
+ out += c -> width ;
+ }
+ }
+ }
+ output += c -> width * c -> bh ;
+ prev += c -> width * c -> bh ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ uint16_t * out , * tprev ;
+ d = mvec [ block ] & 1 ;
+ dx = mvec [ block ] >> 1 ;
+ dy = mvec [ block + 1 ] >> 1 ;
+ block += 2 ;
+ bw2 = ( ( c -> width - x ) > c -> bw ) ? c -> bw : ( c -> width - x ) ;
+ out = output + x ;
+ tprev = prev + x + dx + dy * c -> width ;
+ mx = x + dx ;
+ my = y + dy ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ if ( my + j < 0 || my + j >= c -> height ) {
+ memset ( out , 0 , bw2 * 2 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+ }
+ out += c -> width ;
+ tprev += c -> width ;
+ }
+ if ( d ) {
+ out = output + x ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ out [ i ] ^= * ( ( uint16_t * ) src ) ;
+ src += 2 ;
+ }
+ out += c -> width ;
+ }
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( my + j < 0 || my + j >= c -> height ) {
+ memset ( out , 0 , bw2 * 2 ) ;
+ }
+ else {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+ }
+ out += c -> width ;
+ tprev += c -> width ;
+ }
+      
+25769803780 | BLOCK | { memset ( out , 0 , bw2 * 2 ) ; }
+25769803781 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( mx + i < 0 || mx + i >= c -> width ) out [ i ] = 0 ;
+ else out [ i ] = tprev [ i ] ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ out = output + x ;
+ for ( j = 0 ;
+ j < bh2 ;
+ j ++ ) {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ out [ i ] ^= * ( ( uint16_t * ) src ) ;
+ src += 2 ;
+ }
+ out += c -> width ;
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < bw2 ;
+ i ++ ) {
+ out [ i ] ^= * ( ( uint16_t * ) src ) ;
+ src += 2 ;
+ }
+ out += c -> width ;
+ }
+      
+25769803787 | BLOCK | { out [ i ] ^= * ( ( uint16_t * ) src ) ; src += 2 ; }
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | src = c -> decomp_buf
+30064771073 | CALL | c -> decomp_buf
+30064771074 | CALL | output = ( uint16_t * ) c -> cur
+30064771075 | CALL | ( uint16_t * ) c -> cur
+30064771076 | CALL | c -> cur
+30064771077 | CALL | prev = ( uint16_t * ) c -> prev
+30064771078 | CALL | ( uint16_t * ) c -> prev
+30064771079 | CALL | c -> prev
+30064771080 | CALL | mvec = ( int8_t * ) src
+30064771081 | CALL | ( int8_t * ) src
+30064771082 | CALL | src += ( ( c -> bx * c -> by * 2 + 3 ) & ~ 3 )
+30064771083 | CALL | ( c -> bx * c -> by * 2 + 3 ) & ~ 3
+30064771084 | CALL | c -> bx * c -> by * 2 + 3
+30064771085 | CALL | c -> bx * c -> by * 2
+30064771086 | CALL | c -> bx * c -> by
+30064771087 | CALL | c -> bx
+30064771088 | CALL | c -> by
+30064771089 | CALL | ~ 3
+30064771090 | CALL | block = 0
+30064771091 | CALL | y = 0
+30064771092 | CALL | y < c -> height
+30064771093 | CALL | c -> height
+30064771094 | CALL | y += c -> bh
+30064771095 | CALL | c -> bh
+30064771096 | CALL | 
+        bh2 = ( ( c -> height - y ) > c -> bh ) ? c -> bh : ( c -> height - y )
+      
+30064771097 | CALL | ( ( c -> height - y ) > c -> bh ) ? c -> bh : ( c -> height - y )
+30064771098 | CALL | ( c -> height - y ) > c -> bh
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [AR
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

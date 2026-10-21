@@ -1,0 +1,183 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ParseCaffHeaderConfig ( FILE * infile , char * infilename , char * fourcc , WavpackContext * wpc , WavpackConfig * config ) {
+ uint32_t chan_chunk = 0 , channel_layout = 0 , bcount ;
+ unsigned char * channel_identities = NULL ;
+ unsigned char * channel_reorder = NULL ;
+ int64_t total_samples = 0 , infilesize ;
+ CAFFileHeader caf_file_header ;
+ CAFChunkHeader caf_chunk_header ;
+ CAFAudioFormat caf_audio_format ;
+ int i ;
+ infilesize = DoGetFileSize ( infile ) ;
+ memcpy ( & caf_file_header , fourcc , 4 ) ;
+ if ( ( ! DoReadFile ( infile , ( ( char * ) & caf_file_header ) + 4 , sizeof ( CAFFileHeader ) - 4 , & bcount ) || bcount != sizeof ( CAFFileHeader ) - 4 ) ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_file_header , sizeof ( CAFFileHeader ) ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_file_header , CAFFileHeaderFormat ) ;
+ if ( caf_file_header . mFileVersion != 1 ) {
+ error_line ( "%s: can't handle version %d .CAF files!" , infilename , caf_file_header . mFileVersion ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ while ( 1 ) {
+ if ( ! DoReadFile ( infile , & caf_chunk_header , sizeof ( CAFChunkHeader ) , & bcount ) || bcount != sizeof ( CAFChunkHeader ) ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_chunk_header , sizeof ( CAFChunkHeader ) ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_chunk_header , CAFChunkHeaderFormat ) ;
+ if ( ! strncmp ( caf_chunk_header . mChunkType , "desc" , 4 ) ) {
+ int supported = TRUE ;
+ if ( caf_chunk_header . mChunkSize != sizeof ( CAFAudioFormat ) || ! DoReadFile ( infile , & caf_audio_format , ( uint32_t ) caf_chunk_header . mChunkSize , & bcount ) || bcount != caf_chunk_header . mChunkSize ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_audio_format , ( uint32_t ) caf_chunk_header . mChunkSize ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_audio_format , CAFAudioFormatFormat ) ;
+ if ( debug_logging_mode ) {
+ char formatstr [ 5 ] ;
+ memcpy ( formatstr , caf_audio_format . mFormatID , 4 ) ;
+ formatstr [ 4 ] = 0 ;
+ error_line ( "format = %s, flags = %x, sampling rate = %g" , formatstr , caf_audio_format . mFormatFlags , caf_audio_format . mSampleRate ) ;
+ error_line ( "packet = %d bytes and %d frames" , caf_audio_format . mBytesPerPacket , caf_audio_format . mFramesPerPacket ) ;
+ error_line ( "channels per frame = %d, bits per channel = %d" , caf_audio
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t chan_chunk = 0 , channel_layout = 0 , bcount ;
+ unsigned char * channel_identities = NULL ;
+ unsigned char * channel_reorder = NULL ;
+ int64_t total_samples = 0 , infilesize ;
+ CAFFileHeader caf_file_header ;
+ CAFChunkHeader caf_chunk_header ;
+ CAFAudioFormat caf_audio_format ;
+ int i ;
+ infilesize = DoGetFileSize ( infile ) ;
+ memcpy ( & caf_file_header , fourcc , 4 ) ;
+ if ( ( ! DoReadFile ( infile , ( ( char * ) & caf_file_header ) + 4 , sizeof ( CAFFileHeader ) - 4 , & bcount ) || bcount != sizeof ( CAFFileHeader ) - 4 ) ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_file_header , sizeof ( CAFFileHeader ) ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_file_header , CAFFileHeaderFormat ) ;
+ if ( caf_file_header . mFileVersion != 1 ) {
+ error_lin...
+      
+25769803777 | BLOCK | 
+        {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ error_line ( "%s: can't handle version %d .CAF files!" , infilename , caf_file_header . mFileVersion ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( ! DoReadFile ( infile , & caf_chunk_header , sizeof ( CAFChunkHeader ) , & bcount ) || bcount != sizeof ( CAFChunkHeader ) ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_chunk_header , sizeof ( CAFChunkHeader ) ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_chunk_header , CAFChunkHeaderFormat ) ;
+ if ( ! strncmp ( caf_chunk_header . mChunkType , "desc" , 4 ) ) {
+ int supported = TRUE ;
+ if ( caf_chunk_header . mChunkSize != sizeof ( CAFAudioFormat ) || ! DoReadFile ( infile , & caf_audio_format , ( uint32_t ) caf_chunk_header . mChunkSize , & bcount ) || bcount != caf_chunk_header . mChunkSize ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! ...
+      
+25769803782 | BLOCK | 
+        {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ int supported = TRUE ;
+ if ( caf_chunk_header . mChunkSize != sizeof ( CAFAudioFormat ) || ! DoReadFile ( infile , & caf_audio_format , ( uint32_t ) caf_chunk_header . mChunkSize , & bcount ) || bcount != caf_chunk_header . mChunkSize ) {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ else if ( ! ( config -> qmode & QMODE_NO_STORE_WRAPPER ) && ! WavpackAddWrapper ( wpc , & caf_audio_format , ( uint32_t ) caf_chunk_header . mChunkSize ) ) {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+ WavpackBigEndianToNative ( & caf_audio_format , CAFAudioFormatFormat ) ;
+ if ( debug_logging_mode ) {
+ char formatstr [ 5 ] ;
+ memcpy ( formatstr , caf_audio_format . mFormatID , 4 ) ;
+ formatstr [ 4 ] = 0 ;
+ error_line ( "format = %s, flags = %x, sampling rate = %g" , formatstr , caf_audio_format . mFormatFlags , caf_audio_format . mSampleRate ) ;
+ error_line ( "packet = %d bytes and %d frames" , caf_audio_fo...
+      
+25769803786 | BLOCK | 
+        {
+ error_line ( "%s is not a valid .CAF file!" , infilename ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ error_line ( "%s" , WavpackGetErrorMessage ( wpc ) ) ;
+ return WAVPACK_SOFT_ERROR ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ char formatstr [ 5 ] ;
+ memcpy ( formatstr , caf_audio_format . mFormatID , 4 ) ;
+ formatstr [ 4 ] = 0 ;
+ error_line ( "format = %s, flags = %x, sampling rate = %g" , formatstr 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

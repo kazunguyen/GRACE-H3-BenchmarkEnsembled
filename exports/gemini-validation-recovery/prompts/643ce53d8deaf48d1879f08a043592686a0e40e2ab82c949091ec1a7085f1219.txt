@@ -1,0 +1,265 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void T_UConverter_toUnicode_UTF32_BE ( UConverterToUnicodeArgs * args , UErrorCode * err ) {
+ const unsigned char * mySource = ( unsigned char * ) args -> source ;
+ UChar * myTarget = args -> target ;
+ const unsigned char * sourceLimit = ( unsigned char * ) args -> sourceLimit ;
+ const UChar * targetLimit = args -> targetLimit ;
+ unsigned char * toUBytes = args -> converter -> toUBytes ;
+ uint32_t ch , i ;
+ if ( args -> converter -> toUnicodeStatus && myTarget < targetLimit ) {
+ i = args -> converter -> toULength ;
+ args -> converter -> toULength = 0 ;
+ ch = args -> converter -> toUnicodeStatus - 1 ;
+ args -> converter -> toUnicodeStatus = 0 ;
+ goto morebytes ;
+ }
+ while ( mySource < sourceLimit && myTarget < targetLimit ) {
+ i = 0 ;
+ ch = 0 ;
+ morebytes : while ( i < sizeof ( uint32_t ) ) {
+ if ( mySource < sourceLimit ) {
+ ch = ( ch << 8 ) | ( uint8_t ) ( * mySource ) ;
+ toUBytes [ i ++ ] = ( char ) * ( mySource ++ ) ;
+ }
+ else {
+ args -> converter -> toUnicodeStatus = ch + 1 ;
+ args -> converter -> toULength = ( int8_t ) i ;
+ goto donefornow ;
+ }
+ }
+ if ( ch <= MAXIMUM_UTF && ! U_IS_SURROGATE ( ch ) ) {
+ if ( ch <= MAXIMUM_UCS2 ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ * ( myTarget ++ ) = U16_LEAD ( ch ) ;
+ ch = U16_TRAIL ( ch ) ;
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ args -> converter -> UCharErrorBuffer [ 0 ] = ( UChar ) ch ;
+ args -> converter -> UCharErrorBufferLength = 1 ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ break ;
+ }
+ }
+ }
+ else {
+ args -> converter -> toULength = ( int8_t ) i ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ donefornow : if ( mySource < sourceLimit && myTarget >= targetLimit && U_SUCCESS ( * err ) ) {
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ }
+ args -> target = myTarget ;
+ args -> source = ( const char * ) mySource ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const unsigned char * mySource = ( unsigned char * ) args -> source ;
+ UChar * myTarget = args -> target ;
+ const unsigned char * sourceLimit = ( unsigned char * ) args -> sourceLimit ;
+ const UChar * targetLimit = args -> targetLimit ;
+ unsigned char * toUBytes = args -> converter -> toUBytes ;
+ uint32_t ch , i ;
+ if ( args -> converter -> toUnicodeStatus && myTarget < targetLimit ) {
+ i = args -> converter -> toULength ;
+ args -> converter -> toULength = 0 ;
+ ch = args -> converter -> toUnicodeStatus - 1 ;
+ args -> converter -> toUnicodeStatus = 0 ;
+ goto morebytes ;
+ }
+ while ( mySource < sourceLimit && myTarget < targetLimit ) {
+ i = 0 ;
+ ch = 0 ;
+ morebytes : while ( i < sizeof ( uint32_t ) ) {
+ if ( mySource < sourceLimit ) {
+ ch = ( ch << 8 ) | ( uint8_t ) ( * mySource ) ;
+ toUBytes [ i ++ ] = ( char ) * ( mySource ++ ) ;
+ }
+ else {
+ args -> converter -> toUnicodeStatus = ch + 1 ;
+ args -> converter -> toULength = ( int8_t ) i ;
+ goto donefornow ;
+ }
+ }
+ if ( ch <= MAXIMUM...
+      
+25769803777 | BLOCK | 
+        {
+ i = args -> converter -> toULength ;
+ args -> converter -> toULength = 0 ;
+ ch = args -> converter -> toUnicodeStatus - 1 ;
+ args -> converter -> toUnicodeStatus = 0 ;
+ goto morebytes ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ i = 0 ;
+ ch = 0 ;
+ morebytes : while ( i < sizeof ( uint32_t ) ) {
+ if ( mySource < sourceLimit ) {
+ ch = ( ch << 8 ) | ( uint8_t ) ( * mySource ) ;
+ toUBytes [ i ++ ] = ( char ) * ( mySource ++ ) ;
+ }
+ else {
+ args -> converter -> toUnicodeStatus = ch + 1 ;
+ args -> converter -> toULength = ( int8_t ) i ;
+ goto donefornow ;
+ }
+ }
+ if ( ch <= MAXIMUM_UTF && ! U_IS_SURROGATE ( ch ) ) {
+ if ( ch <= MAXIMUM_UCS2 ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ * ( myTarget ++ ) = U16_LEAD ( ch ) ;
+ ch = U16_TRAIL ( ch ) ;
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ args -> converter -> UCharErrorBuffer [ 0 ] = ( UChar ) ch ;
+ args -> converter -> UCharErrorBufferLength = 1 ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ break ;
+ }
+ }
+ }
+ else {
+ args -> converter -> toULength = ( int8_t ) i ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( mySource < sourceLimit ) {
+ ch = ( ch << 8 ) | ( uint8_t ) ( * mySource ) ;
+ toUBytes [ i ++ ] = ( char ) * ( mySource ++ ) ;
+ }
+ else {
+ args -> converter -> toUnicodeStatus = ch + 1 ;
+ args -> converter -> toULength = ( int8_t ) i ;
+ goto donefornow ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ ch = ( ch << 8 ) | ( uint8_t ) ( * mySource ) ;
+ toUBytes [ i ++ ] = ( char ) * ( mySource ++ ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ args -> converter -> toUnicodeStatus = ch + 1 ;
+ args -> converter -> toULength = ( int8_t ) i ;
+ goto donefornow ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ if ( ch <= MAXIMUM_UCS2 ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ * ( myTarget ++ ) = U16_LEAD ( ch ) ;
+ ch = U16_TRAIL ( ch ) ;
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ args -> converter -> UCharErrorBuffer [ 0 ] = ( UChar ) ch ;
+ args -> converter -> UCharErrorBufferLength = 1 ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ break ;
+ }
+ }
+ }
+      
+25769803783 | BLOCK | { * ( myTarget ++ ) = ( UChar ) ch ; }
+25769803784 | BLOCK | 
+        {
+ * ( myTarget ++ ) = U16_LEAD ( ch ) ;
+ ch = U16_TRAIL ( ch ) ;
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = ( UChar ) ch ;
+ }
+ else {
+ args -> converter -> UCharErrorBuffer [ 0 ] = ( UChar ) ch ;
+ args -> converter -> UCharErrorBufferLength = 1 ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ break ;
+ }
+ }
+      
+25769803785 | BLOCK | { * ( myTarget ++ ) = ( UChar ) ch ; }
+25769803786 | BLOCK | 
+        {
+ args -> converter -> UCharErrorBuffer [ 0 ] = ( UChar ) ch ;
+ args -> converter -> UCharErrorBufferLength = 1 ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ break ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ args -> converter -> toULength = ( int8_t ) i ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+      
+25769803788 | BLOCK | { * err = U_BUFFER_OVERFLOW_ERROR ; }
+30064771072 | CALL | mySource = ( unsigned char * ) args -> source
+30064771073 | CALL | ( unsigned char * ) args -> source
+30064771074 | CALL | args -> source
+30064771075 | CALL | myTarget = args -> target
+30064771076 | CALL | args -> target
+30064771077 | CALL | sourceLimit = ( unsigned char * ) args -> sourceLimit
+30064771078 | CALL | ( unsigned char * ) args -> sourceLimit
+30064771079 | CALL | args -> sourceLimit
+30064771080 | CALL | targetLimit = args -> targetLimit
+30064771081 | CALL | args -> targetLimit
+30064771082 | CALL | toUBytes = args -> converter -> toUBytes
+30064771083 | CALL | args -> converter -> toUBytes
+30064771084 | CALL | args -> converter
+30064771085 | CALL | args -> converter -> toUnicodeStatus && myTarget < targetLimit
+30064771086 | CALL | args -> converter -> toUnicodeStatus
+30064771087 | CALL | args -> converter
+30064771088 | CALL | myTarget < targetLimit
+30064771089 | CALL | i = args -> converter -> toULength
+30064771090 | CALL | args -> converter -> toULength
+30064771091 | CALL | args -> converter
+30064771092 | CALL | args -> converter -> toULength = 0
+30064771093 | CALL | args -> converter -> toULength
+30064771094 | CALL | args -> converter
+30064771095 | CALL | ch = args -> converter -> toUnicodeStatus - 1
+30064771096 | CALL | args -> converter -> toUnicodeStatus - 1
+30064771097 | CALL | args -> converter -> toUnicodeStatus
+30064771098 | CALL | args -> converter
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 300
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

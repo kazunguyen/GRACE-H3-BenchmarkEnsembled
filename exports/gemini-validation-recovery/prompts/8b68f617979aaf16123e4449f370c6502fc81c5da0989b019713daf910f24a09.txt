@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _cmd_window_show_opt ( const char * data , int right ) {
+ MAIN_WINDOW_REC * parent ;
+ WINDOW_REC * window ;
+ if ( * data == '\0' ) cmd_return_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+ if ( is_numeric ( data , '\0' ) ) {
+ window = window_find_refnum ( atoi ( data ) ) ;
+ if ( window == NULL ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data ) ;
+ }
+ }
+ else {
+ window = window_find_item ( active_win -> active_server , data ) ;
+ }
+ if ( window == NULL || is_window_visible ( window ) ) return ;
+ if ( WINDOW_GUI ( window ) -> sticky ) {
+ if ( ! settings_get_bool ( "autounstick_windows" ) ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_CANT_SHOW_STICKY_WINDOWS ) ;
+ return ;
+ }
+ }
+ parent = mainwindow_create ( right ) ;
+ parent -> active = window ;
+ gui_window_reparent ( window , parent ) ;
+ if ( settings_get_bool ( "autostick_split_windows" ) ) gui_window_set_sticky ( window ) ;
+ active_mainwin = NULL ;
+ window_set_active ( window ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MAIN_WINDOW_REC * parent ;
+ WINDOW_REC * window ;
+ if ( * data == '\0' ) cmd_return_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+ if ( is_numeric ( data , '\0' ) ) {
+ window = window_find_refnum ( atoi ( data ) ) ;
+ if ( window == NULL ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data ) ;
+ }
+ }
+ else {
+ window = window_find_item ( active_win -> active_server , data ) ;
+ }
+ if ( window == NULL || is_window_visible ( window ) ) return ;
+ if ( WINDOW_GUI ( window ) -> sticky ) {
+ if ( ! settings_get_bool ( "autounstick_windows" ) ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_CANT_SHOW_STICKY_WINDOWS ) ;
+ return ;
+ }
+ }
+ parent = mainwindow_create ( right ) ;
+ parent -> active = window ;
+ gui_window_reparent ( window , parent ) ;
+ if ( settings_get_bool ( "autostick_split_windows" ) ) gui_window_set_sticky ( window ) ;
+ active_mainwin = NULL ;
+ window_set_active ( window ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ window = window_find_refnum ( atoi ( data ) ) ;
+ if ( window == NULL ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data ) ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data ) ;
+ }
+      
+25769803780 | BLOCK | { window = window_find_item ( active_win -> active_server , data ) ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ if ( ! settings_get_bool ( "autounstick_windows" ) ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_CANT_SHOW_STICKY_WINDOWS ) ;
+ return ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_CANT_SHOW_STICKY_WINDOWS ) ;
+ return ;
+ }
+      
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | * data == '\0'
+30064771073 | CALL | * data
+30064771074 | CALL | cmd_return_error ( CMDERR_NOT_ENOUGH_PARAMS )
+30064771075 | CALL | is_numeric ( data , '\0' )
+30064771076 | CALL | window = window_find_refnum ( atoi ( data ) )
+30064771077 | CALL | window_find_refnum ( atoi ( data ) )
+30064771078 | CALL | atoi ( data )
+30064771079 | CALL | window == NULL
+30064771080 | CALL | 
+        printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data )
+      
+30064771081 | CALL | window = window_find_item ( active_win -> active_server , data )
+30064771082 | CALL | window_find_item ( active_win -> active_server , data )
+30064771083 | CALL | active_win -> active_server
+30064771084 | CALL | window == NULL || is_window_visible ( window )
+30064771085 | CALL | window == NULL
+30064771086 | CALL | is_window_visible ( window )
+30064771087 | CALL | WINDOW_GUI ( window ) -> sticky
+30064771088 | CALL | WINDOW_GUI ( window )
+30064771089 | CALL | ! settings_get_bool ( "autounstick_windows" )
+30064771090 | CALL | settings_get_bool ( "autounstick_windows" )
+30064771091 | CALL | 
+        printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_CANT_SHOW_STICKY_WINDOWS )
+      
+30064771092 | CALL | parent = mainwindow_create ( right )
+30064771093 | CALL | mainwindow_create ( right )
+30064771094 | CALL | parent -> active = window
+30064771095 | CALL | parent -> active
+30064771096 | CALL | gui_window_reparent ( window , parent )
+30064771097 | CALL | settings_get_bool ( "autostick_split_windows" )
+30064771098 | CALL | gui_window_set_sticky ( window )
+30064771099 | CALL | active_mainwin = NULL
+30064771100 | CALL | window_set_active ( window )
+47244640256 | CONTROL_STRUCTURE | if ( * data == '\0' ) cmd_return_error ( CMDERR_NOT_ENOUGH_PARAMS ) ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( is_numeric ( data , '\0' ) ) {
+ window = window_find_refnum ( atoi ( data ) ) ;
+ if ( window == NULL ) {
+ printformat_window ( active_win , MSGLEVEL_CLIENTERROR , TXT_REFNUM_NOT_FOUND , data ) ;
+ }
+ }
+ else {
+ window = window_find_item ( active_win -> active_server , data ) ;
+ }
+      
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771074 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771080 [AST]
+25769803780 -> 30064771081 [AST]
+25769803783 -> 30064771091 [AST]
+25769803784 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [CDG]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771092 [CDG]
+30064771087 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

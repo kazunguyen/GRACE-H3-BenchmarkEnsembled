@@ -1,0 +1,79 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gboolean dissect_class_svalidator_heur ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data _U_ ) {
+ unsigned char service , service_code , ioilen , segment ;
+ cip_req_info_t * preq_info ;
+ guint32 classid = 0 ;
+ int offset = 0 ;
+ service = tvb_get_guint8 ( tvb , offset ) ;
+ service_code = service & 0x7F ;
+ if ( service_code == SC_GET_ATT_ALL ) {
+ if ( service & 0x80 ) {
+ preq_info = ( cip_req_info_t * ) p_get_proto_data ( wmem_file_scope ( ) , pinfo , proto_cip , 0 ) ;
+ if ( ( preq_info != NULL ) && ( preq_info -> dissector == dissector_get_uint_handle ( subdissector_class_table , CI_CLS_SAFETY_VALIDATOR ) ) ) {
+ call_dissector ( preq_info -> dissector , tvb , pinfo , tree ) ;
+ return TRUE ;
+ }
+ }
+ else {
+ ioilen = tvb_get_guint8 ( tvb , offset + 1 ) ;
+ if ( ioilen > 1 ) {
+ segment = tvb_get_guint8 ( tvb , offset + 2 ) ;
+ if ( ( ( segment & CI_SEGMENT_TYPE_MASK ) == CI_LOGICAL_SEGMENT ) && ( ( segment & CI_LOGICAL_SEG_TYPE_MASK ) == CI_LOGICAL_SEG_CLASS_ID ) ) {
+ switch ( segment & CI_LOGICAL_SEG_FORMAT_MASK ) {
+ case CI_LOGICAL_SEG_8_BIT : classid = tvb_get_guint8 ( tvb , offset + 3 ) ;
+ break ;
+ case CI_LOGICAL_SEG_16_BIT : if ( ioilen >= 2 ) classid = tvb_get_letohs ( tvb , offset + 4 ) ;
+ break ;
+ case CI_LOGICAL_SEG_32_BIT : if ( ioilen >= 3 ) classid = tvb_get_letohl ( tvb , offset + 4 ) ;
+ break ;
+ }
+ }
+ }
+ if ( classid == CI_CLS_SAFETY_VALIDATOR ) {
+ call_dissector ( cip_class_s_validator_handle , tvb , pinfo , tree ) ;
+ return TRUE ;
+ }
+ }
+ }
+ return FALSE ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_pvfs_heur ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data ) {
+ guint32 magic_nr , mode ;
+ guint64 size ;
+ if ( tvb_reported_length ( tvb ) < 24 ) {
+ return 0 ;
+ }
+ magic_nr = tvb_get_letohl ( tvb , 0 ) ;
+ if ( magic_nr != BMI_MAGIC_NR ) {
+ return 0 ;
+ }
+ mode = tvb_get_letohl ( tvb , 4 ) ;
+ switch ( mode ) {
+ case TCP_MODE_IMMED : case TCP_MODE_UNEXP : case TCP_MODE_EAGER : case TCP_MODE_REND : break ;
+ default : return 0 ;
+ }
+ size = tvb_get_letohl ( tvb , 20 ) ;
+ size <<= 32 ;
+ size |= tvb_get_letohl ( tvb , 16 ) ;
+ if ( ( size > 1000000 ) || ( size == 0 ) ) {
+ return 0 ;
+ }
+ tcp_dissect_pdus ( tvb , pinfo , tree , pvfs_desegment , 24 , get_pvfs_pdu_len , dissect_pvfs_pdu , data ) ;
+ return tvb_reported_length ( tvb ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

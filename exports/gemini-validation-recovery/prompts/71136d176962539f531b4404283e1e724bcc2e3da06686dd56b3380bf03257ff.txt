@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_prepare ( ) {
+ MYSQL_STMT * stmt ;
+ int rc , i ;
+ int int_data , o_int_data ;
+ char str_data [ 50 ] , data [ 50 ] ;
+ char tiny_data , o_tiny_data ;
+ short small_data , o_small_data ;
+ longlong big_data , o_big_data ;
+ float real_data , o_real_data ;
+ double double_data , o_double_data ;
+ ulong length [ 7 ] , len ;
+ my_bool is_null [ 7 ] ;
+ char llbuf [ 22 ] ;
+ MYSQL_BIND my_bind [ 7 ] ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_prepare" ) ;
+ rc = mysql_autocommit ( mysql , TRUE ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS my_prepare" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE my_prepare(col1 tinyint, " "col2 varchar(15), col3 int, " "col4 smallint, col5 bigint, " "col6 float, col7 double )" ) ;
+ myquery ( rc ) ;
+ strxmov ( query , "INSERT INTO my_prepare VALUES(?, ?, ?, ?, ?, ?, ?)" , NullS ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ verify_param_count ( stmt , 7 ) ;
+ memset ( my_bind , 0 , sizeof ( my_bind ) ) ;
+ my_bind [ 0 ] . buffer_type = MYSQL_TYPE_TINY ;
+ my_bind [ 0 ] . buffer = ( void * ) & tiny_data ;
+ my_bind [ 1 ] . buffer_type = MYSQL_TYPE_STRING ;
+ my_bind [ 1 ] . buffer = ( void * ) str_data ;
+ my_bind [ 1 ] . buffer_length = 1000 ;
+ my_bind [ 2 ] . buffer_type = MYSQL_TYPE_LONG ;
+ my_bind [ 2 ] . buffer = ( void * ) & int_data ;
+ my_bind [ 3 ] . buffer_type = MYSQL_TYPE_SHORT ;
+ my_bind [ 3 ] . buffer = ( void * ) & small_data ;
+ my_bind [ 4 ] . buffer_type = MYSQL_TYPE_LONGLONG ;
+ my_bind [ 4 ] . buffer = ( void * ) & big_data ;
+ my_bind [ 5 ] . buffer_type = MYSQL_TYPE_FLOAT ;
+ my_bind [ 5 ] . buffer = ( void * ) & real_data ;
+ my_bind [ 6 ] . buffer_type = MYSQL_TYPE_DOUBLE ;
+ my_bind [ 6 ] . buffer = ( void * ) & double_data ;
+ for ( i = 0 ;
+ i < ( int ) array_elements ( my_bind ) ;
+ i ++ ) {
+ my_bind [ i ] . length = & length [ i ] ;
+ my_bind [ i ] . is_null = & is_null [ i ] ;
+ is_null [ i ] = 0 ;
+ }
+ rc = mysql_stmt_bind_param ( stmt , my_bind ) ;
+ check_execute ( stmt , rc ) ;
+ int_data = 320 ;
+ small_data = 1867 ;
+ big_data = 1000 ;
+ real_data = 2 ;
+ double_data = 6578.001 ;
+ for ( tiny_data = 0 ;
+ tiny_data < 100 ;
+ tiny_data ++ ) {
+ length [ 1 ] = sprintf ( str_data , "MySQL%d" , int_data ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ int_data += 25 ;
+ small_data += 10 ;
+ big_data += 100 ;
+ real_data += 1 ;
+ double_data += 10.09 ;
+ }
+ mysql_stmt_close ( stmt ) ;
+ rc = mysql_commit ( mysql ) ;
+ myquery ( rc ) ;
+ rc = my_stmt_result ( "SELECT * FROM my_prepare" ) ;
+ DIE_UNLESS ( tiny_data == ( char ) rc ) ;
+ stmt = mysql_simple_prepare ( mysql , "SELECT * FROM my_prepare" ) ;
+ check_stmt ( stmt ) ;
+ rc = mysql_stmt_bind_result ( stmt , my_bind ) ;
+ check_execute ( stmt , rc ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ o_int_data = 320 ;
+ o_small_data = 1867 ;
+ o_big_data = 1000 ;
+ o_real_data = 2 ;
+ o_double_data = 6578.001 ;
+ for ( o_tiny_data = 0 ;
+ o_tiny_
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MYSQL_STMT * stmt ;
+ int rc , i ;
+ int int_data , o_int_data ;
+ char str_data [ 50 ] , data [ 50 ] ;
+ char tiny_data , o_tiny_data ;
+ short small_data , o_small_data ;
+ longlong big_data , o_big_data ;
+ float real_data , o_real_data ;
+ double double_data , o_double_data ;
+ ulong length [ 7 ] , len ;
+ my_bool is_null [ 7 ] ;
+ char llbuf [ 22 ] ;
+ MYSQL_BIND my_bind [ 7 ] ;
+ char query [ MAX_TEST_QUERY_LENGTH ] ;
+ myheader ( "test_prepare" ) ;
+ rc = mysql_autocommit ( mysql , TRUE ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "DROP TABLE IF EXISTS my_prepare" ) ;
+ myquery ( rc ) ;
+ rc = mysql_query ( mysql , "CREATE TABLE my_prepare(col1 tinyint, " "col2 varchar(15), col3 int, " "col4 smallint, col5 bigint, " "col6 float, col7 double )" ) ;
+ myquery ( rc ) ;
+ strxmov ( query , "INSERT INTO my_prepare VALUES(?, ?, ?, ?, ?, ?, ?)" , NullS ) ;
+ stmt = mysql_simple_prepare ( mysql , query ) ;
+ check_stmt ( stmt ) ;
+ verify_param_count ( stmt , 7 ) ;
+ memset ( my_bind , 0 , sizeof (...
+      
+25769803777 | BLOCK | 
+        {
+ my_bind [ i ] . length = & length [ i ] ;
+ my_bind [ i ] . is_null = & is_null [ i ] ;
+ is_null [ i ] = 0 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ length [ 1 ] = sprintf ( str_data , "MySQL%d" , int_data ) ;
+ rc = mysql_stmt_execute ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ int_data += 25 ;
+ small_data += 10 ;
+ big_data += 100 ;
+ real_data += 1 ;
+ double_data += 10.09 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ len = sprintf ( data , "MySQL%d" , o_int_data ) ;
+ rc = mysql_stmt_fetch ( stmt ) ;
+ check_execute ( stmt , rc ) ;
+ if ( ! opt_silent ) {
+ fprintf ( stdout , "\n" ) ;
+ fprintf ( stdout , "\n\t tiny : %d (%lu)" , tiny_data , length [ 0 ] ) ;
+ fprintf ( stdout , "\n\t short : %d (%lu)" , small_data , length [ 3 ] ) ;
+ fprintf ( stdout , "\n\t int : %d (%lu)" , int_data , length [ 2 ] ) ;
+ fprintf ( stdout , "\n\t big : %s (%lu)" , llstr ( big_data , llbuf ) , length [ 4 ] ) ;
+ fprintf ( stdout , "\n\t float : %f (%lu)" , real_data , length [ 5 ] ) ;
+ fprintf ( stdout , "\n\t double : %f (%lu)" , double_data , length [ 6 ] ) ;
+ fprintf ( stdout , "\n\t str : %s (%lu)" , str_data , length [ 1 ] ) ;
+ }
+ DIE_UNLESS ( tiny_data == o_tiny_data ) ;
+ DIE_UNLESS ( is_null [ 0 ] == 0 ) ;
+ DIE_UNLESS ( length [ 0 ] == 1 ) ;
+ DIE_UNLESS ( int_data == o_int_data ) ;
+ DIE_UNLESS ( length [ 2 ] == 4 ) ;
+ DIE_UNLESS ( small_data == o_small_data ) ;
+ DIE_UNLESS ( length [ 3 ] == 2 ) ;
+ DIE_UNLESS (...
+      
+25769803780 | BLOCK | 
+        {
+ fprintf ( stdout , "\n" ) ;
+ fprintf ( stdout , "\n\t tiny : %d (%lu)" , tiny_data , length [ 0 ] ) ;
+ fprintf ( stdout , "\n\t short : %d (%lu)" , small_data , length [ 3 ] ) ;
+ fprintf ( stdout , "\n\t int : %d (%lu)" , int_data , length [ 2 ] ) ;
+ fprintf ( stdout , "\n\t big : %s (%lu)" , llstr ( big_data , llbuf ) , length [ 4 ] ) ;
+ fprintf ( stdout , "\n\t float : %f (%lu)" , real_data , length [ 5 ] ) ;
+ fprintf ( stdout , "\n\t double : %f (%lu)" , double_data , length [ 6 ] ) ;
+ fprintf ( stdout , "\n\t str : %s (%lu)" , str_data , length [ 1 ] ) ;
+ }
+      
+30064771072 | CALL | str_data [ 50 ]
+30064771073 | CALL | str_data [ 50 ]
+30064771074 | CALL | data [ 50 ]
+30064771075 | CALL | data [ 50 ]
+30064771076 | CALL | length [ 7 ]
+30064771077 | CALL | length [ 7 ]
+30064771078 | CALL | is_null [ 7 ]
+30064771079 | CALL | is_null [ 7 ]
+30064771080 | CALL | llbuf [ 22 ]
+30064771081 | CALL | llbuf [ 22 ]
+30064771082 | CALL | my_bind [ 7 ]
+30064771083 | CALL | my_bind [ 7 ]
+30064771084 | CALL | query [ MAX_TEST_QUERY_LENGTH ]
+30064771085 | CALL | query [ MAX_TEST_QUERY_LENGTH ]
+30064771086 | CALL | myheader ( "test_prepare" )
+30064771087 | CALL | rc = mysql_autocommit ( mysql , TRUE )
+30064771088 | CALL | mysql_autocommit ( mysql , TRUE )
+30064771089 | CALL | myquery ( rc )
+30064771090 | CALL | rc = mysql_query ( mysql , "DROP TABLE IF EXISTS my_prepare" )
+30064771091 | CALL | mysql_query ( mysql , "DROP TABLE IF EXISTS my_prepare" )
+30064771092 | CALL | myquery ( rc )
+30064771093 | CALL | 
+        rc = mysql_query ( mysql , "CREATE TABLE my_prepare(col1 tinyint, " "col2 varchar(15), col3 int, " "col4 smallint, col5 bigint, " "col6 float, col7 double )" )
+      
+30064771094 | CALL | 
+        mysql_query ( mysql , "CREATE TABLE my_prepare(col1 tinyint, " "col2 varchar(15), col3 int, " "col4 smallint, col5 bigint, "
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

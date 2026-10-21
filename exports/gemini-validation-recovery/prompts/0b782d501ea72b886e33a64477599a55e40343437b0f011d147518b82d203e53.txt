@@ -1,0 +1,181 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void handle_char(CCaptionSubContext *ctx, char hi, char lo, int64_t pts)
+
+{
+
+    struct Screen *screen = get_writing_screen(ctx);
+
+    char *row = screen->characters[ctx->cursor_row];
+
+    int ret;
+
+
+
+    SET_FLAG(screen->row_used,ctx->cursor_row);
+
+
+
+    ret = write_char(ctx, row, ctx->cursor_column, hi);
+
+    if( ret == 0 )
+
+        ctx->cursor_column++;
+
+
+
+    if(lo) {
+
+        ret = write_char(ctx, row, ctx->cursor_column, lo);
+
+        if ( ret == 0 )
+
+            ctx->cursor_column++;
+
+    }
+
+    write_char(ctx, row, ctx->cursor_column, 0);
+
+
+
+    /* reset prev command since character can repeat */
+
+    ctx->prev_cmd[0] = 0;
+
+    ctx->prev_cmd[1] = 0;
+
+    if (lo)
+
+       av_dlog(ctx, "(%c,%c)\n",hi,lo);
+
+    else
+
+       av_dlog(ctx, "(%c)\n",hi);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+38 -> 43 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+53 -> 58 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+53 -> 62 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+64 -> 69 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+85 -> 88 [IS_AST_PARENT]
+91 -> 92 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int tls_read(URLContext *h, uint8_t *buf, int size)
+
+{
+
+    TLSContext *c = h->priv_data;
+
+    size_t processed = 0;
+
+    int ret = SSLRead(c->ssl_context, buf, size, &processed);
+
+    ret = map_ssl_error(ret, processed);
+
+    if (ret > 0)
+
+        return ret;
+
+    if (ret == 0)
+
+        return AVERROR_EOF;
+
+    return print_tls_error(h, ret);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

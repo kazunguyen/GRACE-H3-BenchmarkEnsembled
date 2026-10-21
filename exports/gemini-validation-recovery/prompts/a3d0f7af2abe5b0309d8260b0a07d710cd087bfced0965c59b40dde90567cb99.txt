@@ -1,0 +1,185 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void restore_toc_entries_postfork ( ArchiveHandle * AH , TocEntry * pending_list ) {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ TocEntry * te ;
+ ahlog ( AH , 2 , "entering restore_toc_entries_postfork\n" ) ;
+ ConnectDatabase ( ( Archive * ) AH , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword ) ;
+ _doSetFixedOutputState ( AH ) ;
+ for ( te = pending_list -> par_next ;
+ te != pending_list ;
+ te = te -> par_next ) {
+ ahlog ( AH , 1 , "processing missed item %d %s %s\n" , te -> dumpId , te -> desc , te -> tag ) ;
+ ( void ) restore_toc_entry ( AH , te , false ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ TocEntry * te ;
+ ahlog ( AH , 2 , "entering restore_toc_entries_postfork\n" ) ;
+ ConnectDatabase ( ( Archive * ) AH , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword ) ;
+ _doSetFixedOutputState ( AH ) ;
+ for ( te = pending_list -> par_next ;
+ te != pending_list ;
+ te = te -> par_next ) {
+ ahlog ( AH , 1 , "processing missed item %d %s %s\n" , te -> dumpId , te -> desc , te -> tag ) ;
+ ( void ) restore_toc_entry ( AH , te , false ) ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ahlog ( AH , 1 , "processing missed item %d %s %s\n" , te -> dumpId , te -> desc , te -> tag ) ;
+ ( void ) restore_toc_entry ( AH , te , false ) ;
+ }
+      
+30064771072 | CALL | ropt = AH -> public . ropt
+30064771073 | CALL | AH -> public . ropt
+30064771074 | CALL | AH -> public
+30064771075 | CALL | ahlog ( AH , 2 , "entering restore_toc_entries_postfork\n" )
+30064771076 | CALL | 
+        ConnectDatabase ( ( Archive * ) AH , ropt -> dbname , ropt -> pghost , ropt -> pgport , ropt -> username , ropt -> promptPassword )
+      
+30064771077 | CALL | ( Archive * ) AH
+30064771078 | CALL | ropt -> dbname
+30064771079 | CALL | ropt -> pghost
+30064771080 | CALL | ropt -> pgport
+30064771081 | CALL | ropt -> username
+30064771082 | CALL | ropt -> promptPassword
+30064771083 | CALL | _doSetFixedOutputState ( AH )
+30064771084 | CALL | te = pending_list -> par_next
+30064771085 | CALL | pending_list -> par_next
+30064771086 | CALL | te != pending_list
+30064771087 | CALL | te = te -> par_next
+30064771088 | CALL | te -> par_next
+30064771089 | CALL | 
+        ahlog ( AH , 1 , "processing missed item %d %s %s\n" , te -> dumpId , te -> desc , te -> tag )
+      
+30064771090 | CALL | te -> dumpId
+30064771091 | CALL | te -> desc
+30064771092 | CALL | te -> tag
+30064771093 | CALL | ( void ) restore_toc_entry ( AH , te , false )
+30064771094 | CALL | restore_toc_entry ( AH , te , false )
+47244640256 | CONTROL_STRUCTURE | 
+        for (te = pending_list -> par_next ;te != pending_list;te = te -> par_next)
+      
+55834574848 | FIELD_IDENTIFIER | public
+55834574849 | FIELD_IDENTIFIER | ropt
+55834574850 | FIELD_IDENTIFIER | dbname
+55834574851 | FIELD_IDENTIFIER | pghost
+55834574852 | FIELD_IDENTIFIER | pgport
+55834574853 | FIELD_IDENTIFIER | username
+55834574854 | FIELD_IDENTIFIER | promptPassword
+55834574855 | FIELD_IDENTIFIER | par_next
+55834574856 | FIELD_IDENTIFIER | par_next
+55834574857 | FIELD_IDENTIFIER | dumpId
+55834574858 | FIELD_IDENTIFIER | desc
+55834574859 | FIELD_IDENTIFIER | tag
+68719476736 | IDENTIFIER | ropt
+68719476737 | IDENTIFIER | AH
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771093 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 55834574849 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 55834574849 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574849 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 55834574849 [CFG]
+30064771074 -> 55834574849 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771081 [ARGUMENT]
+30064771076 -> 30064771082 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 30064771081 [AST]
+30064771076 -> 30064771082 [AST]
+30064771076 -> 30064771082 [POST_DOMINATE]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771081 [REACHING_DEF]
+30064771077 -> 30064771082 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771081 [REACHING_DEF]
+30064771078 -> 30064771082 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 55834574851 [ARGUMENT]
+30064771079 -> 55834574851 [AST]
+30064771079 -> 55834574851 [POST_DOMINATE]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 55834574852 [ARGUMENT]
+30064771080 -> 55834574852 [AST]
+30064771080 -> 55834574852 [POST_DOMINATE]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 55834574853 [ARGUMENT]
+30064771081 -> 55834574853 [AST]
+30064771081 -> 55834574853 [POST_DOMINATE]
+30064771081 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void _disableTriggersIfNecessary ( ArchiveHandle * AH , TocEntry * te ) {
+ RestoreOptions * ropt = AH -> public . ropt ;
+ if ( ! ropt -> dataOnly || ! ropt -> disable_triggers ) return ;
+ ahlog ( AH , 1 , "disabling triggers for %s\n" , te -> tag ) ;
+ _becomeUser ( AH , ropt -> superuser ) ;
+ _selectOutputSchema ( AH , te -> namespace ) ;
+ ahprintf ( AH , "ALTER TABLE %s DISABLE TRIGGER ALL;
+\n\n" , fmtId ( te -> tag ) ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

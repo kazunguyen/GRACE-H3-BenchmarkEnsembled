@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST ( URLFixerTest , FixupFile ) {
+ base : : ScopedTempDir temp_dir_ ;
+ ASSERT_TRUE ( temp_dir_ . CreateUniqueTempDir ( ) ) ;
+ base : : FilePath original ;
+ ASSERT_TRUE ( MakeTempFile ( temp_dir_ . GetPath ( ) , base : : FilePath ( FILE_PATH_LITERAL ( "url fixer upper existing file.txt" ) ) , & original ) ) ;
+ GURL golden ( net : : FilePathToFileURL ( original ) ) ;
+ GURL fixedup ( url_formatter : : FixupURL ( original . AsUTF8Unsafe ( ) , std : : string ( ) ) ) ;
+ EXPECT_EQ ( golden , fixedup ) ;
+ # if defined ( OS_WIN ) std : : string cur ( base : : WideToUTF8 ( original . value ( ) ) ) ;
+ EXPECT_EQ ( ':' , cur [ 1 ] ) ;
+ cur [ 1 ] = '|' ;
+ EXPECT_EQ ( golden , url_formatter : : FixupURL ( cur , std : : string ( ) ) ) ;
+ FixupCase cases [ ] = {
+ {
+ "c:\\Non-existent%20file.txt" , "file:///C:/Non-existent%2520file.txt" }
+ , {
+ "\\\\NonexistentHost\\foo\\bar.txt" , "file:/onexistenthost/foo/bar.txt" }
+ , {
+ "//NonexistentHost\\foo/bar.txt" , "http:/onexistenthost/foo/bar.txt" }
+ , {
+ "file:///C:/foo/bar" , "file:///C:/foo/bar" }
+ , {
+ "file://C:/foo/bar" , "file:///C:/foo/bar" }
+ , {
+ "file:c:" , "file:///C:/" }
+ , {
+ "file:c:WINDOWS" , "file:///C:/WINDOWS" }
+ , {
+ "file:c|Program Files" , "file:///C:/Program%20Files" }
+ , {
+ "file:/file" , "file://file/" }
+ , {
+ "file:////////c:\\foo" , "file:///C:/foo" }
+ , {
+ "file://server/folder/file" , "file://server/folder/file" }
+ , }
+ ;
+ # elif defined ( OS_POSIX ) # if defined ( OS_MACOSX ) # define HOME "/Users/" # else # define HOME "/home/" # endif url_formatter : : home_directory_override = "/foo" ;
+ FixupCase cases [ ] = {
+ {
+ "/A%20non-existent file.txt" , "file:///A%2520non-existent%20file.txt" }
+ , {
+ "/" , "file:///" }
+ , {
+ "~" , "file:///foo" }
+ , {
+ "~/bar" , "file:///foo/bar" }
+ , {
+ "~foo" , "file://" HOME "foo" }
+ , {
+ "~x/blah" , "file://" HOME "x/blah" }
+ , }
+ ;
+ # endif for ( size_t i = 0 ;
+ i < arraysize ( cases ) ;
+ i ++ ) {
+ EXPECT_EQ ( cases [ i ] . output , url_formatter : : FixupURL ( cases [ i ] . input , std : : string ( ) ) . possibly_invalid_spec ( ) ) ;
+ }
+ EXPECT_TRUE ( base : : DeleteFile ( original , false ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ base : : ScopedTempDir temp_dir_ ;
+ ASSERT_TRUE ( temp_dir_ . CreateUniqueTempDir ( ) ) ;
+ base : : FilePath original ;
+ ASSERT_TRUE ( MakeTempFile ( temp_dir_ . GetPath ( ) , base : : FilePath ( FILE_PATH_LITERAL ( "url fixer upper existing file.txt" ) ) , & original ) ) ;
+ GURL golden ( net : : FilePathToFileURL ( original ) ) ;
+ GURL fixedup ( url_formatter : : FixupURL ( original . AsUTF8Unsafe ( ) , std : : string ( ) ) ) ;
+ EXPECT_EQ ( golden , fixedup ) ;
+ # if defined ( OS_WIN ) std : : string cur ( base : : WideToUTF8 ( original . value ( ) ) ) ;
+ EXPECT_EQ ( ':' , cur [ 1 ] ) ;
+ cur [ 1 ] = '|' ;
+ EXPECT_EQ ( golden , url_formatter : : FixupURL ( cur , std : : string ( ) ) ) ;
+ FixupCase cases [ ] = {
+ {
+ "c:\\Non-existent%20file.txt" , "file:///C:/Non-existent%2520file.txt" }
+ , {
+ "\\\\NonexistentHost\\foo\\bar.txt" , "file:/onexistenthost/foo/bar.txt" }
+ , {
+ "//NonexistentHost\\foo/bar.txt" , "http:/onexistenthost/foo/bar.txt" }
+ , {
+ "file:///C:/foo/bar" , "file://...
+      
+30064771072 | CALL | ASSERT_TRUE ( temp_dir_ . CreateUniqueTempDir ( ) )
+30064771073 | CALL | temp_dir_ . CreateUniqueTempDir ( )
+30064771074 | CALL | temp_dir_ . CreateUniqueTempDir
+30064771075 | CALL | EXPECT_EQ ( golden , fixedup )
+30064771076 | CALL | i < arraysize ( cases )
+30064771077 | CALL | arraysize ( cases )
+30064771078 | CALL | i ++
+55834574848 | FIELD_IDENTIFIER | CreateUniqueTempDir
+68719476736 | IDENTIFIER | <unknown> temp_dir_
+68719476737 | IDENTIFIER | <unknown> GURL
+68719476738 | IDENTIFIER | <unknown> GURL
+68719476739 | IDENTIFIER | <unknown> golden
+68719476740 | IDENTIFIER | <unknown> fixedup
+68719476741 | IDENTIFIER | <unknown> i
+68719476742 | IDENTIFIER | <unknown> cases
+68719476743 | IDENTIFIER | <unknown> i
+94489280512 | LOCAL | <unknown> i
+94489280513 | LOCAL | <unknown> cases
+94489280514 | LOCAL | <unknown> fixedup
+94489280515 | LOCAL | <unknown> golden
+94489280516 | LOCAL | <unknown> GURL
+94489280517 | LOCAL | <unknown> temp_dir_
+107374182400 | METHOD | 
+        TEST ( URLFixerTest , FixupFile ) {
+ base : : ScopedTempDir temp_dir_ ;
+ ASSERT_TRUE ( temp_dir_ . CreateUniqueTempDir ( ) ) ;
+ base : : FilePath original ;
+ ASSERT_TRUE ( MakeTempFile ( temp_dir_ . GetPath ( ) , base : : FilePath ( FILE_PATH_LITERAL ( "url fixer upper existing file.txt" ) ) , & original ) ) ;
+ GURL golden ( net : : FilePathToFileURL ( original ) ) ;
+ GURL fixedup ( url_formatter : : FixupURL ( original . AsUTF8Unsafe ( ) , std : : string ( ) ) ) ;
+ EXPECT_EQ ( golden , fixedup ) ;
+ # if defined ( OS_WIN ) std : : string cur ( base : : WideToUTF8 ( original . value ( ) ) ) ;
+ EXPECT_EQ ( ':' , cur [ 1 ] ) ;
+ cur [ 1 ] = '|' ;
+ EXPECT_EQ ( golden , url_formatter : : FixupURL ( cur , std : : string ( ) ) ) ;
+ FixupCase cases [ ] = {
+ {
+ "c:\\Non-existent%20file.txt" , "file:///C:/Non-existent%2520file.txt" }
+ , {
+ "\\\\NonexistentHost\\foo\\bar.txt" , "file:/onexistenthost/foo/bar.txt" }
+ , {
+ "//NonexistentHost\\foo/bar.txt" , "http:/onexistenthost/foo/bar.txt" }
+ , ...
+      
+111669149696 | METHOD_PARAMETER_IN | URLFixerTest
+111669149697 | METHOD_PARAMETER_IN | FixupFile
+115964116992 | METHOD_PARAMETER_OUT | URLFixerTest
+115964116993 | METHOD_PARAMETER_OUT | FixupFile
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 68719476737 [AST]
+25769803776 -> 68719476738 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476741 [REACH
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

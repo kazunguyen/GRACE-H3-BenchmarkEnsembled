@@ -1,0 +1,286 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static AVStream *find_stream(void *log, AVFormatContext *avf, const char *spec)
+
+{
+
+    int i, ret, already = 0, stream_id = -1;
+
+    char type_char, dummy;
+
+    AVStream *found = NULL;
+
+    enum AVMediaType type;
+
+
+
+    ret = sscanf(spec, "d%[av]%d%c", &type_char, &stream_id, &dummy);
+
+    if (ret >= 1 && ret <= 2) {
+
+        type = type_char == 'v' ? AVMEDIA_TYPE_VIDEO : AVMEDIA_TYPE_AUDIO;
+
+        ret = av_find_best_stream(avf, type, stream_id, -1, NULL, 0);
+
+        if (ret < 0) {
+
+            av_log(log, AV_LOG_ERROR, "No %s stream with index '%d' found\n",
+
+                   av_get_media_type_string(type), stream_id);
+
+            return NULL;
+
+        }
+
+        return avf->streams[ret];
+
+    }
+
+    for (i = 0; i < avf->nb_streams; i++) {
+
+        ret = avformat_match_stream_specifier(avf, avf->streams[i], spec);
+
+        if (ret < 0) {
+
+            av_log(log, AV_LOG_ERROR,
+
+                   "Invalid stream specifier \"%s\"\n", spec);
+
+            return NULL;
+
+        }
+
+        if (!ret)
+
+            continue;
+
+        if (avf->streams[i]->discard != AVDISCARD_ALL) {
+
+            already++;
+
+            continue;
+
+        }
+
+        if (found) {
+
+            av_log(log, AV_LOG_WARNING,
+
+                   "Ambiguous stream specifier \"%s\", using #%d\n", spec, i);
+
+            break;
+
+        }
+
+        found = avf->streams[i];
+
+    }
+
+    if (!found) {
+
+        av_log(log, AV_LOG_WARNING, "Stream specifier \"%s\" %s\n", spec,
+
+               already ? "matched only already used streams" :
+
+                         "did not match any stream");
+
+        return NULL;
+
+    }
+
+    if (found->codec->codec_type != AVMEDIA_TYPE_VIDEO &&
+
+        found->codec->codec_type != AVMEDIA_TYPE_AUDIO) {
+
+        av_log(log, AV_LOG_ERROR, "Stream specifier \"%s\" matched a %s stream,"
+
+               "currently unsupported by libavfilter\n", spec,
+
+               av_get_media_type_string(found->codec->codec_type));
+
+        return NULL;
+
+    }
+
+    return found;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+50 -> 55 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+50 -> 59 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+50 -> 63 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 85 [IS_AST_PARENT]
+80 -> 86 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int select_reference_stream(AVFormatContext *s)
+
+{
+
+    SegmentContext *seg = s->priv_data;
+
+    int ret, i;
+
+
+
+    seg->reference_stream_index = -1;
+
+    if (!strcmp(seg->reference_stream_specifier, "auto")) {
+
+        /* select first index of type with highest priority */
+
+        int type_index_map[AVMEDIA_TYPE_NB];
+
+        static const enum AVMediaType type_priority_list[] = {
+
+            AVMEDIA_TYPE_VIDEO,
+
+            AVMEDIA_TYPE_AUDIO,
+
+            AVMEDIA_TYPE_SUBTITLE,
+
+            AVMEDIA_TYPE_DATA,
+
+            AVMEDIA_TYPE_ATTACHMENT
+
+        };
+
+        enum AVMediaType type;
+
+
+
+        for (i = 0; i < AVMEDIA_TYPE_NB; i++)
+
+            type_index_map[i] = -1;
+
+
+
+        /* select first index for each type */
+
+        for (i = 0; i < s->nb_streams; i++) {
+
+            type = s->streams[i]->codec->codec_type;
+
+            if ((unsigned)type < AVMEDIA_TYPE_NB && type_index_map[type] == -1
+
+                /* ignore attached pictures/cover art streams */
+
+                && !(s->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC))
+
+                type_index_map[type] = i;
+
+        }
+
+
+
+        for (i = 0; i < FF_ARRAY_ELEMS(type_priority_list); i++) {
+
+            type = type_priority_list[i];
+
+            if ((seg->reference_stream_index = type_index_map[type]) >= 0)
+
+                break;
+
+        }
+
+    } else {
+
+        for (i = 0; i < s->nb_streams; i++) {
+
+            ret = avformat_match_stream_specifier(s, s->streams[i],
+
+                    
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

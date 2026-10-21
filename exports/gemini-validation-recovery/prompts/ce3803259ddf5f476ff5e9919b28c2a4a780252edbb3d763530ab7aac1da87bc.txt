@@ -1,0 +1,142 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+GType hb_gobject_ ## name ## _get_type ( void ) \ {
+ static gsize type_id = 0 ;
+ if ( g_once_init_enter ( & type_id ) ) {
+ GType id = g_boxed_type_register_static ( g_intern_static_string ( "hb_" # name "_t" ) , ( GBoxedCopyFunc ) copy_func , ( GBoxedFreeFunc ) free_func ) ;
+ g_once_init_leave ( & type_id , id ) ;
+ }
+ return type_id ;
+ \ }
+ # define HB_DEFINE_OBJECT_TYPE ( name ) HB_DEFINE_BOXED_TYPE ( name , hb_ ## name ## _reference , hb_ ## name ## _destroy ) ;
+ # define HB_DEFINE_VALUE_TYPE ( name ) static hb_ ## name ## _t * _hb_ ## name ## _reference ( const hb_ ## name ## _t * l ) {
+ hb_ ## name ## _t * c = ( hb_ ## name ## _t * ) calloc ( 1 , sizeof ( hb_ ## name ## _t ) ) ;
+ if ( unlikely ( ! c ) ) return NULL ;
+ * c = * l ;
+ return c ;
+ }
+ static void _hb_ ## name ## _destroy ( hb_ ## name ## _t * l ) {
+ free ( l ) ;
+ }
+ HB_DEFINE_BOXED_TYPE ( name , _hb_ ## name ## _reference , _hb_ ## name ## _destroy ) ;
+ HB_DEFINE_OBJECT_TYPE ( buffer ) HB_DEFINE_OBJECT_TYPE ( blob ) HB_DEFINE_OBJECT_TYPE ( face ) HB_DEFINE_OBJECT_TYPE ( font )
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+107374182402 | METHOD | ( buffer ) HB_DEFINE_OBJECT_TYPE
+107374182403 | METHOD |  (, , );
+107374182404 | METHOD | ( blob ) HB_DEFINE_OBJECT_TYPE
+107374182405 | METHOD | ( face ) HB_DEFINE_OBJECT_TYPE
+111669149696 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+111669149697 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+111669149698 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+111669149699 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+111669149700 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+111669149701 | METHOD_PARAMETER_IN | HB_DEFINE_OBJECT_TYPE
+115964116992 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+115964116993 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+115964116994 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+115964116995 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+115964116996 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+115964116997 | METHOD_PARAMETER_OUT | HB_DEFINE_OBJECT_TYPE
+124554051586 | METHOD_RETURN | RET
+124554051587 | METHOD_RETURN | RET
+124554051588 | METHOD_RETURN | RET
+124554051589 | METHOD_RETURN | RET
+EDGES:
+107374182402 -> 111669149696 [AST]
+107374182402 -> 25769803778 [AST]
+107374182402 -> 124554051586 [AST]
+107374182402 -> 115964116992 [AST]
+107374182402 -> 124554051586 [CFG]
+107374182402 -> 25769803778 [CONTAINS]
+107374182402 -> 124554051586 [DOMINATE]
+107374182402 -> 111669149696 [REACHING_DEF]
+107374182403 -> 111669149697 [AST]
+107374182403 -> 111669149698 [AST]
+107374182403 -> 111669149699 [AST]
+107374182403 -> 25769803779 [AST]
+107374182403 -> 124554051587 [AST]
+107374182403 -> 115964116993 [AST]
+107374182403 -> 115964116994 [AST]
+107374182403 -> 115964116995 [AST]
+107374182403 -> 124554051587 [CFG]
+107374182403 -> 25769803779 [CONTAINS]
+107374182403 -> 124554051587 [DOMINATE]
+107374182403 -> 111669149698 [REACHING_DEF]
+107374182403 -> 111669149697 [REACHING_DEF]
+107374182403 -> 111669149699 [REACHING_DEF]
+107374182404 -> 111669149700 [AST]
+107374182404 -> 25769803780 [AST]
+107374182404 -> 124554051588 [AST]
+107374182404 -> 115964116996 [AST]
+107374182404 -> 124554051588 [CFG]
+107374182404 -> 25769803780 [CONTAINS]
+107374182404 -> 124554051588 [DOMINATE]
+107374182404 -> 111669149700 [REACHING_DEF]
+107374182405 -> 111669149701 [AST]
+107374182405 -> 25769803781 [AST]
+107374182405 -> 124554051589 [AST]
+107374182405 -> 115964116997 [AST]
+107374182405 -> 124554051589 [CFG]
+107374182405 -> 25769803781 [CONTAINS]
+107374182405 -> 124554051589 [DOMINATE]
+107374182405 -> 111669149701 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051586 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051587 [REACHING_DEF]
+111669149698 -> 115964116994 [PARAMETER_LINK]
+111669149698 -> 115964116994 [REACHING_DEF]
+111669149698 -> 124554051587 [REACHING_DEF]
+111669149699 -> 115964116995 [PARAMETER_LINK]
+111669149699 -> 115964116995 [REACHING_DEF]
+111669149699 -> 124554051587 [REACHING_DEF]
+111669149700 -> 115964116996 [PARAMETER_LINK]
+111669149700 -> 115964116996 [REACHING_DEF]
+111669149700 -> 124554051588 [REACHING_DEF]
+111669149701 -> 115964116997 [PARAMETER_LINK]
+111669149701 -> 115964116997 [REACHING_DEF]
+111669149701 -> 124554051589 [REACHING_DEF]
+124554051586 -> 107374182402 [POST_DOMINATE]
+124554051587 -> 107374182403 [POST_DOMINATE]
+124554051588 -> 107374182404 [POST_DOMINATE]
+124554051589 -> 107374182405 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+GType hb_gobject_ ## name ## _get_type ( void ) \ {
+ static gsize type_id = 0 ;
+ if ( g_once_init_enter ( & type_id ) ) {
+ GType id = g_boxed_type_register_static ( g_intern_static_string ( "hb_" # name "_t" ) , ( GBoxedCopyFunc ) copy_func , ( GBoxedFreeFunc ) free_func ) ;
+ g_once_init_leave ( & type_id , id ) ;
+ }
+ return type_id ;
+ \ }
+ # define HB_DEFINE_OBJECT_TYPE ( name ) HB_DEFINE_BOXED_TYPE ( name , hb_ ## name ## _reference , hb_ ## name ## _destroy ) ;
+ # define HB_DEFINE_VALUE_TYPE ( name ) static hb_ ## name ## _t * _hb_ ## name ## _reference ( const hb_ ## name ## _t * l ) {
+ hb_ ## name ## _t * c = ( hb_ ## name ## _t * ) calloc ( 1 , sizeof ( hb_ ## name ## _t ) ) ;
+ if ( unlikely ( ! c ) ) return NULL ;
+ * c = * l ;
+ return c ;
+ }
+ static void _hb_ ## name ## _destroy ( hb_ ## name ## _t * l ) {
+ free ( l ) ;
+ }
+ HB_DEFINE_BOXED_TYPE ( name , _hb_ ## name ## _reference , _hb_ ## name ## _destroy ) ;
+ HB_DEFINE_OBJECT_TYPE ( buffer ) HB_DEFINE_OBJECT_TYPE ( blob ) HB_DEFINE_OBJECT_TYPE ( face ) HB_DEFINE_OBJECT_TYPE ( font ) HB_DEFINE_OBJECT_TYPE ( font_funcs )
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

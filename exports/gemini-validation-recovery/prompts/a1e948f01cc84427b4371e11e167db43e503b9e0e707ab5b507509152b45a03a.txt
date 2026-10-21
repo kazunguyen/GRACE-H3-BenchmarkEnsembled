@@ -1,0 +1,238 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int astream_try_base64_decode_char ( struct attachment_istream_part * part , size_t pos , char chr ) {
+ switch ( part -> base64_state ) {
+ case BASE64_STATE_0 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '\r' ) part -> base64_state = BASE64_STATE_CR ;
+ else if ( chr == '\n' ) {
+ return astream_base64_decode_lf ( part ) ;
+ }
+ else {
+ return - 1 ;
+ }
+ break ;
+ case BASE64_STATE_1 : if ( ! base64_is_valid_char ( chr ) ) return - 1 ;
+ part -> base64_state ++ ;
+ break ;
+ case BASE64_STATE_2 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '=' ) part -> base64_state = BASE64_STATE_EOB ;
+ else return - 1 ;
+ break ;
+ case BASE64_STATE_3 : part -> base64_bytes = part -> temp_output -> offset + pos + 1 ;
+ if ( base64_is_valid_char ( chr ) ) {
+ part -> base64_state = BASE64_STATE_0 ;
+ part -> cur_base64_blocks ++ ;
+ }
+ else if ( chr == '=' ) {
+ part -> base64_state = BASE64_STATE_EOM ;
+ part -> cur_base64_blocks ++ ;
+ if ( part -> cur_base64_blocks > part -> base64_line_blocks && part -> base64_line_blocks > 0 ) {
+ return - 1 ;
+ }
+ return 0 ;
+ }
+ else {
+ return - 1 ;
+ }
+ break ;
+ case BASE64_STATE_CR : if ( chr != '\n' ) return - 1 ;
+ if ( ! part -> base64_have_crlf ) {
+ if ( part -> base64_line_blocks != 0 ) {
+ return - 1 ;
+ }
+ part -> base64_have_crlf = TRUE ;
+ }
+ return astream_base64_decode_lf ( part ) ;
+ case BASE64_STATE_EOB : if ( chr != '=' ) return - 1 ;
+ part -> base64_bytes = part -> temp_output -> offset + pos + 1 ;
+ part -> base64_state = BASE64_STATE_EOM ;
+ part -> cur_base64_blocks ++ ;
+ if ( part -> cur_base64_blocks > part -> base64_line_blocks && part -> base64_line_blocks > 0 ) {
+ return - 1 ;
+ }
+ return 0 ;
+ case BASE64_STATE_EOM : i_unreached ( ) ;
+ }
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ switch ( part -> base64_state ) {
+ case BASE64_STATE_0 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '\r' ) part -> base64_state = BASE64_STATE_CR ;
+ else if ( chr == '\n' ) {
+ return astream_base64_decode_lf ( part ) ;
+ }
+ else {
+ return - 1 ;
+ }
+ break ;
+ case BASE64_STATE_1 : if ( ! base64_is_valid_char ( chr ) ) return - 1 ;
+ part -> base64_state ++ ;
+ break ;
+ case BASE64_STATE_2 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '=' ) part -> base64_state = BASE64_STATE_EOB ;
+ else return - 1 ;
+ break ;
+ case BASE64_STATE_3 : part -> base64_bytes = part -> temp_output -> offset + pos + 1 ;
+ if ( base64_is_valid_char ( chr ) ) {
+ part -> base64_state = BASE64_STATE_0 ;
+ part -> cur_base64_blocks ++ ;
+ }
+ else if ( chr == '=' ) {
+ part -> base64_state = BASE64_STATE_EOM ;
+ part -> cur_base64_blocks ++ ;
+ if ( part -> cur_base64_blocks > part -> base64_line_blocks && part -> base64_line_blocks > 0 ) {
+ return -...
+      
+25769803777 | BLOCK | 
+        {
+ case BASE64_STATE_0 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '\r' ) part -> base64_state = BASE64_STATE_CR ;
+ else if ( chr == '\n' ) {
+ return astream_base64_decode_lf ( part ) ;
+ }
+ else {
+ return - 1 ;
+ }
+ break ;
+ case BASE64_STATE_1 : if ( ! base64_is_valid_char ( chr ) ) return - 1 ;
+ part -> base64_state ++ ;
+ break ;
+ case BASE64_STATE_2 : if ( base64_is_valid_char ( chr ) ) part -> base64_state ++ ;
+ else if ( chr == '=' ) part -> base64_state = BASE64_STATE_EOB ;
+ else return - 1 ;
+ break ;
+ case BASE64_STATE_3 : part -> base64_bytes = part -> temp_output -> offset + pos + 1 ;
+ if ( base64_is_valid_char ( chr ) ) {
+ part -> base64_state = BASE64_STATE_0 ;
+ part -> cur_base64_blocks ++ ;
+ }
+ else if ( chr == '=' ) {
+ part -> base64_state = BASE64_STATE_EOM ;
+ part -> cur_base64_blocks ++ ;
+ if ( part -> cur_base64_blocks > part -> base64_line_blocks && part -> base64_line_blocks > 0 ) {
+ return - 1 ;
+ }
+ return 0 ;
+ }
+ else {
+ ret...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { return astream_base64_decode_lf ( part ) ; }
+25769803783 | BLOCK | { return - 1 ; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | { part -> base64_state = BASE64_STATE_0 ; part -> cur_base64_blocks ++ ; }
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ part -> base64_state = BASE64_STATE_EOM ;
+ part -> cur_base64_blocks ++ ;
+ if ( part -> cur_base64_blocks > part -> base64_line_blocks && part -> base64_line_blocks > 0 ) {
+ return - 1 ;
+ }
+ return 0 ;
+ }
+      
+25769803792 | BLOCK | { return - 1 ; }
+25769803793 | BLOCK | { return - 1 ; }
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ if ( part -> base64_line_blocks != 0 ) {
+ return - 1 ;
+ }
+ part -> base64_have_crlf = TRUE ;
+ }
+      
+25769803796 | BLOCK | { return - 1 ; }
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | { return - 1 ; }
+30064771072 | CALL | part -> base64_state
+30064771073 | CALL | base64_is_valid_char ( chr )
+30064771074 | CALL | part -> base64_state ++
+30064771075 | CALL | part -> base64_state
+30064771076 | CALL | chr == '\r'
+30064771077 | CALL | part -> base64_state = BASE64_STATE_CR
+30064771078 | CALL | part -> base64_state
+30064771079 | CALL | chr == '\n'
+30064771080 | CALL | astream_base64_decode_lf ( part )
+30064771081 | CALL | - 1
+30064771082 | CALL | ! base64_is_valid_char ( chr )
+30064771083 | CALL | base64_is_valid_char ( chr )
+30064771084 | CALL | - 1
+30064771085 | CALL | part -> base64_state ++
+30064771086 | CALL | part -> base64_state
+30064771087 | CALL | base64_is_valid_char ( chr )
+30064771088 | CALL | part -> base64_state ++
+EDGES:
+25769803777 -> 30064771085 [AST]
+25769803778 -> 30064771074 [AST]
+25769803780 -> 30064771077 [AST]
+25769803785 -> 30064771088 [AST]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int astream_base64_decode_lf ( struct attachment_istream_part * part ) {
+ if ( part -> base64_have_crlf && part -> base64_state != BASE64_STATE_CR ) {
+ return - 1 ;
+ }
+ part -> base64_state = BASE64_STATE_0 ;
+ if ( p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

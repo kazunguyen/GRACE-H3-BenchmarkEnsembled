@@ -1,0 +1,214 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int getDynamicOffset ( uint32_t c , uint32_t * pOffset ) {
+ int i ;
+ for ( i = 0 ;
+ i < 7 ;
+ ++ i ) {
+ if ( ( uint32_t ) ( c - fixedOffsets [ i ] ) <= 0x7f ) {
+ * pOffset = fixedOffsets [ i ] ;
+ return 0xf9 + i ;
+ }
+ }
+ if ( c < 0x80 ) {
+ return - 1 ;
+ }
+ else if ( c < 0x3400 || ( uint32_t ) ( c - 0x10000 ) < ( 0x14000 - 0x10000 ) || ( uint32_t ) ( c - 0x1d000 ) <= ( 0x1ffff - 0x1d000 ) ) {
+ * pOffset = c & 0x7fffff80 ;
+ return ( int ) ( c >> 7 ) ;
+ }
+ else if ( 0xe000 <= c && c != 0xfeff && c < 0xfff0 ) {
+ * pOffset = c & 0x7fffff80 ;
+ return ( int ) ( ( c - gapOffset ) >> 7 ) ;
+ }
+ else {
+ return - 1 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < 7 ;
+ ++ i ) {
+ if ( ( uint32_t ) ( c - fixedOffsets [ i ] ) <= 0x7f ) {
+ * pOffset = fixedOffsets [ i ] ;
+ return 0xf9 + i ;
+ }
+ }
+ if ( c < 0x80 ) {
+ return - 1 ;
+ }
+ else if ( c < 0x3400 || ( uint32_t ) ( c - 0x10000 ) < ( 0x14000 - 0x10000 ) || ( uint32_t ) ( c - 0x1d000 ) <= ( 0x1ffff - 0x1d000 ) ) {
+ * pOffset = c & 0x7fffff80 ;
+ return ( int ) ( c >> 7 ) ;
+ }
+ else if ( 0xe000 <= c && c != 0xfeff && c < 0xfff0 ) {
+ * pOffset = c & 0x7fffff80 ;
+ return ( int ) ( ( c - gapOffset ) >> 7 ) ;
+ }
+ else {
+ return - 1 ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( ( uint32_t ) ( c - fixedOffsets [ i ] ) <= 0x7f ) {
+ * pOffset = fixedOffsets [ i ] ;
+ return 0xf9 + i ;
+ }
+ }
+      
+25769803778 | BLOCK | { * pOffset = fixedOffsets [ i ] ; return 0xf9 + i ; }
+25769803779 | BLOCK | { return - 1 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { * pOffset = c & 0x7fffff80 ; return ( int ) ( c >> 7 ) ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ * pOffset = c & 0x7fffff80 ;
+ return ( int ) ( ( c - gapOffset ) >> 7 ) ;
+ }
+      
+25769803784 | BLOCK | { return - 1 ; }
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < 7
+30064771074 | CALL | ++ i
+30064771075 | CALL | ( uint32_t ) ( c - fixedOffsets [ i ] ) <= 0x7f
+30064771076 | CALL | ( uint32_t ) ( c - fixedOffsets [ i ] )
+30064771077 | CALL | c - fixedOffsets [ i ]
+30064771078 | CALL | fixedOffsets [ i ]
+30064771079 | CALL | * pOffset = fixedOffsets [ i ]
+30064771080 | CALL | * pOffset
+30064771081 | CALL | fixedOffsets [ i ]
+30064771082 | CALL | 0xf9 + i
+30064771083 | CALL | c < 0x80
+30064771084 | CALL | - 1
+30064771085 | CALL | 
+        c < 0x3400 || ( uint32_t ) ( c - 0x10000 ) < ( 0x14000 - 0x10000 ) || ( uint32_t ) ( c - 0x1d000 ) <= ( 0x1ffff - 0x1d000 )
+      
+30064771086 | CALL | c < 0x3400 || ( uint32_t ) ( c - 0x10000 ) < ( 0x14000 - 0x10000 )
+30064771087 | CALL | c < 0x3400
+30064771088 | CALL | ( uint32_t ) ( c - 0x10000 ) < ( 0x14000 - 0x10000 )
+30064771089 | CALL | ( uint32_t ) ( c - 0x10000 )
+30064771090 | CALL | c - 0x10000
+30064771091 | CALL | 0x14000 - 0x10000
+30064771092 | CALL | ( uint32_t ) ( c - 0x1d000 ) <= ( 0x1ffff - 0x1d000 )
+30064771093 | CALL | ( uint32_t ) ( c - 0x1d000 )
+30064771094 | CALL | c - 0x1d000
+30064771095 | CALL | 0x1ffff - 0x1d000
+30064771096 | CALL | * pOffset = c & 0x7fffff80
+30064771097 | CALL | * pOffset
+30064771098 | CALL | c & 0x7fffff80
+30064771099 | CALL | ( int ) ( c >> 7 )
+30064771100 | CALL | c >> 7
+30064771101 | CALL | 0xe000 <= c && c != 0xfeff && c < 0xfff0
+30064771102 | CALL | 0xe000 <= c && c != 0xfeff
+EDGES:
+25769803778 -> 30064771079 [AST]
+25769803781 -> 30064771096 [AST]
+30064771073 -> 30064771083 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771073 [CDG]
+30064771075 -> 30064771074 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771081 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771092 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771092 [AST]
+30064771085 -> 30064771101 [CDG]
+30064771085 -> 30064771102 [CDG]
+30064771085 -> 30064771097 [CDG]
+30064771085 -> 30064771098 [CDG]
+30064771085 -> 30064771099 [CDG]
+30064771085 -> 30064771100 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771092 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771093 [CDG]
+30064771086 -> 30064771094 [CDG]
+30064771086 -> 30064771095 [CDG]
+30064771086 -> 30064771092 [CDG]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771088 [POST_DOMINATE]
+30064771086 -> 30064771092 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771089 [CDG]
+30064771087 -> 30064771090 [CDG]
+30064771087 -> 30064771091 [CDG]
+30064771087 -> 30064771088 [CDG]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771088 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int8_t getWindow ( const uint32_t offsets [ 8 ] , uint32_t c ) {
+ int i ;
+ for ( i = 0 ;
+ i < 8 ;
+ ++ i ) {
+ if ( ( uint32_t ) ( c - offsets [ i ] ) <= 0x7f ) {
+ return ( int8_t ) ( i ) ;
+ }
+ }
+ return - 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,364 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+FWCfgState *pc_memory_init(PCMachineState *pcms,
+
+                           MemoryRegion *system_memory,
+
+                           MemoryRegion *rom_memory,
+
+                           MemoryRegion **ram_memory,
+
+                           PcGuestInfo *guest_info)
+
+{
+
+    int linux_boot, i;
+
+    MemoryRegion *ram, *option_rom_mr;
+
+    MemoryRegion *ram_below_4g, *ram_above_4g;
+
+    FWCfgState *fw_cfg;
+
+    MachineState *machine = MACHINE(pcms);
+
+
+
+    assert(machine->ram_size == pcms->below_4g_mem_size +
+
+                                pcms->above_4g_mem_size);
+
+
+
+    linux_boot = (machine->kernel_filename != NULL);
+
+
+
+    /* Allocate RAM.  We allocate it as a single memory region and use
+
+     * aliases to address portions of it, mostly for backwards compatibility
+
+     * with older qemus that used qemu_ram_alloc().
+
+     */
+
+    ram = g_malloc(sizeof(*ram));
+
+    memory_region_allocate_system_memory(ram, NULL, "pc.ram",
+
+                                         machine->ram_size);
+
+    *ram_memory = ram;
+
+    ram_below_4g = g_malloc(sizeof(*ram_below_4g));
+
+    memory_region_init_alias(ram_below_4g, NULL, "ram-below-4g", ram,
+
+                             0, pcms->below_4g_mem_size);
+
+    memory_region_add_subregion(system_memory, 0, ram_below_4g);
+
+    e820_add_entry(0, pcms->below_4g_mem_size, E820_RAM);
+
+    if (pcms->above_4g_mem_size > 0) {
+
+        ram_above_4g = g_malloc(sizeof(*ram_above_4g));
+
+        memory_region_init_alias(ram_above_4g, NULL, "ram-above-4g", ram,
+
+                                 pcms->below_4g_mem_size,
+
+                                 pcms->above_4g_mem_size);
+
+        memory_region_add_subregion(system_memory, 0x100000000ULL,
+
+                                    ram_above_4g);
+
+        e820_add_entry(0x100000000ULL, pcms->above_4g_mem_size, E820_RAM);
+
+    }
+
+
+
+    if (!guest_info->has_reserved_memory &&
+
+        (machine->ram_slots ||
+
+         (machine->maxram_size > machine->ram_size))) {
+
+        MachineClass *mc = MACHINE_GET_CLASS(machine);
+
+
+
+        error_report("\"-memory 'slots|maxmem'\" is not supported by: %s",
+
+                     mc->name);
+
+        exit(EXIT_FAILURE);
+
+    }
+
+
+
+    /* initialize hotplug memory address space */
+
+    if (guest_info->has_reserved_memory &&
+
+        (machine->ram_size < machine->maxram_size)) {
+
+        ram_addr_t hotplug_mem_size =
+
+            machine->maxram_size - machine->ram_size;
+
+
+
+        if (machine->ram_slots > ACPI_MAX_RAM_SLOTS) {
+
+            error_report("unsupported amount of memory slots: %"PRIu64,
+
+                         machine->ram_slots);
+
+            exit(EXIT_FAILURE);
+
+        }
+
+
+
+        if (QEMU_ALIGN_UP(machine->maxram_size,
+
+                          TARGET_PAGE_SIZE) != machine->maxram_size) {
+
+            error_report("maximum memory size must by aligned to multiple of "
+
+                         "%d bytes", TARGET_PAGE_SIZE);
+
+            exit(EXIT_FAILURE);
+
+        }
+
+
+
+        pcms->hotplug_memory.base =
+
+            ROUND_UP(
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int linux_boot, i;
+
+    MemoryRegion *ram, *option_rom_mr;
+
+    MemoryRegion *ram_below_4g, *ram_above_4g;
+
+    FWCfgState *fw_cfg;
+
+    MachineState *machine = MACHINE(pcms);
+
+
+
+    assert(machine->ram_size == pcms->below_4g_mem_size +
+
+                                pcms->above_4g_mem_size);
+
+
+
+    linux_boot = (machine->kernel_filename != NULL);
+
+
+
+    /* Allocate RAM.  We allocate it as a single memory region and use
+
+     * aliases to address portions of it, mostly for backwards compatibility
+
+     * with older qemus that used qemu_ram_alloc().
+
+     */
+
+    ram = g_malloc(sizeof(*ram));
+
+    memory_region_allocate_system_memory(ram, NULL, "pc.ram",
+
+                                         machine->ram_size);
+
+    *ram_memory = ram;
+
+    ram_below_4g = g_malloc(sizeof(*ram_below_4g));
+
+    memory_region_init_alias(ram_below_4g, NULL, "ram-below-4g", ram,
+
+                             0, pcms->below_4g_mem_size);
+
+    memory_region_add_subregion(system_memory, 0, ram_be...
+      
+25769803777 | BLOCK | 
+        {
+
+        ram_above_4g = g_malloc(sizeof(*ram_above_4g));
+
+        memory_region_init_alias(ram_above_4g, NULL, "ram-above-4g", ram,
+
+                                 pcms->below_4g_mem_size,
+
+                                 pcms->above_4g_mem_size);
+
+        memory_region_add_subregion(system_memory, 0x100000000ULL,
+
+                                    ram_above_4g);
+
+        e820_add_entry(0x100000000ULL, pcms->above_4g_mem_size, E820_RAM);
+
+    }
+      
+25769803778 | BLOCK | 
+        {
+
+        MachineClass *mc = MACHINE_GET_CLASS(machine);
+
+
+
+        error_report("\"-memory 'slots|maxmem'\" is not supported by: %s",
+
+                     mc->name);
+
+        exit(EXIT_FAILURE);
+
+    }
+      
+25769803779 | BLOCK | 
+        {
+
+        ram_addr_t hotplug_mem_size =
+
+            machine->maxram_size - machine->ram_size;
+
+
+
+        if (machine->ram_slots > ACPI_MAX_RAM_SLOTS) {
+
+            error_report("unsupported amount of memory slots: %"PRIu64,
+
+                         machine->ram_slots);
+
+            exit(EXIT_FAILURE);
+
+        }
+
+
+
+        if (QEMU_ALIGN_UP(machine->maxram_size,
+
+                          TARGET_PAGE_SIZE) != machine->maxram_size) {
+
+            error_report("maximum memory size must by aligned to multiple of "
+
+                         "%d bytes", TARGET_PAGE_SIZE);
+
+            exit(EXIT_FAILURE);
+
+        }
+
+
+
+        pcms->hotplug_memory.base =
+
+            ROUND_UP(0x100000000ULL + pcms->above_4g_mem_size, 1ULL << 30);
+
+
+
+        if (pcms->enforce_aligned_dimm) {
+
+            /* size hotplug region assuming 1G page max alignment per slot */
+
+            hotplug_mem_size += (1ULL << 30) * machine->ram_slots;
+
+        }
+
+
+
+        if ((pcms->hotplug_memory.base + hotplug_mem_...
+      
+25769803780 | BLOCK | 
+        {
+
+            error_report("unsupported amount of memory slots: %"PRIu64,
+
+                         machine->ram_slots);
+
+            exit(EXIT_FAILURE);
+
+        }
+      
+25769803781 | BLOCK | 
+        {
+
+            error_report("maximum memory size must by aligned to multiple of "
+
+                         "%d bytes", TARGET_PAGE_SIZE);
+
+            exit(EXIT_FAILURE);
+
+        }
+      
+25769803782 | BLOCK | 
+        {
+
+            /* size hotplug region assuming 1G page max alignment per slot */
+
+            hotplug_mem_size += (1ULL << 30) * machine->ram_slots;
+
+        }
+      
+25769803783 | BLOCK | 
+        {
+
+            error_report("unsupported amount of maximum memory: " RAM_ADDR_FMT,
+
+                         machine->maxram_size);
+
+            exit(EXIT_FAILURE);
+
+        }
+      
+25769803784 | BLOCK | 
+        {
+
+        uint64_t *val = g_malloc(sizeof(*val));
+
+        PCMachineClass *pcmc = PC_MACHINE_GET_CLASS(pcms);
+
+        uint64_t res_mem_end = pcms->hotplug_memory.base;
+
+
+
+        if (!pcmc->broken_reserved_end) {
+
+            res_mem_end += memory_region_size(&pcms->hotplug_memory.mr);
+
+        }
+
+        *val = cpu_to_le64(ROUND_UP(res_mem_end, 0x1ULL << 30));
+
+        fw_cfg_add_file(fw_cfg, "etc/reserved-memory-end", val, sizeof(*val));
+
+    }
+      
+25769803785 | BLOCK | { res_mem_end += memory_region_size(&pcms->hotplug_memory.mr); }
+25769803786 | BLOCK | { load_linux(pcms, fw_cfg); }
+25769803787 | BLOCK | { rom_add_option(option_rom[i].name, option_rom[i].bootindex); }
+30064771072 | CAL
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

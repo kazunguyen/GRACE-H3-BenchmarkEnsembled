@@ -1,0 +1,226 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextSetDrivePassphrase ( qemuMonitorPtr mon , const char * alias , const char * passphrase ) {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * safe_str ;
+ safe_str = qemuMonitorEscapeArg ( passphrase ) ;
+ if ( ! safe_str ) {
+ virReportOOMError ( ) ;
+ return - 1 ;
+ }
+ if ( virAsprintf ( & cmd , "block_passwd %s%s \"%s\"" , QEMU_DRIVE_HOST_PREFIX , alias , safe_str ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "failed to set disk password" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "unknown command:" ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "setting disk password is not supported" ) ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "The entered password is invalid" ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "the disk password is incorrect" ) ) ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( cmd ) ;
+ VIR_FREE ( reply ) ;
+ VIR_FREE ( safe_str ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * safe_str ;
+ safe_str = qemuMonitorEscapeArg ( passphrase ) ;
+ if ( ! safe_str ) {
+ virReportOOMError ( ) ;
+ return - 1 ;
+ }
+ if ( virAsprintf ( & cmd , "block_passwd %s%s \"%s\"" , QEMU_DRIVE_HOST_PREFIX , alias , safe_str ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "failed to set disk password" ) ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "unknown command:" ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "setting disk password is not supported" ) ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "The entered password is invalid" ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "the disk password is incorrect" ) ) ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( cmd ) ;
+ VIR_FREE ( reply ) ;
+ VIR_FREE ( safe_str ) ;
+ return ret ;
+ }
+      
+25769803777 | BLOCK | { virReportOOMError ( ) ; return - 1 ; }
+25769803778 | BLOCK | { virReportOOMError ( ) ; goto cleanup ; }
+25769803779 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "failed to set disk password" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "setting disk password is not supported" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "the disk password is incorrect" ) ) ;
+ goto cleanup ;
+ }
+      
+30064771072 | CALL | cmd = NULL
+30064771073 | CALL | reply = NULL
+30064771074 | CALL | ret = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | safe_str = qemuMonitorEscapeArg ( passphrase )
+30064771077 | CALL | qemuMonitorEscapeArg ( passphrase )
+30064771078 | CALL | ! safe_str
+30064771079 | CALL | virReportOOMError ( )
+30064771080 | CALL | - 1
+30064771081 | CALL | 
+        virAsprintf ( & cmd , "block_passwd %s%s \"%s\"" , QEMU_DRIVE_HOST_PREFIX , alias , safe_str ) < 0
+      
+30064771082 | CALL | 
+        virAsprintf ( & cmd , "block_passwd %s%s \"%s\"" , QEMU_DRIVE_HOST_PREFIX , alias , safe_str )
+      
+30064771083 | CALL | & cmd
+30064771084 | CALL | virReportOOMError ( )
+30064771085 | CALL | qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0
+30064771086 | CALL | qemuMonitorHMPCommand ( mon , cmd , & reply )
+30064771087 | CALL | & reply
+30064771088 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "failed to set disk password" ) )
+      
+30064771089 | CALL | _ ( "failed to set disk password" )
+30064771090 | CALL | strstr ( reply , "unknown command:" )
+30064771091 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "setting disk password is not supported" ) )
+      
+30064771092 | CALL | _ ( "setting disk password is not supported" )
+30064771093 | CALL | strstr ( reply , "The entered password is invalid" )
+30064771094 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "the disk password is incorrect" ) )
+      
+30064771095 | CALL | _ ( "the disk password is incorrect" )
+30064771096 | CALL | ret = 0
+30064771097 | CALL | VIR_FREE ( cmd )
+30064771098 | CALL | VIR_FREE ( reply )
+30064771099 | CALL | VIR_FREE ( safe_str )
+47244640256 | CONTROL_STRUCTURE | if ( ! safe_str ) { virReportOOMError ( ) ; return - 1 ; }
+47244640257 | CONTROL_STRUCTURE | 
+        if ( virAsprintf ( & cmd , "block_passwd %s%s \"%s\"" , QEMU_DRIVE_HOST_PREFIX , alias , safe_str ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | goto cleanup;
+47244640259 | CONTROL_STRUCTURE | 
+        if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) < 0 ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , _ ( "failed to set disk password" ) ) ;
+ goto cleanup ;
+ }
+      
+47244640260 | CONTROL_STRUCTURE | goto cleanup;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771099 [AST]
+25769803777 -> 30064771079 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771088 [AST]
+25769803779 -> 47244640260 [AST]
+25769803780 -> 30064771091 [AST]
+25769803782 -> 30064771094 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771098 [CDG]
+30064771078 -> 30064771097 [CDG]
+30064771078 -> 30064771099 [CDG]
+30064771078 -> 30064771079 [CFG]
+30064771078 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 47244640258 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771084 [CFG]
+30064771081 -> 30064771084 [DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 47244640258 [CFG]
+30064771084 -> 47244640258 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 47244640260 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771086 [CFG]
+300647710
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,229 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static long timelib_parse_tz_cor ( char * * ptr ) {
+ char * begin = * ptr , * end ;
+ long tmp ;
+ while ( isdigit ( * * ptr ) || * * ptr == ':' ) {
+ ++ * ptr ;
+ }
+ end = * ptr ;
+ switch ( end - begin ) {
+ case 1 : case 2 : return HOUR ( strtol ( begin , NULL , 10 ) ) ;
+ break ;
+ case 3 : case 4 : if ( begin [ 1 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else if ( begin [ 2 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else {
+ tmp = strtol ( begin , NULL , 10 ) ;
+ return HOUR ( tmp / 100 ) + tmp % 100 ;
+ }
+ case 5 : tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * begin = * ptr , * end ;
+ long tmp ;
+ while ( isdigit ( * * ptr ) || * * ptr == ':' ) {
+ ++ * ptr ;
+ }
+ end = * ptr ;
+ switch ( end - begin ) {
+ case 1 : case 2 : return HOUR ( strtol ( begin , NULL , 10 ) ) ;
+ break ;
+ case 3 : case 4 : if ( begin [ 1 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else if ( begin [ 2 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else {
+ tmp = strtol ( begin , NULL , 10 ) ;
+ return HOUR ( tmp / 100 ) + tmp % 100 ;
+ }
+ case 5 : tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | { ++ * ptr ; }
+25769803778 | BLOCK | 
+        {
+ case 1 : case 2 : return HOUR ( strtol ( begin , NULL , 10 ) ) ;
+ break ;
+ case 3 : case 4 : if ( begin [ 1 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else if ( begin [ 2 ] == ':' ) {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+ else {
+ tmp = strtol ( begin , NULL , 10 ) ;
+ return HOUR ( tmp / 100 ) + tmp % 100 ;
+ }
+ case 5 : tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 ) ;
+ return tmp ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 ) ;
+ return tmp ;
+ }
+      
+25769803782 | BLOCK | { tmp = strtol ( begin , NULL , 10 ) ; return HOUR ( tmp / 100 ) + tmp % 100 ; }
+30064771072 | CALL | begin = * ptr
+30064771073 | CALL | * ptr
+30064771074 | CALL | isdigit ( * * ptr ) || * * ptr == ':'
+30064771075 | CALL | isdigit ( * * ptr )
+30064771076 | CALL | * * ptr
+30064771077 | CALL | * ptr
+30064771078 | CALL | * * ptr == ':'
+30064771079 | CALL | * * ptr
+30064771080 | CALL | * ptr
+30064771081 | CALL | ++ * ptr
+30064771082 | CALL | * ptr
+30064771083 | CALL | end = * ptr
+30064771084 | CALL | * ptr
+30064771085 | CALL | end - begin
+30064771086 | CALL | HOUR ( strtol ( begin , NULL , 10 ) )
+30064771087 | CALL | strtol ( begin , NULL , 10 )
+30064771088 | CALL | begin [ 1 ] == ':'
+30064771089 | CALL | begin [ 1 ]
+30064771090 | CALL | tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 )
+30064771091 | CALL | HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 2 , NULL , 10 )
+30064771092 | CALL | HOUR ( strtol ( begin , NULL , 10 ) )
+30064771093 | CALL | strtol ( begin , NULL , 10 )
+30064771094 | CALL | strtol ( begin + 2 , NULL , 10 )
+30064771095 | CALL | begin + 2
+30064771096 | CALL | begin [ 2 ] == ':'
+30064771097 | CALL | begin [ 2 ]
+30064771098 | CALL | tmp = HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 )
+30064771099 | CALL | HOUR ( strtol ( begin , NULL , 10 ) ) + strtol ( begin + 3 , NULL , 10 )
+30064771100 | CALL | HOUR ( strtol ( begin , NULL , 10 ) )
+30064771101 | CALL | strtol ( begin , NULL , 10 )
+30064771102 | CALL | strtol ( begin + 3 , NULL , 10 )
+30064771103 | CALL | begin + 3
+30064771104 | CALL | tmp = strtol ( begin , NULL , 10 )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771083 [AST]
+25769803777 -> 30064771081 [AST]
+25769803779 -> 30064771090 [AST]
+25769803781 -> 30064771098 [AST]
+25769803782 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771080 [REACHING_DEF]
+30064771073 -> 30064771082 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771084 [REACHING_DEF]
+30064771073 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771078 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771078 [AST]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771074 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771080 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771084 [REACHING_DEF]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771074 [CFG]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771084 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771084 [REACHING_DEF]
+30064771082 -> 30064771077 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static timelib_sll timelib_get_nr ( char * * ptr , int max_length ) {
+ char * begin , * end , * str ;
+ timelib_sll tmp_nr = TIMELIB_UNSET ;
+ int len = 0 ;
+ while ( ( * * ptr < '0' ) || ( * * ptr > '9' ) ) {
+ if ( * * ptr == '\0' ) {
+ return TIMEL
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

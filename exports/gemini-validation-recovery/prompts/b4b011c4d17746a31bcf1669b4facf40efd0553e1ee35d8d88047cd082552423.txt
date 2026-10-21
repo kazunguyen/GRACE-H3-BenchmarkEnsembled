@@ -1,0 +1,186 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pk_transaction_get_categories ( PkTransaction * transaction , GVariant * params , GDBusMethodInvocation * context ) {
+ g_autoptr ( GError ) error = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_debug ( "GetCategories method called" ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_GET_CATEGORIES ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "GetCategories not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ pk_transaction_set_role ( transaction , PK_ROLE_ENUM_GET_CATEGORIES ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_READY ) ;
+ out : pk_transaction_dbus_return ( context , error ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ g_autoptr ( GError ) error = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_debug ( "GetCategories method called" ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_GET_CATEGORIES ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "GetCategories not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ pk_transaction_set_role ( transaction , PK_ROLE_ENUM_GET_CATEGORIES ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_READY ) ;
+ out : pk_transaction_dbus_return ( context , error ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "GetCategories not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+30064771072 | CALL | error = NULL
+30064771073 | CALL | g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) )
+30064771074 | CALL | PK_IS_TRANSACTION ( transaction )
+30064771075 | CALL | g_return_if_fail ( transaction -> priv -> tid != NULL )
+30064771076 | CALL | transaction -> priv -> tid != NULL
+30064771077 | CALL | transaction -> priv -> tid
+30064771078 | CALL | transaction -> priv
+30064771079 | CALL | g_debug ( "GetCategories method called" )
+30064771080 | CALL | 
+        ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_GET_CATEGORIES )
+      
+30064771081 | CALL | 
+        pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_GET_CATEGORIES )
+      
+30064771082 | CALL | transaction -> priv -> backend
+30064771083 | CALL | transaction -> priv
+30064771084 | CALL | 
+        g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "GetCategories not supported by backend" )
+      
+30064771085 | CALL | & error
+30064771086 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+30064771087 | CALL | pk_transaction_set_role ( transaction , PK_ROLE_ENUM_GET_CATEGORIES )
+30064771088 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_READY )
+30064771089 | CALL | pk_transaction_dbus_return ( context , error )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_GET_CATEGORIES ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "GetCategories not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | goto out;
+55834574848 | FIELD_IDENTIFIER | priv
+55834574849 | FIELD_IDENTIFIER | tid
+55834574850 | FIELD_IDENTIFIER | priv
+55834574851 | FIELD_IDENTIFIER | backend
+68719476736 | IDENTIFIER | <unknown> error
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | transaction
+68719476739 | IDENTIFIER | transaction
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | transaction
+68719476742 | IDENTIFIER | <unknown> PK_ROLE_ENUM_GET_CATEGORIES
+68719476743 | IDENTIFIER | <unknown> error
+68719476744 | IDENTIFIER | <unknown> PK_TRANSACTION_ERROR
+68719476745 | IDENTIFIER | <unknown> PK_TRANSACTION_ERROR_NOT_SUPPORTED
+68719476746 | IDENTIFIER | transaction
+68719476747 | IDENTIFIER | <unknown> PK_TRANSACTION_STATE_ERROR
+68719476748 | IDENTIFIER | transaction
+68719476749 | IDENTIFIER | <unknown> PK_ROLE_ENUM_GET_CATEGORIES
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771089 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 47244640257 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 55834574849 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574849 [AST]
+30064771077 -> 68719476740 [CFG]
+30064771077 -> 68719476740 [DOMINATE]
+30064771077 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 30064771083 [REACHING_DEF]
+30064771077 -> 68719476740 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476739 [ARGUMENT]
+30064771078 -> 55834574848 [ARGUMENT]
+30064771078 -> 68719476739 [AST]
+30064771078 -> 55834574848 [AST]
+30064771078 -> 55834574849 [CFG]
+30064771078 -> 55834574849 [DOMINATE]
+30064771078 -> 55834574848 [POST_DOMINATE]
+30064771079 -> 68719476741 [CFG]
+30064771079 -> 68719476741 [DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 68719476744 [CDG]
+30064771080 -> 68719476745 [CDG]
+30064771080 -> 47244640257 [CDG]
+30064771080 -> 68719476743 [CDG]
+30064771080 -> 68719476748 [CDG]
+30064771080 -> 68719476749 [CDG]
+30064771080 -> 68719476746 [CDG]
+30064771080 -> 68719476747 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 68719476743 [CFG]
+30064771080 -> 68719476748 [CFG]
+30064771080 -> 68719476743 [DOMINATE]
+30064771080 -> 68719476748 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void pk_transaction_get_d
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

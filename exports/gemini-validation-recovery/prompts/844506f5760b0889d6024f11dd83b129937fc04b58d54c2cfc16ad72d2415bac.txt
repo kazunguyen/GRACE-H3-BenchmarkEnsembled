@@ -1,0 +1,152 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PHP_MINIT_FUNCTION ( zip ) {
+ # ifdef PHP_ZIP_USE_OO zend_class_entry ce ;
+ memcpy ( & zip_object_handlers , zend_get_std_object_handlers ( ) , sizeof ( zend_object_handlers ) ) ;
+ zip_object_handlers . clone_obj = NULL ;
+ zip_object_handlers . get_property_ptr_ptr = php_zip_get_property_ptr_ptr ;
+ zip_object_handlers . get_properties = php_zip_get_properties ;
+ zip_object_handlers . read_property = php_zip_read_property ;
+ zip_object_handlers . has_property = php_zip_has_property ;
+ INIT_CLASS_ENTRY ( ce , "ZipArchive" , zip_class_functions ) ;
+ ce . create_object = php_zip_object_new ;
+ zip_class_entry = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ zend_hash_init ( & zip_prop_handlers , 0 , NULL , NULL , 1 ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "status" , php_zip_status , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "statusSys" , php_zip_status_sys , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "numFiles" , php_zip_get_num_files , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "filename" , NULL , NULL , php_zipobj_get_filename , IS_STRING TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "comment" , NULL , php_zipobj_get_zip_comment , NULL , IS_STRING TSRMLS_CC ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CREATE" , ZIP_CREATE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "EXCL" , ZIP_EXCL ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CHECKCONS" , ZIP_CHECKCONS ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "OVERWRITE" , ZIP_OVERWRITE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "FL_NOCASE" , ZIP_FL_NOCASE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "FL_NODIR" , ZIP_FL_NODIR ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "FL_COMPRESSED" , ZIP_FL_COMPRESSED ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "FL_UNCHANGED" , ZIP_FL_UNCHANGED ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_DEFAULT" , ZIP_CM_DEFAULT ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_STORE" , ZIP_CM_STORE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_SHRINK" , ZIP_CM_SHRINK ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_REDUCE_1" , ZIP_CM_REDUCE_1 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_REDUCE_2" , ZIP_CM_REDUCE_2 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_REDUCE_3" , ZIP_CM_REDUCE_3 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_REDUCE_4" , ZIP_CM_REDUCE_4 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_IMPLODE" , ZIP_CM_IMPLODE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_DEFLATE" , ZIP_CM_DEFLATE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_DEFLATE64" , ZIP_CM_DEFLATE64 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_PKWARE_IMPLODE" , ZIP_CM_PKWARE_IMPLODE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_BZIP2" , ZIP_CM_BZIP2 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_LZMA" , ZIP_CM_LZMA ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_TERSE" , ZIP_CM_TERSE ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_LZ77" , ZIP_CM_LZ77 ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_WAVPACK" , ZIP_CM_WAVPACK ) ;
+ REGISTER_ZIP_CLASS_CONST_LONG ( "CM_P
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # ifdef PHP_ZIP_USE_OO zend_class_entry ce ;
+ memcpy ( & zip_object_handlers , zend_get_std_object_handlers ( ) , sizeof ( zend_object_handlers ) ) ;
+ zip_object_handlers . clone_obj = NULL ;
+ zip_object_handlers . get_property_ptr_ptr = php_zip_get_property_ptr_ptr ;
+ zip_object_handlers . get_properties = php_zip_get_properties ;
+ zip_object_handlers . read_property = php_zip_read_property ;
+ zip_object_handlers . has_property = php_zip_has_property ;
+ INIT_CLASS_ENTRY ( ce , "ZipArchive" , zip_class_functions ) ;
+ ce . create_object = php_zip_object_new ;
+ zip_class_entry = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ zend_hash_init ( & zip_prop_handlers , 0 , NULL , NULL , 1 ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "status" , php_zip_status , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "statusSys" , php_zip_status_sys , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handler...
+      
+30064771072 | CALL | 
+        le_zip_entry = zend_register_list_destructors_ex ( php_zip_free_entry , NULL , le_zip_entry_name , module_number )
+      
+30064771073 | CALL | 
+        zend_register_list_destructors_ex ( php_zip_free_entry , NULL , le_zip_entry_name , module_number )
+      
+68719476736 | IDENTIFIER | <unknown> le_zip_entry
+68719476737 | IDENTIFIER | <unknown> php_zip_free_entry
+68719476738 | IDENTIFIER | <unknown> NULL
+68719476739 | IDENTIFIER | <unknown> le_zip_entry_name
+68719476740 | IDENTIFIER | <unknown> module_number
+68719476741 | IDENTIFIER | <unknown> SUCCESS
+94489280512 | LOCAL | <unknown> SUCCESS
+94489280513 | LOCAL | <unknown> module_number
+94489280514 | LOCAL | <unknown> le_zip_entry_name
+94489280515 | LOCAL | <unknown> NULL
+94489280516 | LOCAL | <unknown> php_zip_free_entry
+94489280517 | LOCAL | <unknown> le_zip_entry
+107374182400 | METHOD | 
+        static PHP_MINIT_FUNCTION ( zip ) {
+ # ifdef PHP_ZIP_USE_OO zend_class_entry ce ;
+ memcpy ( & zip_object_handlers , zend_get_std_object_handlers ( ) , sizeof ( zend_object_handlers ) ) ;
+ zip_object_handlers . clone_obj = NULL ;
+ zip_object_handlers . get_property_ptr_ptr = php_zip_get_property_ptr_ptr ;
+ zip_object_handlers . get_properties = php_zip_get_properties ;
+ zip_object_handlers . read_property = php_zip_read_property ;
+ zip_object_handlers . has_property = php_zip_has_property ;
+ INIT_CLASS_ENTRY ( ce , "ZipArchive" , zip_class_functions ) ;
+ ce . create_object = php_zip_object_new ;
+ zip_class_entry = zend_register_internal_class ( & ce TSRMLS_CC ) ;
+ zend_hash_init ( & zip_prop_handlers , 0 , NULL , NULL , 1 ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "status" , php_zip_status , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register_prop_handler ( & zip_prop_handlers , "statusSys" , php_zip_status_sys , NULL , NULL , IS_LONG TSRMLS_CC ) ;
+ php_zip_register...
+      
+111669149696 | METHOD_PARAMETER_IN | zip
+115964116992 | METHOD_PARAMETER_OUT | zip
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return SUCCESS ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 141733920768 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476741 [CFG]
+30064771072 -> 68719476741 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476740 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476740 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+68719476736 -> 68719476737 [CFG]
+68719476736 -> 68719476737 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

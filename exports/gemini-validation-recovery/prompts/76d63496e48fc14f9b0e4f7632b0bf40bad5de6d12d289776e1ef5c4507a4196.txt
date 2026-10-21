@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void stroke_loglevel ( private_stroke_socket_t * this , stroke_msg_t * msg , FILE * out ) {
+ debug_t group ;
+ pop_string ( msg , & ( msg -> loglevel . type ) ) ;
+ DBG1 ( DBG_CFG , "received stroke: loglevel %d for %s" , msg -> loglevel . level , msg -> loglevel . type ) ;
+ if ( this -> prevent_loglevel_changes ) {
+ DBG1 ( DBG_CFG , "prevented log level change" ) ;
+ fprintf ( out , "command not allowed!\n" ) ;
+ return ;
+ }
+ if ( ! enum_from_name ( debug_names , msg -> loglevel . type , & group ) ) {
+ fprintf ( out , "unknown type '%s'!\n" , msg -> loglevel . type ) ;
+ return ;
+ }
+ charon -> set_level ( charon , group , msg -> loglevel . level ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ debug_t group ;
+ pop_string ( msg , & ( msg -> loglevel . type ) ) ;
+ DBG1 ( DBG_CFG , "received stroke: loglevel %d for %s" , msg -> loglevel . level , msg -> loglevel . type ) ;
+ if ( this -> prevent_loglevel_changes ) {
+ DBG1 ( DBG_CFG , "prevented log level change" ) ;
+ fprintf ( out , "command not allowed!\n" ) ;
+ return ;
+ }
+ if ( ! enum_from_name ( debug_names , msg -> loglevel . type , & group ) ) {
+ fprintf ( out , "unknown type '%s'!\n" , msg -> loglevel . type ) ;
+ return ;
+ }
+ charon -> set_level ( charon , group , msg -> loglevel . level ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ DBG1 ( DBG_CFG , "prevented log level change" ) ;
+ fprintf ( out , "command not allowed!\n" ) ;
+ return ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ fprintf ( out , "unknown type '%s'!\n" , msg -> loglevel . type ) ;
+ return ;
+ }
+      
+30064771072 | CALL | pop_string ( msg , & ( msg -> loglevel . type ) )
+30064771073 | CALL | & ( msg -> loglevel . type )
+30064771074 | CALL | msg -> loglevel . type
+30064771075 | CALL | msg -> loglevel
+30064771076 | CALL | 
+        DBG1 ( DBG_CFG , "received stroke: loglevel %d for %s" , msg -> loglevel . level , msg -> loglevel . type )
+      
+30064771077 | CALL | msg -> loglevel . level
+30064771078 | CALL | msg -> loglevel
+30064771079 | CALL | msg -> loglevel . type
+30064771080 | CALL | msg -> loglevel
+30064771081 | CALL | this -> prevent_loglevel_changes
+30064771082 | CALL | DBG1 ( DBG_CFG , "prevented log level change" )
+30064771083 | CALL | fprintf ( out , "command not allowed!\n" )
+30064771084 | CALL | ! enum_from_name ( debug_names , msg -> loglevel . type , & group )
+30064771085 | CALL | enum_from_name ( debug_names , msg -> loglevel . type , & group )
+30064771086 | CALL | msg -> loglevel . type
+30064771087 | CALL | msg -> loglevel
+30064771088 | CALL | & group
+30064771089 | CALL | fprintf ( out , "unknown type '%s'!\n" , msg -> loglevel . type )
+30064771090 | CALL | msg -> loglevel . type
+30064771091 | CALL | msg -> loglevel
+30064771092 | CALL | charon -> set_level ( charon , group , msg -> loglevel . level )
+30064771093 | CALL | charon -> set_level
+30064771094 | CALL | msg -> loglevel . level
+30064771095 | CALL | msg -> loglevel
+47244640256 | CONTROL_STRUCTURE | 
+        if ( this -> prevent_loglevel_changes ) {
+ DBG1 ( DBG_CFG , "prevented log level change" ) ;
+ fprintf ( out , "command not allowed!\n" ) ;
+ return ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! enum_from_name ( debug_names , msg -> loglevel . type , & group ) ) {
+ fprintf ( out , "unknown type '%s'!\n" , msg -> loglevel . type ) ;
+ return ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | loglevel
+55834574849 | FIELD_IDENTIFIER | type
+55834574850 | FIELD_IDENTIFIER | loglevel
+55834574851 | FIELD_IDENTIFIER | level
+55834574852 | FIELD_IDENTIFIER | loglevel
+55834574853 | FIELD_IDENTIFIER | type
+55834574854 | FIELD_IDENTIFIER | prevent_loglevel_changes
+55834574855 | FIELD_IDENTIFIER | loglevel
+55834574856 | FIELD_IDENTIFIER | type
+55834574857 | FIELD_IDENTIFIER | loglevel
+55834574858 | FIELD_IDENTIFIER | type
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771086 [REACHING_DEF]
+30064771073 -> 30064771079 [REACHING_DEF]
+30064771073 -> 30064771090 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 55834574849 [CFG]
+30064771075 -> 55834574849 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771079 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [AST]
+30064771076 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 55834574851 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 55834574851 [AST]
+30064771077 -> 55834574851 [POST_DOMINATE]
+30064771077 -> 30064771094 [REACHING_DEF]
+30064771077 -> 30064771091 [REACHING_DEF]
+30064771077 -> 30064771087 [REACHING_DEF]
+30064771077 -> 30064771079 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 55834574851 [CFG]
+30064771078 -> 55834574851 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 55834574853 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 55834574853 [AST]
+30064771079 -> 30064771076 [CFG]
+30064771079 -> 30064771076 [DOMINATE]
+30064771079 -> 55834574853 [POST_DOMINATE]
+30064771079 -> 30064771086 [REACHING_DEF]
+30064771079 -> 30064771087 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771080 -> 55834574852 [ARGUMENT]
+30064771080 -> 55834574852 [AST]
+30064771080 -> 55834574853 [CFG]
+30064771080 -> 55834574853 [DOMINATE]
+30064771080 -> 55834574852 [POST_DOMINATE]
+30064771081 -> 55834574854 [ARGUMENT]
+30064771081 -> 55834574854 [AST]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 55834574855 [CDG]
+30064771081 -> 55834574856 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void stroke_terminate ( private_stroke_socket_t * this , stroke_msg_t * msg , FILE * out ) {
+ pop_string ( msg , & msg -> terminate . name ) ;
+ DBG1 ( DBG_CFG , "received stroke: terminate '%s'" , msg -> terminate . name ) ;
+ this -> control -> terminate ( this -> control , msg , out ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

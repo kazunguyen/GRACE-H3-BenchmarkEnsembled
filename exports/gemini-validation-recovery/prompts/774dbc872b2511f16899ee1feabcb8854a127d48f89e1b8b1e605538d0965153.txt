@@ -1,0 +1,248 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int xhci_try_complete_packet ( XHCITransfer * xfer ) {
+ if ( xfer -> packet . status == USB_RET_ASYNC ) {
+ trace_usb_xhci_xfer_async ( xfer ) ;
+ xfer -> running_async = 1 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+ else if ( xfer -> packet . status == USB_RET_NAK ) {
+ trace_usb_xhci_xfer_nak ( xfer ) ;
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 1 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+ else {
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 1 ;
+ xhci_xfer_unmap ( xfer ) ;
+ }
+ if ( xfer -> packet . status == USB_RET_SUCCESS ) {
+ trace_usb_xhci_xfer_success ( xfer , xfer -> packet . actual_length ) ;
+ xfer -> status = CC_SUCCESS ;
+ xhci_xfer_report ( xfer ) ;
+ return 0 ;
+ }
+ trace_usb_xhci_xfer_error ( xfer , xfer -> packet . status ) ;
+ switch ( xfer -> packet . status ) {
+ case USB_RET_NODEV : case USB_RET_IOERROR : xfer -> status = CC_USB_TRANSACTION_ERROR ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ case USB_RET_STALL : xfer -> status = CC_STALL_ERROR ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ case USB_RET_BABBLE : xfer -> status = CC_BABBLE_DETECTED ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ default : DPRINTF ( "%s: FIXME: status = %d\n" , __func__ , xfer -> packet . status ) ;
+ FIXME ( "unhandled USB_RET_*" ) ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( xfer -> packet . status == USB_RET_ASYNC ) {
+ trace_usb_xhci_xfer_async ( xfer ) ;
+ xfer -> running_async = 1 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+ else if ( xfer -> packet . status == USB_RET_NAK ) {
+ trace_usb_xhci_xfer_nak ( xfer ) ;
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 1 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+ else {
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 1 ;
+ xhci_xfer_unmap ( xfer ) ;
+ }
+ if ( xfer -> packet . status == USB_RET_SUCCESS ) {
+ trace_usb_xhci_xfer_success ( xfer , xfer -> packet . actual_length ) ;
+ xfer -> status = CC_SUCCESS ;
+ xhci_xfer_report ( xfer ) ;
+ return 0 ;
+ }
+ trace_usb_xhci_xfer_error ( xfer , xfer -> packet . status ) ;
+ switch ( xfer -> packet . status ) {
+ case USB_RET_NODEV : case USB_RET_IOERROR : xfer -> status = CC_USB_TRANSACTION_ERROR ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ case USB_RET_STALL : xfer -> status = CC_STA...
+      
+25769803777 | BLOCK | 
+        {
+ trace_usb_xhci_xfer_async ( xfer ) ;
+ xfer -> running_async = 1 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ trace_usb_xhci_xfer_nak ( xfer ) ;
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 1 ;
+ xfer -> complete = 0 ;
+ return 0 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ xfer -> running_async = 0 ;
+ xfer -> running_retry = 0 ;
+ xfer -> complete = 1 ;
+ xhci_xfer_unmap ( xfer ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ trace_usb_xhci_xfer_success ( xfer , xfer -> packet . actual_length ) ;
+ xfer -> status = CC_SUCCESS ;
+ xhci_xfer_report ( xfer ) ;
+ return 0 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ case USB_RET_NODEV : case USB_RET_IOERROR : xfer -> status = CC_USB_TRANSACTION_ERROR ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ case USB_RET_STALL : xfer -> status = CC_STALL_ERROR ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ case USB_RET_BABBLE : xfer -> status = CC_BABBLE_DETECTED ;
+ xhci_xfer_report ( xfer ) ;
+ xhci_stall_ep ( xfer ) ;
+ break ;
+ default : DPRINTF ( "%s: FIXME: status = %d\n" , __func__ , xfer -> packet . status ) ;
+ FIXME ( "unhandled USB_RET_*" ) ;
+ }
+      
+30064771072 | CALL | xfer -> packet . status == USB_RET_ASYNC
+30064771073 | CALL | xfer -> packet . status
+30064771074 | CALL | xfer -> packet
+30064771075 | CALL | trace_usb_xhci_xfer_async ( xfer )
+30064771076 | CALL | xfer -> running_async = 1
+30064771077 | CALL | xfer -> running_async
+30064771078 | CALL | xfer -> running_retry = 0
+30064771079 | CALL | xfer -> running_retry
+30064771080 | CALL | xfer -> complete = 0
+30064771081 | CALL | xfer -> complete
+30064771082 | CALL | xfer -> packet . status == USB_RET_NAK
+30064771083 | CALL | xfer -> packet . status
+30064771084 | CALL | xfer -> packet
+30064771085 | CALL | trace_usb_xhci_xfer_nak ( xfer )
+30064771086 | CALL | xfer -> running_async = 0
+30064771087 | CALL | xfer -> running_async
+30064771088 | CALL | xfer -> running_retry = 1
+30064771089 | CALL | xfer -> running_retry
+30064771090 | CALL | xfer -> complete = 0
+30064771091 | CALL | xfer -> complete
+30064771092 | CALL | xfer -> running_async = 0
+30064771093 | CALL | xfer -> running_async
+30064771094 | CALL | xfer -> running_retry = 0
+30064771095 | CALL | xfer -> running_retry
+30064771096 | CALL | xfer -> complete = 1
+30064771097 | CALL | xfer -> complete
+30064771098 | CALL | xhci_xfer_unmap ( xfer )
+30064771099 | CALL | xfer -> packet . status == USB_RET_SUCCESS
+30064771100 | CALL | xfer -> packet . status
+30064771101 | CALL | xfer -> packet
+30064771102 | CALL | trace_usb_xhci_xfer_success ( xfer , xfer -> packet . actual_length )
+30064771103 | CALL | xfer -> packet . actual_length
+30064771104 | CALL | xfer -> packet
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771080 [AST]
+25769803779 -> 30064771085 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771088 [AST]
+25769803779 -> 30064771090 [AST]
+25769803780 -> 30064771092 [AST]
+25769803780 -> 30064771094 [AST]
+25769803780 -> 30064771096 [AST]
+25769803780 -> 30064771098 [AST]
+25769803781 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771083 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771084 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771101 [CDG]
+30064771082 -> 30064771100 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771099 [CDG]
+30064771082 -> 30064771098 [CDG]
+30064771082 -> 30064771097 [CDG]
+30064771082 -> 30064771096 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

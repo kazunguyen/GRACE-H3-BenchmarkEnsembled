@@ -1,0 +1,213 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void process_envvars ( enum mode * modep ) {
+ char * * runp = _environ ;
+ char * envline ;
+ enum mode mode = normal ;
+ char * debug_output = NULL ;
+ GLRO ( dl_profile_output ) = & "/var/tmp\0/var/profile" [ __libc_enable_secure ? 9 : 0 ] ;
+ while ( ( envline = _dl_next_ld_env_entry ( & runp ) ) != NULL ) {
+ size_t len = 0 ;
+ while ( envline [ len ] != '\0' && envline [ len ] != '=' ) ++ len ;
+ if ( envline [ len ] != '=' ) continue ;
+ switch ( len ) {
+ case 4 : if ( memcmp ( envline , "WARN" , 4 ) == 0 ) GLRO ( dl_verbose ) = envline [ 5 ] != '\0' ;
+ break ;
+ case 5 : if ( memcmp ( envline , "DEBUG" , 5 ) == 0 ) {
+ process_dl_debug ( & envline [ 6 ] ) ;
+ break ;
+ }
+ if ( memcmp ( envline , "AUDIT" , 5 ) == 0 ) process_dl_audit ( & envline [ 6 ] ) ;
+ break ;
+ case 7 : if ( memcmp ( envline , "VERBOSE" , 7 ) == 0 ) {
+ version_info = envline [ 8 ] != '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "PRELOAD" , 7 ) == 0 ) {
+ preloadlist = & envline [ 8 ] ;
+ break ;
+ }
+ if ( memcmp ( envline , "PROFILE" , 7 ) == 0 && envline [ 8 ] != '\0' ) GLRO ( dl_profile ) = & envline [ 8 ] ;
+ break ;
+ case 8 : if ( memcmp ( envline , "BIND_NOW" , 8 ) == 0 ) {
+ GLRO ( dl_lazy ) = envline [ 9 ] == '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "BIND_NOT" , 8 ) == 0 ) GLRO ( dl_bind_not ) = envline [ 9 ] != '\0' ;
+ break ;
+ case 9 : if ( ! __libc_enable_secure && memcmp ( envline , "SHOW_AUXV" , 9 ) == 0 ) _dl_show_auxv ( ) ;
+ break ;
+ case 10 : if ( memcmp ( envline , "HWCAP_MASK" , 10 ) == 0 ) GLRO ( dl_hwcap_mask ) = __strtoul_internal ( & envline [ 11 ] , NULL , 0 , 0 ) ;
+ break ;
+ case 11 : if ( ! __libc_enable_secure && memcmp ( envline , "ORIGIN_PATH" , 11 ) == 0 ) GLRO ( dl_origin_path ) = & envline [ 12 ] ;
+ break ;
+ case 12 : if ( memcmp ( envline , "LIBRARY_PATH" , 12 ) == 0 ) {
+ library_path = & envline [ 13 ] ;
+ break ;
+ }
+ if ( memcmp ( envline , "DEBUG_OUTPUT" , 12 ) == 0 ) {
+ debug_output = & envline [ 13 ] ;
+ break ;
+ }
+ if ( ! __libc_enable_secure && memcmp ( envline , "DYNAMIC_WEAK" , 12 ) == 0 ) GLRO ( dl_dynamic_weak ) = 1 ;
+ break ;
+ case 13 : # ifdef EXTRA_LD_ENVVARS_13 EXTRA_LD_ENVVARS_13 # endif if ( ! __libc_enable_secure && memcmp ( envline , "USE_LOAD_BIAS" , 13 ) == 0 ) {
+ GLRO ( dl_use_load_bias ) = envline [ 14 ] == '1' ? - 1 : 0 ;
+ break ;
+ }
+ if ( memcmp ( envline , "POINTER_GUARD" , 13 ) == 0 ) GLRO ( dl_pointer_guard ) = envline [ 14 ] != '0' ;
+ break ;
+ case 14 : if ( ! __libc_enable_secure && memcmp ( envline , "PROFILE_OUTPUT" , 14 ) == 0 && envline [ 15 ] != '\0' ) GLRO ( dl_profile_output ) = & envline [ 15 ] ;
+ break ;
+ case 16 : if ( memcmp ( envline , "TRACE_PRELINKING" , 16 ) == 0 ) {
+ mode = trace ;
+ GLRO ( dl_verbose ) = 1 ;
+ GLRO ( dl_debug_mask ) |= DL_DEBUG_PRELINK ;
+ GLRO ( dl_trace_prelink ) = & envline [ 17 ] ;
+ }
+ break ;
+ case 20 : if ( memcmp ( envline , "TRACE_LOADED_OBJECTS" , 20 ) == 0 ) mode = trace ;
+ break ;
+ # ifdef EXTRA_LD_ENVVARS EXTRA_LD_ENVVARS # endif }
+ }
+ * modep = mode ;
+ if ( __builtin_expect ( _
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * * runp = _environ ;
+ char * envline ;
+ enum mode mode = normal ;
+ char * debug_output = NULL ;
+ GLRO ( dl_profile_output ) = & "/var/tmp\0/var/profile" [ __libc_enable_secure ? 9 : 0 ] ;
+ while ( ( envline = _dl_next_ld_env_entry ( & runp ) ) != NULL ) {
+ size_t len = 0 ;
+ while ( envline [ len ] != '\0' && envline [ len ] != '=' ) ++ len ;
+ if ( envline [ len ] != '=' ) continue ;
+ switch ( len ) {
+ case 4 : if ( memcmp ( envline , "WARN" , 4 ) == 0 ) GLRO ( dl_verbose ) = envline [ 5 ] != '\0' ;
+ break ;
+ case 5 : if ( memcmp ( envline , "DEBUG" , 5 ) == 0 ) {
+ process_dl_debug ( & envline [ 6 ] ) ;
+ break ;
+ }
+ if ( memcmp ( envline , "AUDIT" , 5 ) == 0 ) process_dl_audit ( & envline [ 6 ] ) ;
+ break ;
+ case 7 : if ( memcmp ( envline , "VERBOSE" , 7 ) == 0 ) {
+ version_info = envline [ 8 ] != '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "PRELOAD" , 7 ) == 0 ) {
+ preloadlist = & envline [ 8 ] ;
+ break ;
+ }
+ if ( memcmp ( envline , "PROFILE" , 7 ) == 0 && envline [ 8 ] != ...
+      
+25769803777 | BLOCK | 
+        {
+ size_t len = 0 ;
+ while ( envline [ len ] != '\0' && envline [ len ] != '=' ) ++ len ;
+ if ( envline [ len ] != '=' ) continue ;
+ switch ( len ) {
+ case 4 : if ( memcmp ( envline , "WARN" , 4 ) == 0 ) GLRO ( dl_verbose ) = envline [ 5 ] != '\0' ;
+ break ;
+ case 5 : if ( memcmp ( envline , "DEBUG" , 5 ) == 0 ) {
+ process_dl_debug ( & envline [ 6 ] ) ;
+ break ;
+ }
+ if ( memcmp ( envline , "AUDIT" , 5 ) == 0 ) process_dl_audit ( & envline [ 6 ] ) ;
+ break ;
+ case 7 : if ( memcmp ( envline , "VERBOSE" , 7 ) == 0 ) {
+ version_info = envline [ 8 ] != '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "PRELOAD" , 7 ) == 0 ) {
+ preloadlist = & envline [ 8 ] ;
+ break ;
+ }
+ if ( memcmp ( envline , "PROFILE" , 7 ) == 0 && envline [ 8 ] != '\0' ) GLRO ( dl_profile ) = & envline [ 8 ] ;
+ break ;
+ case 8 : if ( memcmp ( envline , "BIND_NOW" , 8 ) == 0 ) {
+ GLRO ( dl_lazy ) = envline [ 9 ] == '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "BIND_NOT" , 8 ) == 0 ) GLRO ( dl_bind_not ) = envline [ 9 ] != '\...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ case 4 : if ( memcmp ( envline , "WARN" , 4 ) == 0 ) GLRO ( dl_verbose ) = envline [ 5 ] != '\0' ;
+ break ;
+ case 5 : if ( memcmp ( envline , "DEBUG" , 5 ) == 0 ) {
+ process_dl_debug ( & envline [ 6 ] ) ;
+ break ;
+ }
+ if ( memcmp ( envline , "AUDIT" , 5 ) == 0 ) process_dl_audit ( & envline [ 6 ] ) ;
+ break ;
+ case 7 : if ( memcmp ( envline , "VERBOSE" , 7 ) == 0 ) {
+ version_info = envline [ 8 ] != '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "PRELOAD" , 7 ) == 0 ) {
+ preloadlist = & envline [ 8 ] ;
+ break ;
+ }
+ if ( memcmp ( envline , "PROFILE" , 7 ) == 0 && envline [ 8 ] != '\0' ) GLRO ( dl_profile ) = & envline [ 8 ] ;
+ break ;
+ case 8 : if ( memcmp ( envline , "BIND_NOW" , 8 ) == 0 ) {
+ GLRO ( dl_lazy ) = envline [ 9 ] == '\0' ;
+ break ;
+ }
+ if ( memcmp ( envline , "BIND_NOT" , 8 ) == 0 ) GLRO ( dl_bind_not ) = envline [ 9 ] != '\0' ;
+ break ;
+ case 9 : if ( ! __libc_enable_secure && memcmp ( envline , "SHOW_AUXV" , 9 ) == 0 ) _dl_show_auxv ( ) ;
+ break ;
+ case 10 : if ( memc...
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | { process_dl_debug ( & envline [ 6 ] ) ; break ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { version_info = envline [ 8 ] != '\0' ; break ; }
+25769803784 | BLOCK | { preloadlist = & envline [ 8 ] ; break ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { GLRO ( dl_lazy ) = envline [ 9 ] == '\0' ; break ; }
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | { library_path = & envline [ 13 ] ; break ; }
+25769803792 | BLOCK | { debug_output = & envline [ 13 ] ; break ; }
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | 
+        {
+ mode = trace ;
+ GLRO ( dl_verbose ) = 1 ;
+ GLRO ( dl_debug_mask ) |= DL_DEBUG_PRELINK ;
+ GLRO ( dl_trace_prelink ) = & envline [ 17 ] ;
+ }
+      
+25769803797 | BLOCK | <empty>
+30064771072 | CALL | * runp = _environ
+30064771073 | CALL | mode = normal
+30064771074 | CALL | debug_output = NULL
+30064771075 | CALL | 
+        ( dl_profile_output ) = & "/var/tmp\0/var/profile" [ __libc_enable_secure ? 9 : 0 ]
+      
+30064771076 | CALL | & "/var/tmp\0/var/profile" [ __libc_enable_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

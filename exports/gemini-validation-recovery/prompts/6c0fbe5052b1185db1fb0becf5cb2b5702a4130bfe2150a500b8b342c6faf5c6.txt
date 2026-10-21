@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static struct mswsp_ct * get_create_converstation_data ( packet_info * pinfo ) {
+ struct mswsp_ct * ct = NULL ;
+ conversation_t * conversation ;
+ conversation = find_or_create_conversation ( pinfo ) ;
+ if ( ! conversation ) {
+ return NULL ;
+ }
+ ct = ( struct mswsp_ct * ) conversation_get_proto_data ( conversation , proto_mswsp ) ;
+ if ( ! ct ) {
+ ct = wmem_new ( wmem_file_scope ( ) , struct mswsp_ct ) ;
+ ct -> GSL_message_data = NULL ;
+ conversation_add_proto_data ( conversation , proto_mswsp , ct ) ;
+ }
+ return ct ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct mswsp_ct * ct = NULL ;
+ conversation_t * conversation ;
+ conversation = find_or_create_conversation ( pinfo ) ;
+ if ( ! conversation ) {
+ return NULL ;
+ }
+ ct = ( struct mswsp_ct * ) conversation_get_proto_data ( conversation , proto_mswsp ) ;
+ if ( ! ct ) {
+ ct = wmem_new ( wmem_file_scope ( ) , struct mswsp_ct ) ;
+ ct -> GSL_message_data = NULL ;
+ conversation_add_proto_data ( conversation , proto_mswsp , ct ) ;
+ }
+ return ct ;
+ }
+      
+25769803777 | BLOCK | { return NULL ; }
+25769803778 | BLOCK | 
+        {
+ ct = wmem_new ( wmem_file_scope ( ) , struct mswsp_ct ) ;
+ ct -> GSL_message_data = NULL ;
+ conversation_add_proto_data ( conversation , proto_mswsp , ct ) ;
+ }
+      
+30064771072 | CALL | ct = NULL
+30064771073 | CALL | conversation = find_or_create_conversation ( pinfo )
+30064771074 | CALL | find_or_create_conversation ( pinfo )
+30064771075 | CALL | ! conversation
+30064771076 | CALL | 
+        ct = ( struct mswsp_ct * ) conversation_get_proto_data ( conversation , proto_mswsp )
+      
+30064771077 | CALL | ( struct mswsp_ct * ) conversation_get_proto_data ( conversation , proto_mswsp )
+30064771078 | CALL | conversation_get_proto_data ( conversation , proto_mswsp )
+30064771079 | CALL | ! ct
+30064771080 | CALL | ct -> GSL_message_data = NULL
+30064771081 | CALL | ct -> GSL_message_data
+30064771082 | CALL | conversation_add_proto_data ( conversation , proto_mswsp , ct )
+47244640256 | CONTROL_STRUCTURE | if ( ! conversation ) { return NULL ; }
+47244640257 | CONTROL_STRUCTURE | 
+        if ( ! ct ) {
+ ct = wmem_new ( wmem_file_scope ( ) , struct mswsp_ct ) ;
+ ct -> GSL_message_data = NULL ;
+ conversation_add_proto_data ( conversation , proto_mswsp , ct ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | GSL_message_data
+68719476736 | IDENTIFIER | ct
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | conversation
+68719476739 | IDENTIFIER | pinfo
+68719476740 | IDENTIFIER | conversation
+68719476741 | IDENTIFIER | <unknown> NULL
+68719476742 | IDENTIFIER | ct
+68719476743 | IDENTIFIER | conversation
+68719476744 | IDENTIFIER | <unknown> proto_mswsp
+68719476745 | IDENTIFIER | ct
+68719476746 | IDENTIFIER | ct
+68719476747 | IDENTIFIER | <unknown> NULL
+68719476748 | IDENTIFIER | conversation
+68719476749 | IDENTIFIER | <unknown> proto_mswsp
+68719476750 | IDENTIFIER | ct
+68719476751 | IDENTIFIER | ct
+94489280512 | LOCAL | struct mswsp_ct * ct
+94489280513 | LOCAL | conversation_t * conversation
+94489280514 | LOCAL | <unknown> proto_mswsp
+94489280515 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static struct mswsp_ct * get_create_converstation_data ( packet_info * pinfo ) {
+ struct mswsp_ct * ct = NULL ;
+ conversation_t * conversation ;
+ conversation = find_or_create_conversation ( pinfo ) ;
+ if ( ! conversation ) {
+ return NULL ;
+ }
+ ct = ( struct mswsp_ct * ) conversation_get_proto_data ( conversation , proto_mswsp ) ;
+ if ( ! ct ) {
+ ct = wmem_new ( wmem_file_scope ( ) , struct mswsp_ct ) ;
+ ct -> GSL_message_data = NULL ;
+ conversation_add_proto_data ( conversation , proto_mswsp , ct ) ;
+ }
+ return ct ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | packet_info * pinfo
+115964116992 | METHOD_PARAMETER_OUT | packet_info * pinfo
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803778 -> 30064771080 [AST]
+25769803778 -> 30064771082 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 68719476751 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476745 [CFG]
+30064771076 -> 68719476745 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 68719476742 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476744 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 68719476745 [AST]
+30064771079 -> 55834574848 [CDG]
+30064771079 -> 68719476747 [CDG]
+30064771079 -> 68719476746 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 68719476749 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static struct CPMSetBindingsIn * find_binding_msg_data ( struct mswsp_ct * ct , packet_info * pinfo , void * private_data ) {
+ struct CPMSetBindingsIn * result = NULL ;
+ struct message_data * data = find_matching_request_by_fid ( ct , pinfo , 0xD0 , TRUE , private_data ) ;
+ if ( data ) {
+ result = & data -> content . bindingsin ;
+ }
+ return result ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

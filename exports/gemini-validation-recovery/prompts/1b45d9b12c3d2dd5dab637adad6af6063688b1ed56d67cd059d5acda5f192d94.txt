@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static cmsBool Type_Text_Description_Write ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , void * Ptr , cmsUInt32Number nItems ) {
+ cmsMLU * mlu = ( cmsMLU * ) Ptr ;
+ char * Text = NULL ;
+ wchar_t * Wide = NULL ;
+ cmsUInt32Number len , len_text , len_tag_requirement , len_aligned ;
+ cmsBool rc = FALSE ;
+ char Filler [ 68 ] ;
+ memset ( Filler , 0 , sizeof ( Filler ) ) ;
+ len = cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , NULL , 0 ) ;
+ if ( len <= 0 ) {
+ Text = ( char * ) _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) ) ;
+ Wide = ( wchar_t * ) _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) ) ;
+ }
+ else {
+ Text = ( char * ) _cmsCalloc ( self -> ContextID , len , sizeof ( char ) ) ;
+ if ( Text == NULL ) goto Error ;
+ Wide = ( wchar_t * ) _cmsCalloc ( self -> ContextID , len , sizeof ( wchar_t ) ) ;
+ if ( Wide == NULL ) goto Error ;
+ cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , Text , len * sizeof ( char ) ) ;
+ cmsMLUgetWide ( mlu , cmsNoLanguage , cmsNoCountry , Wide , len * sizeof ( wchar_t ) ) ;
+ }
+ len_text = ( cmsUInt32Number ) strlen ( Text ) + 1 ;
+ len_tag_requirement = ( 8 + 4 + len_text + 4 + 4 + 2 * len_text + 2 + 1 + 67 ) ;
+ len_aligned = _cmsALIGNLONG ( len_tag_requirement ) ;
+ if ( ! _cmsWriteUInt32Number ( io , len_text ) ) goto Error ;
+ if ( ! io -> Write ( io , len_text , Text ) ) goto Error ;
+ if ( ! _cmsWriteUInt32Number ( io , 0 ) ) goto Error ;
+ if ( ! _cmsWriteUInt32Number ( io , len_text ) ) goto Error ;
+ if ( ! _cmsWriteWCharArray ( io , len_text , Wide ) ) goto Error ;
+ if ( ! _cmsWriteUInt16Number ( io , 0 ) ) goto Error ;
+ if ( ! _cmsWriteUInt8Number ( io , 0 ) ) goto Error ;
+ if ( ! io -> Write ( io , 67 , Filler ) ) goto Error ;
+ if ( len_aligned - len_tag_requirement > 0 ) if ( ! io -> Write ( io , len_aligned - len_tag_requirement , Filler ) ) goto Error ;
+ rc = TRUE ;
+ Error : if ( Text ) _cmsFree ( self -> ContextID , Text ) ;
+ if ( Wide ) _cmsFree ( self -> ContextID , Wide ) ;
+ return rc ;
+ cmsUNUSED_PARAMETER ( nItems ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsMLU * mlu = ( cmsMLU * ) Ptr ;
+ char * Text = NULL ;
+ wchar_t * Wide = NULL ;
+ cmsUInt32Number len , len_text , len_tag_requirement , len_aligned ;
+ cmsBool rc = FALSE ;
+ char Filler [ 68 ] ;
+ memset ( Filler , 0 , sizeof ( Filler ) ) ;
+ len = cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , NULL , 0 ) ;
+ if ( len <= 0 ) {
+ Text = ( char * ) _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) ) ;
+ Wide = ( wchar_t * ) _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) ) ;
+ }
+ else {
+ Text = ( char * ) _cmsCalloc ( self -> ContextID , len , sizeof ( char ) ) ;
+ if ( Text == NULL ) goto Error ;
+ Wide = ( wchar_t * ) _cmsCalloc ( self -> ContextID , len , sizeof ( wchar_t ) ) ;
+ if ( Wide == NULL ) goto Error ;
+ cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , Text , len * sizeof ( char ) ) ;
+ cmsMLUgetWide ( mlu , cmsNoLanguage , cmsNoCountry , Wide , len * sizeof ( wchar_t ) ) ;
+ }
+ len_text = ( cmsUInt32Number ) strlen ( Text ) + 1 ;
+ len_tag_requirement = (...
+      
+25769803777 | BLOCK | 
+        {
+ Text = ( char * ) _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) ) ;
+ Wide = ( wchar_t * ) _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ Text = ( char * ) _cmsCalloc ( self -> ContextID , len , sizeof ( char ) ) ;
+ if ( Text == NULL ) goto Error ;
+ Wide = ( wchar_t * ) _cmsCalloc ( self -> ContextID , len , sizeof ( wchar_t ) ) ;
+ if ( Wide == NULL ) goto Error ;
+ cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , Text , len * sizeof ( char ) ) ;
+ cmsMLUgetWide ( mlu , cmsNoLanguage , cmsNoCountry , Wide , len * sizeof ( wchar_t ) ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+30064771072 | CALL | mlu = ( cmsMLU * ) Ptr
+30064771073 | CALL | ( cmsMLU * ) Ptr
+30064771074 | CALL | Text = NULL
+30064771075 | CALL | Wide = NULL
+30064771076 | CALL | rc = FALSE
+30064771077 | CALL | Filler [ 68 ]
+30064771078 | CALL | Filler [ 68 ]
+30064771079 | CALL | memset ( Filler , 0 , sizeof ( Filler ) )
+30064771080 | CALL | sizeof ( Filler )
+30064771081 | CALL | len = cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , NULL , 0 )
+30064771082 | CALL | cmsMLUgetASCII ( mlu , cmsNoLanguage , cmsNoCountry , NULL , 0 )
+30064771083 | CALL | len <= 0
+30064771084 | CALL | 
+        Text = ( char * ) _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) )
+      
+30064771085 | CALL | ( char * ) _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) )
+30064771086 | CALL | _cmsDupMem ( self -> ContextID , "" , sizeof ( char ) )
+30064771087 | CALL | self -> ContextID
+30064771088 | CALL | sizeof ( char )
+30064771089 | CALL | 
+        Wide = ( wchar_t * ) _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) )
+      
+30064771090 | CALL | 
+        ( wchar_t * ) _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) )
+      
+30064771091 | CALL | _cmsDupMem ( self -> ContextID , L"" , sizeof ( wchar_t ) )
+30064771092 | CALL | self -> ContextID
+30064771093 | CALL | sizeof ( wchar_t )
+30064771094 | CALL | Text = ( char * ) _cmsCalloc ( self -> ContextID , len , sizeof ( char ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771089 [AST]
+25769803778 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771094 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771093 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

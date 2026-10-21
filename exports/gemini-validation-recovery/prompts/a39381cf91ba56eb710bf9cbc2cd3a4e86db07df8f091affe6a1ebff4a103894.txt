@@ -1,0 +1,245 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qdict_do_flatten(QDict *qdict, QDict *target, const char *prefix)
+
+{
+
+    QObject *value;
+
+    const QDictEntry *entry, *next;
+
+    const char *new_key;
+
+    bool delete;
+
+
+
+    entry = qdict_first(qdict);
+
+
+
+    while (entry != NULL) {
+
+
+
+        next = qdict_next(qdict, entry);
+
+        value = qdict_entry_value(entry);
+
+        new_key = NULL;
+
+        delete = false;
+
+
+
+        if (prefix) {
+
+            qobject_incref(value);
+
+            new_key = g_strdup_printf("%s.%s", prefix, entry->key);
+
+            qdict_put_obj(target, new_key, value);
+
+            delete = true;
+
+        }
+
+
+
+        if (qobject_type(value) == QTYPE_QDICT) {
+
+            qdict_do_flatten(qobject_to_qdict(value), target,
+
+                             new_key ? new_key : entry->key);
+
+            delete = true;
+
+        }
+
+
+
+        if (delete) {
+
+            qdict_del(qdict, entry->key);
+
+
+
+            /* Restart loop after modifying the iterated QDict */
+
+            entry = qdict_first(qdict);
+
+            continue;
+
+        }
+
+
+
+        entry = next;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+37 -> 49 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+37 -> 58 [IS_AST_PARENT]
+37 -> 62 [IS_AST_PARENT]
+37 -> 63 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+37 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+83 -> 86 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+89 -> 91 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+83 -> 88 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static bool append_open_options(QDict *d, BlockDriverState *bs)
+
+{
+
+    const QDictEntry *entry;
+
+    QemuOptDesc *desc;
+
+    bool found_any = false;
+
+
+
+    for (entry = qdict_first(bs->options); entry;
+
+         entry = qdict_next(bs->options, entry))
+
+    {
+
+        /* Only take options for this level */
+
+        if (strchr(qdict_entry_key(entry), '.')) {
+
+            continue;
+
+        }
+
+
+
+        /* And exclude all non-driver-specific options */
+
+        for (desc = bdrv_runtime_opts.desc; desc->name; desc++) {
+
+            if (!strcmp(qdict_entry_key(entry), desc->name)) {
+
+                break;
+
+            }
+
+        }
+
+        if (desc->name) {
+
+            continue;
+
+        }
+
+
+
+        qobject_incref(qdict_entry_value(entry));
+
+        qdict_put_obj(d, qdict_entry_key(entry), qdict_entry_value(entry));
+
+        found_any = true;
+
+    }
+
+
+
+    return found_any;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

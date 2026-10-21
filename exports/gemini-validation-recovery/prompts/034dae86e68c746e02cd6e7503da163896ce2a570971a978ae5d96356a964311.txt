@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void update_mbgraph_frame_stats ( VP9_COMP * cpi , MBGRAPH_FRAME_STATS * stats , YV12_BUFFER_CONFIG * buf , YV12_BUFFER_CONFIG * golden_ref , YV12_BUFFER_CONFIG * alt_ref ) {
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ VP9_COMMON * const cm = & cpi -> common ;
+ int mb_col , mb_row , offset = 0 ;
+ int mb_y_offset = 0 , arf_y_offset = 0 , gld_y_offset = 0 ;
+ MV gld_top_mv = {
+ 0 , 0 }
+ ;
+ MODE_INFO mi_local ;
+ vp9_zero ( mi_local ) ;
+ x -> mv_row_min = - BORDER_MV_PIXELS_B16 ;
+ x -> mv_row_max = ( cm -> mb_rows - 1 ) * 8 + BORDER_MV_PIXELS_B16 ;
+ xd -> up_available = 0 ;
+ xd -> plane [ 0 ] . dst . stride = buf -> y_stride ;
+ xd -> plane [ 0 ] . pre [ 0 ] . stride = buf -> y_stride ;
+ xd -> plane [ 1 ] . dst . stride = buf -> uv_stride ;
+ xd -> mi [ 0 ] = & mi_local ;
+ mi_local . mbmi . sb_type = BLOCK_16X16 ;
+ mi_local . mbmi . ref_frame [ 0 ] = LAST_FRAME ;
+ mi_local . mbmi . ref_frame [ 1 ] = NONE ;
+ for ( mb_row = 0 ;
+ mb_row < cm -> mb_rows ;
+ mb_row ++ ) {
+ MV gld_left_mv = gld_top_mv ;
+ int mb_y_in_offset = mb_y_offset ;
+ int arf_y_in_offset = arf_y_offset ;
+ int gld_y_in_offset = gld_y_offset ;
+ x -> mv_col_min = - BORDER_MV_PIXELS_B16 ;
+ x -> mv_col_max = ( cm -> mb_cols - 1 ) * 8 + BORDER_MV_PIXELS_B16 ;
+ xd -> left_available = 0 ;
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & stats -> mb_stats [ offset + mb_col ] ;
+ update_mbgraph_mb_stats ( cpi , mb_stats , buf , mb_y_in_offset , golden_ref , & gld_left_mv , alt_ref , mb_row , mb_col ) ;
+ gld_left_mv = mb_stats -> ref [ GOLDEN_FRAME ] . m . mv . as_mv ;
+ if ( mb_col == 0 ) {
+ gld_top_mv = gld_left_mv ;
+ }
+ xd -> left_available = 1 ;
+ mb_y_in_offset += 16 ;
+ gld_y_in_offset += 16 ;
+ arf_y_in_offset += 16 ;
+ x -> mv_col_min -= 16 ;
+ x -> mv_col_max -= 16 ;
+ }
+ xd -> up_available = 1 ;
+ mb_y_offset += buf -> y_stride * 16 ;
+ gld_y_offset += golden_ref -> y_stride * 16 ;
+ if ( alt_ref ) arf_y_offset += alt_ref -> y_stride * 16 ;
+ x -> mv_row_min -= 16 ;
+ x -> mv_row_max -= 16 ;
+ offset += cm -> mb_cols ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ VP9_COMMON * const cm = & cpi -> common ;
+ int mb_col , mb_row , offset = 0 ;
+ int mb_y_offset = 0 , arf_y_offset = 0 , gld_y_offset = 0 ;
+ MV gld_top_mv = {
+ 0 , 0 }
+ ;
+ MODE_INFO mi_local ;
+ vp9_zero ( mi_local ) ;
+ x -> mv_row_min = - BORDER_MV_PIXELS_B16 ;
+ x -> mv_row_max = ( cm -> mb_rows - 1 ) * 8 + BORDER_MV_PIXELS_B16 ;
+ xd -> up_available = 0 ;
+ xd -> plane [ 0 ] . dst . stride = buf -> y_stride ;
+ xd -> plane [ 0 ] . pre [ 0 ] . stride = buf -> y_stride ;
+ xd -> plane [ 1 ] . dst . stride = buf -> uv_stride ;
+ xd -> mi [ 0 ] = & mi_local ;
+ mi_local . mbmi . sb_type = BLOCK_16X16 ;
+ mi_local . mbmi . ref_frame [ 0 ] = LAST_FRAME ;
+ mi_local . mbmi . ref_frame [ 1 ] = NONE ;
+ for ( mb_row = 0 ;
+ mb_row < cm -> mb_rows ;
+ mb_row ++ ) {
+ MV gld_left_mv = gld_top_mv ;
+ int mb_y_in_offset = mb_y_offset ;
+ int arf_y_in_offset = arf_y_offset ;
+ int gld_y_in_offset = gld_y_offset ;
+ x -> mv_col_min ...
+      
+25769803777 | BLOCK | 
+        {
+ MV gld_left_mv = gld_top_mv ;
+ int mb_y_in_offset = mb_y_offset ;
+ int arf_y_in_offset = arf_y_offset ;
+ int gld_y_in_offset = gld_y_offset ;
+ x -> mv_col_min = - BORDER_MV_PIXELS_B16 ;
+ x -> mv_col_max = ( cm -> mb_cols - 1 ) * 8 + BORDER_MV_PIXELS_B16 ;
+ xd -> left_available = 0 ;
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & stats -> mb_stats [ offset + mb_col ] ;
+ update_mbgraph_mb_stats ( cpi , mb_stats , buf , mb_y_in_offset , golden_ref , & gld_left_mv , alt_ref , mb_row , mb_col ) ;
+ gld_left_mv = mb_stats -> ref [ GOLDEN_FRAME ] . m . mv . as_mv ;
+ if ( mb_col == 0 ) {
+ gld_top_mv = gld_left_mv ;
+ }
+ xd -> left_available = 1 ;
+ mb_y_in_offset += 16 ;
+ gld_y_in_offset += 16 ;
+ arf_y_in_offset += 16 ;
+ x -> mv_col_min -= 16 ;
+ x -> mv_col_max -= 16 ;
+ }
+ xd -> up_available = 1 ;
+ mb_y_offset += buf -> y_stride * 16 ;
+ gld_y_offset += golden_ref -> y_stride * 16 ;
+ if ( alt_ref ) arf_y_offset += alt_ref -> y_stride * 16 ;
+ x -...
+      
+25769803778 | BLOCK | 
+        {
+ MBGRAPH_MB_STATS * mb_stats = & stats -> mb_stats [ offset + mb_col ] ;
+ update_mbgraph_mb_stats ( cpi , mb_stats , buf , mb_y_in_offset , golden_ref , & gld_left_mv , alt_ref , mb_row , mb_col ) ;
+ gld_left_mv = mb_stats -> ref [ GOLDEN_FRAME ] . m . mv . as_mv ;
+ if ( mb_col == 0 ) {
+ gld_top_mv = gld_left_mv ;
+ }
+ xd -> left_available = 1 ;
+ mb_y_in_offset += 16 ;
+ gld_y_in_offset += 16 ;
+ arf_y_in_offset += 16 ;
+ x -> mv_col_min -= 16 ;
+ x -> mv_col_max -= 16 ;
+ }
+      
+25769803779 | BLOCK | { gld_top_mv = gld_left_mv ; }
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | const x = & cpi -> mb
+30064771073 | CALL | & cpi -> mb
+30064771074 | CALL | cpi -> mb
+30064771075 | CALL | const xd = & x -> e_mbd
+30064771076 | CALL | & x -> e_mbd
+30064771077 | CALL | x -> e_mbd
+30064771078 | CALL | const cm = & cpi -> common
+30064771079 | CALL | & cpi -> common
+30064771080 | CALL | cpi -> common
+30064771081 | CALL | offset = 0
+30064771082 | CALL | mb_y_offset = 0
+30064771083 | CALL | arf_y_offset = 0
+30064771084 | CALL | gld_y_offset = 0
+30064771085 | CALL | gld_top_mv = { 0 , 0 }
+30064771086 | CALL | { 0 , 0 }
+30064771087 | CALL | vp9_zero ( mi_local )
+30064771088 | CALL | x -> mv_row_min = - BORDER_MV_PIXELS_B16
+30064771089 | CALL | x -> mv_row_min
+30064771090 | CALL | - BORDER_MV_PIXELS_B16
+30064771091 | CALL | x -> mv_row_max = ( cm -> mb_rows - 1 ) * 8 + BORDER_MV_PIXELS_B16
+30064771092 | CALL | x -> mv_row_max
+30064771093 | CALL | ( cm -> mb_rows - 1 ) * 8 + BORDER_MV_PIXELS_B16
+30064771094 | CALL | ( cm -> mb_rows - 1 ) * 8
+30064771095 | CALL | cm -> mb_rows - 1
+30064771096 | CALL | cm -> mb_rows
+30064771097 | CALL | xd -> up_available = 0
+30064771098 | CALL | xd -> up_available
+30064771099 | CALL | xd -> plane [ 0 ] . dst . stride = buf -> y_stride
+30064771100 | CALL | xd -> plane [ 0 ] . dst . stride
+30064771101 | CALL | xd -> plane [ 0 ] . dst
+30064771102 | CALL | xd -> plane [ 0 ]
+30064771103 | CALL | xd -> plane
+30064771104 | CALL | buf -> y_stride
+30064771105 | CALL | xd -> plane [ 0 ] . pre [ 0 ] . stride = buf -> y_stride
+30064771106 | CALL | xd -> plane [ 0 ] . pre [ 0 ] . stride
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

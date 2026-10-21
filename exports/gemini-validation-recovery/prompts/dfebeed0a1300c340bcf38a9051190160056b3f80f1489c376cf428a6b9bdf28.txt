@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int avi_read_idx1 ( AVFormatContext * s , int size ) {
+ AVIContext * avi = s -> priv_data ;
+ AVIOContext * pb = s -> pb ;
+ int nb_index_entries , i ;
+ AVStream * st ;
+ AVIStream * ast ;
+ int64_t pos ;
+ unsigned int index , tag , flags , len , first_packet = 1 ;
+ int64_t last_pos = - 1 ;
+ unsigned last_idx = - 1 ;
+ int64_t idx1_pos , first_packet_pos = 0 , data_offset = 0 ;
+ int anykey = 0 ;
+ nb_index_entries = size / 16 ;
+ if ( nb_index_entries <= 0 ) return AVERROR_INVALIDDATA ;
+ idx1_pos = avio_tell ( pb ) ;
+ avio_seek ( pb , avi -> movi_list + 4 , SEEK_SET ) ;
+ if ( avi_sync ( s , 1 ) == 0 ) first_packet_pos = avio_tell ( pb ) - 8 ;
+ avi -> stream_index = - 1 ;
+ avio_seek ( pb , idx1_pos , SEEK_SET ) ;
+ if ( s -> nb_streams == 1 && s -> streams [ 0 ] -> codecpar -> codec_tag == AV_RL32 ( "MMES" ) ) {
+ first_packet_pos = 0 ;
+ data_offset = avi -> movi_list ;
+ }
+ for ( i = 0 ;
+ i < nb_index_entries ;
+ i ++ ) {
+ if ( avio_feof ( pb ) ) return - 1 ;
+ tag = avio_rl32 ( pb ) ;
+ flags = avio_rl32 ( pb ) ;
+ pos = avio_rl32 ( pb ) ;
+ len = avio_rl32 ( pb ) ;
+ av_log ( s , AV_LOG_TRACE , "%d: tag=0x%x flags=0x%x pos=0x%" PRIx64 " len=%d/" , i , tag , flags , pos , len ) ;
+ index = ( ( tag & 0xff ) - '0' ) * 10 ;
+ index += ( tag >> 8 & 0xff ) - '0' ;
+ if ( index >= s -> nb_streams ) continue ;
+ st = s -> streams [ index ] ;
+ ast = st -> priv_data ;
+ if ( ( tag >> 16 & 0xff ) == 'p' && ( tag >> 24 & 0xff ) == 'c' ) continue ;
+ if ( first_packet && first_packet_pos ) {
+ if ( avi -> movi_list + 4 != pos || pos + 500 > first_packet_pos ) data_offset = first_packet_pos - pos ;
+ first_packet = 0 ;
+ }
+ pos += data_offset ;
+ av_log ( s , AV_LOG_TRACE , "%d cum_len=%" PRId64 "\n" , len , ast -> cum_len ) ;
+ if ( last_pos == pos ) avi -> non_interleaved = 1 ;
+ if ( last_idx != pos && len ) {
+ av_add_index_entry ( st , pos , ast -> cum_len , len , 0 , ( flags & AVIIF_INDEX ) ? AVINDEX_KEYFRAME : 0 ) ;
+ last_idx = pos ;
+ }
+ ast -> cum_len += get_duration ( ast , len ) ;
+ last_pos = pos ;
+ anykey |= flags & AVIIF_INDEX ;
+ }
+ if ( ! anykey ) {
+ for ( index = 0 ;
+ index < s -> nb_streams ;
+ index ++ ) {
+ st = s -> streams [ index ] ;
+ if ( st -> nb_index_entries ) st -> index_entries [ 0 ] . flags |= AVINDEX_KEYFRAME ;
+ }
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVIContext * avi = s -> priv_data ;
+ AVIOContext * pb = s -> pb ;
+ int nb_index_entries , i ;
+ AVStream * st ;
+ AVIStream * ast ;
+ int64_t pos ;
+ unsigned int index , tag , flags , len , first_packet = 1 ;
+ int64_t last_pos = - 1 ;
+ unsigned last_idx = - 1 ;
+ int64_t idx1_pos , first_packet_pos = 0 , data_offset = 0 ;
+ int anykey = 0 ;
+ nb_index_entries = size / 16 ;
+ if ( nb_index_entries <= 0 ) return AVERROR_INVALIDDATA ;
+ idx1_pos = avio_tell ( pb ) ;
+ avio_seek ( pb , avi -> movi_list + 4 , SEEK_SET ) ;
+ if ( avi_sync ( s , 1 ) == 0 ) first_packet_pos = avio_tell ( pb ) - 8 ;
+ avi -> stream_index = - 1 ;
+ avio_seek ( pb , idx1_pos , SEEK_SET ) ;
+ if ( s -> nb_streams == 1 && s -> streams [ 0 ] -> codecpar -> codec_tag == AV_RL32 ( "MMES" ) ) {
+ first_packet_pos = 0 ;
+ data_offset = avi -> movi_list ;
+ }
+ for ( i = 0 ;
+ i < nb_index_entries ;
+ i ++ ) {
+ if ( avio_feof ( pb ) ) return - 1 ;
+ tag = avio_rl32 ( pb ) ;
+ flags = avio_rl32 ( pb ) ;
+ pos = avio_rl32 ( pb ) ;
+ len = ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { first_packet_pos = 0 ; data_offset = avi -> movi_list ; }
+25769803780 | BLOCK | 
+        {
+ if ( avio_feof ( pb ) ) return - 1 ;
+ tag = avio_rl32 ( pb ) ;
+ flags = avio_rl32 ( pb ) ;
+ pos = avio_rl32 ( pb ) ;
+ len = avio_rl32 ( pb ) ;
+ av_log ( s , AV_LOG_TRACE , "%d: tag=0x%x flags=0x%x pos=0x%" PRIx64 " len=%d/" , i , tag , flags , pos , len ) ;
+ index = ( ( tag & 0xff ) - '0' ) * 10 ;
+ index += ( tag >> 8 & 0xff ) - '0' ;
+ if ( index >= s -> nb_streams ) continue ;
+ st = s -> streams [ index ] ;
+ ast = st -> priv_data ;
+ if ( ( tag >> 16 & 0xff ) == 'p' && ( tag >> 24 & 0xff ) == 'c' ) continue ;
+ if ( first_packet && first_packet_pos ) {
+ if ( avi -> movi_list + 4 != pos || pos + 500 > first_packet_pos ) data_offset = first_packet_pos - pos ;
+ first_packet = 0 ;
+ }
+ pos += data_offset ;
+ av_log ( s , AV_LOG_TRACE , "%d cum_len=%" PRId64 "\n" , len , ast -> cum_len ) ;
+ if ( last_pos == pos ) avi -> non_interleaved = 1 ;
+ if ( last_idx != pos && len ) {
+ av_add_index_entry ( st , pos , ast -> cum_len , len , 0 , ( flags & AVIIF_INDEX ) ? AVINDEX_KEYFRAME : 0 ) ;
+ las...
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( avi -> movi_list + 4 != pos || pos + 500 > first_packet_pos ) data_offset = first_packet_pos - pos ;
+ first_packet = 0 ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ av_add_index_entry ( st , pos , ast -> cum_len , len , 0 , ( flags & AVIIF_INDEX ) ? AVINDEX_KEYFRAME : 0 ) ;
+ last_idx = pos ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ for ( index = 0 ;
+ index < s -> nb_streams ;
+ index ++ ) {
+ st = s -> streams [ index ] ;
+ if ( st -> nb_index_entries ) st -> index_entries [ 0 ] . flags |= AVINDEX_KEYFRAME ;
+ }
+ }
+      
+25769803789 | BLOCK | 
+        {
+ st = s -> streams [ index ] ;
+ if ( st -> nb_index_entries ) st -> index_entries [ 0 ] . flags |= AVINDEX_KEYFRAME ;
+ }
+      
+25769803790 | BLOCK | <empty>
+30064771072 | CALL | avi = s -> priv_data
+30064771073 | CALL | s -> priv_data
+30064771074 | CALL | pb = s -> pb
+30064771075 | CALL | s -> pb
+30064771076 | CALL | first_packet = 1
+30064771077 | CALL | last_pos = - 1
+30064771078 | CALL | - 1
+30064771079 | CALL | last_idx = - 1
+30064771080 | CALL | - 1
+30064771081 | CALL | first_packet_pos = 0
+30064771082 | CALL | data_offset = 0
+30064771083 | CALL | anykey = 0
+30064771084 | CALL | nb_index_entries = size / 16
+30064771085 | CALL | size / 16
+30064771086 | CALL | nb_index_entries <= 0
+30064771087 | CALL | idx1_pos = avio_tell ( pb )
+30064771088 | CALL | avio_tell ( pb )
+30064771089 | CALL | avio_seek ( pb , avi -> movi_list + 4 , SEEK_SET )
+30064771090 | CALL | avi -> movi_list + 4
+30064771091 | CALL | avi -> movi_list
+30064771092 | CALL | avi_sync ( s , 1 ) == 0
+30064771093 | CALL | avi_sync ( s , 1 )
+30064771094 | CALL | first_packet_pos = avio_tell ( pb ) - 8
+30064771095 | CALL | avio_tell ( pb ) - 8
+30064771096 | CALL | avio_tell ( pb )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803778 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

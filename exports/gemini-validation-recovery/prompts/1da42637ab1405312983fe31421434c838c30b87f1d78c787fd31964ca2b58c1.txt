@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void cirrus_get_offsets ( VGACommonState * s1 , uint32_t * pline_offset , uint32_t * pstart_addr , uint32_t * pline_compare ) {
+ CirrusVGAState * s = container_of ( s1 , CirrusVGAState , vga ) ;
+ uint32_t start_addr , line_offset , line_compare ;
+ line_offset = s -> vga . cr [ 0x13 ] | ( ( s -> vga . cr [ 0x1b ] & 0x10 ) << 4 ) ;
+ line_offset <<= 3 ;
+ * pline_offset = line_offset ;
+ start_addr = ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 ) | ( ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15 ) | ( ( s -> vga . cr [ 0x1d ] & 0x80 ) << 12 ) ;
+ * pstart_addr = start_addr ;
+ line_compare = s -> vga . cr [ 0x18 ] | ( ( s -> vga . cr [ 0x07 ] & 0x10 ) << 4 ) | ( ( s -> vga . cr [ 0x09 ] & 0x40 ) << 3 ) ;
+ * pline_compare = line_compare ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CirrusVGAState * s = container_of ( s1 , CirrusVGAState , vga ) ;
+ uint32_t start_addr , line_offset , line_compare ;
+ line_offset = s -> vga . cr [ 0x13 ] | ( ( s -> vga . cr [ 0x1b ] & 0x10 ) << 4 ) ;
+ line_offset <<= 3 ;
+ * pline_offset = line_offset ;
+ start_addr = ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 ) | ( ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15 ) | ( ( s -> vga . cr [ 0x1d ] & 0x80 ) << 12 ) ;
+ * pstart_addr = start_addr ;
+ line_compare = s -> vga . cr [ 0x18 ] | ( ( s -> vga . cr [ 0x07 ] & 0x10 ) << 4 ) | ( ( s -> vga . cr [ 0x09 ] & 0x40 ) << 3 ) ;
+ * pline_compare = line_compare ;
+ }
+      
+30064771072 | CALL | s = container_of ( s1 , CirrusVGAState , vga )
+30064771073 | CALL | container_of ( s1 , CirrusVGAState , vga )
+30064771074 | CALL | 
+        line_offset = s -> vga . cr [ 0x13 ] | ( ( s -> vga . cr [ 0x1b ] & 0x10 ) << 4 )
+      
+30064771075 | CALL | s -> vga . cr [ 0x13 ] | ( ( s -> vga . cr [ 0x1b ] & 0x10 ) << 4 )
+30064771076 | CALL | s -> vga . cr [ 0x13 ]
+30064771077 | CALL | s -> vga . cr
+30064771078 | CALL | s -> vga
+30064771079 | CALL | ( s -> vga . cr [ 0x1b ] & 0x10 ) << 4
+30064771080 | CALL | s -> vga . cr [ 0x1b ] & 0x10
+30064771081 | CALL | s -> vga . cr [ 0x1b ]
+30064771082 | CALL | s -> vga . cr
+30064771083 | CALL | s -> vga
+30064771084 | CALL | line_offset <<= 3
+30064771085 | CALL | * pline_offset = line_offset
+30064771086 | CALL | * pline_offset
+30064771087 | CALL | 
+        start_addr = ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 ) | ( ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15 ) | ( ( s -> vga . cr [ 0x1d ] & 0x80 ) << 12 )
+      
+30064771088 | CALL | 
+        ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 ) | ( ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15 ) | ( ( s -> vga . cr [ 0x1d ] & 0x80 ) << 12 )
+      
+30064771089 | CALL | 
+        ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 ) | ( ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15 )
+      
+30064771090 | CALL | 
+        ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ] | ( ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16 )
+      
+30064771091 | CALL | ( s -> vga . cr [ 0x0c ] << 8 ) | s -> vga . cr [ 0x0d ]
+30064771092 | CALL | s -> vga . cr [ 0x0c ] << 8
+30064771093 | CALL | s -> vga . cr [ 0x0c ]
+30064771094 | CALL | s -> vga . cr
+30064771095 | CALL | s -> vga
+30064771096 | CALL | s -> vga . cr [ 0x0d ]
+30064771097 | CALL | s -> vga . cr
+30064771098 | CALL | s -> vga
+30064771099 | CALL | ( s -> vga . cr [ 0x1b ] & 0x01 ) << 16
+30064771100 | CALL | s -> vga . cr [ 0x1b ] & 0x01
+30064771101 | CALL | s -> vga . cr [ 0x1b ]
+30064771102 | CALL | s -> vga . cr
+30064771103 | CALL | s -> vga
+30064771104 | CALL | ( s -> vga . cr [ 0x1b ] & 0x0c ) << 15
+30064771105 | CALL | s -> vga . cr [ 0x1b ] & 0x0c
+30064771106 | CALL | s -> vga . cr [ 0x1b ]
+30064771107 | CALL | s -> vga . cr
+30064771108 | CALL | s -> vga
+30064771109 | CALL | ( s -> vga . cr [ 0x1d ] & 0x80 ) << 12
+30064771110 | CALL | s -> vga . cr [ 0x1d ] & 0x80
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771079 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771079 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771079 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771079 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771097 [REACHING_DEF]
+30064771076 -> 30064771102 [REACHING_DEF]
+30064771076 -> 30064771107 [REACHING_DEF]
+30064771076 -> 30064771094 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771075 [CFG]
+30064771079 -> 30064771075 [DOMINATE]
+30064771079 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771075 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771097 [REACHING_DEF]
+30064771081 -> 30064771102 [REACHING_DEF]
+30064771081 -> 30064771094 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771101 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771109 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771109 [AST]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771109 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771104 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771104 [AST]
+30064771089 -> 30064771104 [POST_DOMINATE]
+30064771089 -> 30064771109 [REACHING_DEF]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771099 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771099 [AST]
+30064771090 -> 30064771099 [POST_DOMINATE]
+30064771090 -> 30064771104 [REACHING_DEF]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771096 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void cirrus_get_resolution ( VGACommonState * s , int * pwidth , int * pheight ) {
+ int width , height ;
+ width = ( s -> cr [ 0x01 ] + 1 ) * 8 ;
+ height = s -> cr [ 0x12 ] | ( ( s -> cr [ 0x07 ] & 0x02 ) << 7 ) | ( ( s -> cr [ 0x07 ] & 0x40 ) << 3 ) ;
+ height = ( height + 1 ) ;
+ if ( s -> cr [ 0x1a ] & 0x01 ) height = height * 2 ;
+ * pwi
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

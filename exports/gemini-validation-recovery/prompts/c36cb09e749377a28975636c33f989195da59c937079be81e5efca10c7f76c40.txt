@@ -1,0 +1,306 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int strescape ( char * dst , char * src , size_t len ) {
+ char * olddst = dst ;
+ char * oldsrc = src ;
+ int c ;
+ int val ;
+ while ( ( c = * src ++ ) != '\0' && ( size_t ) ( src - oldsrc ) <= len ) {
+ if ( c == '\\' ) {
+ switch ( ( c = * src ++ ) ) {
+ case '\0' : goto strend ;
+ default : * dst ++ = ( char ) c ;
+ break ;
+ case 'n' : * dst ++ = '\n' ;
+ break ;
+ case 'r' : * dst ++ = '\r' ;
+ break ;
+ case 'b' : * dst ++ = '\b' ;
+ break ;
+ case 't' : * dst ++ = '\t' ;
+ break ;
+ case 'f' : * dst ++ = '\f' ;
+ break ;
+ case 'v' : * dst ++ = '\v' ;
+ break ;
+ case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : val = c - '0' ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ case 'x' : val = 'x' ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) val = ( val << 4 ) + c ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ }
+ }
+ else if ( c == 8 || c == 263 ) {
+ if ( dst > oldsrc ) dst -- ;
+ }
+ else * dst ++ = ( char ) c ;
+ }
+ strend : * dst = '\0' ;
+ return ( dst - olddst ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * olddst = dst ;
+ char * oldsrc = src ;
+ int c ;
+ int val ;
+ while ( ( c = * src ++ ) != '\0' && ( size_t ) ( src - oldsrc ) <= len ) {
+ if ( c == '\\' ) {
+ switch ( ( c = * src ++ ) ) {
+ case '\0' : goto strend ;
+ default : * dst ++ = ( char ) c ;
+ break ;
+ case 'n' : * dst ++ = '\n' ;
+ break ;
+ case 'r' : * dst ++ = '\r' ;
+ break ;
+ case 'b' : * dst ++ = '\b' ;
+ break ;
+ case 't' : * dst ++ = '\t' ;
+ break ;
+ case 'f' : * dst ++ = '\f' ;
+ break ;
+ case 'v' : * dst ++ = '\v' ;
+ break ;
+ case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : val = c - '0' ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ case 'x' : val = 'x' ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >=...
+      
+25769803777 | BLOCK | 
+        {
+ if ( c == '\\' ) {
+ switch ( ( c = * src ++ ) ) {
+ case '\0' : goto strend ;
+ default : * dst ++ = ( char ) c ;
+ break ;
+ case 'n' : * dst ++ = '\n' ;
+ break ;
+ case 'r' : * dst ++ = '\r' ;
+ break ;
+ case 'b' : * dst ++ = '\b' ;
+ break ;
+ case 't' : * dst ++ = '\t' ;
+ break ;
+ case 'f' : * dst ++ = '\f' ;
+ break ;
+ case 'v' : * dst ++ = '\v' ;
+ break ;
+ case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : val = c - '0' ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ case 'x' : val = 'x' ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) val = ( val << 4 ) + c ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ }
+...
+      
+25769803778 | BLOCK | 
+        {
+ switch ( ( c = * src ++ ) ) {
+ case '\0' : goto strend ;
+ default : * dst ++ = ( char ) c ;
+ break ;
+ case 'n' : * dst ++ = '\n' ;
+ break ;
+ case 'r' : * dst ++ = '\r' ;
+ break ;
+ case 'b' : * dst ++ = '\b' ;
+ break ;
+ case 't' : * dst ++ = '\t' ;
+ break ;
+ case 'f' : * dst ++ = '\f' ;
+ break ;
+ case 'v' : * dst ++ = '\v' ;
+ break ;
+ case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : val = c - '0' ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ case 'x' : val = 'x' ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) val = ( val << 4 ) + c ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ case '\0' : goto strend ;
+ default : * dst ++ = ( char ) c ;
+ break ;
+ case 'n' : * dst ++ = '\n' ;
+ break ;
+ case 'r' : * dst ++ = '\r' ;
+ break ;
+ case 'b' : * dst ++ = '\b' ;
+ break ;
+ case 't' : * dst ++ = '\t' ;
+ break ;
+ case 'f' : * dst ++ = '\f' ;
+ break ;
+ case 'v' : * dst ++ = '\v' ;
+ break ;
+ case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : val = c - '0' ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ case 'x' : val = 'x' ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) val = ( val << 4 ) + c ;
+ else if ( src > oldsrc ) -- src ;
+ }
+ else if ( src > oldsrc ) -- src ;
+ * dst ++ = ( char ) val ;
+ break ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ val = ( val << 3 ) | ( c - '0' ) ;
+ c = * src ++ ;
+ if ( c >= '0' && c <= '7' ) val = ( val << 3 ) | ( c - '0' ) ;
+ else if ( src > oldsrc ) -- src ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ val = c ;
+ c = hextoint ( * src ++ ) ;
+ if ( c >= 0 ) val = ( val << 4 ) + c ;
+ else if ( src > oldsrc ) -- src ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | { if ( dst > oldsrc ) dst -- ; }
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+30064771072 | CALL | olddst = dst
+30064771073 | CALL | oldsrc = src
+30064771074 | CALL | ( c = * src ++ ) != '\0' && ( size_t ) ( src - oldsrc ) <= len
+30064771075 | CALL | ( c = * src ++ ) != '\0'
+30064771076 | CALL | c = * src ++
+30064771077 | CALL | * src ++
+30064771078 | CALL | src ++
+30064771079 | CALL | ( size_t ) ( src - oldsrc ) <= len
+30064771080 | CALL | ( size_t ) ( src - oldsrc )
+30064771081 | CALL | src - oldsrc
+30064771082 | CALL | c == '\\'
+30064771083 | CALL | c = * src ++
+30064771084 | CALL | * src ++
+30064771085 | CALL | src ++
+30064771086 | CALL | * dst ++ = ( char ) c
+30064771087 | CALL | * dst ++
+30064771088 | CALL | dst ++
+30064771089 | CALL | ( char ) c
+30064771090 | CALL | * dst ++ = '\n'
+30064771091 | CALL | * dst ++
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771090 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771079 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771079 [AST]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771079 [POST_DOMINATE]
+30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

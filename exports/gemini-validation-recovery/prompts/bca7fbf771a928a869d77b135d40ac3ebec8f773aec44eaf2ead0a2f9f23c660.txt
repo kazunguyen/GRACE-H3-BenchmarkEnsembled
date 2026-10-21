@@ -1,0 +1,318 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void create_gic(VirtBoardInfo *vbi, qemu_irq *pic, bool secure)
+
+{
+
+    /* We create a standalone GIC v2 */
+
+    DeviceState *gicdev;
+
+    SysBusDevice *gicbusdev;
+
+    const char *gictype;
+
+    int i;
+
+
+
+    gictype = gic_class_name();
+
+
+
+    gicdev = qdev_create(NULL, gictype);
+
+    qdev_prop_set_uint32(gicdev, "revision", 2);
+
+    qdev_prop_set_uint32(gicdev, "num-cpu", smp_cpus);
+
+    /* Note that the num-irq property counts both internal and external
+
+     * interrupts; there are always 32 of the former (mandated by GIC spec).
+
+     */
+
+    qdev_prop_set_uint32(gicdev, "num-irq", NUM_IRQS + 32);
+
+    if (!kvm_irqchip_in_kernel()) {
+
+        qdev_prop_set_bit(gicdev, "has-security-extensions", secure);
+
+    }
+
+    qdev_init_nofail(gicdev);
+
+    gicbusdev = SYS_BUS_DEVICE(gicdev);
+
+    sysbus_mmio_map(gicbusdev, 0, vbi->memmap[VIRT_GIC_DIST].base);
+
+    sysbus_mmio_map(gicbusdev, 1, vbi->memmap[VIRT_GIC_CPU].base);
+
+
+
+    /* Wire the outputs from each CPU's generic timer to the
+
+     * appropriate GIC PPI inputs, and the GIC's IRQ output to
+
+     * the CPU's IRQ input.
+
+     */
+
+    for (i = 0; i < smp_cpus; i++) {
+
+        DeviceState *cpudev = DEVICE(qemu_get_cpu(i));
+
+        int ppibase = NUM_IRQS + i * GIC_INTERNAL + GIC_NR_SGIS;
+
+        int irq;
+
+        /* Mapping from the output timer irq lines from the CPU to the
+
+         * GIC PPI inputs we use for the virt board.
+
+         */
+
+        const int timer_irq[] = {
+
+            [GTIMER_PHYS] = ARCH_TIMER_NS_EL1_IRQ,
+
+            [GTIMER_VIRT] = ARCH_TIMER_VIRT_IRQ,
+
+            [GTIMER_HYP]  = ARCH_TIMER_NS_EL2_IRQ,
+
+            [GTIMER_SEC]  = ARCH_TIMER_S_EL1_IRQ,
+
+        };
+
+
+
+        for (irq = 0; irq < ARRAY_SIZE(timer_irq); irq++) {
+
+            qdev_connect_gpio_out(cpudev, irq,
+
+                                  qdev_get_gpio_in(gicdev,
+
+                                                   ppibase + timer_irq[irq]));
+
+        }
+
+
+
+        sysbus_connect_irq(gicbusdev, i, qdev_get_gpio_in(cpudev, ARM_CPU_IRQ));
+
+        sysbus_connect_irq(gicbusdev, i + smp_cpus,
+
+                           qdev_get_gpio_in(cpudev, ARM_CPU_FIQ));
+
+    }
+
+
+
+    for (i = 0; i < NUM_IRQS; i++) {
+
+        pic[i] = qdev_get_gpio_in(gicdev, i);
+
+    }
+
+
+
+    fdt_add_gic_node(vbi);
+
+
+
+    create_v2m(vbi, pic);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    /* We create a standalone GIC v2 */
+
+    DeviceState *gicdev;
+
+    SysBusDevice *gicbusdev;
+
+    const char *gictype;
+
+    int i;
+
+
+
+    gictype = gic_class_name();
+
+
+
+    gicdev = qdev_create(NULL, gictype);
+
+    qdev_prop_set_uint32(gicdev, "revision", 2);
+
+    qdev_prop_set_uint32(gicdev, "num-cpu", smp_cpus);
+
+    /* Note that the num-irq property counts both internal and external
+
+     * interrupts; there are always 32 of the former (mandated by GIC spec).
+
+     */
+
+    qdev_prop_set_uint32(gicdev, "num-irq", NUM_IRQS + 32);
+
+    if (!kvm_irqchip_in_kernel()) {
+
+        qdev_prop_set_bit(gicdev, "has-security-extensions", secure);
+
+    }
+
+    qdev_init_nofail(gicdev);
+
+    gicbusdev = SYS_BUS_DEVICE(gicdev);
+
+    sysbus_mmio_map(gicbusdev, 0, vbi->memmap[VIRT_GIC_DIST].base);
+
+    sysbus_mmio_map(gicbusdev, 1, vbi->memmap[VIRT_GIC_CPU].base);
+
+
+
+    /* Wire the outputs from each CPU's generic timer to the
+
+     * appropriate GIC PPI inputs, and the GIC's IRQ output to
+
+ ...
+      
+25769803777 | BLOCK | { qdev_prop_set_bit(gicdev, "has-security-extensions", secure); }
+25769803778 | BLOCK | 
+        {
+
+        DeviceState *cpudev = DEVICE(qemu_get_cpu(i));
+
+        int ppibase = NUM_IRQS + i * GIC_INTERNAL + GIC_NR_SGIS;
+
+        int irq;
+
+        /* Mapping from the output timer irq lines from the CPU to the
+
+         * GIC PPI inputs we use for the virt board.
+
+         */
+
+        const int timer_irq[] = {
+
+            [GTIMER_PHYS] = ARCH_TIMER_NS_EL1_IRQ,
+
+            [GTIMER_VIRT] = ARCH_TIMER_VIRT_IRQ,
+
+            [GTIMER_HYP]  = ARCH_TIMER_NS_EL2_IRQ,
+
+            [GTIMER_SEC]  = ARCH_TIMER_S_EL1_IRQ,
+
+        };
+
+
+
+        for (irq = 0; irq < ARRAY_SIZE(timer_irq); irq++) {
+
+            qdev_connect_gpio_out(cpudev, irq,
+
+                                  qdev_get_gpio_in(gicdev,
+
+                                                   ppibase + timer_irq[irq]));
+
+        }
+
+
+
+        sysbus_connect_irq(gicbusdev, i, qdev_get_gpio_in(cpudev, ARM_CPU_IRQ));
+
+        sysbus_connect_irq(gicbusdev, i + smp_cpus,
+
+                           qdev_get_gpio_in(cpudev, ARM_CPU_FIQ)...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+
+            qdev_connect_gpio_out(cpudev, irq,
+
+                                  qdev_get_gpio_in(gicdev,
+
+                                                   ppibase + timer_irq[irq]));
+
+        }
+      
+25769803784 | BLOCK | { pic[i] = qdev_get_gpio_in(gicdev, i); }
+30064771072 | CALL | gictype = gic_class_name()
+30064771073 | CALL | gic_class_name()
+30064771074 | CALL | gicdev = qdev_create(NULL, gictype)
+30064771075 | CALL | qdev_create(NULL, gictype)
+30064771076 | CALL | qdev_prop_set_uint32(gicdev, "revision", 2)
+30064771077 | CALL | qdev_prop_set_uint32(gicdev, "num-cpu", smp_cpus)
+30064771078 | CALL | qdev_prop_set_uint32(gicdev, "num-irq", NUM_IRQS + 32)
+30064771079 | CALL | NUM_IRQS + 32
+30064771080 | CALL | !kvm_irqchip_in_kernel()
+30064771081 | CALL | kvm_irqchip_in_kernel()
+30064771082 | CALL | qdev_prop_set_bit(gicdev, "has-security-extensions", secure)
+30064771083 | CALL | qdev_init_nofail(gicdev)
+30064771084 | CALL | gicbusdev = SYS_BUS_DEVICE(gicdev)
+30064771085 | CALL | SYS_BUS_DEVICE(gicdev)
+30064771086 | CALL | sysbus_mmio_map(gicbusdev, 0, vbi->memmap[VIRT_GIC_DIST].base)
+30064771087 | CALL | vbi->memmap[VIRT_GIC_DIST].base
+30064771088 | CALL | vbi->memmap[VIRT_GIC_DIST]
+30064771089 | CALL | vbi->memmap
+30064771090 | CALL | sysbus_mmio_map(gicbusdev, 1, vbi->memmap[VIRT_GIC_CPU].base)
+30064771091 | CALL | vbi->memmap[VIRT_GIC_CPU].base
+30064771092 | CALL | vbi->memmap[VIRT_GIC_CPU]
+30064771093 | CALL | vbi->memmap
+30064771094 | CALL | i = 0
+30064771095 | CALL | i < smp_cpus
+30064771096 | CALL | i++
+30064771097 | CALL | cpudev = DEVICE(qemu_get_cpu(i))
+30064771098 | CALL | DEVICE(qemu_get_cpu(i))
+30064771099 | CALL | qemu_get_cpu(i)
+30064771100 | CALL | ppibase = NUM_IRQS + i * GIC_INTERNAL + GIC_NR_SGIS
+30064771101 | CALL | NUM_IRQS + i * GIC_INTERNAL + GIC_NR_SGIS
+30064771102 | CALL | NUM_IRQS + i * GIC_INTERNAL
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771090 [AST]
+25769803777 -> 30064771082 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMEN
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

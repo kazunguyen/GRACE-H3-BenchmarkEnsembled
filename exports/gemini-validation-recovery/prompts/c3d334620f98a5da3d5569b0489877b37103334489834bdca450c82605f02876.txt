@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dsa_priv_decode ( EVP_PKEY * pkey , PKCS8_PRIV_KEY_INFO * p8 ) {
+ const unsigned char * p , * q , * pm ;
+ int pklen , pmlen ;
+ int ptype ;
+ void * pval ;
+ ASN1_STRING * pstr ;
+ X509_ALGOR * palg ;
+ ASN1_INTEGER * privkey = NULL ;
+ BN_CTX * ctx = NULL ;
+ DSA * dsa = NULL ;
+ int ret = 0 ;
+ if ( ! PKCS8_pkey_get0 ( NULL , & p , & pklen , & palg , p8 ) ) return 0 ;
+ X509_ALGOR_get0 ( NULL , & ptype , & pval , palg ) ;
+ q = p ;
+ if ( ( privkey = d2i_ASN1_INTEGER ( NULL , & p , pklen ) ) == NULL ) goto decerr ;
+ if ( privkey -> type == V_ASN1_NEG_INTEGER ) {
+ p8 -> broken = PKCS8_NEG_PRIVKEY ;
+ ASN1_STRING_clear_free ( privkey ) ;
+ if ( ( privkey = d2i_ASN1_UINTEGER ( NULL , & q , pklen ) ) == NULL ) goto decerr ;
+ }
+ if ( ptype != V_ASN1_SEQUENCE ) goto decerr ;
+ pstr = pval ;
+ pm = pstr -> data ;
+ pmlen = pstr -> length ;
+ if ( ( dsa = d2i_DSAparams ( NULL , & pm , pmlen ) ) == NULL ) goto decerr ;
+ if ( ( dsa -> priv_key = BN_secure_new ( ) ) == NULL || ! ASN1_INTEGER_to_BN ( privkey , dsa -> priv_key ) ) {
+ DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_BN_ERROR ) ;
+ goto dsaerr ;
+ }
+ if ( ( dsa -> pub_key = BN_new ( ) ) == NULL ) {
+ DSAerr ( DSA_F_DSA_PRIV_DECODE , ERR_R_MALLOC_FAILURE ) ;
+ goto dsaerr ;
+ }
+ if ( ( ctx = BN_CTX_new ( ) ) == NULL ) {
+ DSAerr ( DSA_F_DSA_PRIV_DECODE , ERR_R_MALLOC_FAILURE ) ;
+ goto dsaerr ;
+ }
+ if ( ! BN_mod_exp ( dsa -> pub_key , dsa -> g , dsa -> priv_key , dsa -> p , ctx ) ) {
+ DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_BN_ERROR ) ;
+ goto dsaerr ;
+ }
+ EVP_PKEY_assign_DSA ( pkey , dsa ) ;
+ ret = 1 ;
+ goto done ;
+ decerr : DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_DECODE_ERROR ) ;
+ dsaerr : DSA_free ( dsa ) ;
+ done : BN_CTX_free ( ctx ) ;
+ ASN1_STRING_clear_free ( privkey ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const unsigned char * p , * q , * pm ;
+ int pklen , pmlen ;
+ int ptype ;
+ void * pval ;
+ ASN1_STRING * pstr ;
+ X509_ALGOR * palg ;
+ ASN1_INTEGER * privkey = NULL ;
+ BN_CTX * ctx = NULL ;
+ DSA * dsa = NULL ;
+ int ret = 0 ;
+ if ( ! PKCS8_pkey_get0 ( NULL , & p , & pklen , & palg , p8 ) ) return 0 ;
+ X509_ALGOR_get0 ( NULL , & ptype , & pval , palg ) ;
+ q = p ;
+ if ( ( privkey = d2i_ASN1_INTEGER ( NULL , & p , pklen ) ) == NULL ) goto decerr ;
+ if ( privkey -> type == V_ASN1_NEG_INTEGER ) {
+ p8 -> broken = PKCS8_NEG_PRIVKEY ;
+ ASN1_STRING_clear_free ( privkey ) ;
+ if ( ( privkey = d2i_ASN1_UINTEGER ( NULL , & q , pklen ) ) == NULL ) goto decerr ;
+ }
+ if ( ptype != V_ASN1_SEQUENCE ) goto decerr ;
+ pstr = pval ;
+ pm = pstr -> data ;
+ pmlen = pstr -> length ;
+ if ( ( dsa = d2i_DSAparams ( NULL , & pm , pmlen ) ) == NULL ) goto decerr ;
+ if ( ( dsa -> priv_key = BN_secure_new ( ) ) == NULL || ! ASN1_INTEGER_to_BN ( privkey , dsa -> priv_key ) ) {
+ DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ p8 -> broken = PKCS8_NEG_PRIVKEY ;
+ ASN1_STRING_clear_free ( privkey ) ;
+ if ( ( privkey = d2i_ASN1_UINTEGER ( NULL , & q , pklen ) ) == NULL ) goto decerr ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_BN_ERROR ) ; goto dsaerr ; }
+25769803784 | BLOCK | { DSAerr ( DSA_F_DSA_PRIV_DECODE , ERR_R_MALLOC_FAILURE ) ; goto dsaerr ; }
+25769803785 | BLOCK | { DSAerr ( DSA_F_DSA_PRIV_DECODE , ERR_R_MALLOC_FAILURE ) ; goto dsaerr ; }
+25769803786 | BLOCK | { DSAerr ( DSA_F_DSA_PRIV_DECODE , DSA_R_BN_ERROR ) ; goto dsaerr ; }
+30064771072 | CALL | privkey = NULL
+30064771073 | CALL | ctx = NULL
+30064771074 | CALL | dsa = NULL
+30064771075 | CALL | ret = 0
+30064771076 | CALL | ! PKCS8_pkey_get0 ( NULL , & p , & pklen , & palg , p8 )
+30064771077 | CALL | PKCS8_pkey_get0 ( NULL , & p , & pklen , & palg , p8 )
+30064771078 | CALL | & p
+30064771079 | CALL | & pklen
+30064771080 | CALL | & palg
+30064771081 | CALL | X509_ALGOR_get0 ( NULL , & ptype , & pval , palg )
+30064771082 | CALL | & ptype
+30064771083 | CALL | & pval
+30064771084 | CALL | q = p
+30064771085 | CALL | ( privkey = d2i_ASN1_INTEGER ( NULL , & p , pklen ) ) == NULL
+30064771086 | CALL | privkey = d2i_ASN1_INTEGER ( NULL , & p , pklen )
+30064771087 | CALL | d2i_ASN1_INTEGER ( NULL , & p , pklen )
+30064771088 | CALL | & p
+30064771089 | CALL | privkey -> type == V_ASN1_NEG_INTEGER
+30064771090 | CALL | privkey -> type
+30064771091 | CALL | p8 -> broken = PKCS8_NEG_PRIVKEY
+30064771092 | CALL | p8 -> broken
+30064771093 | CALL | ASN1_STRING_clear_free ( privkey )
+30064771094 | CALL | ( privkey = d2i_ASN1_UINTEGER ( NULL , & q , pklen ) ) == NULL
+30064771095 | CALL | privkey = d2i_ASN1_UINTEGER ( NULL , & q , pklen )
+30064771096 | CALL | d2i_ASN1_UINTEGER ( NULL , & q , pklen )
+30064771097 | CALL | & q
+30064771098 | CALL | ptype != V_ASN1_SEQUENCE
+30064771099 | CALL | pstr = pval
+30064771100 | CALL | pm = pstr -> data
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+25769803779 -> 30064771091 [AST]
+25769803779 -> 30064771093 [AST]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771088 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771096 [CDG]
+30064771089
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

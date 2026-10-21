@@ -1,0 +1,229 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_idct16x16_10_add_c ( const int16_t * input , uint8_t * dest , int stride ) {
+ int16_t out [ 16 * 16 ] = {
+ 0 }
+ ;
+ int16_t * outptr = out ;
+ int i , j ;
+ int16_t temp_in [ 16 ] , temp_out [ 16 ] ;
+ for ( i = 0 ;
+ i < 4 ;
+ ++ i ) {
+ idct16 ( input , outptr ) ;
+ input += 16 ;
+ outptr += 16 ;
+ }
+ for ( i = 0 ;
+ i < 16 ;
+ ++ i ) {
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) temp_in [ j ] = out [ j * 16 + i ] ;
+ idct16 ( temp_in , temp_out ) ;
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) dest [ j * stride + i ] = clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ] ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int16_t out [ 16 * 16 ] = {
+ 0 }
+ ;
+ int16_t * outptr = out ;
+ int i , j ;
+ int16_t temp_in [ 16 ] , temp_out [ 16 ] ;
+ for ( i = 0 ;
+ i < 4 ;
+ ++ i ) {
+ idct16 ( input , outptr ) ;
+ input += 16 ;
+ outptr += 16 ;
+ }
+ for ( i = 0 ;
+ i < 16 ;
+ ++ i ) {
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) temp_in [ j ] = out [ j * 16 + i ] ;
+ idct16 ( temp_in , temp_out ) ;
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) dest [ j * stride + i ] = clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ] ) ;
+ }
+ }
+      
+25769803777 | BLOCK | { idct16 ( input , outptr ) ; input += 16 ; outptr += 16 ; }
+25769803778 | BLOCK | 
+        {
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) temp_in [ j ] = out [ j * 16 + i ] ;
+ idct16 ( temp_in , temp_out ) ;
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) dest [ j * stride + i ] = clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ] ) ;
+ }
+      
+30064771072 | CALL | out [ 16 * 16 ] = { 0 }
+30064771073 | CALL | out [ 16 * 16 ] = { 0 }
+30064771074 | CALL | 16 * 16
+30064771075 | CALL | out [ 16 * 16 ] = { 0 }
+30064771076 | CALL | { 0 }
+30064771077 | CALL | outptr = out
+30064771078 | CALL | temp_in [ 16 ]
+30064771079 | CALL | temp_in [ 16 ]
+30064771080 | CALL | temp_out [ 16 ]
+30064771081 | CALL | temp_out [ 16 ]
+30064771082 | CALL | i = 0
+30064771083 | CALL | i < 4
+30064771084 | CALL | ++ i
+30064771085 | CALL | idct16 ( input , outptr )
+30064771086 | CALL | input += 16
+30064771087 | CALL | outptr += 16
+30064771088 | CALL | i = 0
+30064771089 | CALL | i < 16
+30064771090 | CALL | ++ i
+30064771091 | CALL | j = 0
+30064771092 | CALL | j < 16
+30064771093 | CALL | ++ j
+30064771094 | CALL | temp_in [ j ] = out [ j * 16 + i ]
+30064771095 | CALL | temp_in [ j ]
+30064771096 | CALL | out [ j * 16 + i ]
+30064771097 | CALL | j * 16 + i
+30064771098 | CALL | j * 16
+30064771099 | CALL | idct16 ( temp_in , temp_out )
+30064771100 | CALL | j = 0
+30064771101 | CALL | j < 16
+30064771102 | CALL | ++ j
+30064771103 | CALL | 
+        dest [ j * stride + i ] = clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ] )
+      
+30064771104 | CALL | dest [ j * stride + i ]
+30064771105 | CALL | j * stride + i
+30064771106 | CALL | j * stride
+30064771107 | CALL | clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ] )
+30064771108 | CALL | ROUND_POWER_OF_TWO ( temp_out [ j ] , 6 ) + dest [ j * stride + i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771083 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771089 [CDG]
+30064771089 -> 30064771099 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771100 [CDG]
+30064771089 -> 30064771101 [CDG]
+30064771092 -> 30064771098 [CDG]
+30064771092 -> 30064771096 [CDG]
+30064771092 -> 30064771097 [CDG]
+30064771092 -> 30064771094 [CDG]
+30064771092 -> 30064771095 [CDG]
+30064771092 -> 30064771092 [CDG]
+30064771092 -> 30064771093 [CDG]
+30064771094 -> 30064771095 [ARGUMENT]
+30064771094 -> 30064771096 [ARGUMENT]
+30064771094 -> 30064771095 [AST]
+30064771094 -> 30064771096 [AST]
+30064771094 -> 30064771096 [POST_DOMINATE]
+30064771095 -> 30064771094 [REACHING_DEF]
+30064771096 -> 30064771097 [ARGUMENT]
+30064771096 -> 30064771097 [AST]
+30064771096 -> 30064771094 [CFG]
+30064771096 -> 30064771094 [DOMINATE]
+30064771096 -> 30064771097 [POST_DOMINATE]
+30064771096 -> 30064771095 [REACHING_DEF]
+30064771096 -> 30064771094 [REACHING_DEF]
+30064771097 -> 30064771098 [ARGUMENT]
+30064771097 -> 30064771098 [AST]
+30064771097 -> 30064771096 [CFG]
+30064771097 -> 30064771096 [DOMINATE]
+30064771098 -> 30064771097 [REACHING_DEF]
+30064771101 -> 30064771106 [CDG]
+30064771101 -> 30064771107 [CDG]
+30064771101 -> 30064771104 [CDG]
+30064771101 -> 30064771105 [CDG]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void vp9_idct8x8_12_add_c ( const int16_t * input , uint8_t * dest , int stride ) {
+ int16_t out [ 8 * 8 ] = {
+ 0 }
+ ;
+ int16_t * outptr = out ;
+ int i , j ;
+ int16_t temp_in [ 8 ] , temp_out [ 8 ] ;
+ for ( i = 0 ;
+ i < 4 ;
+ ++ i ) {
+ idct8 ( input , outptr ) ;
+ input += 8 ;
+ outptr += 8 ;
+ }
+ for ( i = 0 ;
+ i < 8 ;
+ ++ i ) {
+ for ( j = 0 ;
+ j < 8 ;
+ ++ j ) temp_in [ j ] = out [ j * 8 + i ] ;
+ idct8 ( temp_in , temp_out ) ;
+ for ( j = 0 ;
+ j < 8 ;
+ ++ j ) dest [ j * stride + i ] = clip_pixel ( ROUND_POWER_OF_TWO ( temp_out [ j ] , 5 ) + dest [ j * stride + i ] ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

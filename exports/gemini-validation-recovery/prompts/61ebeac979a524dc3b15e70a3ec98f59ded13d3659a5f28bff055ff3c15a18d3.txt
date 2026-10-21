@@ -1,0 +1,183 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void imc_imdct256 ( IMCContext * q , IMCChannel * chctx , int channels ) {
+ int i ;
+ float re , im ;
+ float * dst1 = q -> out_samples ;
+ float * dst2 = q -> out_samples + ( COEFFS - 1 ) ;
+ for ( i = 0 ;
+ i < COEFFS / 2 ;
+ i ++ ) {
+ q -> samples [ i ] . re = - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ q -> samples [ i ] . im = ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ }
+ q -> fft . fft_permute ( & q -> fft , q -> samples ) ;
+ q -> fft . fft_calc ( & q -> fft , q -> samples ) ;
+ for ( i = 0 ;
+ i < COEFFS / 2 ;
+ i ++ ) {
+ re = ( q -> samples [ i ] . re * q -> post_cos [ i ] ) + ( - q -> samples [ i ] . im * q -> post_sin [ i ] ) ;
+ im = ( - q -> samples [ i ] . im * q -> post_cos [ i ] ) - ( q -> samples [ i ] . re * q -> post_sin [ i ] ) ;
+ * dst1 = ( q -> mdct_sine_window [ COEFFS - 1 - i * 2 ] * chctx -> last_fft_im [ i ] ) + ( q -> mdct_sine_window [ i * 2 ] * re ) ;
+ * dst2 = ( q -> mdct_sine_window [ i * 2 ] * chctx -> last_fft_im [ i ] ) - ( q -> mdct_sine_window [ COEFFS - 1 - i * 2 ] * re ) ;
+ dst1 += 2 ;
+ dst2 -= 2 ;
+ chctx -> last_fft_im [ i ] = im ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ float re , im ;
+ float * dst1 = q -> out_samples ;
+ float * dst2 = q -> out_samples + ( COEFFS - 1 ) ;
+ for ( i = 0 ;
+ i < COEFFS / 2 ;
+ i ++ ) {
+ q -> samples [ i ] . re = - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ q -> samples [ i ] . im = ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ }
+ q -> fft . fft_permute ( & q -> fft , q -> samples ) ;
+ q -> fft . fft_calc ( & q -> fft , q -> samples ) ;
+ for ( i = 0 ;
+ i < COEFFS / 2 ;
+ i ++ ) {
+ re = ( q -> samples [ i ] . re * q -> post_cos [ i ] ) + ( - q -> samples [ i ] . im * q -> post_sin [ i ] ) ;
+ im = ( - q -> samples [ i ] . im * q -> post_cos [ i ] ) - ( q -> samples [ i ] . re * q -> post_sin [ i ] ) ;
+ * dst1 = ( q -> mdct_sine_window [ COEFFS - 1 - i * 2 ] * chctx -> last_fft_im [ i ] ) + ( q -> mdct_sine_window [ i * 2 ] * re ) ;
+ * dst2 = ( q...
+      
+25769803777 | BLOCK | 
+        {
+ q -> samples [ i ] . re = - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ q -> samples [ i ] . im = ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ i * 2 ] ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ re = ( q -> samples [ i ] . re * q -> post_cos [ i ] ) + ( - q -> samples [ i ] . im * q -> post_sin [ i ] ) ;
+ im = ( - q -> samples [ i ] . im * q -> post_cos [ i ] ) - ( q -> samples [ i ] . re * q -> post_sin [ i ] ) ;
+ * dst1 = ( q -> mdct_sine_window [ COEFFS - 1 - i * 2 ] * chctx -> last_fft_im [ i ] ) + ( q -> mdct_sine_window [ i * 2 ] * re ) ;
+ * dst2 = ( q -> mdct_sine_window [ i * 2 ] * chctx -> last_fft_im [ i ] ) - ( q -> mdct_sine_window [ COEFFS - 1 - i * 2 ] * re ) ;
+ dst1 += 2 ;
+ dst2 -= 2 ;
+ chctx -> last_fft_im [ i ] = im ;
+ }
+      
+30064771072 | CALL | dst1 = q -> out_samples
+30064771073 | CALL | q -> out_samples
+30064771074 | CALL | dst2 = q -> out_samples + ( COEFFS - 1 )
+30064771075 | CALL | q -> out_samples + ( COEFFS - 1 )
+30064771076 | CALL | q -> out_samples
+30064771077 | CALL | COEFFS - 1
+30064771078 | CALL | i = 0
+30064771079 | CALL | i < COEFFS / 2
+30064771080 | CALL | COEFFS / 2
+30064771081 | CALL | i ++
+30064771082 | CALL | 
+        q -> samples [ i ] . re = - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ] )
+      
+30064771083 | CALL | q -> samples [ i ] . re
+30064771084 | CALL | q -> samples [ i ]
+30064771085 | CALL | q -> samples
+30064771086 | CALL | 
+        - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ] )
+      
+30064771087 | CALL | - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] )
+30064771088 | CALL | q -> pre_coef1 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ]
+30064771089 | CALL | q -> pre_coef1 [ i ]
+30064771090 | CALL | q -> pre_coef1
+30064771091 | CALL | chctx -> CWdecoded [ COEFFS - 1 - i * 2 ]
+30064771092 | CALL | chctx -> CWdecoded
+30064771093 | CALL | COEFFS - 1 - i * 2
+30064771094 | CALL | COEFFS - 1
+30064771095 | CALL | i * 2
+30064771096 | CALL | q -> pre_coef2 [ i ] * chctx -> CWdecoded [ i * 2 ]
+30064771097 | CALL | q -> pre_coef2 [ i ]
+30064771098 | CALL | q -> pre_coef2
+30064771099 | CALL | chctx -> CWdecoded [ i * 2 ]
+30064771100 | CALL | chctx -> CWdecoded
+30064771101 | CALL | i * 2
+30064771102 | CALL | 
+        q -> samples [ i ] . im = ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ i * 2 ] )
+      
+30064771103 | CALL | q -> samples [ i ] . im
+30064771104 | CALL | q -> samples [ i ]
+30064771105 | CALL | q -> samples
+30064771106 | CALL | 
+        ( q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ] ) - ( q -> pre_coef1 [ i ] * chctx -> CWdecoded [ i * 2 ] )
+      
+30064771107 | CALL | q -> pre_coef2 [ i ] * chctx -> CWdecoded [ COEFFS - 1 - i * 2 ]
+30064771108 | CALL | q -> pre_coef2 [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771094 [CDG]
+30064771079 -> 30064771095 [CDG]
+30064771079 -> 30064771096 [CDG]
+30064771079 -> 30064771097 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771102 [CDG]
+30064771079 -> 30064771103 [CDG]
+30064771079 -> 30064771104 [CDG]
+30064771079 -> 30064771105 [CDG]
+30064771079 -> 30064771098 [CDG]
+30064771079 -> 30064771099 [CDG]
+30064771079 -> 30064771100 [CDG]
+30064771079 -> 30064771101 [CD
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

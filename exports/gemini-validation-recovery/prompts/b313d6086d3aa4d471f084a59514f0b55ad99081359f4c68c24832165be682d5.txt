@@ -1,0 +1,210 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static cmsBool Type_ParametricCurve_Write ( struct _cms_typehandler_struct * self , cmsIOHANDLER * io , void * Ptr , cmsUInt32Number nItems ) {
+ cmsToneCurve * Curve = ( cmsToneCurve * ) Ptr ;
+ int i , nParams , typen ;
+ static const int ParamsByType [ ] = {
+ 0 , 1 , 3 , 4 , 5 , 7 }
+ ;
+ typen = Curve -> Segments [ 0 ] . Type ;
+ if ( Curve -> nSegments > 1 || typen < 1 ) {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Multisegment or Inverted parametric curves cannot be written" ) ;
+ return FALSE ;
+ }
+ if ( typen > 5 ) {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Unsupported parametric curve" ) ;
+ return FALSE ;
+ }
+ nParams = ParamsByType [ typen ] ;
+ if ( ! _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) ( Curve -> Segments [ 0 ] . Type - 1 ) ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 0 ) ) return FALSE ;
+ for ( i = 0 ;
+ i < nParams ;
+ i ++ ) {
+ if ( ! _cmsWrite15Fixed16Number ( io , Curve -> Segments [ 0 ] . Params [ i ] ) ) return FALSE ;
+ }
+ return TRUE ;
+ cmsUNUSED_PARAMETER ( nItems ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ cmsToneCurve * Curve = ( cmsToneCurve * ) Ptr ;
+ int i , nParams , typen ;
+ static const int ParamsByType [ ] = {
+ 0 , 1 , 3 , 4 , 5 , 7 }
+ ;
+ typen = Curve -> Segments [ 0 ] . Type ;
+ if ( Curve -> nSegments > 1 || typen < 1 ) {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Multisegment or Inverted parametric curves cannot be written" ) ;
+ return FALSE ;
+ }
+ if ( typen > 5 ) {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Unsupported parametric curve" ) ;
+ return FALSE ;
+ }
+ nParams = ParamsByType [ typen ] ;
+ if ( ! _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) ( Curve -> Segments [ 0 ] . Type - 1 ) ) ) return FALSE ;
+ if ( ! _cmsWriteUInt16Number ( io , 0 ) ) return FALSE ;
+ for ( i = 0 ;
+ i < nParams ;
+ i ++ ) {
+ if ( ! _cmsWrite15Fixed16Number ( io , Curve -> Segments [ 0 ] . Params [ i ] ) ) return FALSE ;
+ }
+ return TRUE ;
+ cmsUNUSED_PARAMETER ( nItems ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Multisegment or Inverted parametric curves cannot be written" ) ;
+ return FALSE ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Unsupported parametric curve" ) ;
+ return FALSE ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ if ( ! _cmsWrite15Fixed16Number ( io , Curve -> Segments [ 0 ] . Params [ i ] ) ) return FALSE ;
+ }
+      
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | Curve = ( cmsToneCurve * ) Ptr
+30064771073 | CALL | ( cmsToneCurve * ) Ptr
+30064771074 | CALL | ParamsByType [ ] = { 0 , 1 , 3 , 4 , 5 , 7 }
+30064771075 | CALL | { 0 , 1 , 3 , 4 , 5 , 7 }
+30064771076 | CALL | typen = Curve -> Segments [ 0 ] . Type
+30064771077 | CALL | Curve -> Segments [ 0 ] . Type
+30064771078 | CALL | Curve -> Segments [ 0 ]
+30064771079 | CALL | Curve -> Segments
+30064771080 | CALL | Curve -> nSegments > 1 || typen < 1
+30064771081 | CALL | Curve -> nSegments > 1
+30064771082 | CALL | Curve -> nSegments
+30064771083 | CALL | typen < 1
+30064771084 | CALL | 
+        cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Multisegment or Inverted parametric curves cannot be written" )
+      
+30064771085 | CALL | self -> ContextID
+30064771086 | CALL | typen > 5
+30064771087 | CALL | 
+        cmsSignalError ( self -> ContextID , cmsERROR_UNKNOWN_EXTENSION , "Unsupported parametric curve" )
+      
+30064771088 | CALL | self -> ContextID
+30064771089 | CALL | nParams = ParamsByType [ typen ]
+30064771090 | CALL | ParamsByType [ typen ]
+30064771091 | CALL | 
+        ! _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) ( Curve -> Segments [ 0 ] . Type - 1 ) )
+      
+30064771092 | CALL | 
+        _cmsWriteUInt16Number ( io , ( cmsUInt16Number ) ( Curve -> Segments [ 0 ] . Type - 1 ) )
+      
+30064771093 | CALL | ( cmsUInt16Number ) ( Curve -> Segments [ 0 ] . Type - 1 )
+30064771094 | CALL | Curve -> Segments [ 0 ] . Type - 1
+30064771095 | CALL | Curve -> Segments [ 0 ] . Type
+30064771096 | CALL | Curve -> Segments [ 0 ]
+30064771097 | CALL | Curve -> Segments
+30064771098 | CALL | ! _cmsWriteUInt16Number ( io , 0 )
+30064771099 | CALL | _cmsWriteUInt16Number ( io , 0 )
+30064771100 | CALL | i = 0
+30064771101 | CALL | i < nParams
+30064771102 | CALL | i ++
+30064771103 | CALL | ! _cmsWrite15Fixed16Number ( io , Curve -> Segments [ 0 ] . Params [ i ] )
+30064771104 | CALL | _cmsWrite15Fixed16Number ( io , Curve -> Segments [ 0 ] . Params [ i ] )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771089 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771087 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771095 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771090 [CDG]
+30064771086 -> 30064771091 [CDG]
+30064771086 -> 30064771092 [CDG]
+30064771086 -> 30064771093 [CDG]
+30064771086 -> 30064771094 [CDG]
+30064771086 -> 30064771095 [CDG]
+30064771086 -> 30064771096 [CDG]
+30064771086 -> 30064771097 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 ->
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

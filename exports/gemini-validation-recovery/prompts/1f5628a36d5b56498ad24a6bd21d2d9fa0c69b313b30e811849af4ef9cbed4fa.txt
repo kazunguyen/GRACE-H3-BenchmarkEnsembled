@@ -1,0 +1,337 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void video_audio_display(VideoState *s)
+
+{
+
+    int i, i_start, x, y1, y, ys, delay, n, nb_display_channels;
+
+    int ch, channels, h, h2, bgcolor, fgcolor;
+
+    int16_t time_diff;
+
+    int rdft_bits, nb_freq;
+
+
+
+    for (rdft_bits = 1; (1 << rdft_bits) < 2 * s->height; rdft_bits++)
+
+        ;
+
+    nb_freq = 1 << (rdft_bits - 1);
+
+
+
+    /* compute display index : center on currently output samples */
+
+    channels = s->audio_st->codec->channels;
+
+    nb_display_channels = channels;
+
+    if (!s->paused) {
+
+        int data_used = s->show_audio == 1 ? s->width : (2 * nb_freq);
+
+        n = 2 * channels;
+
+        delay = audio_write_get_buf_size(s);
+
+        delay /= n;
+
+
+
+        /* to be more precise, we take into account the time spent since
+
+           the last buffer computation */
+
+        if (audio_callback_time) {
+
+            time_diff = av_gettime() - audio_callback_time;
+
+            delay -= (time_diff * s->audio_st->codec->sample_rate) / 1000000;
+
+        }
+
+
+
+        delay += 2 * data_used;
+
+        if (delay < data_used)
+
+            delay = data_used;
+
+
+
+        i_start= x = compute_mod(s->sample_array_index - delay * channels, SAMPLE_ARRAY_SIZE);
+
+        if (s->show_audio == 1) {
+
+            h = INT_MIN;
+
+            for (i = 0; i < 1000; i += channels) {
+
+                int idx = (SAMPLE_ARRAY_SIZE + x - i) % SAMPLE_ARRAY_SIZE;
+
+                int a = s->sample_array[idx];
+
+                int b = s->sample_array[(idx + 4 * channels) % SAMPLE_ARRAY_SIZE];
+
+                int c = s->sample_array[(idx + 5 * channels) % SAMPLE_ARRAY_SIZE];
+
+                int d = s->sample_array[(idx + 9 * channels) % SAMPLE_ARRAY_SIZE];
+
+                int score = a - d;
+
+                if (h < score && (b ^ c) < 0) {
+
+                    h = score;
+
+                    i_start = idx;
+
+                }
+
+            }
+
+        }
+
+
+
+        s->last_i_start = i_start;
+
+    } else {
+
+        i_start = s->last_i_start;
+
+    }
+
+
+
+    bgcolor = SDL_MapRGB(screen->format, 0x00, 0x00, 0x00);
+
+    if (s->show_audio == 1) {
+
+        fill_rectangle(screen,
+
+                       s->xleft, s->ytop, s->width, s->height,
+
+                       bgcolor);
+
+
+
+        fgcolor = SDL_MapRGB(screen->format, 0xff, 0xff, 0xff);
+
+
+
+        /* total height for one channel */
+
+        h = s->height / nb_display_channels;
+
+        /* graph height / 2 */
+
+        h2 = (h * 9) / 20;
+
+        for (ch = 0; ch < nb_display_channels; ch++) {
+
+            i = i_start + ch;
+
+            y1 = s->ytop + ch * h + (h / 2); /* position of center line */
+
+            for (x = 0; x < s->width; x++) {
+
+                y = (s->sample_array[i] * h2) >> 15;
+
+                if (y < 0) {
+
+                    y = -y;
+
+                    ys = y1 - y;
+
+                } else {
+
+                    ys = y1;
+
+                }
+
+                fill_rectangle(screen,
+
+                               s->xleft + x, ys, 1, y,
+
+                               fgcolor);
+
+                i +=
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+5 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+5 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+5 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+5 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+5 -> 30 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+33 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+33 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+33 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+33 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+33 -> 49 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+56 -> 60 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+63 -> 68 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+63 -> 78 [IS_AST_PARENT]
+63 -> 81 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void video_audio_display(VideoState *s)
+
+{
+
+    int i, i_start, x, y1, y, ys, delay, n, nb_display_channels;
+
+    int ch, channels, h, h2, bgcolor, fgcolor;
+
+    int16_t time_diff;
+
+    int rdft_bits, nb_freq;
+
+
+
+    for (rdft_bits = 1; (1 << rdft_bits) < 2 * s->height; rdft_bits++)
+
+        ;
+
+    nb_freq = 1 << (rdft_bits - 1);
+
+
+
+    /* compute display index : center on currently output samples */
+
+    channels = s->audio_tgt.channels;
+
+    nb_display_channels = channels;
+
+    if (!s->paused) {
+
+        int data_used= s->show_mode == SHOW_MODE_WAVES ? s->width : (2*nb_freq);
+
+        n = 2 * channels;
+
+        delay = s->audio_write_buf_size;
+
+        delay /= n;
+
+
+
+        /* to be more precise, we take into account the time spent since
+
+           the last buffer computation */
+
+        if (audio_callback_time) {
+
+            time_diff = av_gettime() - audio_callback_time;
+
+            delay -= (time_diff * s->audio_tgt.freq) / 1000000;
+
+        }
+
+
+
+        delay += 2 * data_used;
+
+        if (delay < data_used)
+
+            delay = data_used;
+
+
+
+        i_start= x = compute_mod(s->sample_array_index - delay * channels, SAMPLE_ARRAY_SIZE);
+
+        if (s->show_mode == SHOW_MODE_WAVES) {
+
+            h = INT_MIN;
+
+            for (i = 0; i < 1000; i += channels) {
+
+                int idx = (SAMPLE_ARRAY_SIZE + x - i) % SAMPLE_ARRAY_SIZE;
+
+                int a = s->sample_array[idx];
+
+                int b = s->sample_array[(idx + 4 * channels) % SAMPLE_ARRAY_SIZ
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

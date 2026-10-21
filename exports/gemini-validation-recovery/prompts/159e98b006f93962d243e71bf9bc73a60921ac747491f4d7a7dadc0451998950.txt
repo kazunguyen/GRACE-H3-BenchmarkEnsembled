@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_t38_tcp_pdu ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree ) {
+ proto_item * it ;
+ proto_tree * tr ;
+ guint32 offset = 0 ;
+ tvbuff_t * next_tvb ;
+ guint16 ifp_packet_number = 1 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "T.38" ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ primary_part = TRUE ;
+ Data_Field_item_num = 0 ;
+ it = proto_tree_add_protocol_format ( tree , proto_t38 , tvb , 0 , - 1 , "ITU-T Recommendation T.38" ) ;
+ tr = proto_item_add_subtree ( it , ett_t38 ) ;
+ init_t38_info_conv ( pinfo ) ;
+ if ( global_t38_show_setup_info ) {
+ show_setup_info ( tvb , tr , p_t38_packet_conv ) ;
+ }
+ col_append_str ( pinfo -> cinfo , COL_INFO , "TCP: IFPPacket" ) ;
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ next_tvb = tvb_new_subset_remaining ( tvb , offset ) ;
+ offset += dissect_IFPPacket_PDU ( next_tvb , pinfo , tr , NULL ) ;
+ ifp_packet_number ++ ;
+ if ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ if ( t38_tpkt_usage == T38_TPKT_ALWAYS ) {
+ proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , tvb , offset , tvb_reported_length_remaining ( tvb , offset ) , "[MALFORMED PACKET or wrong preference settings]" ) ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , " [Malformed?]" ) ;
+ break ;
+ }
+ else {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " IFPPacket#%u" , ifp_packet_number ) ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * it ;
+ proto_tree * tr ;
+ guint32 offset = 0 ;
+ tvbuff_t * next_tvb ;
+ guint16 ifp_packet_number = 1 ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "T.38" ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ primary_part = TRUE ;
+ Data_Field_item_num = 0 ;
+ it = proto_tree_add_protocol_format ( tree , proto_t38 , tvb , 0 , - 1 , "ITU-T Recommendation T.38" ) ;
+ tr = proto_item_add_subtree ( it , ett_t38 ) ;
+ init_t38_info_conv ( pinfo ) ;
+ if ( global_t38_show_setup_info ) {
+ show_setup_info ( tvb , tr , p_t38_packet_conv ) ;
+ }
+ col_append_str ( pinfo -> cinfo , COL_INFO , "TCP: IFPPacket" ) ;
+ while ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ next_tvb = tvb_new_subset_remaining ( tvb , offset ) ;
+ offset += dissect_IFPPacket_PDU ( next_tvb , pinfo , tr , NULL ) ;
+ ifp_packet_number ++ ;
+ if ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ if ( t38_tpkt_usage == T38_TPKT_ALWAYS ) {
+ proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , ...
+      
+25769803777 | BLOCK | { show_setup_info ( tvb , tr , p_t38_packet_conv ) ; }
+25769803778 | BLOCK | 
+        {
+ next_tvb = tvb_new_subset_remaining ( tvb , offset ) ;
+ offset += dissect_IFPPacket_PDU ( next_tvb , pinfo , tr , NULL ) ;
+ ifp_packet_number ++ ;
+ if ( tvb_reported_length_remaining ( tvb , offset ) > 0 ) {
+ if ( t38_tpkt_usage == T38_TPKT_ALWAYS ) {
+ proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , tvb , offset , tvb_reported_length_remaining ( tvb , offset ) , "[MALFORMED PACKET or wrong preference settings]" ) ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , " [Malformed?]" ) ;
+ break ;
+ }
+ else {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " IFPPacket#%u" , ifp_packet_number ) ;
+ }
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( t38_tpkt_usage == T38_TPKT_ALWAYS ) {
+ proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , tvb , offset , tvb_reported_length_remaining ( tvb , offset ) , "[MALFORMED PACKET or wrong preference settings]" ) ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , " [Malformed?]" ) ;
+ break ;
+ }
+ else {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " IFPPacket#%u" , ifp_packet_number ) ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , tvb , offset , tvb_reported_length_remaining ( tvb , offset ) , "[MALFORMED PACKET or wrong preference settings]" ) ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , " [Malformed?]" ) ;
+ break ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , " IFPPacket#%u" , ifp_packet_number ) ;
+ }
+      
+30064771072 | CALL | offset = 0
+30064771073 | CALL | ifp_packet_number = 1
+30064771074 | CALL | col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "T.38" )
+30064771075 | CALL | pinfo -> cinfo
+30064771076 | CALL | col_clear ( pinfo -> cinfo , COL_INFO )
+30064771077 | CALL | pinfo -> cinfo
+30064771078 | CALL | primary_part = TRUE
+30064771079 | CALL | Data_Field_item_num = 0
+30064771080 | CALL | 
+        it = proto_tree_add_protocol_format ( tree , proto_t38 , tvb , 0 , - 1 , "ITU-T Recommendation T.38" )
+      
+30064771081 | CALL | 
+        proto_tree_add_protocol_format ( tree , proto_t38 , tvb , 0 , - 1 , "ITU-T Recommendation T.38" )
+      
+30064771082 | CALL | - 1
+30064771083 | CALL | tr = proto_item_add_subtree ( it , ett_t38 )
+30064771084 | CALL | proto_item_add_subtree ( it , ett_t38 )
+30064771085 | CALL | init_t38_info_conv ( pinfo )
+30064771086 | CALL | global_t38_show_setup_info != 0
+30064771087 | CALL | show_setup_info ( tvb , tr , p_t38_packet_conv )
+30064771088 | CALL | col_append_str ( pinfo -> cinfo , COL_INFO , "TCP: IFPPacket" )
+30064771089 | CALL | pinfo -> cinfo
+30064771090 | CALL | tvb_reported_length_remaining ( tvb , offset ) > 0
+30064771091 | CALL | tvb_reported_length_remaining ( tvb , offset )
+30064771092 | CALL | next_tvb = tvb_new_subset_remaining ( tvb , offset )
+30064771093 | CALL | tvb_new_subset_remaining ( tvb , offset )
+30064771094 | CALL | offset += dissect_IFPPacket_PDU ( next_tvb , pinfo , tr , NULL )
+30064771095 | CALL | dissect_IFPPacket_PDU ( next_tvb , pinfo , tr , NULL )
+30064771096 | CALL | ifp_packet_number ++
+30064771097 | CALL | tvb_reported_length_remaining ( tvb , offset ) > 0
+30064771098 | CALL | tvb_reported_length_remaining ( tvb , offset )
+30064771099 | CALL | t38_tpkt_usage == T38_TPKT_ALWAYS
+30064771100 | CALL | 
+        proto_tree_add_expert_format ( tr , pinfo , & ei_t38_malformed , tvb , offset , tvb_reported_length_remaining ( tvb , offset ) , "[MALFORMED PACKET or wrong preference settings]" )
+      
+30064771101 | CALL | & ei_t38_malformed
+30064771102 | CALL | tvb_reported_length_remaining ( tvb , offset )
+30064771103 | CALL | col_append_str ( pinfo -> cinfo , COL_INFO , " [Malformed?]" )
+30064771104 | CALL | pinfo -> cinfo
+30064771105 | CALL | 
+        col_append_fstr ( pinfo -> cinfo , COL_INFO , " IFPPacket#%u" , ifp_packet_number )
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771094 [AST]
+25769803778 -> 30064771096 [AST]
+25769803780 -> 30064771100 [AST]
+25769803780 -> 30064771103 [AST]
+25769803781 -> 30064771105 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771089 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

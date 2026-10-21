@@ -1,0 +1,204 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PyObject * string_count ( PyStringObject * self , PyObject * args ) {
+ PyObject * sub_obj ;
+ const char * str = PyString_AS_STRING ( self ) , * sub ;
+ Py_ssize_t sub_len ;
+ Py_ssize_t start = 0 , end = PY_SSIZE_T_MAX ;
+ if ( ! stringlib_parse_args_finds ( "count" , args , & sub_obj , & start , & end ) ) return NULL ;
+ if ( PyString_Check ( sub_obj ) ) {
+ sub = PyString_AS_STRING ( sub_obj ) ;
+ sub_len = PyString_GET_SIZE ( sub_obj ) ;
+ }
+ # ifdef Py_USING_UNICODE else if ( PyUnicode_Check ( sub_obj ) ) {
+ Py_ssize_t count ;
+ count = PyUnicode_Count ( ( PyObject * ) self , sub_obj , start , end ) ;
+ if ( count == - 1 ) return NULL ;
+ else return PyInt_FromSsize_t ( count ) ;
+ }
+ # endif else if ( PyObject_AsCharBuffer ( sub_obj , & sub , & sub_len ) ) return NULL ;
+ ADJUST_INDICES ( start , end , PyString_GET_SIZE ( self ) ) ;
+ return PyInt_FromSsize_t ( stringlib_count ( str + start , end - start , sub , sub_len , PY_SSIZE_T_MAX ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ PyObject * sub_obj ;
+ const char * str = PyString_AS_STRING ( self ) , * sub ;
+ Py_ssize_t sub_len ;
+ Py_ssize_t start = 0 , end = PY_SSIZE_T_MAX ;
+ if ( ! stringlib_parse_args_finds ( "count" , args , & sub_obj , & start , & end ) ) return NULL ;
+ if ( PyString_Check ( sub_obj ) ) {
+ sub = PyString_AS_STRING ( sub_obj ) ;
+ sub_len = PyString_GET_SIZE ( sub_obj ) ;
+ }
+ # ifdef Py_USING_UNICODE else if ( PyUnicode_Check ( sub_obj ) ) {
+ Py_ssize_t count ;
+ count = PyUnicode_Count ( ( PyObject * ) self , sub_obj , start , end ) ;
+ if ( count == - 1 ) return NULL ;
+ else return PyInt_FromSsize_t ( count ) ;
+ }
+ # endif else if ( PyObject_AsCharBuffer ( sub_obj , & sub , & sub_len ) ) return NULL ;
+ ADJUST_INDICES ( start , end , PyString_GET_SIZE ( self ) ) ;
+ return PyInt_FromSsize_t ( stringlib_count ( str + start , end - start , sub , sub_len , PY_SSIZE_T_MAX ) ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ sub = PyString_AS_STRING ( sub_obj ) ;
+ sub_len = PyString_GET_SIZE ( sub_obj ) ;
+ }
+      
+30064771072 | CALL | str = PyString_AS_STRING ( self )
+30064771073 | CALL | PyString_AS_STRING ( self )
+30064771074 | CALL | start = 0
+30064771075 | CALL | end = PY_SSIZE_T_MAX
+30064771076 | CALL | 
+        ! stringlib_parse_args_finds ( "count" , args , & sub_obj , & start , & end )
+      
+30064771077 | CALL | 
+        stringlib_parse_args_finds ( "count" , args , & sub_obj , & start , & end )
+      
+30064771078 | CALL | & sub_obj
+30064771079 | CALL | & start
+30064771080 | CALL | & end
+30064771081 | CALL | PyString_Check ( sub_obj )
+30064771082 | CALL | sub = PyString_AS_STRING ( sub_obj )
+30064771083 | CALL | PyString_AS_STRING ( sub_obj )
+30064771084 | CALL | sub_len = PyString_GET_SIZE ( sub_obj )
+30064771085 | CALL | PyString_GET_SIZE ( sub_obj )
+30064771086 | CALL | ADJUST_INDICES ( start , end , PyString_GET_SIZE ( self ) )
+30064771087 | CALL | PyString_GET_SIZE ( self )
+30064771088 | CALL | 
+        PyInt_FromSsize_t ( stringlib_count ( str + start , end - start , sub , sub_len , PY_SSIZE_T_MAX ) )
+      
+30064771089 | CALL | stringlib_count ( str + start , end - start , sub , sub_len , PY_SSIZE_T_MAX )
+30064771090 | CALL | str + start
+30064771091 | CALL | end - start
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! stringlib_parse_args_finds ( "count" , args , & sub_obj , & start , & end ) ) return NULL ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( PyString_Check ( sub_obj ) ) {
+ sub = PyString_AS_STRING ( sub_obj ) ;
+ sub_len = PyString_GET_SIZE ( sub_obj ) ;
+ }
+      
+68719476736 | IDENTIFIER | str
+68719476737 | IDENTIFIER | self
+68719476738 | IDENTIFIER | start
+68719476739 | IDENTIFIER | end
+68719476740 | IDENTIFIER | <unknown> PY_SSIZE_T_MAX
+68719476741 | IDENTIFIER | args
+68719476742 | IDENTIFIER | sub_obj
+68719476743 | IDENTIFIER | start
+68719476744 | IDENTIFIER | end
+68719476745 | IDENTIFIER | <unknown> NULL
+68719476746 | IDENTIFIER | sub_obj
+68719476747 | IDENTIFIER | sub
+68719476748 | IDENTIFIER | sub_obj
+68719476749 | IDENTIFIER | sub_len
+68719476750 | IDENTIFIER | sub_obj
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771086 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771091 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 68719476745 [CFG]
+30064771076 -> 68719476746 [CFG]
+30064771076 -> 68719476745 [DOMINATE]
+30064771076 -> 68719476746 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 68719476743 [CFG]
+30064771078 -> 68719476743 [DOMINATE]
+30064771078 -> 68719476742 [POST_DOMINATE]
+30064771078 -> 68719476748 [REACHING_DEF]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 68719476746 [REACHING_DEF]
+30064771078 -> 68719476750 [REACHING_DEF]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 68719476743 [POST_DOMINATE]
+30064771079 -> 68719476741 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static PyObject * string_split ( PyStringObject * self , PyObject * args ) {
+ Py_ssize_t len = PyString_GET_SIZE ( self ) , n ;
+ Py_ssize_t maxsplit = - 1 ;
+ const char * s = PyString_AS_STRING ( self ) , * sub ;
+ PyObject * subobj = Py_None ;
+ if ( ! PyArg_ParseTuple ( args , "|On:split" , & subobj , & maxsplit ) ) return NULL ;
+ if ( maxsplit < 0 ) maxspli
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

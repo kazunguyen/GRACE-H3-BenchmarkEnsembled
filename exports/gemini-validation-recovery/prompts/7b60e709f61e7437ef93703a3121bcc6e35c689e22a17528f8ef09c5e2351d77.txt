@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void use_high_update_speed ( WmallDecodeCtx * s , int ich ) {
+ int ilms , recent , icoef ;
+ for ( ilms = s -> cdlms_ttl [ ich ] - 1 ;
+ ilms >= 0 ;
+ ilms -- ) {
+ recent = s -> cdlms [ ich ] [ ilms ] . recent ;
+ if ( s -> update_speed [ ich ] == 16 ) continue ;
+ if ( s -> bV3RTM ) {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] *= 2 ;
+ }
+ else {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef ] *= 2 ;
+ }
+ }
+ s -> update_speed [ ich ] = 16 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ilms , recent , icoef ;
+ for ( ilms = s -> cdlms_ttl [ ich ] - 1 ;
+ ilms >= 0 ;
+ ilms -- ) {
+ recent = s -> cdlms [ ich ] [ ilms ] . recent ;
+ if ( s -> update_speed [ ich ] == 16 ) continue ;
+ if ( s -> bV3RTM ) {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] *= 2 ;
+ }
+ else {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef ] *= 2 ;
+ }
+ }
+ s -> update_speed [ ich ] = 16 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ recent = s -> cdlms [ ich ] [ ilms ] . recent ;
+ if ( s -> update_speed [ ich ] == 16 ) continue ;
+ if ( s -> bV3RTM ) {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] *= 2 ;
+ }
+ else {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef ] *= 2 ;
+ }
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] *= 2 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef ] *= 2 ;
+ }
+      
+30064771072 | CALL | ilms = s -> cdlms_ttl [ ich ] - 1
+30064771073 | CALL | s -> cdlms_ttl [ ich ] - 1
+30064771074 | CALL | s -> cdlms_ttl [ ich ]
+30064771075 | CALL | s -> cdlms_ttl
+30064771076 | CALL | ilms >= 0
+30064771077 | CALL | ilms --
+30064771078 | CALL | recent = s -> cdlms [ ich ] [ ilms ] . recent
+30064771079 | CALL | s -> cdlms [ ich ] [ ilms ] . recent
+30064771080 | CALL | s -> cdlms [ ich ] [ ilms ]
+30064771081 | CALL | s -> cdlms [ ich ]
+30064771082 | CALL | s -> cdlms
+30064771083 | CALL | s -> update_speed [ ich ] == 16
+30064771084 | CALL | s -> update_speed [ ich ]
+30064771085 | CALL | s -> update_speed
+30064771086 | CALL | s -> bV3RTM
+30064771087 | CALL | icoef = 0
+30064771088 | CALL | icoef < s -> cdlms [ ich ] [ ilms ] . order
+30064771089 | CALL | s -> cdlms [ ich ] [ ilms ] . order
+30064771090 | CALL | s -> cdlms [ ich ] [ ilms ]
+30064771091 | CALL | s -> cdlms [ ich ]
+30064771092 | CALL | s -> cdlms
+30064771093 | CALL | icoef ++
+30064771094 | CALL | s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] *= 2
+30064771095 | CALL | s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ]
+30064771096 | CALL | s -> cdlms [ ich ] [ ilms ] . lms_updates
+30064771097 | CALL | s -> cdlms [ ich ] [ ilms ]
+30064771098 | CALL | s -> cdlms [ ich ]
+30064771099 | CALL | s -> cdlms
+30064771100 | CALL | icoef + recent
+30064771101 | CALL | icoef = 0
+30064771102 | CALL | icoef < s -> cdlms [ ich ] [ ilms ] . order
+30064771103 | CALL | s -> cdlms [ ich ] [ ilms ] . order
+30064771104 | CALL | s -> cdlms [ ich ] [ ilms ]
+30064771105 | CALL | s -> cdlms [ ich ]
+30064771106 | CALL | s -> cdlms
+EDGES:
+25769803777 -> 30064771078 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771097 [REACHING_DEF]
+30064771079 -> 30064771104 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771090 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771090 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771091 [CDG]
+30064771086 -> 30064771092 [CDG]
+30064771086 -> 30064771105 [CDG]
+30064771086 -> 30064771106 [CDG]
+30064771086 -> 30064771103 [CDG]
+30064771086 -> 30064771104 [CDG]
+30064771086 -> 30064771101 [CDG]
+30064771086 -> 30064771102 [CDG]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771088 [CDG]
+30064771088 -> 30064771097 [CDG]
+30064771088 -> 30064771098 [CDG]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771096 [CDG]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771094 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771100 [CDG]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771097 [REACHING_DEF]
+30064771089 -> 30064771090 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void use_normal_update_speed ( WmallDecodeCtx * s , int ich ) {
+ int ilms , recent , icoef ;
+ for ( ilms = s -> cdlms_ttl [ ich ] - 1 ;
+ ilms >= 0 ;
+ ilms -- ) {
+ recent = s -> cdlms [ ich ] [ ilms ] . recent ;
+ if ( s -> update_speed [ ich ] == 8 ) continue ;
+ if ( s -> bV3RTM ) for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef + recent ] /= 2 ;
+ else for ( icoef = 0 ;
+ icoef < s -> cdlms [ ich ] [ ilms ] . order ;
+ icoef ++ ) s -> cdlms [ ich ] [ ilms ] . lms_updates [ icoef ] /= 2 ;
+ }
+ s -> update_speed [ ich ] = 8 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

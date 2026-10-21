@@ -1,0 +1,374 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void tcp_chr_accept(void *opaque)
+
+{
+
+    CharDriverState *chr = opaque;
+
+    TCPCharDriver *s = chr->opaque;
+
+    struct sockaddr_in saddr;
+
+#ifndef _WIN32
+
+    struct sockaddr_un uaddr;
+
+#endif
+
+    struct sockaddr *addr;
+
+    socklen_t len;
+
+    int fd;
+
+
+
+    for(;;) {
+
+#ifndef _WIN32
+
+	if (s->is_unix) {
+
+	    len = sizeof(uaddr);
+
+	    addr = (struct sockaddr *)&uaddr;
+
+	} else
+
+#endif
+
+	{
+
+	    len = sizeof(saddr);
+
+	    addr = (struct sockaddr *)&saddr;
+
+	}
+
+        fd = accept(s->listen_fd, addr, &len);
+
+        if (fd < 0 && errno != EINTR) {
+
+            return;
+
+        } else if (fd >= 0) {
+
+            if (s->do_telnetopt)
+
+                tcp_chr_telnet_init(fd);
+
+            break;
+
+        }
+
+    }
+
+    socket_set_nonblock(fd);
+
+    if (s->do_nodelay)
+
+        socket_set_nodelay(fd);
+
+    s->fd = fd;
+
+    qemu_set_fd_handler(s->listen_fd, NULL, NULL, NULL);
+
+    tcp_chr_connect(chr);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    CharDriverState *chr = opaque;
+
+    TCPCharDriver *s = chr->opaque;
+
+    struct sockaddr_in saddr;
+
+#ifndef _WIN32
+
+    struct sockaddr_un uaddr;
+
+#endif
+
+    struct sockaddr *addr;
+
+    socklen_t len;
+
+    int fd;
+
+
+
+    for(;;) {
+
+#ifndef _WIN32
+
+	if (s->is_unix) {
+
+	    len = sizeof(uaddr);
+
+	    addr = (struct sockaddr *)&uaddr;
+
+	} else
+
+#endif
+
+	{
+
+	    len = sizeof(saddr);
+
+	    addr = (struct sockaddr *)&saddr;
+
+	}
+
+        fd = accept(s->listen_fd, addr, &len);
+
+        if (fd < 0 && errno != EINTR) {
+
+            return;
+
+        } else if (fd >= 0) {
+
+            if (s->do_telnetopt)
+
+                tcp_chr_telnet_init(fd);
+
+            break;
+
+        }
+
+    }
+
+    socket_set_nonblock(fd);
+
+    if (s->do_nodelay)
+
+        socket_set_nodelay(fd);
+
+    s->fd = fd;
+
+    qemu_set_fd_handler(s->listen_fd, NULL, NULL, NULL);
+
+    tcp_chr_connect(chr);
+
+}
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+
+#ifndef _WIN32
+
+	if (s->is_unix) {
+
+	    len = sizeof(uaddr);
+
+	    addr = (struct sockaddr *)&uaddr;
+
+	} else
+
+#endif
+
+	{
+
+	    len = sizeof(saddr);
+
+	    addr = (struct sockaddr *)&saddr;
+
+	}
+
+        fd = accept(s->listen_fd, addr, &len);
+
+        if (fd < 0 && errno != EINTR) {
+
+            return;
+
+        } else if (fd >= 0) {
+
+            if (s->do_telnetopt)
+
+                tcp_chr_telnet_init(fd);
+
+            break;
+
+        }
+
+    }
+      
+25769803779 | BLOCK | { len = sizeof(uaddr); addr = (struct sockaddr *)&uaddr; }
+25769803780 | BLOCK | { len = sizeof(saddr); addr = (struct sockaddr *)&saddr; }
+25769803781 | BLOCK | { return; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { if (s->do_telnetopt) tcp_chr_telnet_init(fd); break; }
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+30064771072 | CALL | chr = opaque
+30064771073 | CALL | s = chr->opaque
+30064771074 | CALL | chr->opaque
+30064771075 | CALL | s->is_unix
+30064771076 | CALL | len = sizeof(uaddr)
+30064771077 | CALL | sizeof(uaddr)
+30064771078 | CALL | addr = (struct sockaddr *)&uaddr
+30064771079 | CALL | (struct sockaddr *)&uaddr
+30064771080 | CALL | &uaddr
+30064771081 | CALL | len = sizeof(saddr)
+30064771082 | CALL | sizeof(saddr)
+30064771083 | CALL | addr = (struct sockaddr *)&saddr
+30064771084 | CALL | (struct sockaddr *)&saddr
+30064771085 | CALL | &saddr
+30064771086 | CALL | fd = accept(s->listen_fd, addr, &len)
+30064771087 | CALL | accept(s->listen_fd, addr, &len)
+30064771088 | CALL | s->listen_fd
+30064771089 | CALL | &len
+30064771090 | CALL | fd < 0 && errno != EINTR
+30064771091 | CALL | fd < 0
+30064771092 | CALL | errno != EINTR
+30064771093 | CALL | fd >= 0
+30064771094 | CALL | s->do_telnetopt
+30064771095 | CALL | tcp_chr_telnet_init(fd)
+30064771096 | CALL | socket_set_nonblock(fd)
+30064771097 | CALL | s->do_nodelay
+30064771098 | CALL | socket_set_nodelay(fd)
+30064771099 | CALL | s->fd = fd
+30064771100 | CALL | s->fd
+30064771101 | CALL | qemu_set_fd_handler(s->listen_fd, NULL, NULL, NULL)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771101 [AST]
+25769803778 -> 30064771086 [AST]
+25769803779 -> 30064771076 [AST]
+25769803779 -> 30064771078 [AST]
+25769803780 -> 30064771081 [AST]
+25769803780 -> 30064771083 [AST]
+25769803784 -> 30064771095 [AST]
+25769803785 -> 30064771098 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [REACHING_DEF]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771087 [CFG]
+30064771089 -> 30064771087 [DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771089 -> 30064771087 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void gdb_accept(void *opaque)
+
+{
+
+    GDBState *s;
+
+    struct sockaddr_in sockaddr;
+
+    socklen_t len;
+
+    int val, fd;
+
+
+
+    for(;;) {
+
+        len = sizeof(sockaddr);
+
+        fd = accept(gdbserver_fd, (struct sockaddr *)&sockaddr, &len);
+
+        if (fd < 0 && errno != EINTR) {
+
+            perror("accept");
+
+            return;
+
+        } else if (fd >= 0) {
+
+            break;
+
+        }
+
+    }
+
+
+
+    /* set short latency */
+
+    val = 1;
+
+    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *)&val, sizeof(val));
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

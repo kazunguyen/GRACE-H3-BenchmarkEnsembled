@@ -1,0 +1,165 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void convolute_with_sparse ( float * out , const AMRFixed * pulses , const float * shape , int length ) {
+ int i , j ;
+ memset ( out , 0 , length * sizeof ( float ) ) ;
+ for ( i = 0 ;
+ i < pulses -> n ;
+ i ++ ) for ( j = pulses -> x [ i ] ;
+ j < length ;
+ j ++ ) out [ j ] += pulses -> y [ i ] * shape [ j - pulses -> x [ i ] ] ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ memset ( out , 0 , length * sizeof ( float ) ) ;
+ for ( i = 0 ;
+ i < pulses -> n ;
+ i ++ ) for ( j = pulses -> x [ i ] ;
+ j < length ;
+ j ++ ) out [ j ] += pulses -> y [ i ] * shape [ j - pulses -> x [ i ] ] ;
+ }
+      
+30064771072 | CALL | memset ( out , 0 , length * sizeof ( float ) )
+30064771073 | CALL | length * sizeof ( float )
+30064771074 | CALL | sizeof ( float )
+30064771075 | CALL | i = 0
+30064771076 | CALL | i < pulses -> n
+30064771077 | CALL | pulses -> n
+30064771078 | CALL | i ++
+30064771079 | CALL | j = pulses -> x [ i ]
+30064771080 | CALL | pulses -> x [ i ]
+30064771081 | CALL | pulses -> x
+30064771082 | CALL | j < length
+30064771083 | CALL | j ++
+30064771084 | CALL | out [ j ] += pulses -> y [ i ] * shape [ j - pulses -> x [ i ] ]
+30064771085 | CALL | out [ j ]
+30064771086 | CALL | pulses -> y [ i ] * shape [ j - pulses -> x [ i ] ]
+30064771087 | CALL | pulses -> y [ i ]
+30064771088 | CALL | pulses -> y
+30064771089 | CALL | shape [ j - pulses -> x [ i ] ]
+30064771090 | CALL | j - pulses -> x [ i ]
+30064771091 | CALL | pulses -> x [ i ]
+30064771092 | CALL | pulses -> x
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < pulses -> n;i ++)
+47244640257 | CONTROL_STRUCTURE | for (j = pulses -> x [ i ] ;j < length;j ++)
+55834574848 | FIELD_IDENTIFIER | n
+55834574849 | FIELD_IDENTIFIER | x
+55834574850 | FIELD_IDENTIFIER | y
+55834574851 | FIELD_IDENTIFIER | x
+68719476736 | IDENTIFIER | out
+68719476737 | IDENTIFIER | length
+68719476738 | IDENTIFIER | float
+68719476739 | IDENTIFIER | i
+68719476740 | IDENTIFIER | i
+68719476741 | IDENTIFIER | pulses
+68719476742 | IDENTIFIER | i
+68719476743 | IDENTIFIER | j
+68719476744 | IDENTIFIER | pulses
+68719476745 | IDENTIFIER | i
+68719476746 | IDENTIFIER | j
+68719476747 | IDENTIFIER | length
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476747 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 55834574848 [CDG]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 68719476740 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 55834574848 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 55834574848 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 55834574848 [POST_DOMINATE]
+30064771077 -> 68719476741 [REACHING_DEF]
+30064771077 -> 68719476744 [REACHING_DEF]
+30064771077 -> 68719476740 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 68719476740 [CFG]
+30064771078 -> 68719476742 [POST_DOMINATE]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476746 [CFG]
+30064771079 -> 68719476746 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 68719476745 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 68719476745 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 68719476745 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void dequant ( float * out , const int * idx , const float * cbs [ ] ) {
+ int i ;
+ int stride = 2 ;
+ int num_vec = 5 ;
+ for ( i = 0 ;
+ i < num_vec ;
+ i ++ ) memcpy ( out + stride * i , cbs [ i ] + stride * idx [ i ] , stride * sizeof ( float ) ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

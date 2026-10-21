@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void decode_postinit ( H264Context * h , int setup_finished ) {
+ Picture * out = h -> cur_pic_ptr ;
+ Picture * cur = h -> cur_pic_ptr ;
+ int i , pics , out_of_order , out_idx ;
+ h -> cur_pic_ptr -> f . pict_type = h -> pict_type ;
+ if ( h -> next_output_pic ) return ;
+ if ( cur -> field_poc [ 0 ] == INT_MAX || cur -> field_poc [ 1 ] == INT_MAX ) {
+ return ;
+ }
+ cur -> f . interlaced_frame = 0 ;
+ cur -> f . repeat_pict = 0 ;
+ if ( h -> sps . pic_struct_present_flag ) {
+ switch ( h -> sei_pic_struct ) {
+ case SEI_PIC_STRUCT_FRAME : break ;
+ case SEI_PIC_STRUCT_TOP_FIELD : case SEI_PIC_STRUCT_BOTTOM_FIELD : cur -> f . interlaced_frame = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM : case SEI_PIC_STRUCT_BOTTOM_TOP : if ( FIELD_OR_MBAFF_PICTURE ( h ) ) cur -> f . interlaced_frame = 1 ;
+ else cur -> f . interlaced_frame = h -> prev_interlaced_frame ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM_TOP : case SEI_PIC_STRUCT_BOTTOM_TOP_BOTTOM : cur -> f . repeat_pict = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_DOUBLING : cur -> f . repeat_pict = 2 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_TRIPLING : cur -> f . repeat_pict = 4 ;
+ break ;
+ }
+ if ( ( h -> sei_ct_type & 3 ) && h -> sei_pic_struct <= SEI_PIC_STRUCT_BOTTOM_TOP ) cur -> f . interlaced_frame = ( h -> sei_ct_type & ( 1 << 1 ) ) != 0 ;
+ }
+ else {
+ cur -> f . interlaced_frame = FIELD_OR_MBAFF_PICTURE ( h ) ;
+ }
+ h -> prev_interlaced_frame = cur -> f . interlaced_frame ;
+ if ( cur -> field_poc [ 0 ] != cur -> field_poc [ 1 ] ) {
+ cur -> f . top_field_first = cur -> field_poc [ 0 ] < cur -> field_poc [ 1 ] ;
+ }
+ else {
+ if ( cur -> f . interlaced_frame || h -> sps . pic_struct_present_flag ) {
+ if ( h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM || h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM_TOP ) cur -> f . top_field_first = 1 ;
+ else cur -> f . top_field_first = 0 ;
+ }
+ else {
+ cur -> f . top_field_first = 0 ;
+ }
+ }
+ cur -> mmco_reset = h -> mmco_reset ;
+ h -> mmco_reset = 0 ;
+ if ( h -> sps . bitstream_restriction_flag && h -> avctx -> has_b_frames < h -> sps . num_reorder_frames ) {
+ h -> avctx -> has_b_frames = h -> sps . num_reorder_frames ;
+ h -> low_delay = 0 ;
+ }
+ if ( h -> avctx -> strict_std_compliance >= FF_COMPLIANCE_STRICT && ! h -> sps . bitstream_restriction_flag ) {
+ h -> avctx -> has_b_frames = MAX_DELAYED_PIC_COUNT - 1 ;
+ h -> low_delay = 0 ;
+ }
+ for ( i = 0 ;
+ 1 ;
+ i ++ ) {
+ if ( i == MAX_DELAYED_PIC_COUNT || cur -> poc < h -> last_pocs [ i ] ) {
+ if ( i ) h -> last_pocs [ i - 1 ] = cur -> poc ;
+ break ;
+ }
+ else if ( i ) {
+ h -> last_pocs [ i - 1 ] = h -> last_pocs [ i ] ;
+ }
+ }
+ out_of_order = MAX_DELAYED_PIC_COUNT - i ;
+ if ( cur -> f . pict_type == AV_PICTURE_TYPE_B || ( h -> last_pocs [ MAX_DELAYED_PIC_COUNT - 2 ] > INT_MIN && h -> last_pocs [ MAX_DELAYED_PIC_COUNT - 1 ] - h -> last_pocs [ MAX_DELAYED_PIC_COUNT - 2 ] > 2 ) ) out_of_order = FFMAX ( out_of_order , 1 ) ;
+ if ( out_of_order == MAX_DELAYED_PIC_COUNT ) {
+ av_log ( h -> avctx , AV_LOG_VERBOSE , "Invalid POC %d<%d\n
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Picture * out = h -> cur_pic_ptr ;
+ Picture * cur = h -> cur_pic_ptr ;
+ int i , pics , out_of_order , out_idx ;
+ h -> cur_pic_ptr -> f . pict_type = h -> pict_type ;
+ if ( h -> next_output_pic ) return ;
+ if ( cur -> field_poc [ 0 ] == INT_MAX || cur -> field_poc [ 1 ] == INT_MAX ) {
+ return ;
+ }
+ cur -> f . interlaced_frame = 0 ;
+ cur -> f . repeat_pict = 0 ;
+ if ( h -> sps . pic_struct_present_flag ) {
+ switch ( h -> sei_pic_struct ) {
+ case SEI_PIC_STRUCT_FRAME : break ;
+ case SEI_PIC_STRUCT_TOP_FIELD : case SEI_PIC_STRUCT_BOTTOM_FIELD : cur -> f . interlaced_frame = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM : case SEI_PIC_STRUCT_BOTTOM_TOP : if ( FIELD_OR_MBAFF_PICTURE ( h ) ) cur -> f . interlaced_frame = 1 ;
+ else cur -> f . interlaced_frame = h -> prev_interlaced_frame ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM_TOP : case SEI_PIC_STRUCT_BOTTOM_TOP_BOTTOM : cur -> f . repeat_pict = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_DOUBLING : cur -> f . repeat_pict = 2 ;
+ break ;
+ ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { return ; }
+25769803779 | BLOCK | 
+        {
+ switch ( h -> sei_pic_struct ) {
+ case SEI_PIC_STRUCT_FRAME : break ;
+ case SEI_PIC_STRUCT_TOP_FIELD : case SEI_PIC_STRUCT_BOTTOM_FIELD : cur -> f . interlaced_frame = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM : case SEI_PIC_STRUCT_BOTTOM_TOP : if ( FIELD_OR_MBAFF_PICTURE ( h ) ) cur -> f . interlaced_frame = 1 ;
+ else cur -> f . interlaced_frame = h -> prev_interlaced_frame ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM_TOP : case SEI_PIC_STRUCT_BOTTOM_TOP_BOTTOM : cur -> f . repeat_pict = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_DOUBLING : cur -> f . repeat_pict = 2 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_TRIPLING : cur -> f . repeat_pict = 4 ;
+ break ;
+ }
+ if ( ( h -> sei_ct_type & 3 ) && h -> sei_pic_struct <= SEI_PIC_STRUCT_BOTTOM_TOP ) cur -> f . interlaced_frame = ( h -> sei_ct_type & ( 1 << 1 ) ) != 0 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case SEI_PIC_STRUCT_FRAME : break ;
+ case SEI_PIC_STRUCT_TOP_FIELD : case SEI_PIC_STRUCT_BOTTOM_FIELD : cur -> f . interlaced_frame = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM : case SEI_PIC_STRUCT_BOTTOM_TOP : if ( FIELD_OR_MBAFF_PICTURE ( h ) ) cur -> f . interlaced_frame = 1 ;
+ else cur -> f . interlaced_frame = h -> prev_interlaced_frame ;
+ break ;
+ case SEI_PIC_STRUCT_TOP_BOTTOM_TOP : case SEI_PIC_STRUCT_BOTTOM_TOP_BOTTOM : cur -> f . repeat_pict = 1 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_DOUBLING : cur -> f . repeat_pict = 2 ;
+ break ;
+ case SEI_PIC_STRUCT_FRAME_TRIPLING : cur -> f . repeat_pict = 4 ;
+ break ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { cur -> f . interlaced_frame = FIELD_OR_MBAFF_PICTURE ( h ) ; }
+25769803785 | BLOCK | 
+        {
+ cur -> f . top_field_first = cur -> field_poc [ 0 ] < cur -> field_poc [ 1 ] ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ if ( cur -> f . interlaced_frame || h -> sps . pic_struct_present_flag ) {
+ if ( h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM || h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM_TOP ) cur -> f . top_field_first = 1 ;
+ else cur -> f . top_field_first = 0 ;
+ }
+ else {
+ cur -> f . top_field_first = 0 ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ if ( h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM || h -> sei_pic_struct == SEI_PIC_STRUCT_TOP_BOTTOM_TOP ) cur -> f . top_field_first = 1 ;
+ else cur -> f . top_field_first = 0 ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | { cur -> f . top_field_first = 0 ; }
+25769803791 | BLOCK | 
+        {
+ h -> avctx -> has_b_frames = h -> sps . num_reorder_frames ;
+ h -> low_delay = 0 ;
+ }
+      
+25769803792 | BLOCK | 
+        {
+ h -> avctx -> has_b_frames = MAX_DELAYED_PIC_COUNT - 1 ;
+ h -> low_delay = 0 ;
+ }
+      
+25769803793 | BLOCK | 
+        {
+ if ( i == MAX_DELAYED_PIC_COUNT || cur -> poc < h -> last_pocs [ i ] ) {
+ if ( i ) h -> last_pocs [ i - 1 ] = cur -> poc ;
+ break ;
+ }
+ else if ( i ) {
+ h -> last_pocs [ i - 1 ] = h -> last_pocs [ i ] ;
+ }
+ }
+      
+25769803794 | BLOCK | { if ( i ) h -> last_pocs [ i - 1 ] = cur -> poc ; break ; }
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | { h -> last_pocs [ i - 1 ] = h -> last_pocs [ i ] ; }
+25769803798 | BLOCK | <empt
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

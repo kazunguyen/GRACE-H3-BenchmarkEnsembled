@@ -1,0 +1,261 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mpeg4_decode_partition_a ( MpegEncContext * s ) {
+ int mb_num ;
+ static const int8_t quant_tab [ 4 ] = {
+ - 1 , - 2 , 1 , 2 }
+ ;
+ mb_num = 0 ;
+ s -> first_slice_line = 1 ;
+ for ( ;
+ s -> mb_y < s -> mb_height ;
+ s -> mb_y ++ ) {
+ ff_init_block_index ( s ) ;
+ for ( ;
+ s -> mb_x < s -> mb_width ;
+ s -> mb_x ++ ) {
+ const int xy = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int cbpc ;
+ int dir = 0 ;
+ mb_num ++ ;
+ ff_update_block_index ( s ) ;
+ if ( s -> mb_x == s -> resync_mb_x && s -> mb_y == s -> resync_mb_y + 1 ) s -> first_slice_line = 0 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_I ) {
+ int i ;
+ do {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_intra_MCBPC_vlc . table , INTRA_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ }
+ while ( cbpc == 8 ) ;
+ s -> cbp_table [ xy ] = cbpc & 3 ;
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mb_intra = 1 ;
+ if ( cbpc & 4 ) {
+ ff_set_qscale ( s , s -> qscale + quant_tab [ get_bits ( & s -> gb , 2 ) ] ) ;
+ }
+ s -> current_picture . f . qscale_table [ xy ] = s -> qscale ;
+ s -> mbintra_table [ xy ] = 1 ;
+ for ( i = 0 ;
+ i < 6 ;
+ i ++ ) {
+ int dc_pred_dir ;
+ int dc = mpeg4_decode_dc ( s , i , & dc_pred_dir ) ;
+ if ( dc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "DC corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ dir <<= 1 ;
+ if ( dc_pred_dir ) dir |= 1 ;
+ }
+ s -> pred_dir_table [ xy ] = dir ;
+ }
+ else {
+ int mx , my , pred_x , pred_y , bits ;
+ int16_t * const mot_val = s -> current_picture . f . motion_val [ 0 ] [ s -> block_index [ 0 ] ] ;
+ const int stride = s -> b8_stride * 2 ;
+ try_again : bits = show_bits ( & s -> gb , 17 ) ;
+ if ( bits == MOTION_MARKER ) {
+ return mb_num - 1 ;
+ }
+ skip_bits1 ( & s -> gb ) ;
+ if ( bits & 0x10000 ) {
+ if ( s -> pict_type == AV_PICTURE_TYPE_S && s -> vol_sprite_usage == GMC_SPRITE ) {
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_SKIP | MB_TYPE_16x16 | MB_TYPE_GMC | MB_TYPE_L0 ;
+ mx = get_amv ( s , 0 ) ;
+ my = get_amv ( s , 1 ) ;
+ }
+ else {
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_SKIP | MB_TYPE_16x16 | MB_TYPE_L0 ;
+ mx = my = 0 ;
+ }
+ mot_val [ 0 ] = mot_val [ 2 ] = mot_val [ 0 + stride ] = mot_val [ 2 + stride ] = mx ;
+ mot_val [ 1 ] = mot_val [ 3 ] = mot_val [ 1 + stride ] = mot_val [ 3 + stride ] = my ;
+ if ( s -> mbintra_table [ xy ] ) ff_clean_intra_table_entries ( s ) ;
+ continue ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_inter_MCBPC_vlc . table , INTER_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ if ( cbpc == 20 ) goto try_again ;
+ s -> cbp_table [ xy ] = cbpc & ( 8 + 3 ) ;
+ s -> mb_intra = ( ( cbpc & 4 ) != 0 ) ;
+ if ( s -> mb_intra ) {
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mbintra_tab
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int mb_num ;
+ static const int8_t quant_tab [ 4 ] = {
+ - 1 , - 2 , 1 , 2 }
+ ;
+ mb_num = 0 ;
+ s -> first_slice_line = 1 ;
+ for ( ;
+ s -> mb_y < s -> mb_height ;
+ s -> mb_y ++ ) {
+ ff_init_block_index ( s ) ;
+ for ( ;
+ s -> mb_x < s -> mb_width ;
+ s -> mb_x ++ ) {
+ const int xy = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int cbpc ;
+ int dir = 0 ;
+ mb_num ++ ;
+ ff_update_block_index ( s ) ;
+ if ( s -> mb_x == s -> resync_mb_x && s -> mb_y == s -> resync_mb_y + 1 ) s -> first_slice_line = 0 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_I ) {
+ int i ;
+ do {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_intra_MCBPC_vlc . table , INTRA_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ }
+ while ( cbpc == 8 ) ;
+ s -> cbp_table [ xy ] = cbpc & 3 ;
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mb_in...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ ff_init_block_index ( s ) ;
+ for ( ;
+ s -> mb_x < s -> mb_width ;
+ s -> mb_x ++ ) {
+ const int xy = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int cbpc ;
+ int dir = 0 ;
+ mb_num ++ ;
+ ff_update_block_index ( s ) ;
+ if ( s -> mb_x == s -> resync_mb_x && s -> mb_y == s -> resync_mb_y + 1 ) s -> first_slice_line = 0 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_I ) {
+ int i ;
+ do {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_intra_MCBPC_vlc . table , INTRA_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ }
+ while ( cbpc == 8 ) ;
+ s -> cbp_table [ xy ] = cbpc & 3 ;
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mb_intra = 1 ;
+ if ( cbpc & 4 ) {
+ ff_set_qscale ( s , s -> qscale + quant_tab [ get_bits ( & s -> gb , 2 ) ] ) ;
+ }
+ s -> current_picture . f . qscale_table [ xy ] = s -> qscale ;
+ s ...
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ const int xy = s -> mb_x + s -> mb_y * s -> mb_stride ;
+ int cbpc ;
+ int dir = 0 ;
+ mb_num ++ ;
+ ff_update_block_index ( s ) ;
+ if ( s -> mb_x == s -> resync_mb_x && s -> mb_y == s -> resync_mb_y + 1 ) s -> first_slice_line = 0 ;
+ if ( s -> pict_type == AV_PICTURE_TYPE_I ) {
+ int i ;
+ do {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_intra_MCBPC_vlc . table , INTRA_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ }
+ while ( cbpc == 8 ) ;
+ s -> cbp_table [ xy ] = cbpc & 3 ;
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mb_intra = 1 ;
+ if ( cbpc & 4 ) {
+ ff_set_qscale ( s , s -> qscale + quant_tab [ get_bits ( & s -> gb , 2 ) ] ) ;
+ }
+ s -> current_picture . f . qscale_table [ xy ] = s -> qscale ;
+ s -> mbintra_table [ xy ] = 1 ;
+ for ( i = 0 ;
+ i < 6 ;
+ i ++ ) {
+ int dc_pred_dir ;
+ i...
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ int i ;
+ do {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_intra_MCBPC_vlc . table , INTRA_MCBPC_VLC_BITS , 2 ) ;
+ if ( cbpc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "cbpc corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ }
+ while ( cbpc == 8 ) ;
+ s -> cbp_table [ xy ] = cbpc & 3 ;
+ s -> current_picture . f . mb_type [ xy ] = MB_TYPE_INTRA ;
+ s -> mb_intra = 1 ;
+ if ( cbpc & 4 ) {
+ ff_set_qscale ( s , s -> qscale + quant_tab [ get_bits ( & s -> gb , 2 ) ] ) ;
+ }
+ s -> current_picture . f . qscale_table [ xy ] = s -> qscale ;
+ s -> mbintra_table [ xy ] = 1 ;
+ for ( i = 0 ;
+ i < 6 ;
+ i ++ ) {
+ int dc_pred_dir ;
+ int dc = mpeg4_decode_dc ( s , i , & dc_pred_dir ) ;
+ if ( dc < 0 ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "DC corrupted at %d %d\n" , s -> mb_x , s -> mb_y ) ;
+ return - 1 ;
+ }
+ dir <<= 1 ;
+ if ( dc_pred_dir ) dir |= 1 ;
+ }
+ s -> pred_dir_table [ xy ] = dir ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ if ( show_bits_long ( & s -> gb , 19 ) == DC_MARKER ) {
+ return mb_num - 1 ;
+ }
+ cbpc = get_vlc2 ( & s -> gb , ff_h263_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

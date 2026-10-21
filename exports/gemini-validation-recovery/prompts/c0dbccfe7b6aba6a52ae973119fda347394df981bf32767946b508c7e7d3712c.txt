@@ -1,0 +1,208 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+char * add_var ( struct ctl_var * * kv , u_long size , u_short def ) {
+ u_short c ;
+ struct ctl_var * k ;
+ char * buf ;
+ c = count_var ( * kv ) ;
+ * kv = erealloc ( * kv , ( c + 2 ) * sizeof ( * * kv ) ) ;
+ k = * kv ;
+ buf = emalloc ( size ) ;
+ k [ c ] . code = c ;
+ k [ c ] . text = buf ;
+ k [ c ] . flags = def ;
+ k [ c + 1 ] . code = 0 ;
+ k [ c + 1 ] . text = NULL ;
+ k [ c + 1 ] . flags = EOV ;
+ return buf ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ u_short c ;
+ struct ctl_var * k ;
+ char * buf ;
+ c = count_var ( * kv ) ;
+ * kv = erealloc ( * kv , ( c + 2 ) * sizeof ( * * kv ) ) ;
+ k = * kv ;
+ buf = emalloc ( size ) ;
+ k [ c ] . code = c ;
+ k [ c ] . text = buf ;
+ k [ c ] . flags = def ;
+ k [ c + 1 ] . code = 0 ;
+ k [ c + 1 ] . text = NULL ;
+ k [ c + 1 ] . flags = EOV ;
+ return buf ;
+ }
+      
+30064771072 | CALL | c = count_var ( * kv )
+30064771073 | CALL | count_var ( * kv )
+30064771074 | CALL | * kv
+30064771075 | CALL | * kv = erealloc ( * kv , ( c + 2 ) * sizeof ( * * kv ) )
+30064771076 | CALL | * kv
+30064771077 | CALL | erealloc ( * kv , ( c + 2 ) * sizeof ( * * kv ) )
+30064771078 | CALL | * kv
+30064771079 | CALL | ( c + 2 ) * sizeof ( * * kv )
+30064771080 | CALL | c + 2
+30064771081 | CALL | sizeof ( * * kv )
+30064771082 | CALL | * * kv
+30064771083 | CALL | * kv
+30064771084 | CALL | k = * kv
+30064771085 | CALL | * kv
+30064771086 | CALL | buf = emalloc ( size )
+30064771087 | CALL | emalloc ( size )
+30064771088 | CALL | k [ c ] . code = c
+30064771089 | CALL | k [ c ] . code
+30064771090 | CALL | k [ c ]
+30064771091 | CALL | k [ c ] . text = buf
+30064771092 | CALL | k [ c ] . text
+30064771093 | CALL | k [ c ]
+30064771094 | CALL | k [ c ] . flags = def
+30064771095 | CALL | k [ c ] . flags
+30064771096 | CALL | k [ c ]
+30064771097 | CALL | k [ c + 1 ] . code = 0
+30064771098 | CALL | k [ c + 1 ] . code
+30064771099 | CALL | k [ c + 1 ]
+30064771100 | CALL | c + 1
+30064771101 | CALL | k [ c + 1 ] . text = NULL
+30064771102 | CALL | k [ c + 1 ] . text
+30064771103 | CALL | k [ c + 1 ]
+30064771104 | CALL | c + 1
+30064771105 | CALL | k [ c + 1 ] . flags = EOV
+30064771106 | CALL | k [ c + 1 ] . flags
+30064771107 | CALL | k [ c + 1 ]
+30064771108 | CALL | c + 1
+55834574848 | FIELD_IDENTIFIER | code
+55834574849 | FIELD_IDENTIFIER | text
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771078 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771085 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771089 -> 30064771090 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void set_var ( struct ctl_var * * kv , const char * data , u_long size , u_short def ) {
+ struct ctl_var * k ;
+ const char * s ;
+ const char * t ;
+ char * td ;
+ if ( NULL == data || ! size ) return ;
+ k = * kv ;
+ if ( k != NULL ) {
+ while ( ! ( EOV & k -> flags ) ) {
+ if ( NULL == k -> text ) {
+ td = emalloc ( size ) ;
+ memcpy ( td , data , size ) ;
+ k -> text = td ;
+ k -> flags = def ;
+ return ;
+ }
+ else {
+ s = data ;
+ t = k -> text ;
+ while ( * t != '=' && * s == * t ) {
+ s ++ ;
+ t ++ ;
+ }
+ if ( * s == * t && ( ( * t == '=' ) || ! * t ) ) {
+ td = erealloc ( ( void * ) ( intptr_t ) k -> text , size ) ;
+ memcpy ( td , data , size ) ;
+ k -> text = td ;
+ k -> flags = def ;
+ return ;
+ }
+ }
+ k ++ ;
+ }
+ }
+ td = add_var ( kv , size , def ) ;
+ memcpy ( td , data , size ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

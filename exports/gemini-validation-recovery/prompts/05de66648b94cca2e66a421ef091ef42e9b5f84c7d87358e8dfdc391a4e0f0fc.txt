@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint iax_circuit_lookup ( const address * address_p , port_type ptype , guint32 port , guint32 callno ) {
+ iax_circuit_key key ;
+ guint32 * circuit_id_p ;
+ key . addr = * address_p ;
+ key . ptype = ptype ;
+ key . port = port ;
+ key . callno = callno ;
+ circuit_id_p = ( guint32 * ) g_hash_table_lookup ( iax_circuit_hashtab , & key ) ;
+ if ( ! circuit_id_p ) {
+ iax_circuit_key * new_key ;
+ new_key = wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ new_key -> addr . type = address_p -> type ;
+ new_key -> addr . len = MIN ( address_p -> len , MAX_ADDRESS ) ;
+ new_key -> addr . data = new_key -> address_data ;
+ memcpy ( new_key -> address_data , address_p -> data , new_key -> addr . len ) ;
+ new_key -> ptype = ptype ;
+ new_key -> port = port ;
+ new_key -> callno = callno ;
+ circuit_id_p = ( guint32 * ) wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ * circuit_id_p = ++ circuitcount ;
+ g_hash_table_insert ( iax_circuit_hashtab , new_key , circuit_id_p ) ;
+ # ifdef DEBUG_HASHING g_debug ( "Created new circuit id %u for node %s" , * circuit_id_p , key_to_str ( new_key ) ) ;
+ # endif }
+ return * circuit_id_p ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ iax_circuit_key key ;
+ guint32 * circuit_id_p ;
+ key . addr = * address_p ;
+ key . ptype = ptype ;
+ key . port = port ;
+ key . callno = callno ;
+ circuit_id_p = ( guint32 * ) g_hash_table_lookup ( iax_circuit_hashtab , & key ) ;
+ if ( ! circuit_id_p ) {
+ iax_circuit_key * new_key ;
+ new_key = wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ new_key -> addr . type = address_p -> type ;
+ new_key -> addr . len = MIN ( address_p -> len , MAX_ADDRESS ) ;
+ new_key -> addr . data = new_key -> address_data ;
+ memcpy ( new_key -> address_data , address_p -> data , new_key -> addr . len ) ;
+ new_key -> ptype = ptype ;
+ new_key -> port = port ;
+ new_key -> callno = callno ;
+ circuit_id_p = ( guint32 * ) wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ * circuit_id_p = ++ circuitcount ;
+ g_hash_table_insert ( iax_circuit_hashtab , new_key , circuit_id_p ) ;
+ # ifdef DEBUG_HASHING g_debug ( "Created new circuit id %u for node %s" , * circuit_id_p , key_to_str ( new_key ) ) ;
+ # endi...
+      
+30064771072 | CALL | key . addr = * address_p
+30064771073 | CALL | key . addr
+30064771074 | CALL | * address_p
+30064771075 | CALL | key . ptype = ptype
+30064771076 | CALL | key . ptype
+30064771077 | CALL | key . port = port
+30064771078 | CALL | key . port
+30064771079 | CALL | key . callno = callno
+30064771080 | CALL | key . callno
+30064771081 | CALL | 
+        circuit_id_p = ( guint32 * ) g_hash_table_lookup ( iax_circuit_hashtab , & key )
+      
+30064771082 | CALL | ( guint32 * ) g_hash_table_lookup ( iax_circuit_hashtab , & key )
+30064771083 | CALL | g_hash_table_lookup ( iax_circuit_hashtab , & key )
+30064771084 | CALL | & key
+55834574848 | FIELD_IDENTIFIER | addr
+55834574849 | FIELD_IDENTIFIER | ptype
+55834574850 | FIELD_IDENTIFIER | port
+55834574851 | FIELD_IDENTIFIER | callno
+68719476736 | IDENTIFIER | key
+68719476737 | IDENTIFIER | address_p
+68719476738 | IDENTIFIER | key
+68719476739 | IDENTIFIER | ptype
+68719476740 | IDENTIFIER | key
+68719476741 | IDENTIFIER | port
+68719476742 | IDENTIFIER | key
+68719476743 | IDENTIFIER | callno
+68719476744 | IDENTIFIER | circuit_id_p
+68719476745 | IDENTIFIER | <unknown> iax_circuit_hashtab
+68719476746 | IDENTIFIER | key
+94489280512 | LOCAL | iax_circuit_key key
+94489280513 | LOCAL | guint32 * circuit_id_p
+94489280514 | LOCAL | <unknown> iax_circuit_hashtab
+107374182400 | METHOD | 
+        static guint iax_circuit_lookup ( const address * address_p , port_type ptype , guint32 port , guint32 callno ) {
+ iax_circuit_key key ;
+ guint32 * circuit_id_p ;
+ key . addr = * address_p ;
+ key . ptype = ptype ;
+ key . port = port ;
+ key . callno = callno ;
+ circuit_id_p = ( guint32 * ) g_hash_table_lookup ( iax_circuit_hashtab , & key ) ;
+ if ( ! circuit_id_p ) {
+ iax_circuit_key * new_key ;
+ new_key = wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ new_key -> addr . type = address_p -> type ;
+ new_key -> addr . len = MIN ( address_p -> len , MAX_ADDRESS ) ;
+ new_key -> addr . data = new_key -> address_data ;
+ memcpy ( new_key -> address_data , address_p -> data , new_key -> addr . len ) ;
+ new_key -> ptype = ptype ;
+ new_key -> port = port ;
+ new_key -> callno = callno ;
+ circuit_id_p = ( guint32 * ) wmem_new ( wmem_file_scope ( ) , iax_circuit_key ) ;
+ * circuit_id_p = ++ circuitcount ;
+ g_hash_table_insert ( iax_circuit_hashtab , new_key , circuit_id_p ) ;
+ # ifdef DEBUG...
+      
+111669149696 | METHOD_PARAMETER_IN | const address * address_p
+111669149697 | METHOD_PARAMETER_IN | port_type ptype
+111669149698 | METHOD_PARAMETER_IN | guint32 port
+111669149699 | METHOD_PARAMETER_IN | guint32 callno
+115964116992 | METHOD_PARAMETER_OUT | const address * address_p
+115964116993 | METHOD_PARAMETER_OUT | port_type ptype
+115964116994 | METHOD_PARAMETER_OUT | guint32 port
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 68719476737 [CFG]
+30064771073 -> 68719476737 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476742 [REACHING_DEF]
+30064771073 -> 68719476746 [REACHING_DEF]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476738 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 115964116992 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 68719476739 [CFG]
+30064771076 -> 68719476739 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 68719476746 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 68719476742 [CFG]
+30064771077 -> 68719476742 [DOMINATE]
+30064771077 -> 68719476741 [POST_DOMINATE]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 68719476741 [CFG]
+30064771078 -> 68719476741 [DOMINATE]
+3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

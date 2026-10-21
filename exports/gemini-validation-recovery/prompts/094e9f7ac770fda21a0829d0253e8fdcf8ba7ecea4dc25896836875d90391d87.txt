@@ -1,0 +1,337 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int url_alloc_for_protocol (URLContext **puc, struct URLProtocol *up,
+
+                                   const char *filename, int flags,
+
+                                   const AVIOInterruptCB *int_cb)
+
+{
+
+    URLContext *uc;
+
+    int err;
+
+
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK && !ff_network_init())
+
+        return AVERROR(EIO);
+
+#endif
+
+    if ((flags & AVIO_FLAG_READ) && !up->url_read) {
+
+        av_log(NULL, AV_LOG_ERROR,
+
+               "Impossible to open the '%s' protocol for reading\n", up->name);
+
+        return AVERROR(EIO);
+
+
+    if ((flags & AVIO_FLAG_WRITE) && !up->url_write) {
+
+        av_log(NULL, AV_LOG_ERROR,
+
+               "Impossible to open the '%s' protocol for writing\n", up->name);
+
+        return AVERROR(EIO);
+
+
+    uc = av_mallocz(sizeof(URLContext) + strlen(filename) + 1);
+
+    if (!uc) {
+
+
+
+
+    uc->av_class = &ffurl_context_class;
+
+    uc->filename = (char *) &uc[1];
+
+    strcpy(uc->filename, filename);
+
+    uc->prot = up;
+
+    uc->flags = flags;
+
+    uc->is_streamed = 0; /* default = not streamed */
+
+    uc->max_packet_size = 0; /* default: stream file */
+
+    if (up->priv_data_size) {
+
+        uc->priv_data = av_mallocz(up->priv_data_size);
+
+
+
+
+
+        if (up->priv_data_class) {
+
+            int proto_len= strlen(up->name);
+
+            char *start = strchr(uc->filename, ',');
+
+            *(const AVClass**)uc->priv_data = up->priv_data_class;
+
+            av_opt_set_defaults(uc->priv_data);
+
+            if(!strncmp(up->name, uc->filename, proto_len) && uc->filename + proto_len == start){
+
+                int ret= 0;
+
+                char *p= start;
+
+                char sep= *++p;
+
+                char *key, *val;
+
+                p++;
+
+                while(ret >= 0 && (key= strchr(p, sep)) && p<key && (val = strchr(key+1, sep))){
+
+                    *val= *key= 0;
+
+                    ret= av_opt_set(uc->priv_data, p, key+1, 0);
+
+                    if (ret == AVERROR_OPTION_NOT_FOUND)
+
+                        av_log(uc, AV_LOG_ERROR, "Key '%s' not found.\n", p);
+
+                    *val= *key= sep;
+
+                    p= val+1;
+
+
+                if(ret<0 || p!=key){
+
+                    av_log(uc, AV_LOG_ERROR, "Error parsing options string %s\n", start);
+
+                    av_freep(&uc->priv_data);
+
+                    av_freep(&uc);
+
+                    err = AVERROR(EINVAL);
+
+
+
+                memmove(start, key+1, strlen(key));
+
+
+
+
+    if (int_cb)
+
+        uc->interrupt_callback = *int_cb;
+
+
+
+    *puc = uc;
+
+    return 0;
+
+ fail:
+
+    *puc = NULL;
+
+    if (uc)
+
+        av_freep(&uc->priv_data);
+
+    av_freep(&uc);
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK)
+
+        ff_network_close();
+
+#endif
+
+    return err;
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 20 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+15 -> 21 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+13 -> 27 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 34 [IS_AST_PARENT]
+3 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+36 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+36 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 51 [IS_AST_PARENT]
+36 -> 49 [IS_AST_PARENT]
+3 -> 36 [IS_AST_PARENT]
+52 -> 37 [FLOWS_TO]
+37 -> 40 [FLOWS_TO]
+40 -> 43 [FLOWS_TO]
+43 -> 46 [FLOWS_TO]
+46 -> 49 [FLOWS_TO]
+49 -> 5 [FLOWS_TO]
+5 -> 9 [FLOWS_TO]
+9 -> 14 [FLOWS_TO]
+14 -> 27 [FLOWS_TO]
+14 -> 53 [FLOWS_TO]
+27 -> 53 [FLOWS_TO]
+14 -> 54 [USE]
+14 -> 55 [USE]
+9 -> 56 [DEF]
+10 -> 56 [DEF]
+46 -> 57 [DEF]
+14 -> 58 [USE]
+27 -> 59 [USE]
+32 -> 59 [USE]
+5 -> 60 [DEF]
+6 -> 60 [DEF]
+43 -> 61 [DEF]
+40 -> 62 [DEF]
+14 -> 62 [USE]
+17 -> 62 [USE]
+27 -> 63 [USE]
+14 -> 64 [USE]
+49 -> 65 [DEF]
+37 -> 66 [DEF]
+40 -> 14 [REACHES]
+52 -> 37 [CONTROLS]
+52 -> 40 [CONTROLS]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int url_alloc_for_protocol(URLContext **puc, struct URLProtocol *up,
+
+                                  const char *filename, int flags,
+
+                                  const AVIOInterruptCB *int_cb)
+
+{
+
+    URLContext *uc;
+
+    int err;
+
+
+
+#if CONFIG_NETWORK
+
+    if (up->flags & URL_PROTOCOL_FLAG_NETWORK && !ff_network_init())
+
+        return AVERROR(EIO);
+
+#endif
+
+    if ((flags & AVIO_FLAG_READ) && !up->url_read) {
+
+        av_log(NULL, AV_LOG_ERROR,
+
+               "Impossible to open the '%s' protocol for reading\n", up->name);
+
+        return AVERROR(EIO);
+
+    }
+
+    if ((flags & AVIO_FLAG_WRITE) && !up->url_write) {
+
+        av_log(NULL, AV_LOG_ERROR,
+
+               "Impossible to open the '%s' protocol for writing\n", up->name);
+
+        return AVERROR(EIO);
+
+    }
+
+    uc = av_mallocz(sizeof(URLContext) + strlen(filename) + 1);
+
+    if (!uc) {
+
+        err = AVERROR(ENOMEM);
+
+        goto fail;
+
+    }
+
+    uc->av_class = &ffurl_context_class;
+
+    uc->filename = (char *)&uc[1];
+
+    strcpy(uc->filename, filename);
+
+    uc->prot            = up;
+
+    uc->flags           = flags;
+
+    uc->is_streamed     = 0; /* default = not streamed */
+
+    uc->max_packet_size = 0; /* default: stream file */
+
+    if (up->priv_data_size) {
+
+        uc->priv_data = av_mallocz(up->priv_data_size);
+
+        if (!uc->priv_data) {
+
+            err = AVERROR(ENOMEM);
+
+            goto fail;
+
+        }
+
+        if (up->priv_data_class) {
+
+            int proto_len= strlen(up->nam
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

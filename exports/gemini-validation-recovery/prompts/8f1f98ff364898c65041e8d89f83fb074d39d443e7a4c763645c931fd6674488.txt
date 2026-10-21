@@ -1,0 +1,227 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void rpc_test ( void ) {
+ struct msg * msg , * msg2 ;
+ struct kill * attack ;
+ struct run * run ;
+ struct evbuffer * tmp = evbuffer_new ( ) ;
+ struct timeval tv_start , tv_end ;
+ uint32_t tag ;
+ int i ;
+ fprintf ( stdout , "Testing RPC: " ) ;
+ msg = msg_new ( ) ;
+ EVTAG_ASSIGN ( msg , from_name , "niels" ) ;
+ EVTAG_ASSIGN ( msg , to_name , "phoenix" ) ;
+ if ( EVTAG_GET ( msg , attack , & attack ) == - 1 ) {
+ fprintf ( stderr , "Failed to set kill message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ EVTAG_ASSIGN ( attack , weapon , "feather" ) ;
+ EVTAG_ASSIGN ( attack , action , "tickle" ) ;
+ evutil_gettimeofday ( & tv_start , NULL ) ;
+ for ( i = 0 ;
+ i < 1000 ;
+ ++ i ) {
+ run = EVTAG_ADD ( msg , run ) ;
+ if ( run == NULL ) {
+ fprintf ( stderr , "Failed to add run message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ EVTAG_ASSIGN ( run , how , "very fast but with some data in it" ) ;
+ EVTAG_ASSIGN ( run , fixed_bytes , ( unsigned char * ) "012345678901234567890123" ) ;
+ }
+ if ( msg_complete ( msg ) == - 1 ) {
+ fprintf ( stderr , "Failed to make complete message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ evtag_marshal_msg ( tmp , 0xdeaf , msg ) ;
+ if ( evtag_peek ( tmp , & tag ) == - 1 ) {
+ fprintf ( stderr , "Failed to peak tag.\n" ) ;
+ exit ( 1 ) ;
+ }
+ if ( tag != 0xdeaf ) {
+ fprintf ( stderr , "Got incorrect tag: %0x.\n" , tag ) ;
+ exit ( 1 ) ;
+ }
+ msg2 = msg_new ( ) ;
+ if ( evtag_unmarshal_msg ( tmp , 0xdeaf , msg2 ) == - 1 ) {
+ fprintf ( stderr , "Failed to unmarshal message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ evutil_gettimeofday ( & tv_end , NULL ) ;
+ evutil_timersub ( & tv_end , & tv_start , & tv_end ) ;
+ fprintf ( stderr , "(%.1f us/add) " , ( float ) tv_end . tv_sec / ( float ) i * 1000000.0 + tv_end . tv_usec / ( float ) i ) ;
+ if ( ! EVTAG_HAS ( msg2 , from_name ) || ! EVTAG_HAS ( msg2 , to_name ) || ! EVTAG_HAS ( msg2 , attack ) ) {
+ fprintf ( stderr , "Missing data structures.\n" ) ;
+ exit ( 1 ) ;
+ }
+ if ( EVTAG_LEN ( msg2 , run ) != i ) {
+ fprintf ( stderr , "Wrong number of run messages.\n" ) ;
+ exit ( 1 ) ;
+ }
+ msg_free ( msg ) ;
+ msg_free ( msg2 ) ;
+ evbuffer_free ( tmp ) ;
+ fprintf ( stdout , "OK\n" ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct msg * msg , * msg2 ;
+ struct kill * attack ;
+ struct run * run ;
+ struct evbuffer * tmp = evbuffer_new ( ) ;
+ struct timeval tv_start , tv_end ;
+ uint32_t tag ;
+ int i ;
+ fprintf ( stdout , "Testing RPC: " ) ;
+ msg = msg_new ( ) ;
+ EVTAG_ASSIGN ( msg , from_name , "niels" ) ;
+ EVTAG_ASSIGN ( msg , to_name , "phoenix" ) ;
+ if ( EVTAG_GET ( msg , attack , & attack ) == - 1 ) {
+ fprintf ( stderr , "Failed to set kill message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ EVTAG_ASSIGN ( attack , weapon , "feather" ) ;
+ EVTAG_ASSIGN ( attack , action , "tickle" ) ;
+ evutil_gettimeofday ( & tv_start , NULL ) ;
+ for ( i = 0 ;
+ i < 1000 ;
+ ++ i ) {
+ run = EVTAG_ADD ( msg , run ) ;
+ if ( run == NULL ) {
+ fprintf ( stderr , "Failed to add run message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ EVTAG_ASSIGN ( run , how , "very fast but with some data in it" ) ;
+ EVTAG_ASSIGN ( run , fixed_bytes , ( unsigned char * ) "012345678901234567890123" ) ;
+ }
+ if ( msg_complete ( msg ) == - 1 ) {
+ fprintf ( stderr , "Failed to make...
+      
+25769803777 | BLOCK | { fprintf ( stderr , "Failed to set kill message.\n" ) ; exit ( 1 ) ; }
+25769803778 | BLOCK | 
+        {
+ run = EVTAG_ADD ( msg , run ) ;
+ if ( run == NULL ) {
+ fprintf ( stderr , "Failed to add run message.\n" ) ;
+ exit ( 1 ) ;
+ }
+ EVTAG_ASSIGN ( run , how , "very fast but with some data in it" ) ;
+ EVTAG_ASSIGN ( run , fixed_bytes , ( unsigned char * ) "012345678901234567890123" ) ;
+ }
+      
+25769803779 | BLOCK | { fprintf ( stderr , "Failed to add run message.\n" ) ; exit ( 1 ) ; }
+25769803780 | BLOCK | 
+        {
+ fprintf ( stderr , "Failed to make complete message.\n" ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803781 | BLOCK | { fprintf ( stderr , "Failed to peak tag.\n" ) ; exit ( 1 ) ; }
+25769803782 | BLOCK | 
+        {
+ fprintf ( stderr , "Got incorrect tag: %0x.\n" , tag ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803783 | BLOCK | { fprintf ( stderr , "Failed to unmarshal message.\n" ) ; exit ( 1 ) ; }
+25769803784 | BLOCK | { fprintf ( stderr , "Missing data structures.\n" ) ; exit ( 1 ) ; }
+25769803785 | BLOCK | 
+        {
+ fprintf ( stderr , "Wrong number of run messages.\n" ) ;
+ exit ( 1 ) ;
+ }
+      
+30064771072 | CALL | tmp = evbuffer_new ( )
+30064771073 | CALL | evbuffer_new ( )
+30064771074 | CALL | fprintf ( stdout , "Testing RPC: " )
+30064771075 | CALL | msg = msg_new ( )
+30064771076 | CALL | msg_new ( )
+30064771077 | CALL | EVTAG_ASSIGN ( msg , from_name , "niels" )
+30064771078 | CALL | EVTAG_ASSIGN ( msg , to_name , "phoenix" )
+30064771079 | CALL | EVTAG_GET ( msg , attack , & attack ) == - 1
+30064771080 | CALL | EVTAG_GET ( msg , attack , & attack )
+30064771081 | CALL | & attack
+30064771082 | CALL | - 1
+30064771083 | CALL | fprintf ( stderr , "Failed to set kill message.\n" )
+30064771084 | CALL | exit ( 1 )
+30064771085 | CALL | EVTAG_ASSIGN ( attack , weapon , "feather" )
+30064771086 | CALL | EVTAG_ASSIGN ( attack , action , "tickle" )
+30064771087 | CALL | evutil_gettimeofday ( & tv_start , NULL )
+30064771088 | CALL | & tv_start
+30064771089 | CALL | i = 0
+30064771090 | CALL | i < 1000
+30064771091 | CALL | ++ i
+30064771092 | CALL | run = EVTAG_ADD ( msg , run )
+30064771093 | CALL | EVTAG_ADD ( msg , run )
+30064771094 | CALL | run == NULL
+30064771095 | CALL | fprintf ( stderr , "Failed to add run message.\n" )
+30064771096 | CALL | exit ( 1 )
+30064771097 | CALL | EVTAG_ASSIGN ( run , how , "very fast but with some data in it" )
+30064771098 | CALL | 
+        EVTAG_ASSIGN ( run , fixed_bytes , ( unsigned char * ) "012345678901234567890123" )
+      
+30064771099 | CALL | ( unsigned char * ) "012345678901234567890123"
+30064771100 | CALL | msg_complete ( msg ) == - 1
+30064771101 | CALL | msg_complete ( msg )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771084 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771098 [AST]
+25769803779 -> 30064771095 [AST]
+25769803779 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771082 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771082 [AST]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771079 [CFG]
+30064771082 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

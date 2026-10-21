@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void choose_intra_uv_mode ( VP9_COMP * cpi , PICK_MODE_CONTEXT * ctx , BLOCK_SIZE bsize , TX_SIZE max_tx_size , int * rate_uv , int * rate_uv_tokenonly , int64_t * dist_uv , int * skip_uv , PREDICTION_MODE * mode_uv ) {
+ MACROBLOCK * const x = & cpi -> mb ;
+ if ( cpi -> sf . use_uv_intra_rd_estimate ) {
+ rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize ) ;
+ }
+ else {
+ rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size ) ;
+ }
+ * mode_uv = x -> e_mbd . mi [ 0 ] -> mbmi . uv_mode ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MACROBLOCK * const x = & cpi -> mb ;
+ if ( cpi -> sf . use_uv_intra_rd_estimate ) {
+ rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize ) ;
+ }
+ else {
+ rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size ) ;
+ }
+ * mode_uv = x -> e_mbd . mi [ 0 ] -> mbmi . uv_mode ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size ) ;
+ }
+      
+30064771072 | CALL | const x = & cpi -> mb
+30064771073 | CALL | & cpi -> mb
+30064771074 | CALL | cpi -> mb
+30064771075 | CALL | cpi -> sf . use_uv_intra_rd_estimate
+30064771076 | CALL | cpi -> sf
+30064771077 | CALL | 
+        rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize )
+      
+30064771078 | CALL | bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize
+30064771079 | CALL | bsize < BLOCK_8X8
+30064771080 | CALL | 
+        rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size )
+      
+30064771081 | CALL | bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize
+30064771082 | CALL | bsize < BLOCK_8X8
+30064771083 | CALL | * mode_uv = x -> e_mbd . mi [ 0 ] -> mbmi . uv_mode
+30064771084 | CALL | * mode_uv
+30064771085 | CALL | x -> e_mbd . mi [ 0 ] -> mbmi . uv_mode
+30064771086 | CALL | x -> e_mbd . mi [ 0 ] -> mbmi
+30064771087 | CALL | x -> e_mbd . mi [ 0 ]
+30064771088 | CALL | x -> e_mbd . mi
+30064771089 | CALL | x -> e_mbd
+47244640256 | CONTROL_STRUCTURE | 
+        if ( cpi -> sf . use_uv_intra_rd_estimate ) {
+ rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize ) ;
+ }
+ else {
+ rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | mb
+55834574849 | FIELD_IDENTIFIER | sf
+55834574850 | FIELD_IDENTIFIER | use_uv_intra_rd_estimate
+55834574851 | FIELD_IDENTIFIER | e_mbd
+55834574852 | FIELD_IDENTIFIER | mi
+55834574853 | FIELD_IDENTIFIER | mbmi
+55834574854 | FIELD_IDENTIFIER | uv_mode
+68719476736 | IDENTIFIER | x
+68719476737 | IDENTIFIER | cpi
+68719476738 | IDENTIFIER | cpi
+68719476739 | IDENTIFIER | cpi
+68719476740 | IDENTIFIER | x
+68719476741 | IDENTIFIER | rate_uv
+68719476742 | IDENTIFIER | rate_uv_tokenonly
+68719476743 | IDENTIFIER | dist_uv
+68719476744 | IDENTIFIER | skip_uv
+68719476745 | IDENTIFIER | bsize
+68719476746 | IDENTIFIER | <unknown> BLOCK_8X8
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771083 [AST]
+25769803777 -> 30064771077 [AST]
+25769803778 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574850 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574850 [AST]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476745 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476739 [CDG]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 55834574850 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 55834574850 [CFG]
+30064771076 -> 55834574850 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 68719476740 [ARGUMENT]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 68719476740 [AST]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476744 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 68719476740 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void choose_intra_uv_mode ( VP9_COMP * cpi , PICK_MODE_CONTEXT * ctx , BLOCK_SIZE bsize , TX_SIZE max_tx_size , int * rate_uv , int * rate_uv_tokenonly , int64_t * dist_uv , int * skip_uv , PREDICTION_MODE * mode_uv ) {
+ MACROBLOCK * const x = & cpi -> mb ;
+ if ( cpi -> sf . use_uv_intra_rd_estimate ) {
+ rd_sbuv_dcpred ( cpi , x , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize ) ;
+ }
+ else {
+ rd_pick_intra_sbuv_mode ( cpi , x , ctx , rate_uv , rate_uv_tokenonly , dist_uv , skip_uv , bsize < BLOCK_8X8 ? BLOCK_8X8 : bsize , max_tx_size ) ;
+ }
+ * mode_uv = x -> e_mbd . mi [ 0 ] . src_mi -> mbmi . uv_mode ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

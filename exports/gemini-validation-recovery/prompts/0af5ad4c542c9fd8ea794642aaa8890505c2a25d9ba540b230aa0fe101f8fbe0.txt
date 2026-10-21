@@ -1,0 +1,228 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ec_asn1_group2fieldid ( const EC_GROUP * group , X9_62_FIELDID * field ) {
+ int ok = 0 , nid ;
+ BIGNUM * tmp = NULL ;
+ if ( group == NULL || field == NULL ) return 0 ;
+ if ( field -> fieldType != NULL ) ASN1_OBJECT_free ( field -> fieldType ) ;
+ if ( field -> p . other != NULL ) ASN1_TYPE_free ( field -> p . other ) ;
+ nid = EC_METHOD_get_field_type ( EC_GROUP_method_of ( group ) ) ;
+ if ( ( field -> fieldType = OBJ_nid2obj ( nid ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ;
+ goto err ;
+ }
+ if ( nid == NID_X9_62_prime_field ) {
+ if ( ( tmp = BN_new ( ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! EC_GROUP_get_curve_GFp ( group , tmp , NULL , NULL , NULL ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ field -> p . prime = BN_to_ASN1_INTEGER ( tmp , NULL ) ;
+ if ( field -> p . prime == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ;
+ goto err ;
+ }
+ }
+ else {
+ int field_type ;
+ X9_62_CHARACTERISTIC_TWO * char_two ;
+ field -> p . char_two = X9_62_CHARACTERISTIC_TWO_new ( ) ;
+ char_two = field -> p . char_two ;
+ if ( char_two == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ char_two -> m = ( long ) EC_GROUP_get_degree ( group ) ;
+ field_type = EC_GROUP_get_basis_type ( group ) ;
+ if ( field_type == 0 ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ if ( ( char_two -> type = OBJ_nid2obj ( field_type ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ;
+ goto err ;
+ }
+ if ( field_type == NID_X9_62_tpBasis ) {
+ unsigned int k ;
+ if ( ! EC_GROUP_get_trinomial_basis ( group , & k ) ) goto err ;
+ char_two -> p . tpBasis = ASN1_INTEGER_new ( ) ;
+ if ( ! char_two -> p . tpBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! ASN1_INTEGER_set ( char_two -> p . tpBasis , ( long ) k ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ;
+ goto err ;
+ }
+ }
+ else if ( field_type == NID_X9_62_ppBasis ) {
+ unsigned int k1 , k2 , k3 ;
+ if ( ! EC_GROUP_get_pentanomial_basis ( group , & k1 , & k2 , & k3 ) ) goto err ;
+ char_two -> p . ppBasis = X9_62_PENTANOMIAL_new ( ) ;
+ if ( ! char_two -> p . ppBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ char_two -> p . ppBasis -> k1 = ( long ) k1 ;
+ char_two -> p . ppBasis -> k2 = ( long ) k2 ;
+ char_two -> p . ppBasis -> k3 = ( long ) k3 ;
+ }
+ else {
+ char_two -> p . onBasis = ASN1_NULL_new ( ) ;
+ if ( ! char_two -> p . onBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ }
+ }
+ ok = 1 ;
+ err : if ( tmp ) BN_free ( tmp ) ;
+ return ( ok ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ok = 0 , nid ;
+ BIGNUM * tmp = NULL ;
+ if ( group == NULL || field == NULL ) return 0 ;
+ if ( field -> fieldType != NULL ) ASN1_OBJECT_free ( field -> fieldType ) ;
+ if ( field -> p . other != NULL ) ASN1_TYPE_free ( field -> p . other ) ;
+ nid = EC_METHOD_get_field_type ( EC_GROUP_method_of ( group ) ) ;
+ if ( ( field -> fieldType = OBJ_nid2obj ( nid ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ;
+ goto err ;
+ }
+ if ( nid == NID_X9_62_prime_field ) {
+ if ( ( tmp = BN_new ( ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! EC_GROUP_get_curve_GFp ( group , tmp , NULL , NULL , NULL ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ field -> p . prime = BN_to_ASN1_INTEGER ( tmp , NULL ) ;
+ if ( field -> p . prime == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ;
+ goto err ;
+ }
+ }
+ else {
+ int field_type ;
+ X9_62_CHARACTERISTIC_TWO * char_two ;
+ field -> p . ch...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ; goto err ; }
+25769803781 | BLOCK | 
+        {
+ if ( ( tmp = BN_new ( ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! EC_GROUP_get_curve_GFp ( group , tmp , NULL , NULL , NULL ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ field -> p . prime = BN_to_ASN1_INTEGER ( tmp , NULL ) ;
+ if ( field -> p . prime == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ;
+ goto err ;
+ }
+ }
+      
+25769803782 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803783 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ; goto err ; }
+25769803784 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ; goto err ; }
+25769803785 | BLOCK | 
+        {
+ int field_type ;
+ X9_62_CHARACTERISTIC_TWO * char_two ;
+ field -> p . char_two = X9_62_CHARACTERISTIC_TWO_new ( ) ;
+ char_two = field -> p . char_two ;
+ if ( char_two == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ char_two -> m = ( long ) EC_GROUP_get_degree ( group ) ;
+ field_type = EC_GROUP_get_basis_type ( group ) ;
+ if ( field_type == 0 ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ;
+ goto err ;
+ }
+ if ( ( char_two -> type = OBJ_nid2obj ( field_type ) ) == NULL ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ;
+ goto err ;
+ }
+ if ( field_type == NID_X9_62_tpBasis ) {
+ unsigned int k ;
+ if ( ! EC_GROUP_get_trinomial_basis ( group , & k ) ) goto err ;
+ char_two -> p . tpBasis = ASN1_INTEGER_new ( ) ;
+ if ( ! char_two -> p . tpBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! ASN1_INTEGER_set ( char_two -> p . tpBasis , ( long ) k ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDI...
+      
+25769803786 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803787 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_EC_LIB ) ; goto err ; }
+25769803788 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_OBJ_LIB ) ; goto err ; }
+25769803789 | BLOCK | 
+        {
+ unsigned int k ;
+ if ( ! EC_GROUP_get_trinomial_basis ( group , & k ) ) goto err ;
+ char_two -> p . tpBasis = ASN1_INTEGER_new ( ) ;
+ if ( ! char_two -> p . tpBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ if ( ! ASN1_INTEGER_set ( char_two -> p . tpBasis , ( long ) k ) ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ;
+ goto err ;
+ }
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803792 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_ASN1_LIB ) ; goto err ; }
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ unsigned int k1 , k2 , k3 ;
+ if ( ! EC_GROUP_get_pentanomial_basis ( group , & k1 , & k2 , & k3 ) ) goto err ;
+ char_two -> p . ppBasis = X9_62_PENTANOMIAL_new ( ) ;
+ if ( ! char_two -> p . ppBasis ) {
+ ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ;
+ goto err ;
+ }
+ char_two -> p . ppBasis -> k1 = ( long ) k1 ;
+ char_two -> p . ppBasis -> k2 = ( long ) k2 ;
+ char_two -> p . ppBasis -> k3 = ( long ) k3 ;
+ }
+      
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | { ECerr ( EC_F_EC_ASN1_GROUP2FIELDID , ERR_R_MALLOC_FAILURE ) ; goto err ; }
+25769803797 | BLOCK | 
+        {
+ char_two -> p . onB
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

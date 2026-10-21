@@ -1,0 +1,196 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int parse_CAggregSpec ( tvbuff_t * tvb , int offset , proto_tree * parent_tree , proto_tree * pad_tree , const char * fmt , ... ) {
+ proto_item * item ;
+ proto_tree * tree ;
+ va_list ap ;
+ guint8 type ;
+ guint32 ccAlias , idColumn ;
+ const char * txt ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CAggregSpec , & item , txt ) ;
+ type = tvb_get_guint8 ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_type , tvb , offset , 1 , type ) ;
+ proto_item_append_text ( item , "type: %u" , type ) ;
+ offset += 1 ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "padding" ) ;
+ ccAlias = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_ccalias , tvb , offset , 1 , ccAlias ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_caggregspec_alias , tvb , offset , 2 * ccAlias , ENC_LITTLE_ENDIAN | ENC_UCS_2 ) ;
+ offset += 2 * ccAlias ;
+ idColumn = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_idcolumn , tvb , offset , 1 , idColumn ) ;
+ offset += 4 ;
+ proto_item_set_end ( item , tvb , offset ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ proto_item * item ;
+ proto_tree * tree ;
+ va_list ap ;
+ guint8 type ;
+ guint32 ccAlias , idColumn ;
+ const char * txt ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CAggregSpec , & item , txt ) ;
+ type = tvb_get_guint8 ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_type , tvb , offset , 1 , type ) ;
+ proto_item_append_text ( item , "type: %u" , type ) ;
+ offset += 1 ;
+ offset = parse_padding ( tvb , offset , 4 , pad_tree , "padding" ) ;
+ ccAlias = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_ccalias , tvb , offset , 1 , ccAlias ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_caggregspec_alias , tvb , offset , 2 * ccAlias , ENC_LITTLE_ENDIAN | ENC_UCS_2 ) ;
+ offset += 2 * ccAlias ;
+ idColumn = tvb_get_letohl ( tvb , offset ) ;
+ proto_tree_add_uint ( tree , hf_mswsp_caggregspec_i...
+      
+30064771072 | CALL | va_start ( ap , fmt )
+30064771073 | CALL | txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771074 | CALL | wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771075 | CALL | wmem_packet_scope ( )
+30064771076 | CALL | va_end ( ap )
+30064771077 | CALL | 
+        tree = proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CAggregSpec , & item , txt )
+      
+30064771078 | CALL | 
+        proto_tree_add_subtree ( parent_tree , tvb , offset , 0 , ett_CAggregSpec , & item , txt )
+      
+30064771079 | CALL | & item
+30064771080 | CALL | type = tvb_get_guint8 ( tvb , offset )
+30064771081 | CALL | tvb_get_guint8 ( tvb , offset )
+30064771082 | CALL | proto_tree_add_uint ( tree , hf_mswsp_caggregspec_type , tvb , offset , 1 , type )
+30064771083 | CALL | proto_item_append_text ( item , "type: %u" , type )
+30064771084 | CALL | offset += 1
+30064771085 | CALL | offset = parse_padding ( tvb , offset , 4 , pad_tree , "padding" )
+30064771086 | CALL | parse_padding ( tvb , offset , 4 , pad_tree , "padding" )
+30064771087 | CALL | ccAlias = tvb_get_letohl ( tvb , offset )
+30064771088 | CALL | tvb_get_letohl ( tvb , offset )
+30064771089 | CALL | 
+        proto_tree_add_uint ( tree , hf_mswsp_caggregspec_ccalias , tvb , offset , 1 , ccAlias )
+      
+30064771090 | CALL | offset += 4
+30064771091 | CALL | 
+        proto_tree_add_item ( tree , hf_mswsp_caggregspec_alias , tvb , offset , 2 * ccAlias , ENC_LITTLE_ENDIAN | ENC_UCS_2 )
+      
+30064771092 | CALL | 2 * ccAlias
+30064771093 | CALL | ENC_LITTLE_ENDIAN | ENC_UCS_2
+30064771094 | CALL | offset += 2 * ccAlias
+30064771095 | CALL | 2 * ccAlias
+30064771096 | CALL | idColumn = tvb_get_letohl ( tvb , offset )
+30064771097 | CALL | tvb_get_letohl ( tvb , offset )
+30064771098 | CALL | 
+        proto_tree_add_uint ( tree , hf_mswsp_caggregspec_idcolumn , tvb , offset , 1 , idColumn )
+      
+30064771099 | CALL | offset += 4
+30064771100 | CALL | proto_item_set_end ( item , tvb , offset )
+68719476736 | IDENTIFIER | ap
+68719476737 | IDENTIFIER | fmt
+68719476738 | IDENTIFIER | txt
+68719476739 | IDENTIFIER | fmt
+68719476740 | IDENTIFIER | ap
+68719476741 | IDENTIFIER | ap
+68719476742 | IDENTIFIER | tree
+68719476743 | IDENTIFIER | parent_tree
+68719476744 | IDENTIFIER | tvb
+68719476745 | IDENTIFIER | offset
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771100 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476743 [REACHING_DEF]
+30064771079 -> 68719476744 [REACHING_DEF]
+30064771079 -> 68719476745 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUME
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

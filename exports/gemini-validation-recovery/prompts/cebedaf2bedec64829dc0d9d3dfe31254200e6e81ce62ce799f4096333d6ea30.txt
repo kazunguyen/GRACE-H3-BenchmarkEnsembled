@@ -1,0 +1,270 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void usbredir_chardev_open(USBRedirDevice *dev)
+
+{
+
+    uint32_t caps[USB_REDIR_CAPS_SIZE] = { 0, };
+
+    char version[32];
+
+    int flags = 0;
+
+
+
+    /* Make sure any pending closes are handled (no-op if none pending) */
+
+    usbredir_chardev_close_bh(dev);
+
+    qemu_bh_cancel(dev->chardev_close_bh);
+
+
+
+    DPRINTF("creating usbredirparser\n");
+
+
+
+    strcpy(version, "qemu usb-redir guest ");
+
+    pstrcat(version, sizeof(version), qemu_get_version());
+
+
+
+    dev->parser = qemu_oom_check(usbredirparser_create());
+
+    dev->parser->priv = dev;
+
+    dev->parser->log_func = usbredir_log;
+
+    dev->parser->read_func = usbredir_read;
+
+    dev->parser->write_func = usbredir_write;
+
+    dev->parser->hello_func = usbredir_hello;
+
+    dev->parser->device_connect_func = usbredir_device_connect;
+
+    dev->parser->device_disconnect_func = usbredir_device_disconnect;
+
+    dev->parser->interface_info_func = usbredir_interface_info;
+
+    dev->parser->ep_info_func = usbredir_ep_info;
+
+    dev->parser->configuration_status_func = usbredir_configuration_status;
+
+    dev->parser->alt_setting_status_func = usbredir_alt_setting_status;
+
+    dev->parser->iso_stream_status_func = usbredir_iso_stream_status;
+
+    dev->parser->interrupt_receiving_status_func =
+
+        usbredir_interrupt_receiving_status;
+
+    dev->parser->bulk_streams_status_func = usbredir_bulk_streams_status;
+
+    dev->parser->control_packet_func = usbredir_control_packet;
+
+    dev->parser->bulk_packet_func = usbredir_bulk_packet;
+
+    dev->parser->iso_packet_func = usbredir_iso_packet;
+
+    dev->parser->interrupt_packet_func = usbredir_interrupt_packet;
+
+    dev->read_buf = NULL;
+
+    dev->read_buf_size = 0;
+
+
+
+    usbredirparser_caps_set_cap(caps, usb_redir_cap_connect_device_version);
+
+    usbredirparser_caps_set_cap(caps, usb_redir_cap_filter);
+
+    usbredirparser_caps_set_cap(caps, usb_redir_cap_ep_info_max_packet_size);
+
+    usbredirparser_caps_set_cap(caps, usb_redir_cap_64bits_ids);
+
+
+
+    if (runstate_check(RUN_STATE_INMIGRATE)) {
+
+        flags |= usbredirparser_fl_no_hello;
+
+    }
+
+    usbredirparser_init(dev->parser, version, caps, USB_REDIR_CAPS_SIZE,
+
+                        flags);
+
+    usbredirparser_do_write(dev->parser);
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    uint32_t caps[USB_REDIR_CAPS_SIZE] = { 0, };
+
+    char version[32];
+
+    int flags = 0;
+
+
+
+    /* Make sure any pending closes are handled (no-op if none pending) */
+
+    usbredir_chardev_close_bh(dev);
+
+    qemu_bh_cancel(dev->chardev_close_bh);
+
+
+
+    DPRINTF("creating usbredirparser\n");
+
+
+
+    strcpy(version, "qemu usb-redir guest ");
+
+    pstrcat(version, sizeof(version), qemu_get_version());
+
+
+
+    dev->parser = qemu_oom_check(usbredirparser_create());
+
+    dev->parser->priv = dev;
+
+    dev->parser->log_func = usbredir_log;
+
+    dev->parser->read_func = usbredir_read;
+
+    dev->parser->write_func = usbredir_write;
+
+    dev->parser->hello_func = usbredir_hello;
+
+    dev->parser->device_connect_func = usbredir_device_connect;
+
+    dev->parser->device_disconnect_func = usbredir_device_disconnect;
+
+    dev->parser->interface_info_func = usbredir_interface_info;
+
+    dev->parser->ep_info_func = usbredir_ep_info;
+
+    dev->parser->configuration_status_func = usbredir_configur...
+      
+25769803777 | BLOCK | { flags |= usbredirparser_fl_no_hello; }
+30064771072 | CALL | caps[USB_REDIR_CAPS_SIZE] = { 0, }
+30064771073 | CALL | caps[USB_REDIR_CAPS_SIZE] = { 0, }
+30064771074 | CALL | caps[USB_REDIR_CAPS_SIZE] = { 0, }
+30064771075 | CALL | { 0, }
+30064771076 | CALL | version[32]
+30064771077 | CALL | version[32]
+30064771078 | CALL | flags = 0
+30064771079 | CALL | usbredir_chardev_close_bh(dev)
+30064771080 | CALL | qemu_bh_cancel(dev->chardev_close_bh)
+30064771081 | CALL | dev->chardev_close_bh
+30064771082 | CALL | DPRINTF("creating usbredirparser\n")
+30064771083 | CALL | strcpy(version, "qemu usb-redir guest ")
+30064771084 | CALL | pstrcat(version, sizeof(version), qemu_get_version())
+30064771085 | CALL | sizeof(version)
+30064771086 | CALL | qemu_get_version()
+30064771087 | CALL | dev->parser = qemu_oom_check(usbredirparser_create())
+30064771088 | CALL | dev->parser
+30064771089 | CALL | qemu_oom_check(usbredirparser_create())
+30064771090 | CALL | usbredirparser_create()
+30064771091 | CALL | dev->parser->priv = dev
+30064771092 | CALL | dev->parser->priv
+30064771093 | CALL | dev->parser
+30064771094 | CALL | dev->parser->log_func = usbredir_log
+30064771095 | CALL | dev->parser->log_func
+30064771096 | CALL | dev->parser
+30064771097 | CALL | dev->parser->read_func = usbredir_read
+30064771098 | CALL | dev->parser->read_func
+30064771099 | CALL | dev->parser
+30064771100 | CALL | dev->parser->write_func = usbredir_write
+30064771101 | CALL | dev->parser->write_func
+30064771102 | CALL | dev->parser
+30064771103 | CALL | dev->parser->hello_func = usbredir_hello
+30064771104 | CALL | dev->parser->hello_func
+30064771105 | CALL | dev->parser
+30064771106 | CALL | dev->parser->device_connect_func = usbredir_device_connect
+30064771107 | CALL | dev->parser->device_connect_func
+30064771108 | CALL | dev->parser
+30064771109 | CALL | dev->parser->device_disconnect_func = usbredir_device_disconnect
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771086 [CFG]
+30064771085 -> 30064771086 [DOMINATE]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771085 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771090 [CFG]
+30064771088 -> 30064771090 [DOMINATE]
+30064771088
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

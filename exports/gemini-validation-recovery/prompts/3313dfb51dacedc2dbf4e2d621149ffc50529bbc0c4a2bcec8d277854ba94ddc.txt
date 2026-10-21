@@ -1,0 +1,126 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+php_stream * php_stream_url_wrap_http_ex ( php_stream_wrapper * wrapper , const char * path , const char * mode , int options , char * * opened_path , php_stream_context * context , int redirect_max , int flags STREAMS_DC TSRMLS_DC ) {
+ php_stream * stream = NULL ;
+ php_url * resource = NULL ;
+ int use_ssl ;
+ int use_proxy = 0 ;
+ char * scratch = NULL ;
+ char * tmp = NULL ;
+ char * ua_str = NULL ;
+ zval * * ua_zval = NULL , * * tmpzval = NULL , * ssl_proxy_peer_name = NULL ;
+ int scratch_len = 0 ;
+ int body = 0 ;
+ char location [ HTTP_HEADER_BLOCK_SIZE ] ;
+ zval * response_header = NULL ;
+ int reqok = 0 ;
+ char * http_header_line = NULL ;
+ char tmp_line [ 128 ] ;
+ size_t chunk_size = 0 , file_size = 0 ;
+ int eol_detect = 0 ;
+ char * transport_string , * errstr = NULL ;
+ int transport_len , have_header = 0 , request_fulluri = 0 , ignore_errors = 0 ;
+ char * protocol_version = NULL ;
+ int protocol_version_len = 3 ;
+ struct timeval timeout ;
+ char * user_headers = NULL ;
+ int header_init = ( ( flags & HTTP_WRAPPER_HEADER_INIT ) != 0 ) ;
+ int redirected = ( ( flags & HTTP_WRAPPER_REDIRECTED ) != 0 ) ;
+ int follow_location = 1 ;
+ php_stream_filter * transfer_encoding = NULL ;
+ int response_code ;
+ tmp_line [ 0 ] = '\0' ;
+ if ( redirect_max < 1 ) {
+ php_stream_wrapper_log_error ( wrapper , options TSRMLS_CC , "Redirection limit reached, aborting" ) ;
+ return NULL ;
+ }
+ resource = php_url_parse ( path ) ;
+ if ( resource == NULL ) {
+ return NULL ;
+ }
+ if ( strncasecmp ( resource -> scheme , "http" , sizeof ( "http" ) ) && strncasecmp ( resource -> scheme , "https" , sizeof ( "https" ) ) ) {
+ if ( ! context || php_stream_context_get_option ( context , wrapper -> wops -> label , "proxy" , & tmpzval ) == FAILURE || Z_TYPE_PP ( tmpzval ) != IS_STRING || Z_STRLEN_PP ( tmpzval ) <= 0 ) {
+ php_url_free ( resource ) ;
+ return php_stream_open_wrapper_ex ( path , mode , REPORT_ERRORS , NULL , context ) ;
+ }
+ request_fulluri = 1 ;
+ use_ssl = 0 ;
+ use_proxy = 1 ;
+ transport_len = Z_STRLEN_PP ( tmpzval ) ;
+ transport_string = estrndup ( Z_STRVAL_PP ( tmpzval ) , Z_STRLEN_PP ( tmpzval ) ) ;
+ }
+ else {
+ if ( strpbrk ( mode , "awx+" ) ) {
+ php_stream_wrapper_log_error ( wrapper , options TSRMLS_CC , "HTTP wrapper does not support writeable connections" ) ;
+ php_url_free ( resource ) ;
+ return NULL ;
+ }
+ use_ssl = resource -> scheme && ( strlen ( resource -> scheme ) > 4 ) && resource -> scheme [ 4 ] == 's' ;
+ if ( use_ssl && resource -> port == 0 ) resource -> port = 443 ;
+ else if ( resource -> port == 0 ) resource -> port = 80 ;
+ if ( context && php_stream_context_get_option ( context , wrapper -> wops -> label , "proxy" , & tmpzval ) == SUCCESS && Z_TYPE_PP ( tmpzval ) == IS_STRING && Z_STRLEN_PP ( tmpzval ) > 0 ) {
+ use_proxy = 1 ;
+ transport_len = Z_STRLEN_PP ( tmpzval ) ;
+ transport_string = estrndup ( Z_STRVAL_PP ( tmpzval ) , Z_STRLEN_PP ( tmpzval ) ) ;
+ }
+ else {
+ transport_len = spprintf ( & transport_string , 0 , "%s://%s:%d" , use_ssl ? "ssl" : "tcp" , resou
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+CURLcode Curl_http ( struct connectdata * conn , bool * done ) {
+ struct Curl_easy * data = conn -> data ;
+ CURLcode result = CURLE_OK ;
+ struct HTTP * http ;
+ const char * ppath = data -> state . path ;
+ bool paste_ftp_userpwd = FALSE ;
+ char ftp_typecode [ sizeof ( "/;
+type=?" ) ] = "" ;
+ const char * host = conn -> host . name ;
+ const char * te = "" ;
+ const char * ptr ;
+ const char * request ;
+ Curl_HttpReq httpreq = data -> set . httpreq ;
+ # if ! defined ( CURL_DISABLE_COOKIES ) char * addcookies = NULL ;
+ # endif curl_off_t included_body = 0 ;
+ const char * httpstring ;
+ Curl_send_buffer * req_buffer ;
+ curl_off_t postsize = 0 ;
+ int seekerr = CURL_SEEKFUNC_OK ;
+ * done = TRUE ;
+ if ( conn -> httpversion < 20 ) {
+ switch ( conn -> negnpn ) {
+ case CURL_HTTP_VERSION_2 : conn -> httpversion = 20 ;
+ result = Curl_http2_switched ( conn , NULL , 0 ) ;
+ if ( result ) return result ;
+ break ;
+ case CURL_HTTP_VERSION_1_1 : break ;
+ default : # ifdef USE_NGHTTP2 if ( conn -> data -> set . httpversion == CURL_HTTP_VERSION_2_PRIOR_KNOWLEDGE ) {
+ DEBUGF ( infof ( data , "HTTP/2 over clean TCP\n" ) ) ;
+ conn -> httpversion = 20 ;
+ result = Curl_http2_switched ( conn , NULL , 0 ) ;
+ if ( result ) return result ;
+ }
+ # endif break ;
+ }
+ }
+ else {
+ result = Curl_http2_setup ( conn ) ;
+ if ( result ) return result ;
+ }
+ http = data -> req . protop ;
+ if ( ! data -> state . this_is_a_follow ) {
+ free ( data -> state . first_host ) ;
+ data -> state . first_host = strdup ( conn -> host .
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,198 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void define_gf_group ( VP9_COMP * cpi , FIRSTPASS_STATS * this_frame ) {
+ RATE_CONTROL * const rc = & cpi -> rc ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ TWO_PASS * const twopass = & cpi -> twopass ;
+ FIRSTPASS_STATS next_frame ;
+ const FIRSTPASS_STATS * const start_pos = twopass -> stats_in ;
+ int i ;
+ double boost_score = 0.0 ;
+ double old_boost_score = 0.0 ;
+ double gf_group_err = 0.0 ;
+ double gf_first_frame_err = 0.0 ;
+ double mod_frame_err = 0.0 ;
+ double mv_ratio_accumulator = 0.0 ;
+ double decay_accumulator = 1.0 ;
+ double zero_motion_accumulator = 1.0 ;
+ double loop_decay_rate = 1.00 ;
+ double last_loop_decay_rate = 1.00 ;
+ double this_frame_mv_in_out = 0.0 ;
+ double mv_in_out_accumulator = 0.0 ;
+ double abs_mv_in_out_accumulator = 0.0 ;
+ double mv_ratio_accumulator_thresh ;
+ unsigned int allow_alt_ref = is_altref_enabled ( cpi ) ;
+ int f_boost = 0 ;
+ int b_boost = 0 ;
+ int flash_detected ;
+ int active_max_gf_interval ;
+ int64_t gf_group_bits ;
+ double gf_group_error_left ;
+ int gf_arf_bits ;
+ if ( cpi -> common . frame_type != KEY_FRAME ) {
+ vp9_zero ( twopass -> gf_group ) ;
+ }
+ vp9_clear_system_state ( ) ;
+ vp9_zero ( next_frame ) ;
+ mod_frame_err = calculate_modified_err ( twopass , oxcf , this_frame ) ;
+ gf_first_frame_err = mod_frame_err ;
+ if ( cpi -> common . frame_type == KEY_FRAME || rc -> source_alt_ref_active ) gf_group_err -= gf_first_frame_err ;
+ mv_ratio_accumulator_thresh = ( cpi -> common . width + cpi -> common . height ) / 4.0 ;
+ if ( cpi -> multi_arf_allowed ) {
+ active_max_gf_interval = rc -> max_gf_interval ;
+ }
+ else {
+ active_max_gf_interval = + ( ( int ) vp9_convert_qindex_to_q ( rc -> last_q [ INTER_FRAME ] , cpi -> common . bit_depth ) >> 5 ) ;
+ if ( active_max_gf_interval > rc -> max_gf_interval ) active_max_gf_interval = rc -> max_gf_interval ;
+ }
+ i = 0 ;
+ while ( i < rc -> static_scene_max_gf_interval && i < rc -> frames_to_key ) {
+ ++ i ;
+ mod_frame_err = calculate_modified_err ( twopass , oxcf , this_frame ) ;
+ gf_group_err += mod_frame_err ;
+ if ( EOF == input_stats ( twopass , & next_frame ) ) break ;
+ flash_detected = detect_flash ( twopass , 0 ) ;
+ accumulate_frame_motion_stats ( & next_frame , & this_frame_mv_in_out , & mv_in_out_accumulator , & abs_mv_in_out_accumulator , & mv_ratio_accumulator ) ;
+ if ( ! flash_detected ) {
+ last_loop_decay_rate = loop_decay_rate ;
+ loop_decay_rate = get_prediction_decay_rate ( & cpi -> common , & next_frame ) ;
+ decay_accumulator = decay_accumulator * loop_decay_rate ;
+ zero_motion_accumulator = MIN ( zero_motion_accumulator , get_zero_motion_factor ( & cpi -> common , & next_frame ) ) ;
+ if ( detect_transition_to_still ( twopass , i , 5 , loop_decay_rate , last_loop_decay_rate ) ) {
+ allow_alt_ref = 0 ;
+ break ;
+ }
+ }
+ boost_score += decay_accumulator * calc_frame_boost ( cpi , & next_frame , this_frame_mv_in_out , GF_MAX_BOOST ) ;
+ if ( ( i >= active_max_gf_interval && ( zero_motion_accumulator < 0.995 ) ) || ( ( i > MIN_GF_INTERVAL ) && (
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ RATE_CONTROL * const rc = & cpi -> rc ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ TWO_PASS * const twopass = & cpi -> twopass ;
+ FIRSTPASS_STATS next_frame ;
+ const FIRSTPASS_STATS * const start_pos = twopass -> stats_in ;
+ int i ;
+ double boost_score = 0.0 ;
+ double old_boost_score = 0.0 ;
+ double gf_group_err = 0.0 ;
+ double gf_first_frame_err = 0.0 ;
+ double mod_frame_err = 0.0 ;
+ double mv_ratio_accumulator = 0.0 ;
+ double decay_accumulator = 1.0 ;
+ double zero_motion_accumulator = 1.0 ;
+ double loop_decay_rate = 1.00 ;
+ double last_loop_decay_rate = 1.00 ;
+ double this_frame_mv_in_out = 0.0 ;
+ double mv_in_out_accumulator = 0.0 ;
+ double abs_mv_in_out_accumulator = 0.0 ;
+ double mv_ratio_accumulator_thresh ;
+ unsigned int allow_alt_ref = is_altref_enabled ( cpi ) ;
+ int f_boost = 0 ;
+ int b_boost = 0 ;
+ int flash_detected ;
+ int active_max_gf_interval ;
+ int64_t gf_group_bits ;
+ double gf_group_error_left ;
+ int gf_arf_bits ;
+ if ( cpi -> common . frame_type !=...
+      
+25769803777 | BLOCK | { vp9_zero ( twopass -> gf_group ) ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { active_max_gf_interval = rc -> max_gf_interval ; }
+25769803780 | BLOCK | 
+        {
+ active_max_gf_interval = + ( ( int ) vp9_convert_qindex_to_q ( rc -> last_q [ INTER_FRAME ] , cpi -> common . bit_depth ) >> 5 ) ;
+ if ( active_max_gf_interval > rc -> max_gf_interval ) active_max_gf_interval = rc -> max_gf_interval ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ ++ i ;
+ mod_frame_err = calculate_modified_err ( twopass , oxcf , this_frame ) ;
+ gf_group_err += mod_frame_err ;
+ if ( EOF == input_stats ( twopass , & next_frame ) ) break ;
+ flash_detected = detect_flash ( twopass , 0 ) ;
+ accumulate_frame_motion_stats ( & next_frame , & this_frame_mv_in_out , & mv_in_out_accumulator , & abs_mv_in_out_accumulator , & mv_ratio_accumulator ) ;
+ if ( ! flash_detected ) {
+ last_loop_decay_rate = loop_decay_rate ;
+ loop_decay_rate = get_prediction_decay_rate ( & cpi -> common , & next_frame ) ;
+ decay_accumulator = decay_accumulator * loop_decay_rate ;
+ zero_motion_accumulator = MIN ( zero_motion_accumulator , get_zero_motion_factor ( & cpi -> common , & next_frame ) ) ;
+ if ( detect_transition_to_still ( twopass , i , 5 , loop_decay_rate , last_loop_decay_rate ) ) {
+ allow_alt_ref = 0 ;
+ break ;
+ }
+ }
+ boost_score += decay_accumulator * calc_frame_boost ( cpi , & next_frame , this_frame_mv_in_out , GF_MAX_BOOST ) ;
+ if ( ( i >= active_max_gf_inter...
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ last_loop_decay_rate = loop_decay_rate ;
+ loop_decay_rate = get_prediction_decay_rate ( & cpi -> common , & next_frame ) ;
+ decay_accumulator = decay_accumulator * loop_decay_rate ;
+ zero_motion_accumulator = MIN ( zero_motion_accumulator , get_zero_motion_factor ( & cpi -> common , & next_frame ) ) ;
+ if ( detect_transition_to_still ( twopass , i , 5 , loop_decay_rate , last_loop_decay_rate ) ) {
+ allow_alt_ref = 0 ;
+ break ;
+ }
+ }
+      
+25769803785 | BLOCK | { allow_alt_ref = 0 ; break ; }
+25769803786 | BLOCK | { boost_score = old_boost_score ; break ; }
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ int count = ( 1 << ( cpi -> svc . number_temporal_layers - 1 ) ) - 1 ;
+ int new_gf_interval = ( rc -> baseline_gf_interval + count ) & ( ~ count ) ;
+ int j ;
+ for ( j = 0 ;
+ j < new_gf_interval - rc -> baseline_gf_interval ;
+ ++ j ) {
+ if ( EOF == input_stats ( twopass , this_frame ) ) break ;
+ gf_group_err += calculate_modified_err ( twopass , oxcf , this_frame ) ;
+ }
+ rc -> baseline_gf_interval = new_gf_interval ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ if ( EOF == input_stats ( twopass , this_frame ) ) break ;
+ gf_group_err += calculate_modified_err ( twopass , oxcf , this_frame ) ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ rc -> gfu_boost = calc_arf_boost ( cpi , 0 , ( i - 1 ) , ( i - 1 ) , & f_boost , & b_boost ) ;
+ rc -> source_alt_ref_pending = 1 ;
+ cpi -> multi_arf_enabled = ( cpi -> multi_arf_allowed && ( rc -> baseline_gf_interval >= 6 ) && ( zero_motion_accumulator < 0.995 ) ) ? 1 : 0 ;
+ }
+      
+25769803793 | BLOCK | 
+        {
+ rc -> gfu_boost = MAX ( ( int ) boost_score , 125 ) ;
+ rc -> source_alt_ref_pending = 0 ;
+ }
+      
+25769803794 | BLOCK 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

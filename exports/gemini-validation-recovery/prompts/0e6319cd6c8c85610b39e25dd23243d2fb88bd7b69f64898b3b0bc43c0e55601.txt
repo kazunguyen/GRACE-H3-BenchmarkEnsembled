@@ -1,0 +1,239 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool parse_basicConstraints ( chunk_t blob , int level0 , private_x509_cert_t * this ) {
+ asn1_parser_t * parser ;
+ chunk_t object ;
+ int objectID ;
+ bool isCA = FALSE ;
+ bool success ;
+ parser = asn1_parser_create ( basicConstraintsObjects , blob ) ;
+ parser -> set_top_level ( parser , level0 ) ;
+ while ( parser -> iterate ( parser , & objectID , & object ) ) {
+ switch ( objectID ) {
+ case BASIC_CONSTRAINTS_CA : isCA = object . len && * object . ptr ;
+ DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" ) ;
+ if ( isCA ) {
+ this -> flags |= X509_CA ;
+ }
+ break ;
+ case BASIC_CONSTRAINTS_PATH_LEN : if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ success = parser -> success ( parser ) ;
+ parser -> destroy ( parser ) ;
+ return success ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ asn1_parser_t * parser ;
+ chunk_t object ;
+ int objectID ;
+ bool isCA = FALSE ;
+ bool success ;
+ parser = asn1_parser_create ( basicConstraintsObjects , blob ) ;
+ parser -> set_top_level ( parser , level0 ) ;
+ while ( parser -> iterate ( parser , & objectID , & object ) ) {
+ switch ( objectID ) {
+ case BASIC_CONSTRAINTS_CA : isCA = object . len && * object . ptr ;
+ DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" ) ;
+ if ( isCA ) {
+ this -> flags |= X509_CA ;
+ }
+ break ;
+ case BASIC_CONSTRAINTS_PATH_LEN : if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+ success = parser -> success ( parser ) ;
+ parser -> destroy ( parser ) ;
+ return success ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ switch ( objectID ) {
+ case BASIC_CONSTRAINTS_CA : isCA = object . len && * object . ptr ;
+ DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" ) ;
+ if ( isCA ) {
+ this -> flags |= X509_CA ;
+ }
+ break ;
+ case BASIC_CONSTRAINTS_PATH_LEN : if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+ break ;
+ default : break ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case BASIC_CONSTRAINTS_CA : isCA = object . len && * object . ptr ;
+ DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" ) ;
+ if ( isCA ) {
+ this -> flags |= X509_CA ;
+ }
+ break ;
+ case BASIC_CONSTRAINTS_PATH_LEN : if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+ break ;
+ default : break ;
+ }
+      
+25769803779 | BLOCK | { this -> flags |= X509_CA ; }
+25769803780 | BLOCK | { this -> pathLenConstraint = parse_constraint ( object ) ; }
+30064771072 | CALL | isCA = FALSE
+30064771073 | CALL | parser = asn1_parser_create ( basicConstraintsObjects , blob )
+30064771074 | CALL | asn1_parser_create ( basicConstraintsObjects , blob )
+30064771075 | CALL | parser -> set_top_level ( parser , level0 )
+30064771076 | CALL | parser -> set_top_level
+30064771077 | CALL | parser -> iterate ( parser , & objectID , & object )
+30064771078 | CALL | parser -> iterate
+30064771079 | CALL | & objectID
+30064771080 | CALL | & object
+30064771081 | CALL | isCA = object . len && * object . ptr
+30064771082 | CALL | object . len && * object . ptr
+30064771083 | CALL | object . len
+30064771084 | CALL | * object . ptr
+30064771085 | CALL | object . ptr
+30064771086 | CALL | DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" )
+30064771087 | CALL | isCA ? "TRUE" : "FALSE"
+30064771088 | CALL | isCA != 0
+30064771089 | CALL | this -> flags |= X509_CA
+30064771090 | CALL | this -> flags
+30064771091 | CALL | isCA != 0
+30064771092 | CALL | this -> pathLenConstraint = parse_constraint ( object )
+30064771093 | CALL | this -> pathLenConstraint
+30064771094 | CALL | parse_constraint ( object )
+30064771095 | CALL | success = parser -> success ( parser )
+30064771096 | CALL | parser -> success ( parser )
+30064771097 | CALL | parser -> success
+30064771098 | CALL | parser -> destroy ( parser )
+30064771099 | CALL | parser -> destroy
+47244640256 | CONTROL_STRUCTURE | 
+        while (parser -> iterate ( parser , & objectID , & object ))
+      
+47244640257 | CONTROL_STRUCTURE | 
+        switch ( objectID ) {
+ case BASIC_CONSTRAINTS_CA : isCA = object . len && * object . ptr ;
+ DBG2 ( DBG_ASN , " %s" , isCA ? "TRUE" : "FALSE" ) ;
+ if ( isCA ) {
+ this -> flags |= X509_CA ;
+ }
+ break ;
+ case BASIC_CONSTRAINTS_PATH_LEN : if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+ break ;
+ default : break ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | if ( isCA ) { this -> flags |= X509_CA ; }
+47244640259 | CONTROL_STRUCTURE | break ;
+47244640260 | CONTROL_STRUCTURE | 
+        if ( isCA ) {
+ this -> pathLenConstraint = parse_constraint ( object ) ;
+ }
+      
+47244640261 | CONTROL_STRUCTURE | break ;
+47244640262 | CONTROL_STRUCTURE | break ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 47244640259 [AST]
+25769803778 -> 47244640260 [AST]
+25769803778 -> 47244640261 [AST]
+25769803778 -> 47244640262 [AST]
+25769803779 -> 30064771089 [AST]
+25769803780 -> 30064771092 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [RECEIVER]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771078 [RECEIVER]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771077 [CFG]
+30064771080 -> 30064771077 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771082 [CFG]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771090 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,294 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void bdrv_guess_geometry(BlockDriverState *bs, int *pcyls, int *pheads, int *psecs)
+
+{
+
+    int translation, lba_detected = 0;
+
+    int cylinders, heads, secs;
+
+    uint64_t nb_sectors;
+
+
+
+    /* if a geometry hint is available, use it */
+
+    bdrv_get_geometry(bs, &nb_sectors);
+
+    bdrv_get_geometry_hint(bs, &cylinders, &heads, &secs);
+
+    translation = bdrv_get_translation_hint(bs);
+
+    if (cylinders != 0) {
+
+        *pcyls = cylinders;
+
+        *pheads = heads;
+
+        *psecs = secs;
+
+    } else {
+
+        if (guess_disk_lchs(bs, &cylinders, &heads, &secs) == 0) {
+
+            if (heads > 16) {
+
+                /* if heads > 16, it means that a BIOS LBA
+
+                   translation was active, so the default
+
+                   hardware geometry is OK */
+
+                lba_detected = 1;
+
+                goto default_geometry;
+
+            } else {
+
+                *pcyls = cylinders;
+
+                *pheads = heads;
+
+                *psecs = secs;
+
+                /* disable any translation to be in sync with
+
+                   the logical geometry */
+
+                if (translation == BIOS_ATA_TRANSLATION_AUTO) {
+
+                    bdrv_set_translation_hint(bs,
+
+                                              BIOS_ATA_TRANSLATION_NONE);
+
+                }
+
+            }
+
+        } else {
+
+        default_geometry:
+
+            /* if no geometry, use a standard physical disk geometry */
+
+            cylinders = nb_sectors / (16 * 63);
+
+
+
+            if (cylinders > 16383)
+
+                cylinders = 16383;
+
+            else if (cylinders < 2)
+
+                cylinders = 2;
+
+            *pcyls = cylinders;
+
+            *pheads = 16;
+
+            *psecs = 63;
+
+            if ((lba_detected == 1) && (translation == BIOS_ATA_TRANSLATION_AUTO)) {
+
+                if ((*pcyls * *pheads) <= 131072) {
+
+                    bdrv_set_translation_hint(bs,
+
+                                              BIOS_ATA_TRANSLATION_LARGE);
+
+                } else {
+
+                    bdrv_set_translation_hint(bs,
+
+                                              BIOS_ATA_TRANSLATION_LBA);
+
+                }
+
+            }
+
+        }
+
+        bdrv_set_geometry_hint(bs, *pcyls, *pheads, *psecs);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+9 -> 12 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+15 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+15 -> 22 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+44 -> 51 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+44 -> 55 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+4 -> 59 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+73 -> 80 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void hd_geometry_guess(BlockDriverState *bs,
+
+                       int *pcyls, int *pheads, int *psecs)
+
+{
+
+    int cylinders, heads, secs, translation;
+
+
+
+    bdrv_get_geometry_hint(bs, &cylinders, &heads, &secs);
+
+    translation = bdrv_get_translation_hint(bs);
+
+
+
+    if (cylinders != 0) {
+
+        /* already got a geometry hint: use it */
+
+        *pcyls = cylinders;
+
+        *pheads = heads;
+
+        *psecs = secs;
+
+        return;
+
+    }
+
+
+
+    if (guess_disk_lchs(bs, &cylinders, &heads, &secs) < 0) {
+
+        /* no LCHS guess: use a standard physical disk geometry  */
+
+        guess_chs_for_size(bs, pcyls, pheads, psecs);
+
+    } else if (heads > 16) {
+
+        /* LCHS guess with heads > 16 means that a BIOS LBA
+
+           translation was active, so a standard physical disk
+
+           geometry is OK */
+
+        guess_chs_for_size(bs, pcyls, pheads, psecs);
+
+        if (translation == BIOS_ATA_TRANSLATION_AUTO) {
+
+            bdrv_set_translation_hint(bs,
+
+                                      *pcyls * *pheads <= 131072
+
+                                      ? BIOS_ATA_TRANSLATION_LARGE
+
+                                      : BIOS_ATA_TRANSLATION_LBA);
+
+        }
+
+    } else {
+
+        /* LCHS guess with heads <= 16: use as physical geometry */
+
+        *pcyls = cylinders;
+
+        *pheads = heads;
+
+        *psecs = secs;
+
+        /* disable any translation to be in sync with
+
+           the logical geometry */
+
+        if (translation == BIOS_ATA_TRANSLATION_AUTO) 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static struct xfrm_state * pfkey_msg2xfrm_state ( struct net * net , const struct sadb_msg * hdr , void * const * ext_hdrs ) {
+ struct xfrm_state * x ;
+ const struct sadb_lifetime * lifetime ;
+ const struct sadb_sa * sa ;
+ const struct sadb_key * key ;
+ const struct sadb_x_sec_ctx * sec_ctx ;
+ uint16_t proto ;
+ int err ;
+ sa = ext_hdrs [ SADB_EXT_SA - 1 ] ;
+ if ( ! sa || ! present_and_same_family ( ext_hdrs [ SADB_EXT_ADDRESS_SRC - 1 ] , ext_hdrs [ SADB_EXT_ADDRESS_DST - 1 ] ) ) return ERR_PTR ( - EINVAL ) ;
+ if ( hdr -> sadb_msg_satype == SADB_SATYPE_ESP && ! ext_hdrs [ SADB_EXT_KEY_ENCRYPT - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ if ( hdr -> sadb_msg_satype == SADB_SATYPE_AH && ! ext_hdrs [ SADB_EXT_KEY_AUTH - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ if ( ! ! ext_hdrs [ SADB_EXT_LIFETIME_HARD - 1 ] != ! ! ext_hdrs [ SADB_EXT_LIFETIME_SOFT - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ proto = pfkey_satype2proto ( hdr -> sadb_msg_satype ) ;
+ if ( proto == 0 ) return ERR_PTR ( - EINVAL ) ;
+ err = - ENOBUFS ;
+ if ( sa -> sadb_sa_auth > SADB_AALG_MAX || ( hdr -> sadb_msg_satype == SADB_X_SATYPE_IPCOMP && sa -> sadb_sa_encrypt > SADB_X_CALG_MAX ) || sa -> sadb_sa_encrypt > SADB_EALG_MAX ) return ERR_PTR ( - EINVAL ) ;
+ key = ext_hdrs [ SADB_EXT_KEY_AUTH - 1 ] ;
+ if ( key != NULL && sa -> sadb_sa_auth != SADB_X_AALG_NULL && ( ( key -> sadb_key_bits + 7 ) / 8 == 0 || ( key -> sadb_key_bits + 7 ) / 8 > key -> sadb_key_len * sizeof ( uint64_t ) ) ) return ERR_PTR ( - EINVAL ) ;
+ key = ext_hdrs [ SADB_EXT_KEY_ENCRYPT - 1 ] ;
+ if ( key != NULL && sa -> sadb_sa_encrypt != SADB_EALG_NULL && ( ( key -> sadb_key_bits + 7 ) / 8 == 0 || ( key -> sadb_key_bits + 7 ) / 8 > key -> sadb_key_len * sizeof ( uint64_t ) ) ) return ERR_PTR ( - EINVAL ) ;
+ x = xfrm_state_alloc ( net ) ;
+ if ( x == NULL ) return ERR_PTR ( - ENOBUFS ) ;
+ x -> id . proto = proto ;
+ x -> id . spi = sa -> sadb_sa_spi ;
+ x -> props . replay_window = sa -> sadb_sa_replay ;
+ if ( sa -> sadb_sa_flags & SADB_SAFLAGS_NOECN ) x -> props . flags |= XFRM_STATE_NOECN ;
+ if ( sa -> sadb_sa_flags & SADB_SAFLAGS_DECAP_DSCP ) x -> props . flags |= XFRM_STATE_DECAP_DSCP ;
+ if ( sa -> sadb_sa_flags & SADB_SAFLAGS_NOPMTUDISC ) x -> props . flags |= XFRM_STATE_NOPMTUDISC ;
+ lifetime = ext_hdrs [ SADB_EXT_LIFETIME_HARD - 1 ] ;
+ if ( lifetime != NULL ) {
+ x -> lft . hard_packet_limit = _KEY2X ( lifetime -> sadb_lifetime_allocations ) ;
+ x -> lft . hard_byte_limit = _KEY2X ( lifetime -> sadb_lifetime_bytes ) ;
+ x -> lft . hard_add_expires_seconds = lifetime -> sadb_lifetime_addtime ;
+ x -> lft . hard_use_expires_seconds = lifetime -> sadb_lifetime_usetime ;
+ }
+ lifetime = ext_hdrs [ SADB_EXT_LIFETIME_SOFT - 1 ] ;
+ if ( lifetime != NULL ) {
+ x -> lft . soft_packet_limit = _KEY2X ( lifetime -> sadb_lifetime_allocations ) ;
+ x -> lft . soft_byte_limit = _KEY2X ( lifetime -> sadb_lifetime_bytes ) ;
+ x -> lft . soft_add_expires_seconds = lifetime -> sadb_lifetime_addtime ;
+ x -> lft . soft_use_expires_seconds = lifetime -> sadb_lif
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct xfrm_state * x ;
+ const struct sadb_lifetime * lifetime ;
+ const struct sadb_sa * sa ;
+ const struct sadb_key * key ;
+ const struct sadb_x_sec_ctx * sec_ctx ;
+ uint16_t proto ;
+ int err ;
+ sa = ext_hdrs [ SADB_EXT_SA - 1 ] ;
+ if ( ! sa || ! present_and_same_family ( ext_hdrs [ SADB_EXT_ADDRESS_SRC - 1 ] , ext_hdrs [ SADB_EXT_ADDRESS_DST - 1 ] ) ) return ERR_PTR ( - EINVAL ) ;
+ if ( hdr -> sadb_msg_satype == SADB_SATYPE_ESP && ! ext_hdrs [ SADB_EXT_KEY_ENCRYPT - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ if ( hdr -> sadb_msg_satype == SADB_SATYPE_AH && ! ext_hdrs [ SADB_EXT_KEY_AUTH - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ if ( ! ! ext_hdrs [ SADB_EXT_LIFETIME_HARD - 1 ] != ! ! ext_hdrs [ SADB_EXT_LIFETIME_SOFT - 1 ] ) return ERR_PTR ( - EINVAL ) ;
+ proto = pfkey_satype2proto ( hdr -> sadb_msg_satype ) ;
+ if ( proto == 0 ) return ERR_PTR ( - EINVAL ) ;
+ err = - ENOBUFS ;
+ if ( sa -> sadb_sa_auth > SADB_AALG_MAX || ( hdr -> sadb_msg_satype == SADB_X_SATYPE_IPCOMP && sa -> sadb_sa_en...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ x -> lft . hard_packet_limit = _KEY2X ( lifetime -> sadb_lifetime_allocations ) ;
+ x -> lft . hard_byte_limit = _KEY2X ( lifetime -> sadb_lifetime_bytes ) ;
+ x -> lft . hard_add_expires_seconds = lifetime -> sadb_lifetime_addtime ;
+ x -> lft . hard_use_expires_seconds = lifetime -> sadb_lifetime_usetime ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ x -> lft . soft_packet_limit = _KEY2X ( lifetime -> sadb_lifetime_allocations ) ;
+ x -> lft . soft_byte_limit = _KEY2X ( lifetime -> sadb_lifetime_bytes ) ;
+ x -> lft . soft_add_expires_seconds = lifetime -> sadb_lifetime_addtime ;
+ x -> lft . soft_use_expires_seconds = lifetime -> sadb_lifetime_usetime ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ struct xfrm_user_sec_ctx * uctx = pfkey_sadb2xfrm_user_sec_ctx ( sec_ctx ) ;
+ if ( ! uctx ) goto out ;
+ err = security_xfrm_state_alloc ( x , uctx ) ;
+ kfree ( uctx ) ;
+ if ( err ) goto out ;
+ }
+      
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ int keysize = 0 ;
+ struct xfrm_algo_desc * a = xfrm_aalg_get_byid ( sa -> sadb_sa_auth ) ;
+ if ( ! a || ! a -> pfkey_supported ) {
+ err = - ENOSYS ;
+ goto out ;
+ }
+ if ( key ) keysize = ( key -> sadb_key_bits + 7 ) / 8 ;
+ x -> aalg = kmalloc ( sizeof ( * x -> aalg ) + keysize , GFP_KERNEL ) ;
+ if ( ! x -> aalg ) goto out ;
+ strcpy ( x -> aalg -> alg_name , a -> name ) ;
+ x -> aalg -> alg_key_len = 0 ;
+ if ( key ) {
+ x -> aalg -> alg_key_len = key -> sadb_key_bits ;
+ memcpy ( x -> aalg -> alg_key , key + 1 , keysize ) ;
+ }
+ x -> aalg -> alg_trunc_len = a -> uinfo . auth . icv_truncbits ;
+ x -> props . aalgo = sa -> sadb_sa_auth ;
+ }
+      
+25769803795 | BLOCK | { err = - ENOSYS ; goto out ; }
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | 
+        {
+ x -> aalg -> alg_key_len = key -> sadb_key_bits ;
+ memcpy ( x -> aalg -> alg_key , key + 1 , keysize ) ;
+ }
+      
+25769803799 | BLOCK | 
+        {
+ if ( hdr -> sadb_msg_satype == SADB_X_SATYPE_IPCOMP ) {
+ struct xfrm_algo_desc * a = xfrm_calg_get_byid ( sa -> sadb_sa_encrypt ) ;
+ if ( ! a || ! a -> pfkey_supported ) {
+ err = - ENOSYS ;
+ goto out ;
+ }
+ x -> calg = kmalloc ( sizeof ( * x -> calg ) , GFP_KERNEL ) ;
+ if ( ! x -> calg ) goto out ;
+ strcpy ( x -> calg -> alg_name , a -> name ) ;
+ x -> props . calgo = sa -> sadb_sa_encrypt ;
+ }
+ else {
+ int keysize = 0 ;
+ struct xfrm_algo_desc * a = xfrm_ealg_get_byid ( sa -> sadb_sa_encrypt ) ;
+ if ( ! a || ! a -> pfkey_supported ) {
+ err = - ENOSYS ;
+ goto out ;
+ }
+ key = ( struct sadb_key * ) ext_hdrs [ SADB_EXT_KEY_ENCRYPT - 1 ] ;
+ if ( key ) keysize = ( key -> sadb_key_bits + 7 ) / 8 ;
+ x -> ealg = kmalloc ( sizeof ( * x -> ealg ) + keysize , GFP_KERNEL ) ;
+ if ( ! x -> ealg ) goto out ;
+ strcpy ( x -> ealg -> alg_name , a -> name ) ;
+ x -> ealg -> alg_key_len = 0 ;
+ if ( key ) {
+ x -> ealg -> alg_key_len = key -> sadb_key_bits ;
+ memcpy ( x -> ealg -> alg_key , key + 1 , keys...
+      
+25
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void intra_pred_plane ( uint8_t * d , uint8_t * top , uint8_t * left , int stride ) {
+ int x , y , ia ;
+ int ih = 0 ;
+ int iv = 0 ;
+ uint8_t * cm = ff_cropTbl + MAX_NEG_CROP ;
+ for ( x = 0 ;
+ x < 4 ;
+ x ++ ) {
+ ih += ( x + 1 ) * ( top [ 5 + x ] - top [ 3 - x ] ) ;
+ iv += ( x + 1 ) * ( left [ 5 + x ] - left [ 3 - x ] ) ;
+ }
+ ia = ( top [ 8 ] + left [ 8 ] ) << 4 ;
+ ih = ( 17 * ih + 16 ) >> 5 ;
+ iv = ( 17 * iv + 16 ) >> 5 ;
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) for ( x = 0 ;
+ x < 8 ;
+ x ++ ) d [ y * stride + x ] = cm [ ( ia + ( x - 3 ) * ih + ( y - 3 ) * iv + 16 ) >> 5 ] ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y , ia ;
+ int ih = 0 ;
+ int iv = 0 ;
+ uint8_t * cm = ff_cropTbl + MAX_NEG_CROP ;
+ for ( x = 0 ;
+ x < 4 ;
+ x ++ ) {
+ ih += ( x + 1 ) * ( top [ 5 + x ] - top [ 3 - x ] ) ;
+ iv += ( x + 1 ) * ( left [ 5 + x ] - left [ 3 - x ] ) ;
+ }
+ ia = ( top [ 8 ] + left [ 8 ] ) << 4 ;
+ ih = ( 17 * ih + 16 ) >> 5 ;
+ iv = ( 17 * iv + 16 ) >> 5 ;
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) for ( x = 0 ;
+ x < 8 ;
+ x ++ ) d [ y * stride + x ] = cm [ ( ia + ( x - 3 ) * ih + ( y - 3 ) * iv + 16 ) >> 5 ] ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ih += ( x + 1 ) * ( top [ 5 + x ] - top [ 3 - x ] ) ;
+ iv += ( x + 1 ) * ( left [ 5 + x ] - left [ 3 - x ] ) ;
+ }
+      
+30064771072 | CALL | ih = 0
+30064771073 | CALL | iv = 0
+30064771074 | CALL | cm = ff_cropTbl + MAX_NEG_CROP
+30064771075 | CALL | ff_cropTbl + MAX_NEG_CROP
+30064771076 | CALL | x = 0
+30064771077 | CALL | x < 4
+30064771078 | CALL | x ++
+30064771079 | CALL | ih += ( x + 1 ) * ( top [ 5 + x ] - top [ 3 - x ] )
+30064771080 | CALL | ( x + 1 ) * ( top [ 5 + x ] - top [ 3 - x ] )
+30064771081 | CALL | x + 1
+30064771082 | CALL | top [ 5 + x ] - top [ 3 - x ]
+30064771083 | CALL | top [ 5 + x ]
+30064771084 | CALL | 5 + x
+30064771085 | CALL | top [ 3 - x ]
+30064771086 | CALL | 3 - x
+30064771087 | CALL | iv += ( x + 1 ) * ( left [ 5 + x ] - left [ 3 - x ] )
+30064771088 | CALL | ( x + 1 ) * ( left [ 5 + x ] - left [ 3 - x ] )
+30064771089 | CALL | x + 1
+30064771090 | CALL | left [ 5 + x ] - left [ 3 - x ]
+30064771091 | CALL | left [ 5 + x ]
+30064771092 | CALL | 5 + x
+30064771093 | CALL | left [ 3 - x ]
+30064771094 | CALL | 3 - x
+30064771095 | CALL | ia = ( top [ 8 ] + left [ 8 ] ) << 4
+30064771096 | CALL | ( top [ 8 ] + left [ 8 ] ) << 4
+30064771097 | CALL | top [ 8 ] + left [ 8 ]
+30064771098 | CALL | top [ 8 ]
+30064771099 | CALL | left [ 8 ]
+30064771100 | CALL | ih = ( 17 * ih + 16 ) >> 5
+30064771101 | CALL | ( 17 * ih + 16 ) >> 5
+30064771102 | CALL | 17 * ih + 16
+30064771103 | CALL | 17 * ih
+30064771104 | CALL | iv = ( 17 * iv + 16 ) >> 5
+30064771105 | CALL | ( 17 * iv + 16 ) >> 5
+30064771106 | CALL | 17 * iv + 16
+30064771107 | CALL | 17 * iv
+30064771108 | CALL | y = 0
+30064771109 | CALL | y < 8
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771087 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771092 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771094 [CDG]
+30064771077 -> 30064771093 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771082 [CFG]
+30064771085 -> 30064771082 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771090 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void intra_pred_down_left ( uint8_t * d , uint8_t * top , uint8_t * left , int stride ) {
+ int x , y ;
+ for ( y = 0 ;
+ y < 8 ;
+ y ++ ) for ( x = 0 ;
+ x < 8 ;
+ x ++ ) d [ y * stride + x ] = ( LOWPASS ( top , x + y + 2 ) + LOWPASS ( left , x + y + 2 ) ) >> 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

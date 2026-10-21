@@ -1,0 +1,234 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nntp_msg_open ( struct Context * ctx , struct Message * msg , int msgno ) {
+ struct NntpData * nntp_data = ctx -> data ;
+ struct Header * hdr = ctx -> hdrs [ msgno ] ;
+ char article [ 16 ] ;
+ struct NntpAcache * acache = & nntp_data -> acache [ hdr -> index % NNTP_ACACHE_LEN ] ;
+ if ( acache -> path ) {
+ if ( acache -> index == hdr -> index ) {
+ msg -> fp = mutt_file_fopen ( acache -> path , "r" ) ;
+ if ( msg -> fp ) return 0 ;
+ }
+ else {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ }
+ snprintf ( article , sizeof ( article ) , "%d" , NHDR ( hdr ) -> article_num ) ;
+ msg -> fp = mutt_bcache_get ( nntp_data -> bcache , article ) ;
+ if ( msg -> fp ) {
+ if ( NHDR ( hdr ) -> parsed ) return 0 ;
+ }
+ else {
+ char buf [ PATH_MAX ] ;
+ if ( nntp_data -> deleted ) return - 1 ;
+ const char * fetch_msg = _ ( "Fetching message..." ) ;
+ mutt_message ( fetch_msg ) ;
+ msg -> fp = mutt_bcache_put ( nntp_data -> bcache , article ) ;
+ if ( ! msg -> fp ) {
+ mutt_mktemp ( buf , sizeof ( buf ) ) ;
+ acache -> path = mutt_str_strdup ( buf ) ;
+ acache -> index = hdr -> index ;
+ msg -> fp = mutt_file_fopen ( acache -> path , "w+" ) ;
+ if ( ! msg -> fp ) {
+ mutt_perror ( acache -> path ) ;
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ return - 1 ;
+ }
+ }
+ snprintf ( buf , sizeof ( buf ) , "ARTICLE %s\r\n" , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ const int rc = nntp_fetch_lines ( nntp_data , buf , sizeof ( buf ) , fetch_msg , fetch_tempfile , msg -> fp ) ;
+ if ( rc ) {
+ mutt_file_fclose ( & msg -> fp ) ;
+ if ( acache -> path ) {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ if ( rc > 0 ) {
+ if ( mutt_str_strncmp ( NHDR ( hdr ) -> article_num ? "423" : "430" , buf , 3 ) == 0 ) {
+ mutt_error ( _ ( "Article %d not found on the server." ) , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ }
+ else mutt_error ( "ARTICLE: %s" , buf ) ;
+ }
+ return - 1 ;
+ }
+ if ( ! acache -> path ) mutt_bcache_commit ( nntp_data -> bcache , article ) ;
+ }
+ if ( ctx -> id_hash && hdr -> env -> message_id ) mutt_hash_delete ( ctx -> id_hash , hdr -> env -> message_id , hdr ) ;
+ if ( ctx -> subj_hash && hdr -> env -> real_subj ) mutt_hash_delete ( ctx -> subj_hash , hdr -> env -> real_subj , hdr ) ;
+ mutt_env_free ( & hdr -> env ) ;
+ hdr -> env = mutt_rfc822_read_header ( msg -> fp , hdr , 0 , 0 ) ;
+ if ( ctx -> id_hash && hdr -> env -> message_id ) mutt_hash_insert ( ctx -> id_hash , hdr -> env -> message_id , hdr ) ;
+ if ( ctx -> subj_hash && hdr -> env -> real_subj ) mutt_hash_insert ( ctx -> subj_hash , hdr -> env -> real_subj , hdr ) ;
+ fseek ( msg -> fp , 0 , SEEK_END ) ;
+ hdr -> content -> length = ftell ( msg -> fp ) - hdr -> content -> offset ;
+ NHDR ( hdr ) -> parsed = true ;
+ mutt_parse_mime_message ( ctx , hdr ) ;
+ if ( WithCrypto ) hdr -> security = crypt_query ( hdr -> content ) ;
+ rewind ( msg -> fp ) ;
+ mutt_clear_error ( ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct NntpData * nntp_data = ctx -> data ;
+ struct Header * hdr = ctx -> hdrs [ msgno ] ;
+ char article [ 16 ] ;
+ struct NntpAcache * acache = & nntp_data -> acache [ hdr -> index % NNTP_ACACHE_LEN ] ;
+ if ( acache -> path ) {
+ if ( acache -> index == hdr -> index ) {
+ msg -> fp = mutt_file_fopen ( acache -> path , "r" ) ;
+ if ( msg -> fp ) return 0 ;
+ }
+ else {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ }
+ snprintf ( article , sizeof ( article ) , "%d" , NHDR ( hdr ) -> article_num ) ;
+ msg -> fp = mutt_bcache_get ( nntp_data -> bcache , article ) ;
+ if ( msg -> fp ) {
+ if ( NHDR ( hdr ) -> parsed ) return 0 ;
+ }
+ else {
+ char buf [ PATH_MAX ] ;
+ if ( nntp_data -> deleted ) return - 1 ;
+ const char * fetch_msg = _ ( "Fetching message..." ) ;
+ mutt_message ( fetch_msg ) ;
+ msg -> fp = mutt_bcache_put ( nntp_data -> bcache , article ) ;
+ if ( ! msg -> fp ) {
+ mutt_mktemp ( buf , sizeof ( buf ) ) ;
+ acache -> path = mutt_str_strdup ( buf ) ;
+ acache -> index = h...
+      
+25769803777 | BLOCK | 
+        {
+ if ( acache -> index == hdr -> index ) {
+ msg -> fp = mutt_file_fopen ( acache -> path , "r" ) ;
+ if ( msg -> fp ) return 0 ;
+ }
+ else {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ msg -> fp = mutt_file_fopen ( acache -> path , "r" ) ;
+ if ( msg -> fp ) return 0 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | { unlink ( acache -> path ) ; FREE ( & acache -> path ) ; }
+25769803781 | BLOCK | { if ( NHDR ( hdr ) -> parsed ) return 0 ; }
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ char buf [ PATH_MAX ] ;
+ if ( nntp_data -> deleted ) return - 1 ;
+ const char * fetch_msg = _ ( "Fetching message..." ) ;
+ mutt_message ( fetch_msg ) ;
+ msg -> fp = mutt_bcache_put ( nntp_data -> bcache , article ) ;
+ if ( ! msg -> fp ) {
+ mutt_mktemp ( buf , sizeof ( buf ) ) ;
+ acache -> path = mutt_str_strdup ( buf ) ;
+ acache -> index = hdr -> index ;
+ msg -> fp = mutt_file_fopen ( acache -> path , "w+" ) ;
+ if ( ! msg -> fp ) {
+ mutt_perror ( acache -> path ) ;
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ return - 1 ;
+ }
+ }
+ snprintf ( buf , sizeof ( buf ) , "ARTICLE %s\r\n" , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ const int rc = nntp_fetch_lines ( nntp_data , buf , sizeof ( buf ) , fetch_msg , fetch_tempfile , msg -> fp ) ;
+ if ( rc ) {
+ mutt_file_fclose ( & msg -> fp ) ;
+ if ( acache -> path ) {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ if ( rc > 0 ) {
+ if ( mutt_str_strncmp ( NHDR ( hdr ) -> article_num ? "42...
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ mutt_mktemp ( buf , sizeof ( buf ) ) ;
+ acache -> path = mutt_str_strdup ( buf ) ;
+ acache -> index = hdr -> index ;
+ msg -> fp = mutt_file_fopen ( acache -> path , "w+" ) ;
+ if ( ! msg -> fp ) {
+ mutt_perror ( acache -> path ) ;
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ return - 1 ;
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ mutt_perror ( acache -> path ) ;
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ return - 1 ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ mutt_file_fclose ( & msg -> fp ) ;
+ if ( acache -> path ) {
+ unlink ( acache -> path ) ;
+ FREE ( & acache -> path ) ;
+ }
+ if ( rc > 0 ) {
+ if ( mutt_str_strncmp ( NHDR ( hdr ) -> article_num ? "423" : "430" , buf , 3 ) == 0 ) {
+ mutt_error ( _ ( "Article %d not found on the server." ) , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ }
+ else mutt_error ( "ARTICLE: %s" , buf ) ;
+ }
+ return - 1 ;
+ }
+      
+25769803788 | BLOCK | { unlink ( acache -> path ) ; FREE ( & acache -> path ) ; }
+25769803789 | BLOCK | 
+        {
+ if ( mutt_str_strncmp ( NHDR ( hdr ) -> article_num ? "423" : "430" , buf , 3 ) == 0 ) {
+ mutt_error ( _ ( "Article %d not found on the server." ) , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ }
+ else mutt_error ( "ARTICLE: %s" , buf ) ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ mutt_error ( _ ( "Article %d not found on the server." ) , NHDR ( hdr ) -> article_num ? article : hdr -> env -> message_id ) ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

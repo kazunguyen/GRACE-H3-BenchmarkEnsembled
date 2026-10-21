@@ -1,0 +1,48 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_rsvp_hello ( proto_tree * ti , proto_tree * rsvp_object_tree , tvbuff_t * tvb , int offset , int obj_length _U_ , int rsvp_class _U_ , int type ) {
+ switch ( type ) {
+ case 1 : case 2 : proto_tree_add_uint_format_value ( rsvp_object_tree , hf_rsvp_ctype , tvb , offset + 3 , 1 , tvb_get_guint8 ( tvb , offset + 3 ) , "%d - HELLO %s object" , tvb_get_guint8 ( tvb , offset + 3 ) , type == 1 ? "REQUEST" : "ACK" ) ;
+ proto_tree_add_item ( rsvp_object_tree , hf_rsvp_hello_source_instance , tvb , offset + 4 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_tree_add_item ( rsvp_object_tree , hf_rsvp_hello_destination_instance , tvb , offset + 8 , 4 , ENC_BIG_ENDIAN ) ;
+ proto_item_append_text ( ti , ": %s. Src Instance: 0x%0x. Dest Instance: 0x%0x. " , type == 1 ? "REQUEST" : "ACK" , tvb_get_ntohl ( tvb , offset + 4 ) , tvb_get_ntohl ( tvb , offset + 8 ) ) ;
+ break ;
+ default : proto_tree_add_uint_format_value ( rsvp_object_tree , hf_rsvp_ctype , tvb , offset + 3 , 1 , type , "%d - UNKNOWN" , type ) ;
+ break ;
+ }
+ ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void dissect_rsvp_dclass ( proto_tree * ti , proto_tree * rsvp_object_tree , tvbuff_t * tvb , int offset , int obj_length , int rsvp_class _U_ , int type ) {
+ int offset2 = offset + 4 ;
+ int mylen ;
+ proto_item_set_text ( ti , "DCLASS: " ) ;
+ switch ( type ) {
+ case 1 : proto_tree_add_uint ( rsvp_object_tree , hf_rsvp_ctype , tvb , offset + 3 , 1 , type ) ;
+ for ( mylen = 4 ;
+ mylen < obj_length ;
+ mylen += 4 ) {
+ proto_tree_add_item ( rsvp_object_tree , hf_rsvp_dclass_dscp , tvb , offset + mylen + 3 , 1 , ENC_BIG_ENDIAN ) ;
+ proto_item_append_text ( ti , "%d%s" , tvb_get_guint8 ( tvb , offset + mylen + 3 ) >> 2 , mylen == obj_length - 4 ? "" : mylen < 16 ? ", " : mylen == 16 ? ", ..." : "" ) ;
+ }
+ break ;
+ default : mylen = obj_length - 4 ;
+ proto_tree_add_uint_format_value ( rsvp_object_tree , hf_rsvp_ctype , tvb , offset + 3 , 1 , type , "Unknown (%u)" , type ) ;
+ proto_tree_add_item ( rsvp_object_tree , hf_rsvp_dclass_data , tvb , offset2 , mylen , ENC_NA ) ;
+ break ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,204 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dec_bark_env ( TwinContext * tctx , const uint8_t * in , int use_hist , int ch , float * out , float gain , enum FrameType ftype ) {
+ const ModeTab * mtab = tctx -> mtab ;
+ int i , j ;
+ float * hist = tctx -> bark_hist [ ftype ] [ ch ] ;
+ float val = ( ( const float [ ] ) {
+ 0.4 , 0.35 , 0.28 }
+ ) [ ftype ] ;
+ int bark_n_coef = mtab -> fmode [ ftype ] . bark_n_coef ;
+ int fw_cb_len = mtab -> fmode [ ftype ] . bark_env_size / bark_n_coef ;
+ int idx = 0 ;
+ for ( i = 0 ;
+ i < fw_cb_len ;
+ i ++ ) for ( j = 0 ;
+ j < bark_n_coef ;
+ j ++ , idx ++ ) {
+ float tmp2 = mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ] * ( 1. / 4096 ) ;
+ float st = use_hist ? ( 1. - val ) * tmp2 + val * hist [ idx ] + 1. : tmp2 + 1. ;
+ hist [ idx ] = tmp2 ;
+ if ( st < - 1. ) st = 1. ;
+ memset_float ( out , st * gain , mtab -> fmode [ ftype ] . bark_tab [ idx ] ) ;
+ out += mtab -> fmode [ ftype ] . bark_tab [ idx ] ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const ModeTab * mtab = tctx -> mtab ;
+ int i , j ;
+ float * hist = tctx -> bark_hist [ ftype ] [ ch ] ;
+ float val = ( ( const float [ ] ) {
+ 0.4 , 0.35 , 0.28 }
+ ) [ ftype ] ;
+ int bark_n_coef = mtab -> fmode [ ftype ] . bark_n_coef ;
+ int fw_cb_len = mtab -> fmode [ ftype ] . bark_env_size / bark_n_coef ;
+ int idx = 0 ;
+ for ( i = 0 ;
+ i < fw_cb_len ;
+ i ++ ) for ( j = 0 ;
+ j < bark_n_coef ;
+ j ++ , idx ++ ) {
+ float tmp2 = mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ] * ( 1. / 4096 ) ;
+ float st = use_hist ? ( 1. - val ) * tmp2 + val * hist [ idx ] + 1. : tmp2 + 1. ;
+ hist [ idx ] = tmp2 ;
+ if ( st < - 1. ) st = 1. ;
+ memset_float ( out , st * gain , mtab -> fmode [ ftype ] . bark_tab [ idx ] ) ;
+ out += mtab -> fmode [ ftype ] . bark_tab [ idx ] ;
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ float tmp2 = mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ] * ( 1. / 4096 ) ;
+ float st = use_hist ? ( 1. - val ) * tmp2 + val * hist [ idx ] + 1. : tmp2 + 1. ;
+ hist [ idx ] = tmp2 ;
+ if ( st < - 1. ) st = 1. ;
+ memset_float ( out , st * gain , mtab -> fmode [ ftype ] . bark_tab [ idx ] ) ;
+ out += mtab -> fmode [ ftype ] . bark_tab [ idx ] ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | mtab = tctx -> mtab
+30064771073 | CALL | tctx -> mtab
+30064771074 | CALL | hist = tctx -> bark_hist [ ftype ] [ ch ]
+30064771075 | CALL | tctx -> bark_hist [ ftype ] [ ch ]
+30064771076 | CALL | tctx -> bark_hist [ ftype ]
+30064771077 | CALL | tctx -> bark_hist
+30064771078 | CALL | val = ( ( const float [ ] ) { 0.4 , 0.35 , 0.28 } ) [ ftype ]
+30064771079 | CALL | ( ( const float [ ] ) { 0.4 , 0.35 , 0.28 } ) [ ftype ]
+30064771080 | CALL | ( const float [ ] ) { 0.4 , 0.35 , 0.28 }
+30064771081 | CALL | { 0.4 , 0.35 , 0.28 }
+30064771082 | CALL | bark_n_coef = mtab -> fmode [ ftype ] . bark_n_coef
+30064771083 | CALL | mtab -> fmode [ ftype ] . bark_n_coef
+30064771084 | CALL | mtab -> fmode [ ftype ]
+30064771085 | CALL | mtab -> fmode
+30064771086 | CALL | fw_cb_len = mtab -> fmode [ ftype ] . bark_env_size / bark_n_coef
+30064771087 | CALL | mtab -> fmode [ ftype ] . bark_env_size / bark_n_coef
+30064771088 | CALL | mtab -> fmode [ ftype ] . bark_env_size
+30064771089 | CALL | mtab -> fmode [ ftype ]
+30064771090 | CALL | mtab -> fmode
+30064771091 | CALL | idx = 0
+30064771092 | CALL | i = 0
+30064771093 | CALL | i < fw_cb_len
+30064771094 | CALL | i ++
+30064771095 | CALL | j = 0
+30064771096 | CALL | j < bark_n_coef
+30064771097 | CALL | j ++
+30064771098 | CALL | idx ++
+30064771099 | CALL | 
+        tmp2 = mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ] * ( 1. / 4096 )
+      
+30064771100 | CALL | mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ] * ( 1. / 4096 )
+30064771101 | CALL | mtab -> fmode [ ftype ] . bark_cb [ fw_cb_len * in [ j ] + i ]
+30064771102 | CALL | mtab -> fmode [ ftype ] . bark_cb
+30064771103 | CALL | mtab -> fmode [ ftype ]
+30064771104 | CALL | mtab -> fmode
+30064771105 | CALL | fw_cb_len * in [ j ] + i
+30064771106 | CALL | fw_cb_len * in [ j ]
+30064771107 | CALL | in [ j ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771097 [AST]
+25769803777 -> 30064771098 [AST]
+25769803778 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771103 [REACHING_DEF]
+30064771083 -> 30064771089 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771103 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771093 -> 30064771094 [CDG]
+30064771093 -> 30064771095 [CDG]
+30064771093 -> 30064771093 [CDG]
+30064771093 -> 30064771096 [CDG]
+30064771096 -> 30064771102 [CDG]
+30064771096 -> 30064771103 [CDG]
+30064771096 -> 30064771100 [CDG]
+30064771096 -> 30064771101 [CDG]
+30064771096 -> 30064771098 [CDG]
+30064771096 -> 30064771099 [CDG]
+30064771096 -> 30064771096 [CDG]
+30064771096 -> 30064771097 [CDG]
+30064771096 -> 30064771106 [CDG]
+30064771096 -> 30064771107 [CDG]
+30064771096 -> 30064771104 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void decode_lsp ( TwinContext * tctx , int lpc_idx1 , uint8_t * lpc_idx2 , int lpc_hist_idx , float * lsp , float * hist ) {
+ const ModeTab * mtab = tctx -> mtab ;
+ int i , j ;
+ const float * cb = mtab -> lspcodebook ;
+ const float * cb2 = cb + ( 1 << mtab -> lsp_bit1 ) * mtab -> n_lsp ;
+ const float * cb3 = cb2 + ( 1 << mtab -> lsp_bit2 ) * mtab -> n_lsp ;
+ const int8_t funny_rounding [ 4 ] = {
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

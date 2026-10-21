@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+krb5_error_code krb5_read_tkt_policy ( krb5_context context , krb5_ldap_context * ldap_context , krb5_db_entry * entries , char * policy ) {
+ krb5_error_code st = 0 ;
+ int mask = 0 , omask = 0 ;
+ int tkt_mask = ( KDB_MAX_LIFE_ATTR | KDB_MAX_RLIFE_ATTR | KDB_TKT_FLAGS_ATTR ) ;
+ krb5_ldap_policy_params * tktpoldnparam = NULL ;
+ if ( ( st = krb5_get_attributes_mask ( context , entries , & mask ) ) != 0 ) goto cleanup ;
+ if ( ( mask & tkt_mask ) == tkt_mask ) goto cleanup ;
+ if ( policy != NULL ) {
+ st = krb5_ldap_read_policy ( context , policy , & tktpoldnparam , & omask ) ;
+ if ( st && st != KRB5_KDB_NOENTRY ) {
+ prepend_err_str ( context , _ ( "Error reading ticket policy. " ) , st , st ) ;
+ goto cleanup ;
+ }
+ st = 0 ;
+ }
+ if ( ( mask & KDB_MAX_LIFE_ATTR ) == 0 ) {
+ if ( ( omask & KDB_MAX_LIFE_ATTR ) == KDB_MAX_LIFE_ATTR ) entries -> max_life = tktpoldnparam -> maxtktlife ;
+ else if ( ldap_context -> lrparams -> max_life ) entries -> max_life = ldap_context -> lrparams -> max_life ;
+ }
+ if ( ( mask & KDB_MAX_RLIFE_ATTR ) == 0 ) {
+ if ( ( omask & KDB_MAX_RLIFE_ATTR ) == KDB_MAX_RLIFE_ATTR ) entries -> max_renewable_life = tktpoldnparam -> maxrenewlife ;
+ else if ( ldap_context -> lrparams -> max_renewable_life ) entries -> max_renewable_life = ldap_context -> lrparams -> max_renewable_life ;
+ }
+ if ( ( mask & KDB_TKT_FLAGS_ATTR ) == 0 ) {
+ if ( ( omask & KDB_TKT_FLAGS_ATTR ) == KDB_TKT_FLAGS_ATTR ) entries -> attributes = tktpoldnparam -> tktflags ;
+ else if ( ldap_context -> lrparams -> tktflags ) entries -> attributes |= ldap_context -> lrparams -> tktflags ;
+ }
+ krb5_ldap_free_policy ( context , tktpoldnparam ) ;
+ cleanup : return st ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ krb5_error_code st = 0 ;
+ int mask = 0 , omask = 0 ;
+ int tkt_mask = ( KDB_MAX_LIFE_ATTR | KDB_MAX_RLIFE_ATTR | KDB_TKT_FLAGS_ATTR ) ;
+ krb5_ldap_policy_params * tktpoldnparam = NULL ;
+ if ( ( st = krb5_get_attributes_mask ( context , entries , & mask ) ) != 0 ) goto cleanup ;
+ if ( ( mask & tkt_mask ) == tkt_mask ) goto cleanup ;
+ if ( policy != NULL ) {
+ st = krb5_ldap_read_policy ( context , policy , & tktpoldnparam , & omask ) ;
+ if ( st && st != KRB5_KDB_NOENTRY ) {
+ prepend_err_str ( context , _ ( "Error reading ticket policy. " ) , st , st ) ;
+ goto cleanup ;
+ }
+ st = 0 ;
+ }
+ if ( ( mask & KDB_MAX_LIFE_ATTR ) == 0 ) {
+ if ( ( omask & KDB_MAX_LIFE_ATTR ) == KDB_MAX_LIFE_ATTR ) entries -> max_life = tktpoldnparam -> maxtktlife ;
+ else if ( ldap_context -> lrparams -> max_life ) entries -> max_life = ldap_context -> lrparams -> max_life ;
+ }
+ if ( ( mask & KDB_MAX_RLIFE_ATTR ) == 0 ) {
+ if ( ( omask & KDB_MAX_RLIFE_ATTR ) == KDB_MAX_RLIFE_ATTR ) entries -> max_renewable_life ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ st = krb5_ldap_read_policy ( context , policy , & tktpoldnparam , & omask ) ;
+ if ( st && st != KRB5_KDB_NOENTRY ) {
+ prepend_err_str ( context , _ ( "Error reading ticket policy. " ) , st , st ) ;
+ goto cleanup ;
+ }
+ st = 0 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ prepend_err_str ( context , _ ( "Error reading ticket policy. " ) , st , st ) ;
+ goto cleanup ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( ( omask & KDB_MAX_LIFE_ATTR ) == KDB_MAX_LIFE_ATTR ) entries -> max_life = tktpoldnparam -> maxtktlife ;
+ else if ( ldap_context -> lrparams -> max_life ) entries -> max_life = ldap_context -> lrparams -> max_life ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ if ( ( omask & KDB_MAX_RLIFE_ATTR ) == KDB_MAX_RLIFE_ATTR ) entries -> max_renewable_life = tktpoldnparam -> maxrenewlife ;
+ else if ( ldap_context -> lrparams -> max_renewable_life ) entries -> max_renewable_life = ldap_context -> lrparams -> max_renewable_life ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ if ( ( omask & KDB_TKT_FLAGS_ATTR ) == KDB_TKT_FLAGS_ATTR ) entries -> attributes = tktpoldnparam -> tktflags ;
+ else if ( ldap_context -> lrparams -> tktflags ) entries -> attributes |= ldap_context -> lrparams -> tktflags ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+30064771072 | CALL | st = 0
+30064771073 | CALL | mask = 0
+30064771074 | CALL | omask = 0
+30064771075 | CALL | tkt_mask = ( KDB_MAX_LIFE_ATTR | KDB_MAX_RLIFE_ATTR | KDB_TKT_FLAGS_ATTR )
+30064771076 | CALL | KDB_MAX_LIFE_ATTR | KDB_MAX_RLIFE_ATTR | KDB_TKT_FLAGS_ATTR
+30064771077 | CALL | KDB_MAX_LIFE_ATTR | KDB_MAX_RLIFE_ATTR
+30064771078 | CALL | tktpoldnparam = NULL
+30064771079 | CALL | ( st = krb5_get_attributes_mask ( context , entries , & mask ) ) != 0
+30064771080 | CALL | st = krb5_get_attributes_mask ( context , entries , & mask )
+30064771081 | CALL | krb5_get_attributes_mask ( context , entries , & mask )
+30064771082 | CALL | & mask
+30064771083 | CALL | ( mask & tkt_mask ) == tkt_mask
+30064771084 | CALL | mask & tkt_mask
+30064771085 | CALL | policy != NULL
+30064771086 | CALL | st = krb5_ldap_read_policy ( context , policy , & tktpoldnparam , & omask )
+30064771087 | CALL | krb5_ldap_read_policy ( context , policy , & tktpoldnparam , & omask )
+30064771088 | CALL | & tktpoldnparam
+30064771089 | CALL | & omask
+30064771090 | CALL | st && st != KRB5_KDB_NOENTRY
+30064771091 | CALL | st != KRB5_KDB_NOENTRY
+30064771092 | CALL | 
+        prepend_err_str ( context , _ ( "Error reading ticket policy. " ) , st , st )
+      
+30064771093 | CALL | _ ( "Error reading ticket policy. " )
+30064771094 | CALL | st = 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771094 [AST]
+25769803780 -> 30064771092 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [CDG]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771086 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771087 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

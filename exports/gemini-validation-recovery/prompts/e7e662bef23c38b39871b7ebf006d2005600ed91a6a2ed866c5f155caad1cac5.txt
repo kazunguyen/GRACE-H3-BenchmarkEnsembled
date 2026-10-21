@@ -1,0 +1,62 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static guint16 de_time_zone_time ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len _U_ , gchar * add_string _U_ , int string_len _U_ ) {
+ guint8 oct ;
+ guint32 curr_offset ;
+ char sign ;
+ nstime_t tv ;
+ struct tm tm ;
+ curr_offset = offset ;
+ tm . tm_wday = 0 ;
+ tm . tm_yday = 0 ;
+ tm . tm_isdst = - 1 ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ tm . tm_year = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) + 100 ;
+ oct = tvb_get_guint8 ( tvb , curr_offset + 1 ) ;
+ tm . tm_mon = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) - 1 ;
+ oct = tvb_get_guint8 ( tvb , curr_offset + 2 ) ;
+ tm . tm_mday = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) ;
+ oct = tvb_get_guint8 ( tvb , curr_offset + 3 ) ;
+ tm . tm_hour = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) ;
+ oct = tvb_get_guint8 ( tvb , curr_offset + 4 ) ;
+ tm . tm_min = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) ;
+ oct = tvb_get_guint8 ( tvb , curr_offset + 5 ) ;
+ tm . tm_sec = ( oct & 0x0f ) * 10 + ( ( oct & 0xf0 ) >> 4 ) ;
+ tv . secs = mktime ( & tm ) ;
+ tv . nsecs = 0 ;
+ proto_tree_add_time_format_value ( tree , hf_gsm_a_dtap_time_zone_time , tvb , curr_offset , 6 , & tv , "%s" , abs_time_to_str ( wmem_packet_scope ( ) , & tv , ABSOLUTE_TIME_LOCAL , FALSE ) ) ;
+ curr_offset += 6 ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ sign = ( oct & 0x08 ) ? '-' : '+' ;
+ oct = ( oct >> 4 ) + ( oct & 0x07 ) * 10 ;
+ proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_timezone , tvb , curr_offset , 1 , oct , "GMT %c %d hours %d minutes" , sign , oct / 4 , oct % 4 * 15 ) ;
+ curr_offset ++ ;
+ return ( curr_offset - offset ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+guint16 de_time_zone ( tvbuff_t * tvb , proto_tree * tree , packet_info * pinfo _U_ , guint32 offset , guint len _U_ , gchar * add_string _U_ , int string_len _U_ ) {
+ guint8 oct ;
+ guint32 curr_offset ;
+ char sign ;
+ curr_offset = offset ;
+ oct = tvb_get_guint8 ( tvb , curr_offset ) ;
+ sign = ( oct & 0x08 ) ? '-' : '+' ;
+ oct = ( oct >> 4 ) + ( oct & 0x07 ) * 10 ;
+ proto_tree_add_uint_format_value ( tree , hf_gsm_a_dtap_timezone , tvb , curr_offset , 1 , oct , "GMT %c %d hours %d minutes" , sign , oct / 4 , oct % 4 * 15 ) ;
+ curr_offset ++ ;
+ return ( curr_offset - offset ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

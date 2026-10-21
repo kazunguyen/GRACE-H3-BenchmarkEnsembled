@@ -1,0 +1,210 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void idct16 ( const tran_low_t * input , tran_low_t * output ) {
+ tran_low_t step1 [ 16 ] , step2 [ 16 ] ;
+ tran_high_t temp1 , temp2 ;
+ step1 [ 0 ] = input [ 0 / 2 ] ;
+ step1 [ 1 ] = input [ 16 / 2 ] ;
+ step1 [ 2 ] = input [ 8 / 2 ] ;
+ step1 [ 3 ] = input [ 24 / 2 ] ;
+ step1 [ 4 ] = input [ 4 / 2 ] ;
+ step1 [ 5 ] = input [ 20 / 2 ] ;
+ step1 [ 6 ] = input [ 12 / 2 ] ;
+ step1 [ 7 ] = input [ 28 / 2 ] ;
+ step1 [ 8 ] = input [ 2 / 2 ] ;
+ step1 [ 9 ] = input [ 18 / 2 ] ;
+ step1 [ 10 ] = input [ 10 / 2 ] ;
+ step1 [ 11 ] = input [ 26 / 2 ] ;
+ step1 [ 12 ] = input [ 6 / 2 ] ;
+ step1 [ 13 ] = input [ 22 / 2 ] ;
+ step1 [ 14 ] = input [ 14 / 2 ] ;
+ step1 [ 15 ] = input [ 30 / 2 ] ;
+ step2 [ 0 ] = step1 [ 0 ] ;
+ step2 [ 1 ] = step1 [ 1 ] ;
+ step2 [ 2 ] = step1 [ 2 ] ;
+ step2 [ 3 ] = step1 [ 3 ] ;
+ step2 [ 4 ] = step1 [ 4 ] ;
+ step2 [ 5 ] = step1 [ 5 ] ;
+ step2 [ 6 ] = step1 [ 6 ] ;
+ step2 [ 7 ] = step1 [ 7 ] ;
+ temp1 = step1 [ 8 ] * cospi_30_64 - step1 [ 15 ] * cospi_2_64 ;
+ temp2 = step1 [ 8 ] * cospi_2_64 + step1 [ 15 ] * cospi_30_64 ;
+ step2 [ 8 ] = dct_const_round_shift ( temp1 ) ;
+ step2 [ 15 ] = dct_const_round_shift ( temp2 ) ;
+ temp1 = step1 [ 9 ] * cospi_14_64 - step1 [ 14 ] * cospi_18_64 ;
+ temp2 = step1 [ 9 ] * cospi_18_64 + step1 [ 14 ] * cospi_14_64 ;
+ step2 [ 9 ] = dct_const_round_shift ( temp1 ) ;
+ step2 [ 14 ] = dct_const_round_shift ( temp2 ) ;
+ temp1 = step1 [ 10 ] * cospi_22_64 - step1 [ 13 ] * cospi_10_64 ;
+ temp2 = step1 [ 10 ] * cospi_10_64 + step1 [ 13 ] * cospi_22_64 ;
+ step2 [ 10 ] = dct_const_round_shift ( temp1 ) ;
+ step2 [ 13 ] = dct_const_round_shift ( temp2 ) ;
+ temp1 = step1 [ 11 ] * cospi_6_64 - step1 [ 12 ] * cospi_26_64 ;
+ temp2 = step1 [ 11 ] * cospi_26_64 + step1 [ 12 ] * cospi_6_64 ;
+ step2 [ 11 ] = dct_const_round_shift ( temp1 ) ;
+ step2 [ 12 ] = dct_const_round_shift ( temp2 ) ;
+ step1 [ 0 ] = step2 [ 0 ] ;
+ step1 [ 1 ] = step2 [ 1 ] ;
+ step1 [ 2 ] = step2 [ 2 ] ;
+ step1 [ 3 ] = step2 [ 3 ] ;
+ temp1 = step2 [ 4 ] * cospi_28_64 - step2 [ 7 ] * cospi_4_64 ;
+ temp2 = step2 [ 4 ] * cospi_4_64 + step2 [ 7 ] * cospi_28_64 ;
+ step1 [ 4 ] = dct_const_round_shift ( temp1 ) ;
+ step1 [ 7 ] = dct_const_round_shift ( temp2 ) ;
+ temp1 = step2 [ 5 ] * cospi_12_64 - step2 [ 6 ] * cospi_20_64 ;
+ temp2 = step2 [ 5 ] * cospi_20_64 + step2 [ 6 ] * cospi_12_64 ;
+ step1 [ 5 ] = dct_const_round_shift ( temp1 ) ;
+ step1 [ 6 ] = dct_const_round_shift ( temp2 ) ;
+ step1 [ 8 ] = step2 [ 8 ] + step2 [ 9 ] ;
+ step1 [ 9 ] = step2 [ 8 ] - step2 [ 9 ] ;
+ step1 [ 10 ] = - step2 [ 10 ] + step2 [ 11 ] ;
+ step1 [ 11 ] = step2 [ 10 ] + step2 [ 11 ] ;
+ step1 [ 12 ] = step2 [ 12 ] + step2 [ 13 ] ;
+ step1 [ 13 ] = step2 [ 12 ] - step2 [ 13 ] ;
+ step1 [ 14 ] = - step2 [ 14 ] + step2 [ 15 ] ;
+ step1 [ 15 ] = step2 [ 14 ] + step2 [ 15 ] ;
+ temp1 = ( step1 [ 0 ] + step1 [ 1 ] ) * cospi_16_64 ;
+ temp2 = ( step1 [ 0 ] - step1 [ 1 ] ) * cospi_16_64 ;
+ step2 [ 0 ] = dct_const_round_shift ( temp1 ) ;
+ step2 [ 1 ] = dct_const_round_shift ( temp2 ) ;
+ temp1 = s
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ tran_low_t step1 [ 16 ] , step2 [ 16 ] ;
+ tran_high_t temp1 , temp2 ;
+ step1 [ 0 ] = input [ 0 / 2 ] ;
+ step1 [ 1 ] = input [ 16 / 2 ] ;
+ step1 [ 2 ] = input [ 8 / 2 ] ;
+ step1 [ 3 ] = input [ 24 / 2 ] ;
+ step1 [ 4 ] = input [ 4 / 2 ] ;
+ step1 [ 5 ] = input [ 20 / 2 ] ;
+ step1 [ 6 ] = input [ 12 / 2 ] ;
+ step1 [ 7 ] = input [ 28 / 2 ] ;
+ step1 [ 8 ] = input [ 2 / 2 ] ;
+ step1 [ 9 ] = input [ 18 / 2 ] ;
+ step1 [ 10 ] = input [ 10 / 2 ] ;
+ step1 [ 11 ] = input [ 26 / 2 ] ;
+ step1 [ 12 ] = input [ 6 / 2 ] ;
+ step1 [ 13 ] = input [ 22 / 2 ] ;
+ step1 [ 14 ] = input [ 14 / 2 ] ;
+ step1 [ 15 ] = input [ 30 / 2 ] ;
+ step2 [ 0 ] = step1 [ 0 ] ;
+ step2 [ 1 ] = step1 [ 1 ] ;
+ step2 [ 2 ] = step1 [ 2 ] ;
+ step2 [ 3 ] = step1 [ 3 ] ;
+ step2 [ 4 ] = step1 [ 4 ] ;
+ step2 [ 5 ] = step1 [ 5 ] ;
+ step2 [ 6 ] = step1 [ 6 ] ;
+ step2 [ 7 ] = step1 [ 7 ] ;
+ temp1 = step1 [ 8 ] * cospi_30_64 - step1 [ 15 ] * cospi_2_64 ;
+ temp2 = step1 [ 8 ] * cospi_2_64 + step1 [ 15 ] * cospi_30_64 ;
+ step2 [ 8 ] = dc...
+      
+30064771072 | CALL | step1 [ 16 ]
+30064771073 | CALL | step1 [ 16 ]
+30064771074 | CALL | step2 [ 16 ]
+30064771075 | CALL | step2 [ 16 ]
+30064771076 | CALL | step1 [ 0 ] = input [ 0 / 2 ]
+30064771077 | CALL | step1 [ 0 ]
+30064771078 | CALL | input [ 0 / 2 ]
+30064771079 | CALL | 0 / 2
+30064771080 | CALL | step1 [ 1 ] = input [ 16 / 2 ]
+30064771081 | CALL | step1 [ 1 ]
+30064771082 | CALL | input [ 16 / 2 ]
+30064771083 | CALL | 16 / 2
+30064771084 | CALL | step1 [ 2 ] = input [ 8 / 2 ]
+30064771085 | CALL | step1 [ 2 ]
+30064771086 | CALL | input [ 8 / 2 ]
+30064771087 | CALL | 8 / 2
+30064771088 | CALL | step1 [ 3 ] = input [ 24 / 2 ]
+30064771089 | CALL | step1 [ 3 ]
+30064771090 | CALL | input [ 24 / 2 ]
+30064771091 | CALL | 24 / 2
+30064771092 | CALL | step1 [ 4 ] = input [ 4 / 2 ]
+30064771093 | CALL | step1 [ 4 ]
+30064771094 | CALL | input [ 4 / 2 ]
+30064771095 | CALL | 4 / 2
+30064771096 | CALL | step1 [ 5 ] = input [ 20 / 2 ]
+30064771097 | CALL | step1 [ 5 ]
+30064771098 | CALL | input [ 20 / 2 ]
+30064771099 | CALL | 20 / 2
+30064771100 | CALL | step1 [ 6 ] = input [ 12 / 2 ]
+30064771101 | CALL | step1 [ 6 ]
+30064771102 | CALL | input [ 12 / 2 ]
+30064771103 | CALL | 12 / 2
+30064771104 | CALL | step1 [ 7 ] = input [ 28 / 2 ]
+30064771105 | CALL | step1 [ 7 ]
+30064771106 | CALL | input [ 28 / 2 ]
+30064771107 | CALL | 28 / 2
+30064771108 | CALL | step1 [ 8 ] = input [ 2 / 2 ]
+30064771109 | CALL | step1 [ 8 ]
+30064771110 | CALL | input [ 2 / 2 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771108 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771076 [CFG]
+30064771078 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771080 [CFG]
+30064771082 -> 30064771080 [DOMINATE]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+3006
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

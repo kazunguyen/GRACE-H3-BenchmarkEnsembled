@@ -1,0 +1,256 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void flac_lpc_16_c(int32_t *decoded, const int coeffs[32],
+
+                          int pred_order, int qlevel, int len)
+
+{
+
+    int i, j;
+
+
+
+    for (i = pred_order; i < len - 1; i += 2, decoded += 2) {
+
+        int c = coeffs[0];
+
+        int d = decoded[0];
+
+        int s0 = 0, s1 = 0;
+
+        for (j = 1; j < pred_order; j++) {
+
+            s0 += c*d;
+
+            d = decoded[j];
+
+            s1 += c*d;
+
+            c = coeffs[j];
+
+        }
+
+        s0 += c*d;
+
+        d = decoded[j] += s0 >> qlevel;
+
+        s1 += c*d;
+
+        decoded[j + 1] += s1 >> qlevel;
+
+    }
+
+    if (i < len) {
+
+        int sum = 0;
+
+        for (j = 0; j < pred_order; j++)
+
+            sum += coeffs[j] * decoded[j];
+
+        decoded[j] += sum >> qlevel;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+12 -> 17 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+12 -> 23 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+30 -> 40 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+49 -> 56 [IS_AST_PARENT]
+30 -> 49 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+62 -> 67 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+62 -> 71 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+74 -> 81 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void decode_lpc(int32_t *coeffs, int mode, int length)
+
+{
+
+    int i;
+
+
+
+    if (length < 2)
+
+        return;
+
+
+
+    if (mode == 1) {
+
+        unsigned a1 = *coeffs++;
+
+        for (i = 0; i < length - 1 >> 1; i++) {
+
+            *coeffs   += a1;
+
+            coeffs[1] += *coeffs;
+
+            a1         = coeffs[1];
+
+            coeffs    += 2;
+
+        }
+
+        if (length - 1 & 1)
+
+            *coeffs += a1;
+
+    } else if (mode == 2) {
+
+        unsigned a1    = coeffs[1];
+
+        unsigned a2    = a1 + *coeffs;
+
+        coeffs[1] = a2;
+
+        if (length > 2) {
+
+            coeffs += 2;
+
+            for (i = 0; i < length - 2 >> 1; i++) {
+
+                unsigned a3    = *coeffs + a1;
+
+                unsigned a4    = a3 + a2;
+
+                *coeffs   = a4;
+
+                a1        = coeffs[1] + a3;
+
+                a2        = a1 + a4;
+
+                coeffs[1] = a2;
+
+                coeffs   += 2;
+
+            }
+
+            if (length & 1)
+
+                *coeffs += a1 + a2;
+
+        }
+
+    } else if (mode == 3) {
+
+        unsigned a1    = coeffs[1];
+
+        unsigned a2    = a1 + *coeffs;
+
+        coeffs[1] = a2;
+
+        if (length > 2) {
+
+            unsigned a3  = coeffs[2];
+
+            unsigned a4  = a3 + a1;
+
+            unsigned a5  = a4 + a2;
+
+            coeffs[2] = a5;
+
+            coeffs += 3;
+
+            for (i = 0; i < length - 3; i++) {
+
+                a3     += *coeffs;
+
+                a4     += a3;
+
+                a5     += a4;
+
+   
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

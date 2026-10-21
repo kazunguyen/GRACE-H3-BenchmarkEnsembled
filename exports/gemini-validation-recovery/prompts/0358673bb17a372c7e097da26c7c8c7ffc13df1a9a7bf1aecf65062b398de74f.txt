@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void nonrd_pick_partition ( VP9_COMP * cpi , const TileInfo * const tile , TOKENEXTRA * * tp , int mi_row , int mi_col , BLOCK_SIZE bsize , int * rate , int64_t * dist , int do_recon , int64_t best_rd , PC_TREE * pc_tree ) {
+ const SPEED_FEATURES * const sf = & cpi -> sf ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ VP9_COMMON * const cm = & cpi -> common ;
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ const int ms = num_8x8_blocks_wide_lookup [ bsize ] / 2 ;
+ TOKENEXTRA * tp_orig = * tp ;
+ PICK_MODE_CONTEXT * ctx = & pc_tree -> none ;
+ int i ;
+ BLOCK_SIZE subsize = bsize ;
+ int this_rate , sum_rate = 0 , best_rate = INT_MAX ;
+ int64_t this_dist , sum_dist = 0 , best_dist = INT64_MAX ;
+ int64_t sum_rd = 0 ;
+ int do_split = bsize >= BLOCK_8X8 ;
+ int do_rect = 1 ;
+ const int force_horz_split = ( mi_row + ms >= cm -> mi_rows ) ;
+ const int force_vert_split = ( mi_col + ms >= cm -> mi_cols ) ;
+ const int xss = x -> e_mbd . plane [ 1 ] . subsampling_x ;
+ const int yss = x -> e_mbd . plane [ 1 ] . subsampling_y ;
+ int partition_none_allowed = ! force_horz_split && ! force_vert_split ;
+ int partition_horz_allowed = ! force_vert_split && yss <= xss && bsize >= BLOCK_8X8 ;
+ int partition_vert_allowed = ! force_horz_split && xss <= yss && bsize >= BLOCK_8X8 ;
+ ( void ) * tp_orig ;
+ assert ( num_8x8_blocks_wide_lookup [ bsize ] == num_8x8_blocks_high_lookup [ bsize ] ) ;
+ if ( sf -> auto_min_max_partition_size ) {
+ partition_none_allowed &= ( bsize <= sf -> max_partition_size && bsize >= sf -> min_partition_size ) ;
+ partition_horz_allowed &= ( ( bsize <= sf -> max_partition_size && bsize > sf -> min_partition_size ) || force_horz_split ) ;
+ partition_vert_allowed &= ( ( bsize <= sf -> max_partition_size && bsize > sf -> min_partition_size ) || force_vert_split ) ;
+ do_split &= bsize > sf -> min_partition_size ;
+ }
+ if ( sf -> use_square_partition_only ) {
+ partition_horz_allowed &= force_horz_split ;
+ partition_vert_allowed &= force_vert_split ;
+ }
+ if ( partition_none_allowed ) {
+ nonrd_pick_sb_modes ( cpi , tile , mi_row , mi_col , & this_rate , & this_dist , bsize , ctx ) ;
+ ctx -> mic . mbmi = xd -> mi [ 0 ] . src_mi -> mbmi ;
+ ctx -> skip_txfm [ 0 ] = x -> skip_txfm [ 0 ] ;
+ ctx -> skip = x -> skip ;
+ if ( this_rate != INT_MAX ) {
+ int pl = partition_plane_context ( xd , mi_row , mi_col , bsize ) ;
+ this_rate += cpi -> partition_cost [ pl ] [ PARTITION_NONE ] ;
+ sum_rd = RDCOST ( x -> rdmult , x -> rddiv , this_rate , this_dist ) ;
+ if ( sum_rd < best_rd ) {
+ int64_t stop_thresh = 4096 ;
+ int64_t stop_thresh_rd ;
+ best_rate = this_rate ;
+ best_dist = this_dist ;
+ best_rd = sum_rd ;
+ if ( bsize >= BLOCK_8X8 ) pc_tree -> partitioning = PARTITION_NONE ;
+ stop_thresh >>= 8 - ( b_width_log2 ( bsize ) + b_height_log2 ( bsize ) ) ;
+ stop_thresh_rd = RDCOST ( x -> rdmult , x -> rddiv , 0 , stop_thresh ) ;
+ if ( ! x -> e_mbd . lossless && best_rd < stop_thresh_rd ) {
+ do_split = 0 ;
+ do_rect = 0 ;
+ }
+ }
+ }
+ 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const SPEED_FEATURES * const sf = & cpi -> sf ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ VP9_COMMON * const cm = & cpi -> common ;
+ MACROBLOCK * const x = & cpi -> mb ;
+ MACROBLOCKD * const xd = & x -> e_mbd ;
+ const int ms = num_8x8_blocks_wide_lookup [ bsize ] / 2 ;
+ TOKENEXTRA * tp_orig = * tp ;
+ PICK_MODE_CONTEXT * ctx = & pc_tree -> none ;
+ int i ;
+ BLOCK_SIZE subsize = bsize ;
+ int this_rate , sum_rate = 0 , best_rate = INT_MAX ;
+ int64_t this_dist , sum_dist = 0 , best_dist = INT64_MAX ;
+ int64_t sum_rd = 0 ;
+ int do_split = bsize >= BLOCK_8X8 ;
+ int do_rect = 1 ;
+ const int force_horz_split = ( mi_row + ms >= cm -> mi_rows ) ;
+ const int force_vert_split = ( mi_col + ms >= cm -> mi_cols ) ;
+ const int xss = x -> e_mbd . plane [ 1 ] . subsampling_x ;
+ const int yss = x -> e_mbd . plane [ 1 ] . subsampling_y ;
+ int partition_none_allowed = ! force_horz_split && ! force_vert_split ;
+ int partition_horz_allowed = ! force_vert_split && yss <= xss && bsize >= BLO...
+      
+25769803777 | BLOCK | 
+        {
+ partition_none_allowed &= ( bsize <= sf -> max_partition_size && bsize >= sf -> min_partition_size ) ;
+ partition_horz_allowed &= ( ( bsize <= sf -> max_partition_size && bsize > sf -> min_partition_size ) || force_horz_split ) ;
+ partition_vert_allowed &= ( ( bsize <= sf -> max_partition_size && bsize > sf -> min_partition_size ) || force_vert_split ) ;
+ do_split &= bsize > sf -> min_partition_size ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ partition_horz_allowed &= force_horz_split ;
+ partition_vert_allowed &= force_vert_split ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ nonrd_pick_sb_modes ( cpi , tile , mi_row , mi_col , & this_rate , & this_dist , bsize , ctx ) ;
+ ctx -> mic . mbmi = xd -> mi [ 0 ] . src_mi -> mbmi ;
+ ctx -> skip_txfm [ 0 ] = x -> skip_txfm [ 0 ] ;
+ ctx -> skip = x -> skip ;
+ if ( this_rate != INT_MAX ) {
+ int pl = partition_plane_context ( xd , mi_row , mi_col , bsize ) ;
+ this_rate += cpi -> partition_cost [ pl ] [ PARTITION_NONE ] ;
+ sum_rd = RDCOST ( x -> rdmult , x -> rddiv , this_rate , this_dist ) ;
+ if ( sum_rd < best_rd ) {
+ int64_t stop_thresh = 4096 ;
+ int64_t stop_thresh_rd ;
+ best_rate = this_rate ;
+ best_dist = this_dist ;
+ best_rd = sum_rd ;
+ if ( bsize >= BLOCK_8X8 ) pc_tree -> partitioning = PARTITION_NONE ;
+ stop_thresh >>= 8 - ( b_width_log2 ( bsize ) + b_height_log2 ( bsize ) ) ;
+ stop_thresh_rd = RDCOST ( x -> rdmult , x -> rddiv , 0 , stop_thresh ) ;
+ if ( ! x -> e_mbd . lossless && best_rd < stop_thresh_rd ) {
+ do_split = 0 ;
+ do_rect = 0 ;
+ }
+ }
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ int pl = partition_plane_context ( xd , mi_row , mi_col , bsize ) ;
+ this_rate += cpi -> partition_cost [ pl ] [ PARTITION_NONE ] ;
+ sum_rd = RDCOST ( x -> rdmult , x -> rddiv , this_rate , this_dist ) ;
+ if ( sum_rd < best_rd ) {
+ int64_t stop_thresh = 4096 ;
+ int64_t stop_thresh_rd ;
+ best_rate = this_rate ;
+ best_dist = this_dist ;
+ best_rd = sum_rd ;
+ if ( bsize >= BLOCK_8X8 ) pc_tree -> partitioning = PARTITION_NONE ;
+ stop_thresh >>= 8 - ( b_width_log2 ( bsize ) + b_height_log2 ( bsize ) ) ;
+ stop_thresh_rd = RDCOST ( x -> rdmult , x -> rddiv , 0 , stop_thresh ) ;
+ if ( ! x -> e_mbd . lossless && best_rd < stop_thresh_rd ) {
+ do_split = 0 ;
+ do_rect = 0 ;
+ }
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ int64_t stop_thresh = 4096 ;
+ int64_t stop_thresh_rd ;
+ best_rate = this_rate ;
+ best_dist = this_dist ;
+ best_rd = sum_rd ;
+ if ( bsize >= BLOCK_8X8 ) pc_tree -> partitioning = PARTITION_NONE ;
+ stop_thresh >>= 8 - ( b_width_log2 ( bsize ) + b_height_log2 ( bsize ) ) ;
+ stop_thresh_rd = RDCOST ( x -> rdmult , x -> rddiv , 0 , stop_thresh ) ;
+ if ( ! x -> e_mbd . lossless && best_rd < stop_thresh_rd ) {
+ do_split = 0 ;
+ do_rect = 0 ;
+ }
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { do_split = 0 ; do_rect = 0 ; }
+25769803784 | BLOCK | 
+        {
+ int pl = partition_plane_context ( xd , mi_row , mi_col , bsize ) ;
+ sum_rate += cpi -> partition_cost [ pl ] [ PARTITION_SPLIT ] ;
+ subsize = get_subsize ( bsize , PARTITION_SPLIT ) ;
+ for ( i = 0 ;
+ i < 4 && sum_rd < best_rd ;
+ ++ i ) {
+ const int x_idx = ( i & 1 ) * ms ;
+ const int y_idx = ( i >> 1 ) * ms ;
+ if ( mi_row + y_idx >= cm -> mi_rows || mi_col + x_idx >= cm -> mi_cols ) continue ;
+ load_pred_mv ( x , ctx ) ;
+ nonrd_pick_partition ( cpi , 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

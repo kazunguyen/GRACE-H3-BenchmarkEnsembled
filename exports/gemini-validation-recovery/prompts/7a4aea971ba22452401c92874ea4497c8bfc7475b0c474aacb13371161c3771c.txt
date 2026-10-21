@@ -1,0 +1,301 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void T_UConverter_fromUnicode_UTF32_BE ( UConverterFromUnicodeArgs * args , UErrorCode * err ) {
+ const UChar * mySource = args -> source ;
+ unsigned char * myTarget ;
+ const UChar * sourceLimit = args -> sourceLimit ;
+ const unsigned char * targetLimit = ( unsigned char * ) args -> targetLimit ;
+ UChar32 ch , ch2 ;
+ unsigned int indexToWrite ;
+ unsigned char temp [ sizeof ( uint32_t ) ] ;
+ if ( mySource >= sourceLimit ) {
+ return ;
+ }
+ if ( args -> converter -> fromUnicodeStatus == UCNV_NEED_TO_WRITE_BOM ) {
+ static const char bom [ ] = {
+ 0 , 0 , ( char ) 0xfe , ( char ) 0xff }
+ ;
+ ucnv_fromUWriteBytes ( args -> converter , bom , 4 , & args -> target , args -> targetLimit , & args -> offsets , - 1 , err ) ;
+ args -> converter -> fromUnicodeStatus = 0 ;
+ }
+ myTarget = ( unsigned char * ) args -> target ;
+ temp [ 0 ] = 0 ;
+ if ( args -> converter -> fromUChar32 ) {
+ ch = args -> converter -> fromUChar32 ;
+ args -> converter -> fromUChar32 = 0 ;
+ goto lowsurogate ;
+ }
+ while ( mySource < sourceLimit && myTarget < targetLimit ) {
+ ch = * ( mySource ++ ) ;
+ if ( U_IS_SURROGATE ( ch ) ) {
+ if ( U_IS_LEAD ( ch ) ) {
+ lowsurogate : if ( mySource < sourceLimit ) {
+ ch2 = * mySource ;
+ if ( U_IS_TRAIL ( ch2 ) ) {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ if ( args -> flush ) {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ temp [ 1 ] = ( uint8_t ) ( ch >> 16 & 0x1F ) ;
+ temp [ 2 ] = ( uint8_t ) ( ch >> 8 ) ;
+ temp [ 3 ] = ( uint8_t ) ( ch ) ;
+ for ( indexToWrite = 0 ;
+ indexToWrite <= sizeof ( uint32_t ) - 1 ;
+ indexToWrite ++ ) {
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = temp [ indexToWrite ] ;
+ }
+ else {
+ args -> converter -> charErrorBuffer [ args -> converter -> charErrorBufferLength ++ ] = temp [ indexToWrite ] ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ }
+ }
+ }
+ if ( mySource < sourceLimit && myTarget >= targetLimit && U_SUCCESS ( * err ) ) {
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ }
+ args -> target = ( char * ) myTarget ;
+ args -> source = mySource ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const UChar * mySource = args -> source ;
+ unsigned char * myTarget ;
+ const UChar * sourceLimit = args -> sourceLimit ;
+ const unsigned char * targetLimit = ( unsigned char * ) args -> targetLimit ;
+ UChar32 ch , ch2 ;
+ unsigned int indexToWrite ;
+ unsigned char temp [ sizeof ( uint32_t ) ] ;
+ if ( mySource >= sourceLimit ) {
+ return ;
+ }
+ if ( args -> converter -> fromUnicodeStatus == UCNV_NEED_TO_WRITE_BOM ) {
+ static const char bom [ ] = {
+ 0 , 0 , ( char ) 0xfe , ( char ) 0xff }
+ ;
+ ucnv_fromUWriteBytes ( args -> converter , bom , 4 , & args -> target , args -> targetLimit , & args -> offsets , - 1 , err ) ;
+ args -> converter -> fromUnicodeStatus = 0 ;
+ }
+ myTarget = ( unsigned char * ) args -> target ;
+ temp [ 0 ] = 0 ;
+ if ( args -> converter -> fromUChar32 ) {
+ ch = args -> converter -> fromUChar32 ;
+ args -> converter -> fromUChar32 = 0 ;
+ goto lowsurogate ;
+ }
+ while ( mySource < sourceLimit && myTarget < targetLimit ) {
+ ch = * ( mySource ++ ) ;
+ if ( U_IS_SURROGATE (...
+      
+25769803777 | BLOCK | { return ; }
+25769803778 | BLOCK | 
+        {
+ static const char bom [ ] = {
+ 0 , 0 , ( char ) 0xfe , ( char ) 0xff }
+ ;
+ ucnv_fromUWriteBytes ( args -> converter , bom , 4 , & args -> target , args -> targetLimit , & args -> offsets , - 1 , err ) ;
+ args -> converter -> fromUnicodeStatus = 0 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ ch = args -> converter -> fromUChar32 ;
+ args -> converter -> fromUChar32 = 0 ;
+ goto lowsurogate ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ ch = * ( mySource ++ ) ;
+ if ( U_IS_SURROGATE ( ch ) ) {
+ if ( U_IS_LEAD ( ch ) ) {
+ lowsurogate : if ( mySource < sourceLimit ) {
+ ch2 = * mySource ;
+ if ( U_IS_TRAIL ( ch2 ) ) {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ if ( args -> flush ) {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ temp [ 1 ] = ( uint8_t ) ( ch >> 16 & 0x1F ) ;
+ temp [ 2 ] = ( uint8_t ) ( ch >> 8 ) ;
+ temp [ 3 ] = ( uint8_t ) ( ch ) ;
+ for ( indexToWrite = 0 ;
+ indexToWrite <= sizeof ( uint32_t ) - 1 ;
+ indexToWrite ++ ) {
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = temp [ indexToWrite ] ;
+ }
+ else {
+ args -> converter -> charErrorBuffer [ args -> converter -> charErrorBufferLength ++ ] = temp [...
+      
+25769803781 | BLOCK | 
+        {
+ if ( U_IS_LEAD ( ch ) ) {
+ lowsurogate : if ( mySource < sourceLimit ) {
+ ch2 = * mySource ;
+ if ( U_IS_TRAIL ( ch2 ) ) {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ if ( args -> flush ) {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ lowsurogate : if ( mySource < sourceLimit ) {
+ ch2 = * mySource ;
+ if ( U_IS_TRAIL ( ch2 ) ) {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ if ( args -> flush ) {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ break ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ ch2 = * mySource ;
+ if ( U_IS_TRAIL ( ch2 ) ) {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+ else {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ ch = ( ( ch - SURROGATE_HIGH_START ) << HALF_SHIFT ) + ch2 + SURROGATE_LOW_BASE ;
+ mySource ++ ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ args -> converter -> fromUChar32 = ch ;
+ if ( args -> flush ) {
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ }
+ break ;
+ }
+      
+25769803787 | BLOCK | { * err = U_ILLEGAL_CHAR_FOUND ; }
+25769803788 | BLOCK | 
+        {
+ args -> converter -> fromUChar32 = ch ;
+ * err = U_ILLEGAL_CHAR_FOUND ;
+ break ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ if ( myTarget < targetLimit ) {
+ * ( myTarget ++ ) = temp [ indexToWrite ] ;
+ }
+ else {
+ args -> converter -> charErrorBuffer [ args -> converter -> charErrorBufferLength ++ ] = temp [ indexToWrite ] ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ }
+ }
+      
+25769803790 | BLOCK | { * ( myTarget ++ ) = temp [ indexToWrite ] ; }
+25769803791 | BLOCK | 
+        {
+ args -> converter -> charErrorBuffer [ args -> converter -> charErrorBufferLength ++ ] = temp [ indexToWrite ] ;
+ * err = U_BUFFER_OVERFLOW_ERROR ;
+ }
+      
+25769803792 | BLOCK | { * err = U_BUFFER_OVERFLOW_ERROR ; }
+300647710
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

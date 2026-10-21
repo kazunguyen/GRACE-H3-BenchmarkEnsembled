@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuAssignDeviceControllerAlias ( virDomainDefPtr domainDef , virQEMUCapsPtr qemuCaps , virDomainControllerDefPtr controller ) {
+ const char * prefix = virDomainControllerTypeToString ( controller -> type ) ;
+ if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_PCI ) {
+ if ( ! virQEMUCapsHasPCIMultiBus ( qemuCaps , domainDef ) ) {
+ return VIR_STRDUP ( controller -> info . alias , "pci" ) ;
+ }
+ else if ( controller -> model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT ) {
+ return virAsprintf ( & controller -> info . alias , "pcie.%d" , controller -> idx ) ;
+ }
+ return virAsprintf ( & controller -> info . alias , "pci.%d" , controller -> idx ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_IDE ) {
+ if ( qemuDomainMachineHasBuiltinIDE ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_SATA ) {
+ if ( qemuDomainMachineIsQ35 ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_USB ) {
+ if ( controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "usb" ) ;
+ }
+ return virAsprintf ( & controller -> info . alias , "%s%d" , prefix , controller -> idx ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * prefix = virDomainControllerTypeToString ( controller -> type ) ;
+ if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_PCI ) {
+ if ( ! virQEMUCapsHasPCIMultiBus ( qemuCaps , domainDef ) ) {
+ return VIR_STRDUP ( controller -> info . alias , "pci" ) ;
+ }
+ else if ( controller -> model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT ) {
+ return virAsprintf ( & controller -> info . alias , "pcie.%d" , controller -> idx ) ;
+ }
+ return virAsprintf ( & controller -> info . alias , "pci.%d" , controller -> idx ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_IDE ) {
+ if ( qemuDomainMachineHasBuiltinIDE ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_SATA ) {
+ if ( qemuDomainMachineIsQ35 ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+ else if ( controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! virQEMUCapsHasPCIMultiBus ( qemuCaps , domainDef ) ) {
+ return VIR_STRDUP ( controller -> info . alias , "pci" ) ;
+ }
+ else if ( controller -> model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT ) {
+ return virAsprintf ( & controller -> info . alias , "pcie.%d" , controller -> idx ) ;
+ }
+ return virAsprintf ( & controller -> info . alias , "pci.%d" , controller -> idx ) ;
+ }
+      
+25769803778 | BLOCK | { return VIR_STRDUP ( controller -> info . alias , "pci" ) ; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ return virAsprintf ( & controller -> info . alias , "pcie.%d" , controller -> idx ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ if ( qemuDomainMachineHasBuiltinIDE ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ if ( qemuDomainMachineIsQ35 ( domainDef ) && controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "ide" ) ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ if ( controller -> idx == 0 ) return VIR_STRDUP ( controller -> info . alias , "usb" ) ;
+ }
+      
+25769803789 | BLOCK | <empty>
+30064771072 | CALL | prefix = virDomainControllerTypeToString ( controller -> type )
+30064771073 | CALL | virDomainControllerTypeToString ( controller -> type )
+30064771074 | CALL | controller -> type
+30064771075 | CALL | controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_PCI
+30064771076 | CALL | controller -> type
+30064771077 | CALL | ! virQEMUCapsHasPCIMultiBus ( qemuCaps , domainDef )
+30064771078 | CALL | virQEMUCapsHasPCIMultiBus ( qemuCaps , domainDef )
+30064771079 | CALL | VIR_STRDUP ( controller -> info . alias , "pci" )
+30064771080 | CALL | controller -> info . alias
+30064771081 | CALL | controller -> info
+30064771082 | CALL | controller -> model == VIR_DOMAIN_CONTROLLER_MODEL_PCIE_ROOT
+30064771083 | CALL | controller -> model
+30064771084 | CALL | 
+        virAsprintf ( & controller -> info . alias , "pcie.%d" , controller -> idx )
+      
+30064771085 | CALL | & controller -> info . alias
+30064771086 | CALL | controller -> info . alias
+30064771087 | CALL | controller -> info
+30064771088 | CALL | controller -> idx
+30064771089 | CALL | 
+        virAsprintf ( & controller -> info . alias , "pci.%d" , controller -> idx )
+      
+30064771090 | CALL | & controller -> info . alias
+30064771091 | CALL | controller -> info . alias
+30064771092 | CALL | controller -> info
+30064771093 | CALL | controller -> idx
+30064771094 | CALL | controller -> type == VIR_DOMAIN_CONTROLLER_TYPE_IDE
+30064771095 | CALL | controller -> type
+30064771096 | CALL | qemuDomainMachineHasBuiltinIDE ( domainDef ) && controller -> idx == 0
+30064771097 | CALL | qemuDomainMachineHasBuiltinIDE ( domainDef )
+EDGES:
+25769803776 -> 30064771072 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771094 [CDG]
+30064771075 -> 30064771095 [CDG]
+30064771076 -> 30064771095 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771088 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771088 [AST]
+30064771084 -> 30064771088 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

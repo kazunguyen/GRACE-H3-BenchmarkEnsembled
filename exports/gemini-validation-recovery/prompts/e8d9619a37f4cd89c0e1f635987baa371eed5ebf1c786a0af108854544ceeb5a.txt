@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_idct4x4_1_add_c ( const tran_low_t * input , uint8_t * dest , int dest_stride ) {
+ int i ;
+ tran_high_t a1 ;
+ tran_low_t out = dct_const_round_shift ( input [ 0 ] * cospi_16_64 ) ;
+ out = dct_const_round_shift ( out * cospi_16_64 ) ;
+ a1 = ROUND_POWER_OF_TWO ( out , 4 ) ;
+ for ( i = 0 ;
+ i < 4 ;
+ i ++ ) {
+ dest [ 0 ] = clip_pixel ( dest [ 0 ] + a1 ) ;
+ dest [ 1 ] = clip_pixel ( dest [ 1 ] + a1 ) ;
+ dest [ 2 ] = clip_pixel ( dest [ 2 ] + a1 ) ;
+ dest [ 3 ] = clip_pixel ( dest [ 3 ] + a1 ) ;
+ dest += dest_stride ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ tran_high_t a1 ;
+ tran_low_t out = dct_const_round_shift ( input [ 0 ] * cospi_16_64 ) ;
+ out = dct_const_round_shift ( out * cospi_16_64 ) ;
+ a1 = ROUND_POWER_OF_TWO ( out , 4 ) ;
+ for ( i = 0 ;
+ i < 4 ;
+ i ++ ) {
+ dest [ 0 ] = clip_pixel ( dest [ 0 ] + a1 ) ;
+ dest [ 1 ] = clip_pixel ( dest [ 1 ] + a1 ) ;
+ dest [ 2 ] = clip_pixel ( dest [ 2 ] + a1 ) ;
+ dest [ 3 ] = clip_pixel ( dest [ 3 ] + a1 ) ;
+ dest += dest_stride ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ dest [ 0 ] = clip_pixel ( dest [ 0 ] + a1 ) ;
+ dest [ 1 ] = clip_pixel ( dest [ 1 ] + a1 ) ;
+ dest [ 2 ] = clip_pixel ( dest [ 2 ] + a1 ) ;
+ dest [ 3 ] = clip_pixel ( dest [ 3 ] + a1 ) ;
+ dest += dest_stride ;
+ }
+      
+30064771072 | CALL | out = dct_const_round_shift ( input [ 0 ] * cospi_16_64 )
+30064771073 | CALL | dct_const_round_shift ( input [ 0 ] * cospi_16_64 )
+30064771074 | CALL | input [ 0 ] * cospi_16_64
+30064771075 | CALL | input [ 0 ]
+30064771076 | CALL | out = dct_const_round_shift ( out * cospi_16_64 )
+30064771077 | CALL | dct_const_round_shift ( out * cospi_16_64 )
+30064771078 | CALL | out * cospi_16_64
+30064771079 | CALL | a1 = ROUND_POWER_OF_TWO ( out , 4 )
+30064771080 | CALL | ROUND_POWER_OF_TWO ( out , 4 )
+30064771081 | CALL | i = 0
+30064771082 | CALL | i < 4
+30064771083 | CALL | i ++
+30064771084 | CALL | dest [ 0 ] = clip_pixel ( dest [ 0 ] + a1 )
+30064771085 | CALL | dest [ 0 ]
+30064771086 | CALL | clip_pixel ( dest [ 0 ] + a1 )
+30064771087 | CALL | dest [ 0 ] + a1
+30064771088 | CALL | dest [ 0 ]
+30064771089 | CALL | dest [ 1 ] = clip_pixel ( dest [ 1 ] + a1 )
+30064771090 | CALL | dest [ 1 ]
+30064771091 | CALL | clip_pixel ( dest [ 1 ] + a1 )
+30064771092 | CALL | dest [ 1 ] + a1
+30064771093 | CALL | dest [ 1 ]
+30064771094 | CALL | dest [ 2 ] = clip_pixel ( dest [ 2 ] + a1 )
+30064771095 | CALL | dest [ 2 ]
+30064771096 | CALL | clip_pixel ( dest [ 2 ] + a1 )
+30064771097 | CALL | dest [ 2 ] + a1
+30064771098 | CALL | dest [ 2 ]
+30064771099 | CALL | dest [ 3 ] = clip_pixel ( dest [ 3 ] + a1 )
+30064771100 | CALL | dest [ 3 ]
+30064771101 | CALL | clip_pixel ( dest [ 3 ] + a1 )
+30064771102 | CALL | dest [ 3 ] + a1
+30064771103 | CALL | dest [ 3 ]
+30064771104 | CALL | dest += dest_stride
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < 4;i ++)
+68719476736 | IDENTIFIER | out
+68719476737 | IDENTIFIER | input
+68719476738 | IDENTIFIER | <unknown> cospi_16_64
+68719476739 | IDENTIFIER | out
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771094 [AST]
+25769803777 -> 30064771099 [AST]
+25769803777 -> 30064771104 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 68719476739 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771103 [CDG]
+30064771082 -> 30064771102 [CDG]
+30064771082 -> 30064771101 [CDG]
+30064771082 -> 30064771100 [CDG]
+30064771082 -> 30064771104 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771099 [CDG]
+30064771082 -> 30064771098 [CDG]
+30064771082 -> 30064771097 [CDG]
+30064771082 -> 30064771096 [CDG]
+30064771082 -> 30064771083 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void vp9_idct16x16_1_add_c ( const tran_low_t * input , uint8_t * dest , int stride ) {
+ int i , j ;
+ tran_high_t a1 ;
+ tran_low_t out = dct_const_round_shift ( input [ 0 ] * cospi_16_64 ) ;
+ out = dct_const_round_shift ( out * cospi_16_64 ) ;
+ a1 = ROUND_POWER_OF_TWO ( out , 6 ) ;
+ for ( j = 0 ;
+ j < 16 ;
+ ++ j ) {
+ for ( i = 0 ;
+ i < 16 ;
+ ++ i ) dest [ i ] = clip_pixel ( dest [ i ] + a1 ) ;
+ dest += stride ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,288 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint32_t openpic_iack(OpenPICState *opp, IRQDest *dst, int cpu)
+
+{
+
+    IRQSource *src;
+
+    int retval, irq;
+
+
+
+    DPRINTF("Lower OpenPIC INT output\n");
+
+    qemu_irq_lower(dst->irqs[OPENPIC_OUTPUT_INT]);
+
+
+
+    irq = IRQ_get_next(opp, &dst->raised);
+
+    DPRINTF("IACK: irq=%d\n", irq);
+
+
+
+    if (irq == -1) {
+
+        /* No more interrupt pending */
+
+        return opp->spve;
+
+    }
+
+
+
+    src = &opp->src[irq];
+
+    if (!(src->ivpr & IVPR_ACTIVITY_MASK) ||
+
+            !(IVPR_PRIORITY(src->ivpr) > dst->ctpr)) {
+
+        /* - Spurious level-sensitive IRQ
+
+         * - Priorities has been changed
+
+         *   and the pending IRQ isn't allowed anymore
+
+         */
+
+        src->ivpr &= ~IVPR_ACTIVITY_MASK;
+
+        retval = opp->spve;
+
+    } else {
+
+        /* IRQ enter servicing state */
+
+        IRQ_setbit(&dst->servicing, irq);
+
+        retval = IVPR_VECTOR(opp, src->ivpr);
+
+    }
+
+    IRQ_resetbit(&dst->raised, irq);
+
+    if (!src->level) {
+
+        /* edge-sensitive IRQ */
+
+        src->ivpr &= ~IVPR_ACTIVITY_MASK;
+
+        src->pending = 0;
+
+    }
+
+
+
+    if ((irq >= opp->irq_ipi0) &&  (irq < (opp->irq_ipi0 + MAX_IPI))) {
+
+        src->idr &= ~(1 << cpu);
+
+        if (src->idr && !src->level) {
+
+            /* trigger on CPUs that didn't know about it yet */
+
+            openpic_set_irq(opp, irq, 1);
+
+            openpic_set_irq(opp, irq, 0);
+
+            /* if all CPUs knew about it, set active bit again */
+
+            src->ivpr |= IVPR_ACTIVITY_MASK;
+
+        }
+
+    }
+
+
+
+    return retval;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+9 -> 13 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 33 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+40 -> 43 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+53 -> 56 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+4 -> 49 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+58 -> 65 [IS_AST_PARENT]
+4 -> 58 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 79 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static uint32_t openpic_cpu_read_internal(void *opaque, hwaddr addr,
+
+                                          int idx)
+
+{
+
+    openpic_t *opp = opaque;
+
+    IRQ_src_t *src;
+
+    IRQ_dst_t *dst;
+
+    uint32_t retval;
+
+    int n_IRQ;
+
+
+
+    DPRINTF("%s: cpu %d addr " TARGET_FMT_plx "\n", __func__, idx, addr);
+
+    retval = 0xFFFFFFFF;
+
+    if (addr & 0xF)
+
+        return retval;
+
+    dst = &opp->dst[idx];
+
+    addr &= 0xFF0;
+
+    switch (addr) {
+
+    case 0x00: /* Block Revision Register1 (BRR1) */
+
+        retval = FSL_BRR1_IPID | FSL_BRR1_IPMJ | FSL_BRR1_IPMN;
+
+        break;
+
+    case 0x80: /* PCTP */
+
+        retval = dst->pctp;
+
+        break;
+
+    case 0x90: /* WHOAMI */
+
+        retval = idx;
+
+        break;
+
+    case 0xA0: /* PIAC */
+
+        DPRINTF("Lower OpenPIC INT output\n");
+
+        qemu_irq_lower(dst->irqs[OPENPIC_OUTPUT_INT]);
+
+        n_IRQ = IRQ_get_next(opp, &dst->raised);
+
+        DPRINTF("PIAC: irq=%d\n", n_IRQ);
+
+        if (n_IRQ == -1) {
+
+            /* No more interrupt pending */
+
+            retval = IPVP_VECTOR(opp->spve);
+
+        } else {
+
+            src = &opp->src[n_IRQ];
+
+            if (!test_bit(&src->ipvp, IPVP_ACTIVITY) ||
+
+                !(IPVP_PRIORITY(src->ipvp) > dst->pctp)) {
+
+                /* - Spurious level-sensitive IRQ
+
+                 * - Priorities has been changed
+
+                 *   and the pending IRQ isn't allowed anymore
+
+                 */
+
+                reset_bit(&src->ipvp, IPVP_ACTIVITY);
+
+                re
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

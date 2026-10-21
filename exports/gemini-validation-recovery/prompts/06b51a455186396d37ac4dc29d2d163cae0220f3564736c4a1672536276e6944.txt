@@ -1,0 +1,139 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vty_putchars(VIOsPAPRDevice *sdev, uint8_t *buf, int len)
+
+{
+
+    VIOsPAPRVTYDevice *dev = VIO_SPAPR_VTY_DEVICE(sdev);
+
+
+
+    /* FIXME: should check the qemu_chr_fe_write() return value */
+
+    qemu_chr_fe_write(dev->chardev, buf, len);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+21 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+21 -> 28 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 30 [IS_AST_PARENT]
+3 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+32 -> 39 [IS_AST_PARENT]
+3 -> 32 [IS_AST_PARENT]
+42 -> 33 [FLOWS_TO]
+33 -> 36 [FLOWS_TO]
+36 -> 39 [FLOWS_TO]
+39 -> 5 [FLOWS_TO]
+5 -> 17 [FLOWS_TO]
+17 -> 43 [FLOWS_TO]
+17 -> 44 [USE]
+22 -> 44 [USE]
+17 -> 45 [USE]
+22 -> 45 [USE]
+36 -> 46 [DEF]
+17 -> 46 [USE]
+26 -> 46 [USE]
+39 -> 47 [DEF]
+17 -> 47 [USE]
+28 -> 47 [USE]
+5 -> 48 [DEF]
+6 -> 48 [DEF]
+9 -> 48 [DEF]
+17 -> 48 [USE]
+23 -> 48 [USE]
+33 -> 49 [DEF]
+5 -> 49 [USE]
+15 -> 49 [USE]
+5 -> 50 [USE]
+9 -> 50 [USE]
+36 -> 17 [REACHES]
+5 -> 17 [REACHES]
+39 -> 17 [REACHES]
+33 -> 5 [REACHES]
+42 -> 33 [CONTROLS]
+42 -> 36 [CONTROLS]
+42 -> 39 [CONTROLS]
+42 -> 5 [CONTROLS]
+42 -> 17 [CONTROLS]
+33 -> 36 [DOM]
+42 -> 42 [DOM]
+39 -> 5 [DOM]
+36 -> 39 [DOM]
+17 -> 43 [DOM]
+42 -> 33 [DOM]
+5 -> 17 [DOM]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int pty_chr_write(CharDriverState *chr, const uint8_t *buf, int len)
+
+{
+
+    PtyCharDriver *s = chr->opaque;
+
+
+
+    if (!s->connected) {
+
+        /* guest sends data, check for (re-)connect */
+
+        pty_chr_update_read_handler_locked(chr);
+
+        return 0;
+
+    }
+
+    return io_channel_send(s->fd, buf, len);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

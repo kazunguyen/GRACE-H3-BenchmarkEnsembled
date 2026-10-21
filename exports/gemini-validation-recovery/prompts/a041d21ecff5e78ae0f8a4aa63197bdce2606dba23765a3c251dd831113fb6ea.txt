@@ -1,0 +1,215 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void activation_get_activation_uris ( ActivateParameters * parameters ) {
+ GList * l , * files ;
+ NautilusFile * file ;
+ LaunchLocation * location ;
+ for ( l = parameters -> locations ;
+ l != NULL ;
+ l = l -> next ) {
+ location = l -> data ;
+ file = location -> file ;
+ if ( file_was_cancelled ( file ) ) {
+ launch_location_free ( location ) ;
+ parameters -> locations = g_list_delete_link ( parameters -> locations , l ) ;
+ continue ;
+ }
+ }
+ if ( parameters -> locations == NULL ) {
+ activation_parameters_free ( parameters ) ;
+ return ;
+ }
+ files = get_file_list_for_launch_locations ( parameters -> locations ) ;
+ nautilus_file_list_call_when_ready ( files , nautilus_mime_actions_get_required_file_attributes ( ) , & parameters -> files_handle , activate_activation_uris_ready_callback , parameters ) ;
+ nautilus_file_list_free ( files ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GList * l , * files ;
+ NautilusFile * file ;
+ LaunchLocation * location ;
+ for ( l = parameters -> locations ;
+ l != NULL ;
+ l = l -> next ) {
+ location = l -> data ;
+ file = location -> file ;
+ if ( file_was_cancelled ( file ) ) {
+ launch_location_free ( location ) ;
+ parameters -> locations = g_list_delete_link ( parameters -> locations , l ) ;
+ continue ;
+ }
+ }
+ if ( parameters -> locations == NULL ) {
+ activation_parameters_free ( parameters ) ;
+ return ;
+ }
+ files = get_file_list_for_launch_locations ( parameters -> locations ) ;
+ nautilus_file_list_call_when_ready ( files , nautilus_mime_actions_get_required_file_attributes ( ) , & parameters -> files_handle , activate_activation_uris_ready_callback , parameters ) ;
+ nautilus_file_list_free ( files ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ location = l -> data ;
+ file = location -> file ;
+ if ( file_was_cancelled ( file ) ) {
+ launch_location_free ( location ) ;
+ parameters -> locations = g_list_delete_link ( parameters -> locations , l ) ;
+ continue ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ launch_location_free ( location ) ;
+ parameters -> locations = g_list_delete_link ( parameters -> locations , l ) ;
+ continue ;
+ }
+      
+25769803779 | BLOCK | { activation_parameters_free ( parameters ) ; return ; }
+30064771072 | CALL | l = parameters -> locations
+30064771073 | CALL | parameters -> locations
+30064771074 | CALL | l != NULL
+30064771075 | CALL | l = l -> next
+30064771076 | CALL | l -> next
+30064771077 | CALL | location = l -> data
+30064771078 | CALL | l -> data
+30064771079 | CALL | file = location -> file
+30064771080 | CALL | location -> file
+30064771081 | CALL | file_was_cancelled ( file )
+30064771082 | CALL | launch_location_free ( location )
+30064771083 | CALL | parameters -> locations = g_list_delete_link ( parameters -> locations , l )
+30064771084 | CALL | parameters -> locations
+30064771085 | CALL | g_list_delete_link ( parameters -> locations , l )
+30064771086 | CALL | parameters -> locations
+30064771087 | CALL | parameters -> locations == NULL
+30064771088 | CALL | parameters -> locations
+30064771089 | CALL | activation_parameters_free ( parameters )
+30064771090 | CALL | files = get_file_list_for_launch_locations ( parameters -> locations )
+30064771091 | CALL | get_file_list_for_launch_locations ( parameters -> locations )
+30064771092 | CALL | parameters -> locations
+30064771093 | CALL | 
+        nautilus_file_list_call_when_ready ( files , nautilus_mime_actions_get_required_file_attributes ( ) , & parameters -> files_handle , activate_activation_uris_ready_callback , parameters )
+      
+30064771094 | CALL | nautilus_mime_actions_get_required_file_attributes ( )
+30064771095 | CALL | & parameters -> files_handle
+30064771096 | CALL | parameters -> files_handle
+30064771097 | CALL | nautilus_file_list_free ( files )
+47244640256 | CONTROL_STRUCTURE | for (l = parameters -> locations ;l != NULL;l = l -> next)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( file_was_cancelled ( file ) ) {
+ launch_location_free ( location ) ;
+ parameters -> locations = g_list_delete_link ( parameters -> locations , l ) ;
+ continue ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | continue ;
+47244640259 | CONTROL_STRUCTURE | 
+        if ( parameters -> locations == NULL ) {
+ activation_parameters_free ( parameters ) ;
+ return ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | locations
+55834574849 | FIELD_IDENTIFIER | next
+55834574850 | FIELD_IDENTIFIER | data
+55834574851 | FIELD_IDENTIFIER | file
+55834574852 | FIELD_IDENTIFIER | locations
+55834574853 | FIELD_IDENTIFIER | locations
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640259 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771086 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771088 [REACHING_DEF]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771074 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 55834574850 [ARGUMENT]
+30064771078 -> 55834574850 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 55834574850 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 55834574851 [ARGUMENT]
+30064771080 -> 55834574851 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 55834574851 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 55834574853 [CDG]
+30064771081 -> 55834574852 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 47244640258 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 47244640258 [CFG]
+30064771083 -> 47244640258 [DOMINATE]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 55834574852 [ARGUMENT]
+30064771084 -> 55834574852 [AST]
+30064771084 -> 55834574852 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void acti
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

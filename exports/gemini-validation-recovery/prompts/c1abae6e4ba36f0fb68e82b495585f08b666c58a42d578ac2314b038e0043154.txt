@@ -1,0 +1,244 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+decNumber * decLnOp ( decNumber * res , const decNumber * rhs , decContext * set , uInt * status ) {
+ uInt ignore = 0 ;
+ uInt needbytes ;
+ Int residue ;
+ Int r ;
+ Int p ;
+ Int pp ;
+ Int t ;
+ decNumber bufa [ D2N ( DECBUFFER + 12 ) ] ;
+ decNumber * allocbufa = NULL ;
+ decNumber * a = bufa ;
+ decNumber bufb [ D2N ( DECBUFFER * 2 + 2 ) ] ;
+ decNumber * allocbufb = NULL ;
+ decNumber * b = bufb ;
+ decNumber numone ;
+ decNumber cmp ;
+ decContext aset , bset ;
+ # if DECCHECK Int iterations = 0 ;
+ if ( decCheckOperands ( res , DECUNUSED , rhs , set ) ) return res ;
+ # endif do {
+ if ( SPECIALARG ) {
+ if ( decNumberIsInfinite ( rhs ) ) {
+ if ( decNumberIsNegative ( rhs ) ) * status |= DEC_Invalid_operation ;
+ else uprv_decNumberCopy ( res , rhs ) ;
+ }
+ else decNaNs ( res , rhs , NULL , set , status ) ;
+ break ;
+ }
+ if ( ISZERO ( rhs ) ) {
+ uprv_decNumberZero ( res ) ;
+ res -> bits = DECINF | DECNEG ;
+ break ;
+ }
+ if ( decNumberIsNegative ( rhs ) ) {
+ * status |= DEC_Invalid_operation ;
+ break ;
+ }
+ if ( rhs -> exponent == 0 && set -> digits <= 40 ) {
+ # if DECDPUN == 1 if ( rhs -> lsu [ 0 ] == 0 && rhs -> lsu [ 1 ] == 1 && rhs -> digits == 2 ) {
+ # else if ( rhs -> lsu [ 0 ] == 10 && rhs -> digits == 2 ) {
+ # endif aset = * set ;
+ aset . round = DEC_ROUND_HALF_EVEN ;
+ # define LN10 "2.302585092994045684017991454684364207601" uprv_decNumberFromString ( res , LN10 , & aset ) ;
+ * status |= ( DEC_Inexact | DEC_Rounded ) ;
+ break ;
+ }
+ if ( rhs -> lsu [ 0 ] == 2 && rhs -> digits == 1 ) {
+ aset = * set ;
+ aset . round = DEC_ROUND_HALF_EVEN ;
+ # define LN2 "0.6931471805599453094172321214581765680755" uprv_decNumberFromString ( res , LN2 , & aset ) ;
+ * status |= ( DEC_Inexact | DEC_Rounded ) ;
+ break ;
+ }
+ }
+ p = MAXI ( rhs -> digits , MAXI ( set -> digits , 7 ) ) + 2 ;
+ needbytes = sizeof ( decNumber ) + ( D2U ( MAXI ( p , 16 ) ) - 1 ) * sizeof ( Unit ) ;
+ if ( needbytes > sizeof ( bufa ) ) {
+ allocbufa = ( decNumber * ) malloc ( needbytes ) ;
+ if ( allocbufa == NULL ) {
+ * status |= DEC_Insufficient_storage ;
+ break ;
+ }
+ a = allocbufa ;
+ }
+ pp = p + rhs -> digits ;
+ needbytes = sizeof ( decNumber ) + ( D2U ( MAXI ( pp , 16 ) ) - 1 ) * sizeof ( Unit ) ;
+ if ( needbytes > sizeof ( bufb ) ) {
+ allocbufb = ( decNumber * ) malloc ( needbytes ) ;
+ if ( allocbufb == NULL ) {
+ * status |= DEC_Insufficient_storage ;
+ break ;
+ }
+ b = allocbufb ;
+ }
+ uprv_decContextDefault ( & aset , DEC_INIT_DECIMAL64 ) ;
+ r = rhs -> exponent + rhs -> digits ;
+ uprv_decNumberFromInt32 ( a , r ) ;
+ uprv_decNumberFromInt32 ( b , 2302585 ) ;
+ b -> exponent = - 6 ;
+ decMultiplyOp ( a , a , b , & aset , & ignore ) ;
+ residue = 0 ;
+ aset . digits = 2 ;
+ aset . round = DEC_ROUND_DOWN ;
+ decCopyFit ( b , rhs , & aset , & residue , & ignore ) ;
+ b -> exponent = 0 ;
+ t = decGetInt ( b ) ;
+ if ( t < 10 ) t = X10 ( t ) ;
+ t = LNnn [ t - 10 ] ;
+ uprv_decNumberFromInt32 ( b , t >> 2 ) ;
+ b -> exponent = - ( t & 3 ) - 3 ;
+ b -> bits = DECNEG ;
+ aset . digits = 16 ;
+ aset . round = DEC_ROUND_HALF_EVE
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uInt ignore = 0 ;
+ uInt needbytes ;
+ Int residue ;
+ Int r ;
+ Int p ;
+ Int pp ;
+ Int t ;
+ decNumber bufa [ D2N ( DECBUFFER + 12 ) ] ;
+ decNumber * allocbufa = NULL ;
+ decNumber * a = bufa ;
+ decNumber bufb [ D2N ( DECBUFFER * 2 + 2 ) ] ;
+ decNumber * allocbufb = NULL ;
+ decNumber * b = bufb ;
+ decNumber numone ;
+ decNumber cmp ;
+ decContext aset , bset ;
+ # if DECCHECK Int iterations = 0 ;
+ if ( decCheckOperands ( res , DECUNUSED , rhs , set ) ) return res ;
+ # endif do {
+ if ( SPECIALARG ) {
+ if ( decNumberIsInfinite ( rhs ) ) {
+ if ( decNumberIsNegative ( rhs ) ) * status |= DEC_Invalid_operation ;
+ else uprv_decNumberCopy ( res , rhs ) ;
+ }
+ else decNaNs ( res , rhs , NULL , set , status ) ;
+ break ;
+ }
+ if ( ISZERO ( rhs ) ) {
+ uprv_decNumberZero ( res ) ;
+ res -> bits = DECINF | DECNEG ;
+ break ;
+ }
+ if ( decNumberIsNegative ( rhs ) ) {
+ * status |= DEC_Invalid_operation ;
+ break ;
+ }
+ if ( rhs -> exponent == 0 && set -> digits <= 40 ) {
+ # if DECDPUN == 1 if ( rhs -> lsu [ 0...
+      
+25769803777 | BLOCK | 
+        {
+ if ( decNumberIsInfinite ( rhs ) ) {
+ if ( decNumberIsNegative ( rhs ) ) * status |= DEC_Invalid_operation ;
+ else uprv_decNumberCopy ( res , rhs ) ;
+ }
+ else decNaNs ( res , rhs , NULL , set , status ) ;
+ break ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( decNumberIsNegative ( rhs ) ) * status |= DEC_Invalid_operation ;
+ else uprv_decNumberCopy ( res , rhs ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { uprv_decNumberZero ( res ) ; res -> bits = DECINF | DECNEG ; break ; }
+25769803783 | BLOCK | { * status |= DEC_Invalid_operation ; break ; }
+25769803784 | BLOCK | 
+        {
+ # if DECDPUN == 1 if ( rhs -> lsu [ 0 ] == 0 && rhs -> lsu [ 1 ] == 1 && rhs -> digits == 2 ) {
+ # else if ( rhs -> lsu [ 0 ] == 10 && rhs -> digits == 2 ) {
+ # endif aset = * set ;
+ aset . round = DEC_ROUND_HALF_EVEN ;
+ # define LN10 "2.302585092994045684017991454684364207601" uprv_decNumberFromString ( res , LN10 , & aset ) ;
+ * status |= ( DEC_Inexact | DEC_Rounded ) ;
+ break ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ aset = * set ;
+ aset . round = DEC_ROUND_HALF_EVEN ;
+ # define LN2 "0.6931471805599453094172321214581765680755" uprv_decNumberFromString ( res , LN2 , & aset ) ;
+ * status |= ( DEC_Inexact | DEC_Rounded ) ;
+ break ;
+ }
+      
+25769803788 | BLOCK | <empty>
+30064771072 | CALL | ignore = 0
+30064771073 | CALL | bufa [ D2N ( DECBUFFER + 12 ) ]
+30064771074 | CALL | bufa [ D2N ( DECBUFFER + 12 ) ]
+30064771075 | CALL | D2N ( DECBUFFER + 12 )
+30064771076 | CALL | DECBUFFER + 12
+30064771077 | CALL | allocbufa = NULL
+30064771078 | CALL | a = bufa
+30064771079 | CALL | bufb [ D2N ( DECBUFFER * 2 + 2 ) ]
+30064771080 | CALL | bufb [ D2N ( DECBUFFER * 2 + 2 ) ]
+30064771081 | CALL | D2N ( DECBUFFER * 2 + 2 )
+30064771082 | CALL | DECBUFFER * 2 + 2
+30064771083 | CALL | DECBUFFER * 2
+30064771084 | CALL | allocbufb = NULL
+30064771085 | CALL | b = bufb
+30064771086 | CALL | SPECIALARG != 0
+30064771087 | CALL | decNumberIsInfinite ( rhs )
+30064771088 | CALL | decNumberIsNegative ( rhs )
+30064771089 | CALL | * status |= DEC_Invalid_operation
+30064771090 | CALL | * status
+30064771091 | CALL | uprv_decNumberCopy ( res , rhs )
+30064771092 | CALL | decNaNs ( res , rhs , NULL , set , status )
+30064771093 | CALL | ISZERO ( rhs )
+30064771094 | CALL | uprv_decNumberZero ( res )
+30064771095 | CALL | res -> bits = DECINF | DECNEG
+30064771096 | CALL | res -> bits
+30064771097 | CALL | DECINF | DECNEG
+30064771098 | CALL | decNumberIsNegative ( rhs )
+30064771099 | CALL | * status |= DEC_Invalid_operation
+30064771100 | CALL | * status
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+25769803779 -> 30064771089 [AST]
+25769803780 -> 30064771091 [AST]
+25769803781 -> 30064771092 [AST]
+25769803782 -> 30064771094 [AST]
+25769803782 -> 30064771095 [AST]
+25769803783 -> 30064771099 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,208 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuMonitorTextDeleteSnapshot ( qemuMonitorPtr mon , const char * name ) {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * safename ;
+ if ( ! ( safename = qemuMonitorEscapeArg ( name ) ) || virAsprintf ( & cmd , "delvm \"%s\"" , safename ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , _ ( "failed to delete snapshot using command '%s'" ) , cmd ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "No block device supports snapshots" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "this domain does not have a device to delete snapshots" ) ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "Snapshots not supported on device" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , reply ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "Error" ) != NULL && strstr ( reply , "while deleting snapshot" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , reply ) ;
+ goto cleanup ;
+ }
+ ret = 0 ;
+ cleanup : VIR_FREE ( safename ) ;
+ VIR_FREE ( cmd ) ;
+ VIR_FREE ( reply ) ;
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char * cmd = NULL ;
+ char * reply = NULL ;
+ int ret = - 1 ;
+ char * safename ;
+ if ( ! ( safename = qemuMonitorEscapeArg ( name ) ) || virAsprintf ( & cmd , "delvm \"%s\"" , safename ) < 0 ) {
+ virReportOOMError ( ) ;
+ goto cleanup ;
+ }
+ if ( qemuMonitorHMPCommand ( mon , cmd , & reply ) ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , _ ( "failed to delete snapshot using command '%s'" ) , cmd ) ;
+ goto cleanup ;
+ }
+ if ( strstr ( reply , "No block device supports snapshots" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "this domain does not have a device to delete snapshots" ) ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "Snapshots not supported on device" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , reply ) ;
+ goto cleanup ;
+ }
+ else if ( strstr ( reply , "Error" ) != NULL && strstr ( reply , "while deleting snapshot" ) != NULL ) {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , reply ) ;
+ goto cleanup ;
+ }
+ ret = 0 ;...
+      
+25769803777 | BLOCK | { virReportOOMError ( ) ; goto cleanup ; }
+25769803778 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , _ ( "failed to delete snapshot using command '%s'" ) , cmd ) ;
+ goto cleanup ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "this domain does not have a device to delete snapshots" ) ) ;
+ goto cleanup ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , reply ) ;
+ goto cleanup ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , reply ) ;
+ goto cleanup ;
+ }
+      
+30064771072 | CALL | cmd = NULL
+30064771073 | CALL | reply = NULL
+30064771074 | CALL | ret = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | 
+        ! ( safename = qemuMonitorEscapeArg ( name ) ) || virAsprintf ( & cmd , "delvm \"%s\"" , safename ) < 0
+      
+30064771077 | CALL | ! ( safename = qemuMonitorEscapeArg ( name ) )
+30064771078 | CALL | safename = qemuMonitorEscapeArg ( name )
+30064771079 | CALL | qemuMonitorEscapeArg ( name )
+30064771080 | CALL | virAsprintf ( & cmd , "delvm \"%s\"" , safename ) < 0
+30064771081 | CALL | virAsprintf ( & cmd , "delvm \"%s\"" , safename )
+30064771082 | CALL | & cmd
+30064771083 | CALL | virReportOOMError ( )
+30064771084 | CALL | qemuMonitorHMPCommand ( mon , cmd , & reply )
+30064771085 | CALL | & reply
+30064771086 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_FAILED , _ ( "failed to delete snapshot using command '%s'" ) , cmd )
+      
+30064771087 | CALL | _ ( "failed to delete snapshot using command '%s'" )
+30064771088 | CALL | strstr ( reply , "No block device supports snapshots" ) != NULL
+30064771089 | CALL | strstr ( reply , "No block device supports snapshots" )
+30064771090 | CALL | 
+        qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , _ ( "this domain does not have a device to delete snapshots" ) )
+      
+30064771091 | CALL | _ ( "this domain does not have a device to delete snapshots" )
+30064771092 | CALL | strstr ( reply , "Snapshots not supported on device" ) != NULL
+30064771093 | CALL | strstr ( reply , "Snapshots not supported on device" )
+30064771094 | CALL | qemuReportError ( VIR_ERR_OPERATION_INVALID , "%s" , reply )
+30064771095 | CALL | 
+        strstr ( reply , "Error" ) != NULL && strstr ( reply , "while deleting snapshot" ) != NULL
+      
+30064771096 | CALL | strstr ( reply , "Error" ) != NULL
+30064771097 | CALL | strstr ( reply , "Error" )
+30064771098 | CALL | strstr ( reply , "while deleting snapshot" ) != NULL
+30064771099 | CALL | strstr ( reply , "while deleting snapshot" )
+30064771100 | CALL | qemuReportError ( VIR_ERR_OPERATION_FAILED , "%s" , reply )
+30064771101 | CALL | ret = 0
+30064771102 | CALL | VIR_FREE ( safename )
+30064771103 | CALL | VIR_FREE ( cmd )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771103 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771086 [AST]
+25769803779 -> 30064771090 [AST]
+25769803781 -> 30064771094 [AST]
+25769803783 -> 30064771100 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771080 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771080 [AST]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771083 [CFG]
+30064771076 -> 30064771083 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771080 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771080 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771076 [CFG]
+30064771080 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 30064771085 [P
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

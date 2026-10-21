@@ -1,0 +1,373 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vga_draw_graphic(VGACommonState *s, int full_update)
+
+{
+
+    DisplaySurface *surface = qemu_console_surface(s->con);
+
+    int y1, y, update, linesize, y_start, double_scan, mask, depth;
+
+    int width, height, shift_control, line_offset, bwidth, bits;
+
+    ram_addr_t page0, page1;
+
+    DirtyBitmapSnapshot *snap = NULL;
+
+    int disp_width, multi_scan, multi_run;
+
+    uint8_t *d;
+
+    uint32_t v, addr1, addr;
+
+    vga_draw_line_func *vga_draw_line = NULL;
+
+    bool share_surface;
+
+    pixman_format_code_t format;
+
+#ifdef HOST_WORDS_BIGENDIAN
+
+    bool byteswap = !s->big_endian_fb;
+
+#else
+
+    bool byteswap = s->big_endian_fb;
+
+#endif
+
+
+
+    full_update |= update_basic_params(s);
+
+
+
+    s->get_resolution(s, &width, &height);
+
+    disp_width = width;
+
+
+
+    shift_control = (s->gr[VGA_GFX_MODE] >> 5) & 3;
+
+    double_scan = (s->cr[VGA_CRTC_MAX_SCAN] >> 7);
+
+    if (shift_control != 1) {
+
+        multi_scan = (((s->cr[VGA_CRTC_MAX_SCAN] & 0x1f) + 1) << double_scan)
+
+            - 1;
+
+    } else {
+
+        /* in CGA modes, multi_scan is ignored */
+
+        /* XXX: is it correct ? */
+
+        multi_scan = double_scan;
+
+    }
+
+    multi_run = multi_scan;
+
+    if (shift_control != s->shift_control ||
+
+        double_scan != s->double_scan) {
+
+        full_update = 1;
+
+        s->shift_control = shift_control;
+
+        s->double_scan = double_scan;
+
+    }
+
+
+
+    if (shift_control == 0) {
+
+        if (sr(s, VGA_SEQ_CLOCK_MODE) & 8) {
+
+            disp_width <<= 1;
+
+        }
+
+    } else if (shift_control == 1) {
+
+        if (sr(s, VGA_SEQ_CLOCK_MODE) & 8) {
+
+            disp_width <<= 1;
+
+        }
+
+    }
+
+
+
+    depth = s->get_bpp(s);
+
+
+
+    /*
+
+     * Check whether we can share the surface with the backend
+
+     * or whether we need a shadow surface. We share native
+
+     * endian surfaces for 15bpp and above and byteswapped
+
+     * surfaces for 24bpp and above.
+
+     */
+
+    format = qemu_default_pixman_format(depth, !byteswap);
+
+    if (format) {
+
+        share_surface = dpy_gfx_check_format(s->con, format)
+
+            && !s->force_shadow;
+
+    } else {
+
+        share_surface = false;
+
+    }
+
+    if (s->line_offset != s->last_line_offset ||
+
+        disp_width != s->last_width ||
+
+        height != s->last_height ||
+
+        s->last_depth != depth ||
+
+        s->last_byteswap != byteswap ||
+
+        share_surface != is_buffer_shared(surface)) {
+
+        if (share_surface) {
+
+            surface = qemu_create_displaysurface_from(disp_width,
+
+                    height, format, s->line_offset,
+
+                    s->vram_ptr + (s->start_addr * 4));
+
+            dpy_gfx_replace_surface(s->con, surface);
+
+        } else {
+
+            qemu_console_resize(s->con, disp_width, height);
+
+            surface = qemu_console_surface(s->con);
+
+        }
+
+        s->last_scr_width = disp_width;
+
+        s->last_scr_height = height;
+
+        s->last_width = disp_width;
+
+        s->last_height = height;
+
+        s->last_line_offset = s->line_offset;
+
+    
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+19 -> 23 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+19 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+19 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+19 -> 32 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+19 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+19 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+19 -> 41 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+44 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+44 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+44 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+44 -> 60 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+4 -> 63 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void vga_draw_graphic(VGACommonState *s, int full_update)
+
+{
+
+    int y1, y, update, linesize, y_start, double_scan, mask, depth;
+
+    int width, height, shift_control, line_offset, bwidth, bits;
+
+    ram_addr_t page0, page1, page_min, page_max;
+
+    int disp_width, multi_scan, multi_run;
+
+    uint8_t *d;
+
+    uint32_t v, addr1, addr;
+
+    vga_draw_line_func *vga_draw_line;
+
+
+
+    full_update |= update_basic_params(s);
+
+
+
+    if (!full_update)
+
+        vga_sync_dirty_bitmap(s);
+
+
+
+    s->get_resolution(s, &width, &height);
+
+    disp_width = width;
+
+
+
+    shift_control = (s->gr[VGA_GFX_MODE] >> 5) & 3;
+
+    double_scan = (s->cr[VGA_CRTC_MAX_SCAN] >> 7);
+
+    if (shift_control != 1) {
+
+        multi_scan = (((s->cr[VGA_CRTC_MAX_SCAN] & 0x1f) + 1) << double_scan)
+
+            - 1;
+
+    } else {
+
+        /* in CGA modes, multi_scan is ignored */
+
+        /* XXX: is it correct ? */
+
+        multi_scan = double_scan;
+
+    }
+
+    multi_run = multi_scan;
+
+    if (shift_control != s->shift_control ||
+
+        double_scan != s->double_scan) {
+
+        full_update = 1;
+
+        s->shift_control = shift_control;
+
+        s->double_scan = double_scan;
+
+    }
+
+
+
+    if (shift_control == 0) {
+
+        if (s->sr[VGA_SEQ_CLOCK_MODE] & 8) {
+
+            disp_width <<= 1;
+
+        }
+
+    } else if (shift_control == 1) {
+
+        if (s->sr[VGA_SEQ_CLOCK_MODE] & 8) {
+
+            disp_width <<= 1;
+
+        }
+
+    }
+
+
+
+    depth = s->get_bpp(s);
+
+    if (s->line_offset != s->last_line_offse
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

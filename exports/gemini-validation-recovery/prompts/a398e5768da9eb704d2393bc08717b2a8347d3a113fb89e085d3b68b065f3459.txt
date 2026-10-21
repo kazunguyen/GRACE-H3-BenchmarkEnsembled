@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _dumpcffstrings ( FILE * file , struct pschars * strs ) {
+ int i , len , offsize ;
+ len = 1 ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) len += strs -> lens [ i ] ;
+ putshort ( file , strs -> next ) ;
+ if ( strs -> next != 0 ) {
+ offsize = len <= 255 ? 1 : len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4 ;
+ putc ( offsize , file ) ;
+ len = 1 ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ dumpoffset ( file , offsize , len ) ;
+ len += strs -> lens [ i ] ;
+ }
+ dumpoffset ( file , offsize , len ) ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ uint8 * pt = strs -> values [ i ] , * end = pt + strs -> lens [ i ] ;
+ while ( pt < end ) {
+ putc ( * pt ++ , file ) ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , len , offsize ;
+ len = 1 ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) len += strs -> lens [ i ] ;
+ putshort ( file , strs -> next ) ;
+ if ( strs -> next != 0 ) {
+ offsize = len <= 255 ? 1 : len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4 ;
+ putc ( offsize , file ) ;
+ len = 1 ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ dumpoffset ( file , offsize , len ) ;
+ len += strs -> lens [ i ] ;
+ }
+ dumpoffset ( file , offsize , len ) ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ uint8 * pt = strs -> values [ i ] , * end = pt + strs -> lens [ i ] ;
+ while ( pt < end ) {
+ putc ( * pt ++ , file ) ;
+ }
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ offsize = len <= 255 ? 1 : len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4 ;
+ putc ( offsize , file ) ;
+ len = 1 ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ dumpoffset ( file , offsize , len ) ;
+ len += strs -> lens [ i ] ;
+ }
+ dumpoffset ( file , offsize , len ) ;
+ for ( i = 0 ;
+ i < strs -> next ;
+ ++ i ) {
+ uint8 * pt = strs -> values [ i ] , * end = pt + strs -> lens [ i ] ;
+ while ( pt < end ) {
+ putc ( * pt ++ , file ) ;
+ }
+ }
+ }
+      
+25769803778 | BLOCK | { dumpoffset ( file , offsize , len ) ; len += strs -> lens [ i ] ; }
+25769803779 | BLOCK | 
+        {
+ uint8 * pt = strs -> values [ i ] , * end = pt + strs -> lens [ i ] ;
+ while ( pt < end ) {
+ putc ( * pt ++ , file ) ;
+ }
+ }
+      
+25769803780 | BLOCK | { putc ( * pt ++ , file ) ; }
+30064771072 | CALL | len = 1
+30064771073 | CALL | i = 0
+30064771074 | CALL | i < strs -> next
+30064771075 | CALL | strs -> next
+30064771076 | CALL | ++ i
+30064771077 | CALL | len += strs -> lens [ i ]
+30064771078 | CALL | strs -> lens [ i ]
+30064771079 | CALL | strs -> lens
+30064771080 | CALL | putshort ( file , strs -> next )
+30064771081 | CALL | strs -> next
+30064771082 | CALL | strs -> next != 0
+30064771083 | CALL | strs -> next
+30064771084 | CALL | offsize = len <= 255 ? 1 : len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4
+30064771085 | CALL | len <= 255 ? 1 : len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4
+30064771086 | CALL | len <= 255
+30064771087 | CALL | len <= 65535 ? 2 : len <= 0xffffff ? 3 : 4
+30064771088 | CALL | len <= 65535
+30064771089 | CALL | len <= 0xffffff ? 3 : 4
+30064771090 | CALL | len <= 0xffffff
+30064771091 | CALL | putc ( offsize , file )
+30064771092 | CALL | len = 1
+30064771093 | CALL | i = 0
+30064771094 | CALL | i < strs -> next
+30064771095 | CALL | strs -> next
+30064771096 | CALL | ++ i
+30064771097 | CALL | dumpoffset ( file , offsize , len )
+30064771098 | CALL | len += strs -> lens [ i ]
+30064771099 | CALL | strs -> lens [ i ]
+30064771100 | CALL | strs -> lens
+30064771101 | CALL | dumpoffset ( file , offsize , len )
+30064771102 | CALL | i = 0
+30064771103 | CALL | i < strs -> next
+30064771104 | CALL | strs -> next
+30064771105 | CALL | ++ i
+30064771106 | CALL | pt = strs -> values [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771101 [AST]
+25769803778 -> 30064771097 [AST]
+25769803778 -> 30064771098 [AST]
+25769803779 -> 30064771106 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771074 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771099 [REACHING_DEF]
+30064771078 -> 30064771100 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771102 [CDG]
+30064771082 -> 30064771101 [CDG]
+30064771082 -> 30064771104 [CDG]
+30064771082 -> 30064771103 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771095 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771087 -> 30064771085 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void outputarr ( FILE * fp , char * name , int narr , l_fp * lfp ) {
+ register char * bp ;
+ register char * cp ;
+ register int i ;
+ register int len ;
+ char buf [ 256 ] ;
+ bp = buf ;
+ for ( i = ( int ) strlen ( name ) ;
+ i < 11 ;
+ i ++ ) * bp ++ = ' ' ;
+ for ( i = narr ;
+ i > 0 ;
+ i -- ) {
+ if ( i != narr ) * bp ++ = ' ' ;
+ cp = lfptoms ( lfp , 2 ) ;
+ len = strlen ( cp ) ;
+ if ( len > 7 ) {
+ cp [ 7 ] = '\0' ;
+ len = 7 ;
+ }
+ while ( len < 7 ) {
+ * bp ++ = ' ' ;
+ len ++ ;
+ }
+ while ( * cp != '\0' ) * bp ++ = * cp ++ ;
+ lfp ++ ;
+ }
+ * bp = '\0' ;
+ output ( fp , name , buf ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

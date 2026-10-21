@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int calc_active_worst_quality_one_pass_cbr ( const VP9_COMP * cpi ) {
+ const VP9_COMMON * const cm = & cpi -> common ;
+ const RATE_CONTROL * rc = & cpi -> rc ;
+ int64_t critical_level = rc -> optimal_buffer_level >> 2 ;
+ int64_t buff_lvl_step = 0 ;
+ int adjustment = 0 ;
+ int active_worst_quality ;
+ if ( cm -> frame_type == KEY_FRAME ) return rc -> worst_quality ;
+ if ( cm -> current_video_frame > 1 ) active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ INTER_FRAME ] * 5 / 4 ) ;
+ else active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ KEY_FRAME ] * 3 / 2 ) ;
+ if ( rc -> buffer_level > rc -> optimal_buffer_level ) {
+ int max_adjustment_down = active_worst_quality / 3 ;
+ if ( max_adjustment_down ) {
+ buff_lvl_step = ( ( rc -> maximum_buffer_size - rc -> optimal_buffer_level ) / max_adjustment_down ) ;
+ if ( buff_lvl_step ) adjustment = ( int ) ( ( rc -> buffer_level - rc -> optimal_buffer_level ) / buff_lvl_step ) ;
+ active_worst_quality -= adjustment ;
+ }
+ }
+ else if ( rc -> buffer_level > critical_level ) {
+ if ( critical_level ) {
+ buff_lvl_step = ( rc -> optimal_buffer_level - critical_level ) ;
+ if ( buff_lvl_step ) {
+ adjustment = ( int ) ( ( rc -> worst_quality - rc -> avg_frame_qindex [ INTER_FRAME ] ) * ( rc -> optimal_buffer_level - rc -> buffer_level ) / buff_lvl_step ) ;
+ }
+ active_worst_quality = rc -> avg_frame_qindex [ INTER_FRAME ] + adjustment ;
+ }
+ }
+ else {
+ active_worst_quality = rc -> worst_quality ;
+ }
+ return active_worst_quality ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const VP9_COMMON * const cm = & cpi -> common ;
+ const RATE_CONTROL * rc = & cpi -> rc ;
+ int64_t critical_level = rc -> optimal_buffer_level >> 2 ;
+ int64_t buff_lvl_step = 0 ;
+ int adjustment = 0 ;
+ int active_worst_quality ;
+ if ( cm -> frame_type == KEY_FRAME ) return rc -> worst_quality ;
+ if ( cm -> current_video_frame > 1 ) active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ INTER_FRAME ] * 5 / 4 ) ;
+ else active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ KEY_FRAME ] * 3 / 2 ) ;
+ if ( rc -> buffer_level > rc -> optimal_buffer_level ) {
+ int max_adjustment_down = active_worst_quality / 3 ;
+ if ( max_adjustment_down ) {
+ buff_lvl_step = ( ( rc -> maximum_buffer_size - rc -> optimal_buffer_level ) / max_adjustment_down ) ;
+ if ( buff_lvl_step ) adjustment = ( int ) ( ( rc -> buffer_level - rc -> optimal_buffer_level ) / buff_lvl_step ) ;
+ active_worst_quality -= adjustment ;
+ }
+ }
+ else if ( rc -> buffer_level > critical_level...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ int max_adjustment_down = active_worst_quality / 3 ;
+ if ( max_adjustment_down ) {
+ buff_lvl_step = ( ( rc -> maximum_buffer_size - rc -> optimal_buffer_level ) / max_adjustment_down ) ;
+ if ( buff_lvl_step ) adjustment = ( int ) ( ( rc -> buffer_level - rc -> optimal_buffer_level ) / buff_lvl_step ) ;
+ active_worst_quality -= adjustment ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ buff_lvl_step = ( ( rc -> maximum_buffer_size - rc -> optimal_buffer_level ) / max_adjustment_down ) ;
+ if ( buff_lvl_step ) adjustment = ( int ) ( ( rc -> buffer_level - rc -> optimal_buffer_level ) / buff_lvl_step ) ;
+ active_worst_quality -= adjustment ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( critical_level ) {
+ buff_lvl_step = ( rc -> optimal_buffer_level - critical_level ) ;
+ if ( buff_lvl_step ) {
+ adjustment = ( int ) ( ( rc -> worst_quality - rc -> avg_frame_qindex [ INTER_FRAME ] ) * ( rc -> optimal_buffer_level - rc -> buffer_level ) / buff_lvl_step ) ;
+ }
+ active_worst_quality = rc -> avg_frame_qindex [ INTER_FRAME ] + adjustment ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ buff_lvl_step = ( rc -> optimal_buffer_level - critical_level ) ;
+ if ( buff_lvl_step ) {
+ adjustment = ( int ) ( ( rc -> worst_quality - rc -> avg_frame_qindex [ INTER_FRAME ] ) * ( rc -> optimal_buffer_level - rc -> buffer_level ) / buff_lvl_step ) ;
+ }
+ active_worst_quality = rc -> avg_frame_qindex [ INTER_FRAME ] + adjustment ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ adjustment = ( int ) ( ( rc -> worst_quality - rc -> avg_frame_qindex [ INTER_FRAME ] ) * ( rc -> optimal_buffer_level - rc -> buffer_level ) / buff_lvl_step ) ;
+ }
+      
+25769803787 | BLOCK | { active_worst_quality = rc -> worst_quality ; }
+30064771072 | CALL | const cm = & cpi -> common
+30064771073 | CALL | & cpi -> common
+30064771074 | CALL | cpi -> common
+30064771075 | CALL | rc = & cpi -> rc
+30064771076 | CALL | & cpi -> rc
+30064771077 | CALL | cpi -> rc
+30064771078 | CALL | critical_level = rc -> optimal_buffer_level >> 2
+30064771079 | CALL | rc -> optimal_buffer_level >> 2
+30064771080 | CALL | rc -> optimal_buffer_level
+30064771081 | CALL | buff_lvl_step = 0
+30064771082 | CALL | adjustment = 0
+30064771083 | CALL | cm -> frame_type == KEY_FRAME
+30064771084 | CALL | cm -> frame_type
+30064771085 | CALL | rc -> worst_quality
+30064771086 | CALL | cm -> current_video_frame > 1
+30064771087 | CALL | cm -> current_video_frame
+30064771088 | CALL | 
+        active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ INTER_FRAME ] * 5 / 4 )
+      
+30064771089 | CALL | MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ INTER_FRAME ] * 5 / 4 )
+30064771090 | CALL | rc -> worst_quality
+30064771091 | CALL | rc -> avg_frame_qindex [ INTER_FRAME ] * 5 / 4
+30064771092 | CALL | rc -> avg_frame_qindex [ INTER_FRAME ] * 5
+30064771093 | CALL | rc -> avg_frame_qindex [ INTER_FRAME ]
+30064771094 | CALL | rc -> avg_frame_qindex
+30064771095 | CALL | 
+        active_worst_quality = MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ KEY_FRAME ] * 3 / 2 )
+      
+30064771096 | CALL | MIN ( rc -> worst_quality , rc -> avg_frame_qindex [ KEY_FRAME ] * 3 / 2 )
+30064771097 | CALL | rc -> worst_quality
+30064771098 | CALL | rc -> avg_frame_qindex [ KEY_FRAME ] * 3 / 2
+30064771099 | CALL | rc -> avg_frame_qindex [ KEY_FRAME ] * 3
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803778 -> 30064771088 [AST]
+25769803779 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,274 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void mp3_parse_vbr_tags(AVFormatContext *s, AVStream *st, int64_t base)
+
+{
+
+    uint32_t v, spf;
+
+    int frames = -1; /* Total number of frames in file */
+
+    const int64_t xing_offtbl[2][2] = {{32, 17}, {17,9}};
+
+    MPADecodeContext c;
+
+
+
+    v = get_be32(s->pb);
+
+    if(ff_mpa_check_header(v) < 0)
+
+      return;
+
+
+
+    ff_mpegaudio_decode_header(&c, v);
+
+    if(c.layer != 3)
+
+        return;
+
+
+
+    /* Check for Xing / Info tag */
+
+    url_fseek(s->pb, xing_offtbl[c.lsf == 1][c.nb_channels == 1], SEEK_CUR);
+
+    v = get_be32(s->pb);
+
+    if(v == MKBETAG('X', 'i', 'n', 'g') || v == MKBETAG('I', 'n', 'f', 'o')) {
+
+        v = get_be32(s->pb);
+
+        if(v & 0x1)
+
+            frames = get_be32(s->pb);
+
+    }
+
+
+
+    /* Check for VBRI tag (always 32 bytes after end of mpegaudio header) */
+
+    url_fseek(s->pb, base + 4 + 32, SEEK_SET);
+
+    v = get_be32(s->pb);
+
+    if(v == MKBETAG('V', 'B', 'R', 'I')) {
+
+        /* Check tag version */
+
+        if(get_be16(s->pb) == 1) {
+
+            /* skip delay, quality and total bytes */
+
+            url_fseek(s->pb, 8, SEEK_CUR);
+
+            frames = get_be32(s->pb);
+
+        }
+
+    }
+
+
+
+    if(frames < 0)
+
+        return;
+
+
+
+    spf = c.lsf ? 576 : 1152; /* Samples per frame, layer 3 */
+
+    st->duration = av_rescale_q(frames, (AVRational){spf, c.sample_rate},
+
+                                st->time_base);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+32 -> 35 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+31 -> 37 [IS_AST_PARENT]
+4 -> 31 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 67 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+72 -> 77 [IS_AST_PARENT]
+69 -> 72 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void mp3_parse_info_tag(AVFormatContext *s, AVStream *st,
+
+                               MPADecodeHeader *c, uint32_t spf)
+
+{
+
+#define LAST_BITS(k, n) ((k) & ((1 << (n)) - 1))
+
+#define MIDDLE_BITS(k, m, n) LAST_BITS((k) >> (m), ((n) - (m)))
+
+
+
+    uint16_t crc;
+
+    uint32_t v;
+
+
+
+    char version[10];
+
+
+
+    uint32_t peak   = 0;
+
+    int32_t  r_gain = INT32_MIN, a_gain = INT32_MIN;
+
+
+
+    MP3DecContext *mp3 = s->priv_data;
+
+    static const int64_t xing_offtbl[2][2] = {{32, 17}, {17,9}};
+
+    uint64_t fsize = avio_size(s->pb);
+
+
+
+    /* Check for Xing / Info tag */
+
+    avio_skip(s->pb, xing_offtbl[c->lsf == 1][c->nb_channels == 1]);
+
+    v = avio_rb32(s->pb);
+
+    mp3->is_cbr = v == MKBETAG('I', 'n', 'f', 'o');
+
+    if (v != MKBETAG('X', 'i', 'n', 'g') && !mp3->is_cbr)
+
+        return;
+
+
+
+    v = avio_rb32(s->pb);
+
+    if (v & XING_FLAG_FRAMES)
+
+        mp3->frames = avio_rb32(s->pb);
+
+    if (v & XING_FLAG_SIZE)
+
+        mp3->header_filesize = avio_rb32(s->pb);
+
+    if (fsize && mp3->header_filesize) {
+
+        uint64_t min, delta;
+
+        min = FFMIN(fsize, mp3->header_filesize);
+
+        delta = FFMAX(fsize, mp3->header_filesize) - min;
+
+        if (fsize > mp3->header_filesize && delta > min >> 4) {
+
+            mp3->frames = 0;
+
+        } else if (delta > min >> 4) {
+
+            av_log(s, AV_LOG_WARNING,
+
+                   "filesize and duration do not match (growing file?)\n");
+
+        }
+
+    }
+
+    if (v & XING_FLAG_TOC)
+
+        read_xing_toc(s, mp3->hea
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

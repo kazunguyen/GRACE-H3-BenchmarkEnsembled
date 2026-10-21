@@ -1,0 +1,355 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void get_fcb_param(FCBParam *optim, int16_t *impulse_resp,
+
+                          int16_t *buf, int pulse_cnt, int pitch_lag)
+
+{
+
+    FCBParam param;
+
+    int16_t impulse_r[SUBFRAME_LEN];
+
+    int16_t temp_corr[SUBFRAME_LEN];
+
+    int16_t impulse_corr[SUBFRAME_LEN];
+
+
+
+    int ccr1[SUBFRAME_LEN];
+
+    int ccr2[SUBFRAME_LEN];
+
+    int amp, err, max, max_amp_index, min, scale, i, j, k, l;
+
+
+
+    int64_t temp;
+
+
+
+    /* Update impulse response */
+
+    memcpy(impulse_r, impulse_resp, sizeof(int16_t) * SUBFRAME_LEN);
+
+    param.dirac_train = 0;
+
+    if (pitch_lag < SUBFRAME_LEN - 2) {
+
+        param.dirac_train = 1;
+
+        gen_dirac_train(impulse_r, pitch_lag);
+
+    }
+
+
+
+    for (i = 0; i < SUBFRAME_LEN; i++)
+
+        temp_corr[i] = impulse_r[i] >> 1;
+
+
+
+    /* Compute impulse response autocorrelation */
+
+    temp = dot_product(temp_corr, temp_corr, SUBFRAME_LEN);
+
+
+
+    scale = normalize_bits_int32(temp);
+
+    impulse_corr[0] = av_clipl_int32((temp << scale) + (1 << 15)) >> 16;
+
+
+
+    for (i = 1; i < SUBFRAME_LEN; i++) {
+
+        temp = dot_product(temp_corr + i, temp_corr, SUBFRAME_LEN - i);
+
+        impulse_corr[i] = av_clipl_int32((temp << scale) + (1 << 15)) >> 16;
+
+    }
+
+
+
+    /* Compute crosscorrelation of impulse response with residual signal */
+
+    scale -= 4;
+
+    for (i = 0; i < SUBFRAME_LEN; i++){
+
+        temp = dot_product(buf + i, impulse_r, SUBFRAME_LEN - i);
+
+        if (scale < 0)
+
+            ccr1[i] = temp >> -scale;
+
+        else
+
+            ccr1[i] = av_clipl_int32(temp << scale);
+
+    }
+
+
+
+    /* Search loop */
+
+    for (i = 0; i < GRID_SIZE; i++) {
+
+        /* Maximize the crosscorrelation */
+
+        max = 0;
+
+        for (j = i; j < SUBFRAME_LEN; j += GRID_SIZE) {
+
+            temp = FFABS(ccr1[j]);
+
+            if (temp >= max) {
+
+                max = temp;
+
+                param.pulse_pos[0] = j;
+
+            }
+
+        }
+
+
+
+        /* Quantize the gain (max crosscorrelation/impulse_corr[0]) */
+
+        amp = max;
+
+        min = 1 << 30;
+
+        max_amp_index = GAIN_LEVELS - 2;
+
+        for (j = max_amp_index; j >= 2; j--) {
+
+            temp = av_clipl_int32((int64_t)fixed_cb_gain[j] *
+
+                                  impulse_corr[0] << 1);
+
+            temp = FFABS(temp - amp);
+
+            if (temp < min) {
+
+                min = temp;
+
+                max_amp_index = j;
+
+            }
+
+        }
+
+
+
+        max_amp_index--;
+
+        /* Select additional gain values */
+
+        for (j = 1; j < 5; j++) {
+
+            for (k = i; k < SUBFRAME_LEN; k += GRID_SIZE) {
+
+                temp_corr[k] = 0;
+
+                ccr2[k]      = ccr1[k];
+
+            }
+
+            param.amp_index = max_amp_index + j - 2;
+
+            amp = fixed_cb_gain[param.amp_index];
+
+
+
+            param.pulse_sign[0] = (ccr2[param.pulse_pos[0]] < 0) ? -amp : amp;
+
+            temp_corr[param.pulse_pos[0]] = 1;
+
+
+
+            for (k = 1; k < pulse_cnt; k++) {
+
+                max = -1 << 30;
+
+                for (l = i; l < SUBFRA
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+34 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+34 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+34 -> 44 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+34 -> 47 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+34 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+34 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+34 -> 56 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+34 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+34 -> 62 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 68 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+73 -> 78 [IS_AST_PARENT]
+70 -> 73 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void formant_postfilter(G723_1_Context *p, int16_t *lpc, int16_t *buf)
+
+{
+
+    int16_t filter_coef[2][LPC_ORDER], *buf_ptr;
+
+    int filter_signal[LPC_ORDER + FRAME_LEN], *signal_ptr;
+
+    int i, j, k;
+
+
+
+    memcpy(buf, p->fir_mem, LPC_ORDER * sizeof(*buf));
+
+    memcpy(filter_signal, p->iir_mem, LPC_ORDER * sizeof(*filter_signal));
+
+
+
+    for (i = LPC_ORDER, j = 0; j < SUBFRAMES; i += SUBFRAME_LEN, j++) {
+
+        for (k = 0; k < LPC_ORDER; k++) {
+
+            filter_coef[0][k] = (-lpc[k] * postfilter_tbl[0][k] +
+
+                                 (1 << 14)) >> 15;
+
+            filter_coef[1][k] = (-lpc[k] * postfilter_tbl[1][k] +
+
+                                 (1 << 14)) >> 15;
+
+        }
+
+        iir_filter(filter_coef[0], filter_coef[1], buf + i,
+
+                   filter_signal + i);
+
+        lpc += LPC_ORDER;
+
+    }
+
+
+
+    memcpy(p->fir_mem, buf + FRAME_LEN, LPC_ORDER * sizeof(*p->fir_mem));
+
+    memcpy(p->iir_mem, filter_signal + FRAME_LEN,
+
+           LPC_ORDER * sizeof(*p->iir_mem));
+
+
+
+    buf_ptr    = buf + LPC_ORDER;
+
+    signal_ptr = filter_signal + LPC_ORDER;
+
+    for (i = 0; i < SUBFRAMES; i++) {
+
+        int16_t temp_vector[SUBFRAME_LEN];
+
+        int temp;
+
+        int auto_corr[2];
+
+        int scale, energy;
+
+
+
+        /* Normalize */
+
+        memcpy(temp_vector, buf_ptr, SUBFRAME_LEN * sizeof(*temp_vector));
+
+        scale = scale_vector(temp_vector, SUBFRAME_LEN);
+
+
+
+        /* Compute auto correlation coefficients */
+
+        auto_corr[0] = do
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

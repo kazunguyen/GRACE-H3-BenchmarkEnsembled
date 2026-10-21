@@ -1,0 +1,232 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int jbig2_decode_text_region ( Jbig2Ctx * ctx , Jbig2Segment * segment , const Jbig2TextRegionParams * params , const Jbig2SymbolDict * const * dicts , const uint32_t n_dicts , Jbig2Image * image , const byte * data , const size_t size , Jbig2ArithCx * GR_stats , Jbig2ArithState * as , Jbig2WordStream * ws ) {
+ uint32_t NINSTANCES ;
+ uint32_t ID ;
+ int32_t STRIPT ;
+ int32_t FIRSTS ;
+ int32_t DT ;
+ int32_t DFS ;
+ int32_t IDS ;
+ int32_t CURS ;
+ int32_t CURT ;
+ int S , T ;
+ int x , y ;
+ bool first_symbol ;
+ uint32_t index , SBNUMSYMS ;
+ Jbig2Image * IB = NULL ;
+ Jbig2HuffmanState * hs = NULL ;
+ Jbig2HuffmanTable * SBSYMCODES = NULL ;
+ int code = 0 ;
+ int RI ;
+ SBNUMSYMS = 0 ;
+ for ( index = 0 ;
+ index < n_dicts ;
+ index ++ ) {
+ SBNUMSYMS += dicts [ index ] -> n_symbols ;
+ }
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "symbol list contains %d glyphs in %d dictionaries" , SBNUMSYMS , n_dicts ) ;
+ if ( params -> SBHUFF ) {
+ Jbig2HuffmanTable * runcodes = NULL ;
+ Jbig2HuffmanParams runcodeparams ;
+ Jbig2HuffmanLine runcodelengths [ 35 ] ;
+ Jbig2HuffmanLine * symcodelengths = NULL ;
+ Jbig2HuffmanParams symcodeparams ;
+ int err , len , range , r ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "huffman coded text region" ) ;
+ hs = jbig2_huffman_new ( ctx , ws ) ;
+ if ( hs == NULL ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_WARNING , segment -> number , "failed to allocate storage for text region" ) ;
+ return - 1 ;
+ }
+ for ( index = 0 ;
+ index < 35 ;
+ index ++ ) {
+ runcodelengths [ index ] . PREFLEN = jbig2_huffman_get_bits ( hs , 4 , & code ) ;
+ if ( code < 0 ) goto cleanup1 ;
+ runcodelengths [ index ] . RANGELEN = 0 ;
+ runcodelengths [ index ] . RANGELOW = index ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , " read runcode%d length %d" , index , runcodelengths [ index ] . PREFLEN ) ;
+ }
+ runcodeparams . HTOOB = 0 ;
+ runcodeparams . lines = runcodelengths ;
+ runcodeparams . n_lines = 35 ;
+ runcodes = jbig2_build_huffman_table ( ctx , & runcodeparams ) ;
+ if ( runcodes == NULL ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error constructing symbol id runcode table!" ) ;
+ code = - 1 ;
+ goto cleanup1 ;
+ }
+ symcodelengths = jbig2_new ( ctx , Jbig2HuffmanLine , SBNUMSYMS ) ;
+ if ( symcodelengths == NULL ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "memory allocation failure reading symbol ID huffman table!" ) ;
+ code = - 1 ;
+ goto cleanup1 ;
+ }
+ index = 0 ;
+ while ( index < SBNUMSYMS ) {
+ code = jbig2_huffman_get ( hs , runcodes , & err ) ;
+ if ( err != 0 || code < 0 || code >= 35 ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error reading symbol ID huffman table!" ) ;
+ code = err ? err : - 1 ;
+ goto cleanup1 ;
+ }
+ if ( code < 32 ) {
+ len = code ;
+ range = 1 ;
+ }
+ else {
+ if ( code == 32 ) {
+ if ( index < 1 ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error decoding symbol id table: run length with no antecedent!" ) ;
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint32_t NINSTANCES ;
+ uint32_t ID ;
+ int32_t STRIPT ;
+ int32_t FIRSTS ;
+ int32_t DT ;
+ int32_t DFS ;
+ int32_t IDS ;
+ int32_t CURS ;
+ int32_t CURT ;
+ int S , T ;
+ int x , y ;
+ bool first_symbol ;
+ uint32_t index , SBNUMSYMS ;
+ Jbig2Image * IB = NULL ;
+ Jbig2HuffmanState * hs = NULL ;
+ Jbig2HuffmanTable * SBSYMCODES = NULL ;
+ int code = 0 ;
+ int RI ;
+ SBNUMSYMS = 0 ;
+ for ( index = 0 ;
+ index < n_dicts ;
+ index ++ ) {
+ SBNUMSYMS += dicts [ index ] -> n_symbols ;
+ }
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "symbol list contains %d glyphs in %d dictionaries" , SBNUMSYMS , n_dicts ) ;
+ if ( params -> SBHUFF ) {
+ Jbig2HuffmanTable * runcodes = NULL ;
+ Jbig2HuffmanParams runcodeparams ;
+ Jbig2HuffmanLine runcodelengths [ 35 ] ;
+ Jbig2HuffmanLine * symcodelengths = NULL ;
+ Jbig2HuffmanParams symcodeparams ;
+ int err , len , range , r ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "huffman coded text region" ) ;
+ hs = jbig2_huffman_new ( ctx , ws...
+      
+25769803777 | BLOCK | { SBNUMSYMS += dicts [ index ] -> n_symbols ; }
+25769803778 | BLOCK | 
+        {
+ Jbig2HuffmanTable * runcodes = NULL ;
+ Jbig2HuffmanParams runcodeparams ;
+ Jbig2HuffmanLine runcodelengths [ 35 ] ;
+ Jbig2HuffmanLine * symcodelengths = NULL ;
+ Jbig2HuffmanParams symcodeparams ;
+ int err , len , range , r ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , "huffman coded text region" ) ;
+ hs = jbig2_huffman_new ( ctx , ws ) ;
+ if ( hs == NULL ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_WARNING , segment -> number , "failed to allocate storage for text region" ) ;
+ return - 1 ;
+ }
+ for ( index = 0 ;
+ index < 35 ;
+ index ++ ) {
+ runcodelengths [ index ] . PREFLEN = jbig2_huffman_get_bits ( hs , 4 , & code ) ;
+ if ( code < 0 ) goto cleanup1 ;
+ runcodelengths [ index ] . RANGELEN = 0 ;
+ runcodelengths [ index ] . RANGELOW = index ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , " read runcode%d length %d" , index , runcodelengths [ index ] . PREFLEN ) ;
+ }
+ runcodeparams . HTOOB = 0 ;
+ runcodeparams . lines = runcodelengths ;
+ runcodeparam...
+      
+25769803779 | BLOCK | 
+        {
+ jbig2_error ( ctx , JBIG2_SEVERITY_WARNING , segment -> number , "failed to allocate storage for text region" ) ;
+ return - 1 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ runcodelengths [ index ] . PREFLEN = jbig2_huffman_get_bits ( hs , 4 , & code ) ;
+ if ( code < 0 ) goto cleanup1 ;
+ runcodelengths [ index ] . RANGELEN = 0 ;
+ runcodelengths [ index ] . RANGELOW = index ;
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , " read runcode%d length %d" , index , runcodelengths [ index ] . PREFLEN ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error constructing symbol id runcode table!" ) ;
+ code = - 1 ;
+ goto cleanup1 ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "memory allocation failure reading symbol ID huffman table!" ) ;
+ code = - 1 ;
+ goto cleanup1 ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ code = jbig2_huffman_get ( hs , runcodes , & err ) ;
+ if ( err != 0 || code < 0 || code >= 35 ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error reading symbol ID huffman table!" ) ;
+ code = err ? err : - 1 ;
+ goto cleanup1 ;
+ }
+ if ( code < 32 ) {
+ len = code ;
+ range = 1 ;
+ }
+ else {
+ if ( code == 32 ) {
+ if ( index < 1 ) {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error decoding symbol id table: run length with no antecedent!" ) ;
+ code = - 1 ;
+ goto cleanup1 ;
+ }
+ len = symcodelengths [ index - 1 ] . PREFLEN ;
+ }
+ else {
+ len = 0 ;
+ }
+ err = 0 ;
+ if ( code == 32 ) range = jbig2_huffman_get_bits ( hs , 2 , & err ) + 3 ;
+ else if ( code == 33 ) range = jbig2_huffman_get_bits ( hs , 3 , & err ) + 3 ;
+ else if ( code == 34 ) range = jbig2_huffman_get_bits ( hs , 7 , & err ) + 11 ;
+ if ( err < 0 ) goto cleanup1 ;
+ }
+ jbig2_error ( ctx , JBIG2_SEVERITY_DEBUG , segment -> number , " read runcode%d at index %d (length %d range %d)" , cod...
+      
+25769803785 | BLOCK | 
+        {
+ jbig2_error ( ctx , JBIG2_SEVERITY_FATAL , segment -> number , "error reading symbol ID huffman table!" ) ;
+ code = err ? err : - 1 ;
+ goto cleanup1 ;
+ }
+      
+25769803786 | BLOCK |
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

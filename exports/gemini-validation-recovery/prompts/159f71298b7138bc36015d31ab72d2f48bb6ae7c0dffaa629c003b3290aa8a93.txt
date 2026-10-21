@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static GstFlowReturn gst_asf_demux_chain_headers ( GstASFDemux * demux ) {
+ AsfObject obj ;
+ guint8 * header_data , * data = NULL ;
+ const guint8 * cdata = NULL ;
+ guint64 header_size ;
+ GstFlowReturn flow = GST_FLOW_OK ;
+ cdata = ( guint8 * ) gst_adapter_map ( demux -> adapter , ASF_OBJECT_HEADER_SIZE ) ;
+ if ( cdata == NULL ) goto need_more_data ;
+ if ( ! asf_demux_peek_object ( demux , cdata , ASF_OBJECT_HEADER_SIZE , & obj , TRUE ) ) goto parse_failed ;
+ if ( obj . id != ASF_OBJ_HEADER ) goto wrong_type ;
+ GST_LOG_OBJECT ( demux , "header size = %u" , ( guint ) obj . size ) ;
+ if ( gst_adapter_available ( demux -> adapter ) < obj . size + 50 ) goto need_more_data ;
+ data = gst_adapter_take ( demux -> adapter , obj . size + 50 ) ;
+ header_data = data ;
+ header_size = obj . size ;
+ flow = gst_asf_demux_process_object ( demux , & header_data , & header_size ) ;
+ if ( flow != GST_FLOW_OK ) goto parse_failed ;
+ demux -> data_offset = obj . size + 50 ;
+ if ( ! gst_asf_demux_parse_data_object_start ( demux , data + obj . size ) ) goto wrong_type ;
+ if ( demux -> num_streams == 0 ) goto no_streams ;
+ g_free ( data ) ;
+ return GST_FLOW_OK ;
+ need_more_data : {
+ GST_LOG_OBJECT ( demux , "not enough data in adapter yet" ) ;
+ return GST_FLOW_OK ;
+ }
+ wrong_type : {
+ GST_ELEMENT_ERROR ( demux , STREAM , WRONG_TYPE , ( NULL ) , ( "This doesn't seem to be an ASF file" ) ) ;
+ g_free ( data ) ;
+ return GST_FLOW_ERROR ;
+ }
+ no_streams : parse_failed : {
+ GST_ELEMENT_ERROR ( demux , STREAM , DEMUX , ( NULL ) , ( "header parsing failed, or no streams found, flow = %s" , gst_flow_get_name ( flow ) ) ) ;
+ g_free ( data ) ;
+ return GST_FLOW_ERROR ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AsfObject obj ;
+ guint8 * header_data , * data = NULL ;
+ const guint8 * cdata = NULL ;
+ guint64 header_size ;
+ GstFlowReturn flow = GST_FLOW_OK ;
+ cdata = ( guint8 * ) gst_adapter_map ( demux -> adapter , ASF_OBJECT_HEADER_SIZE ) ;
+ if ( cdata == NULL ) goto need_more_data ;
+ if ( ! asf_demux_peek_object ( demux , cdata , ASF_OBJECT_HEADER_SIZE , & obj , TRUE ) ) goto parse_failed ;
+ if ( obj . id != ASF_OBJ_HEADER ) goto wrong_type ;
+ GST_LOG_OBJECT ( demux , "header size = %u" , ( guint ) obj . size ) ;
+ if ( gst_adapter_available ( demux -> adapter ) < obj . size + 50 ) goto need_more_data ;
+ data = gst_adapter_take ( demux -> adapter , obj . size + 50 ) ;
+ header_data = data ;
+ header_size = obj . size ;
+ flow = gst_asf_demux_process_object ( demux , & header_data , & header_size ) ;
+ if ( flow != GST_FLOW_OK ) goto parse_failed ;
+ demux -> data_offset = obj . size + 50 ;
+ if ( ! gst_asf_demux_parse_data_object_start ( demux , data + obj . size ) ) goto wrong_type ;
+ if ( dem...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ GST_LOG_OBJECT ( demux , "not enough data in adapter yet" ) ;
+ return GST_FLOW_OK ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ GST_ELEMENT_ERROR ( demux , STREAM , WRONG_TYPE , ( NULL ) , ( "This doesn't seem to be an ASF file" ) ) ;
+ g_free ( data ) ;
+ return GST_FLOW_ERROR ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ GST_ELEMENT_ERROR ( demux , STREAM , DEMUX , ( NULL ) , ( "header parsing failed, or no streams found, flow = %s" , gst_flow_get_name ( flow ) ) ) ;
+ g_free ( data ) ;
+ return GST_FLOW_ERROR ;
+ }
+      
+25769803787 | BLOCK | <empty>
+30064771072 | CALL | data = NULL
+30064771073 | CALL | cdata = NULL
+30064771074 | CALL | flow = GST_FLOW_OK
+30064771075 | CALL | 
+        cdata = ( guint8 * ) gst_adapter_map ( demux -> adapter , ASF_OBJECT_HEADER_SIZE )
+      
+30064771076 | CALL | ( guint8 * ) gst_adapter_map ( demux -> adapter , ASF_OBJECT_HEADER_SIZE )
+30064771077 | CALL | gst_adapter_map ( demux -> adapter , ASF_OBJECT_HEADER_SIZE )
+30064771078 | CALL | demux -> adapter
+30064771079 | CALL | cdata == NULL
+30064771080 | CALL | 
+        ! asf_demux_peek_object ( demux , cdata , ASF_OBJECT_HEADER_SIZE , & obj , TRUE )
+      
+30064771081 | CALL | asf_demux_peek_object ( demux , cdata , ASF_OBJECT_HEADER_SIZE , & obj , TRUE )
+30064771082 | CALL | & obj
+30064771083 | CALL | obj . id != ASF_OBJ_HEADER
+30064771084 | CALL | obj . id
+30064771085 | CALL | GST_LOG_OBJECT ( demux , "header size = %u" , ( guint ) obj . size )
+30064771086 | CALL | ( guint ) obj . size
+30064771087 | CALL | obj . size
+30064771088 | CALL | gst_adapter_available ( demux -> adapter ) < obj . size + 50
+30064771089 | CALL | gst_adapter_available ( demux -> adapter )
+30064771090 | CALL | demux -> adapter
+30064771091 | CALL | obj . size + 50
+30064771092 | CALL | obj . size
+30064771093 | CALL | data = gst_adapter_take ( demux -> adapter , obj . size + 50 )
+30064771094 | CALL | gst_adapter_take ( demux -> adapter , obj . size + 50 )
+30064771095 | CALL | demux -> adapter
+30064771096 | CALL | obj . size + 50
+30064771097 | CALL | obj . size
+30064771098 | CALL | header_data = data
+30064771099 | CALL | header_size = obj . size
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 25769803784 [AST]
+25769803776 -> 25769803785 [AST]
+25769803776 -> 25769803786 [AST]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771090 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 25769803787 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

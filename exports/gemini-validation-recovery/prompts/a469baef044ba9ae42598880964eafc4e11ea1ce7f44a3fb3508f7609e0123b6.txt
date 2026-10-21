@@ -1,0 +1,305 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void mxf_write_cdci_common(AVFormatContext *s, AVStream *st, const UID key, unsigned size)
+
+{
+
+    MXFStreamContext *sc = st->priv_data;
+
+    AVIOContext *pb = s->pb;
+
+    int stored_height = (st->codec->height+15)/16*16;
+
+    int display_height;
+
+    int f1, f2;
+
+    unsigned desc_size = size+8+8+8+8+8+8+5+16+sc->interlaced*4+12+20;
+
+    if (sc->interlaced && sc->field_dominance)
+
+        desc_size += 5;
+
+
+
+    mxf_write_generic_desc(s, st, key, desc_size);
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3203);
+
+    avio_wb32(pb, st->codec->width);
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3202);
+
+    avio_wb32(pb, stored_height>>sc->interlaced);
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3209);
+
+    avio_wb32(pb, st->codec->width);
+
+
+
+    if (st->codec->height == 608) // PAL + VBI
+
+        display_height = 576;
+
+    else if (st->codec->height == 512)  // NTSC + VBI
+
+        display_height = 486;
+
+    else
+
+        display_height = st->codec->height;
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3208);
+
+    avio_wb32(pb, display_height>>sc->interlaced);
+
+
+
+    // component depth
+
+    mxf_write_local_tag(pb, 4, 0x3301);
+
+    avio_wb32(pb, sc->component_depth);
+
+
+
+    // horizontal subsampling
+
+    mxf_write_local_tag(pb, 4, 0x3302);
+
+    avio_wb32(pb, 2);
+
+
+
+    // frame layout
+
+    mxf_write_local_tag(pb, 1, 0x320C);
+
+    avio_w8(pb, sc->interlaced);
+
+
+
+    // video line map
+
+    switch (st->codec->height) {
+
+    case  576: f1 = 23; f2 = st->codec->codec_id == AV_CODEC_ID_DVVIDEO ? 335 : 336; break;
+
+    case  608: f1 =  7; f2 = 320; break;
+
+    case  480: f1 = 20; f2 = st->codec->codec_id == AV_CODEC_ID_DVVIDEO ? 285 : 283; break;
+
+    case  512: f1 =  7; f2 = 270; break;
+
+    case  720: f1 = 26; f2 =   0; break; // progressive
+
+    case 1080: f1 = 21; f2 = 584; break;
+
+    default:   f1 =  0; f2 =   0; break;
+
+    }
+
+
+
+    if (!sc->interlaced) {
+
+        f2  = 0;
+
+        f1 *= 2;
+
+    }
+
+
+
+    mxf_write_local_tag(pb, 12+sc->interlaced*4, 0x320D);
+
+    avio_wb32(pb, sc->interlaced ? 2 : 1);
+
+    avio_wb32(pb, 4);
+
+    avio_wb32(pb, f1);
+
+    if (sc->interlaced)
+
+        avio_wb32(pb, f2);
+
+
+
+    mxf_write_local_tag(pb, 8, 0x320E);
+
+    avio_wb32(pb, sc->aspect_ratio.num);
+
+    avio_wb32(pb, sc->aspect_ratio.den);
+
+
+
+    mxf_write_local_tag(pb, 16, 0x3201);
+
+    avio_write(pb, *sc->codec_ul, 16);
+
+
+
+    if (sc->interlaced && sc->field_dominance) {
+
+        mxf_write_local_tag(pb, 1, 0x3212);
+
+        avio_w8(pb, sc->field_dominance);
+
+    }
+
+
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 35 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 36 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+29 -> 37 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 54 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+75 -> 81 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void mxf_write_generic_sound_common(AVFormatContext *s, AVStream *st, const UID key, unsigned size)
+
+{
+
+    AVIOContext *pb = s->pb;
+
+
+
+    mxf_write_generic_desc(s, st, key, size+5+12+8+8);
+
+
+
+    // audio locked
+
+    mxf_write_local_tag(pb, 1, 0x3D02);
+
+    avio_w8(pb, 1);
+
+
+
+    // write audio sampling rate
+
+    mxf_write_local_tag(pb, 8, 0x3D03);
+
+    avio_wb32(pb, st->codec->sample_rate);
+
+    avio_wb32(pb, 1);
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3D07);
+
+    avio_wb32(pb, st->codec->channels);
+
+
+
+    mxf_write_local_tag(pb, 4, 0x3D01);
+
+    avio_wb32(pb, av_get_bits_per_sample(st->codec->codec_id));
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

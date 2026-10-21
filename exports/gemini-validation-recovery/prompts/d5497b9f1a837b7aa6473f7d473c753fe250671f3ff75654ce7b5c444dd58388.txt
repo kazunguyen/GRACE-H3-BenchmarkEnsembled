@@ -1,0 +1,261 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int find_partition ( BlockBackend * blk , int partition , off_t * offset , off_t * size ) {
+ struct partition_record mbr [ 4 ] ;
+ uint8_t data [ MBR_SIZE ] ;
+ int i ;
+ int ext_partnum = 4 ;
+ int ret ;
+ ret = blk_pread ( blk , 0 , data , sizeof ( data ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ if ( data [ 510 ] != 0x55 || data [ 511 ] != 0xaa ) {
+ return - EINVAL ;
+ }
+ for ( i = 0 ;
+ i < 4 ;
+ i ++ ) {
+ read_partition ( & data [ 446 + 16 * i ] , & mbr [ i ] ) ;
+ if ( ! mbr [ i ] . system || ! mbr [ i ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( mbr [ i ] . system == 0xF || mbr [ i ] . system == 0x5 ) {
+ struct partition_record ext [ 4 ] ;
+ uint8_t data1 [ MBR_SIZE ] ;
+ int j ;
+ ret = blk_pread ( blk , mbr [ i ] . start_sector_abs * MBR_SIZE , data1 , sizeof ( data1 ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ for ( j = 0 ;
+ j < 4 ;
+ j ++ ) {
+ read_partition ( & data1 [ 446 + 16 * j ] , & ext [ j ] ) ;
+ if ( ! ext [ j ] . system || ! ext [ j ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( ( ext_partnum + j + 1 ) == partition ) {
+ * offset = ( uint64_t ) ext [ j ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) ext [ j ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+ }
+ ext_partnum += 4 ;
+ }
+ else if ( ( i + 1 ) == partition ) {
+ * offset = ( uint64_t ) mbr [ i ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) mbr [ i ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+ }
+ return - ENOENT ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct partition_record mbr [ 4 ] ;
+ uint8_t data [ MBR_SIZE ] ;
+ int i ;
+ int ext_partnum = 4 ;
+ int ret ;
+ ret = blk_pread ( blk , 0 , data , sizeof ( data ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ if ( data [ 510 ] != 0x55 || data [ 511 ] != 0xaa ) {
+ return - EINVAL ;
+ }
+ for ( i = 0 ;
+ i < 4 ;
+ i ++ ) {
+ read_partition ( & data [ 446 + 16 * i ] , & mbr [ i ] ) ;
+ if ( ! mbr [ i ] . system || ! mbr [ i ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( mbr [ i ] . system == 0xF || mbr [ i ] . system == 0x5 ) {
+ struct partition_record ext [ 4 ] ;
+ uint8_t data1 [ MBR_SIZE ] ;
+ int j ;
+ ret = blk_pread ( blk , mbr [ i ] . start_sector_abs * MBR_SIZE , data1 , sizeof ( data1 ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ for ( j = 0 ;
+ j < 4 ;
+ j ++ ) {
+ read_partition ( & data1 [ 446 + 16 * j ] , & ext [ j ] ) ;
+ if ( ! ext [ j ] . sys...
+      
+25769803777 | BLOCK | 
+        {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+      
+25769803778 | BLOCK | { return - EINVAL ; }
+25769803779 | BLOCK | 
+        {
+ read_partition ( & data [ 446 + 16 * i ] , & mbr [ i ] ) ;
+ if ( ! mbr [ i ] . system || ! mbr [ i ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( mbr [ i ] . system == 0xF || mbr [ i ] . system == 0x5 ) {
+ struct partition_record ext [ 4 ] ;
+ uint8_t data1 [ MBR_SIZE ] ;
+ int j ;
+ ret = blk_pread ( blk , mbr [ i ] . start_sector_abs * MBR_SIZE , data1 , sizeof ( data1 ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ for ( j = 0 ;
+ j < 4 ;
+ j ++ ) {
+ read_partition ( & data1 [ 446 + 16 * j ] , & ext [ j ] ) ;
+ if ( ! ext [ j ] . system || ! ext [ j ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( ( ext_partnum + j + 1 ) == partition ) {
+ * offset = ( uint64_t ) ext [ j ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) ext [ j ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+ }
+ ext_partnum += 4 ;
+ }
+ else if ( ( i + 1 ) == partition ) {
+ * offset = ( uint64_t ) mbr [ i ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) mbr [ ...
+      
+25769803780 | BLOCK | { continue ; }
+25769803781 | BLOCK | 
+        {
+ struct partition_record ext [ 4 ] ;
+ uint8_t data1 [ MBR_SIZE ] ;
+ int j ;
+ ret = blk_pread ( blk , mbr [ i ] . start_sector_abs * MBR_SIZE , data1 , sizeof ( data1 ) ) ;
+ if ( ret < 0 ) {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+ for ( j = 0 ;
+ j < 4 ;
+ j ++ ) {
+ read_partition ( & data1 [ 446 + 16 * j ] , & ext [ j ] ) ;
+ if ( ! ext [ j ] . system || ! ext [ j ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( ( ext_partnum + j + 1 ) == partition ) {
+ * offset = ( uint64_t ) ext [ j ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) ext [ j ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+ }
+ ext_partnum += 4 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ error_report ( "error while reading: %s" , strerror ( - ret ) ) ;
+ exit ( EXIT_FAILURE ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ read_partition ( & data1 [ 446 + 16 * j ] , & ext [ j ] ) ;
+ if ( ! ext [ j ] . system || ! ext [ j ] . nb_sectors_abs ) {
+ continue ;
+ }
+ if ( ( ext_partnum + j + 1 ) == partition ) {
+ * offset = ( uint64_t ) ext [ j ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) ext [ j ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+ }
+      
+25769803784 | BLOCK | { continue ; }
+25769803785 | BLOCK | 
+        {
+ * offset = ( uint64_t ) ext [ j ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) ext [ j ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ * offset = ( uint64_t ) mbr [ i ] . start_sector_abs << 9 ;
+ * size = ( uint64_t ) mbr [ i ] . nb_sectors_abs << 9 ;
+ return 0 ;
+ }
+      
+30064771072 | CALL | mbr [ 4 ]
+30064771073 | CALL | mbr [ 4 ]
+30064771074 | CALL | data [ MBR_SIZE ]
+30064771075 | CALL | data [ MBR_SIZE ]
+30064771076 | CALL | ext_partnum = 4
+30064771077 | CALL | ret = blk_pread ( blk , 0 , data , sizeof ( data ) )
+30064771078 | CALL | blk_pread ( blk , 0 , data , sizeof ( data ) )
+30064771079 | CALL | sizeof ( data )
+30064771080 | CALL | ret < 0
+30064771081 | CALL | error_report ( "error while reading: %s" , strerror ( - ret ) )
+30064771082 | CALL | strerror ( - ret )
+30064771083 | CALL | - ret
+30064771084 | CALL | exit ( EXIT_FAILURE )
+30064771085 | CALL | data [ 510 ] != 0x55 || data [ 511 ] != 0xaa
+30064771086 | CALL | data [ 510 ] != 0x55
+30064771087 | CALL | data [ 510 ]
+30064771088 | CALL | data [ 511 ] != 0xaa
+30064771089 | CALL | data [ 511 ]
+30064771090 | CALL | - EINVAL
+30064771091 | CALL | i = 0
+30064771092 | CALL | i < 4
+30064771093 | CALL | i ++
+30064771094 | CALL | read_partition ( & data [ 446 + 16 * i ] , & mbr [ i ] )
+30064771095 | CALL | & data [ 446 + 16 * i ]
+30064771096 | CALL | data [ 446 + 16 * i ]
+30064771097 | CALL | 446 + 16 * i
+30064771098 | CALL | 16 * i
+30064771099 | CALL | & mbr [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+25769803779 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 3006477107
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

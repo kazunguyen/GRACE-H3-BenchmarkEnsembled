@@ -1,0 +1,292 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void imc_get_skip_coeff ( IMCContext * q , IMCChannel * chctx ) {
+ int i , j ;
+ memset ( chctx -> skipFlagBits , 0 , sizeof ( chctx -> skipFlagBits ) ) ;
+ memset ( chctx -> skipFlagCount , 0 , sizeof ( chctx -> skipFlagCount ) ) ;
+ for ( i = 0 ;
+ i < BANDS ;
+ i ++ ) {
+ if ( ! chctx -> bandFlagsBuf [ i ] || ! chctx -> bandWidthT [ i ] ) continue ;
+ if ( ! chctx -> skipFlagRaw [ i ] ) {
+ chctx -> skipFlagBits [ i ] = band_tab [ i + 1 ] - band_tab [ i ] ;
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ;
+ if ( chctx -> skipFlags [ j ] ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+ else {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] - 1 ;
+ j += 2 ) {
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+ else {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlags [ j ] = 0 ;
+ }
+ }
+ }
+ }
+ if ( j < band_tab [ i + 1 ] ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ if ( ( chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ) ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j ;
+ memset ( chctx -> skipFlagBits , 0 , sizeof ( chctx -> skipFlagBits ) ) ;
+ memset ( chctx -> skipFlagCount , 0 , sizeof ( chctx -> skipFlagCount ) ) ;
+ for ( i = 0 ;
+ i < BANDS ;
+ i ++ ) {
+ if ( ! chctx -> bandFlagsBuf [ i ] || ! chctx -> bandWidthT [ i ] ) continue ;
+ if ( ! chctx -> skipFlagRaw [ i ] ) {
+ chctx -> skipFlagBits [ i ] = band_tab [ i + 1 ] - band_tab [ i ] ;
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ;
+ if ( chctx -> skipFlags [ j ] ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+ else {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] - 1 ;
+ j += 2 ) {
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+ else {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> s...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! chctx -> bandFlagsBuf [ i ] || ! chctx -> bandWidthT [ i ] ) continue ;
+ if ( ! chctx -> skipFlagRaw [ i ] ) {
+ chctx -> skipFlagBits [ i ] = band_tab [ i + 1 ] - band_tab [ i ] ;
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ;
+ if ( chctx -> skipFlags [ j ] ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+ else {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] - 1 ;
+ j += 2 ) {
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+ else {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ chctx -> skipFlagBits [ i ] = band_tab [ i + 1 ] - band_tab [ i ] ;
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] ;
+ j ++ ) {
+ chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ;
+ if ( chctx -> skipFlags [ j ] ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ;
+ if ( chctx -> skipFlags [ j ] ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ for ( j = band_tab [ i ] ;
+ j < band_tab [ i + 1 ] - 1 ;
+ j += 2 ) {
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+ else {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlags [ j ] = 0 ;
+ }
+ }
+ }
+ }
+ if ( j < band_tab [ i + 1 ] ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ if ( ( chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ) ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+ }
+      
+25769803783 | BLOCK | 
+        {
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+ else {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlags [ j ] = 0 ;
+ }
+ }
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ chctx -> skipFlagBits [ i ] ++ ;
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] += 2 ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ if ( get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlags [ j ] = 0 ;
+ }
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ chctx -> skipFlagBits [ i ] += 2 ;
+ chctx -> skipFlags [ j ] = 0 ;
+ chctx -> skipFlags [ j + 1 ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ chctx -> skipFlagBits [ i ] += 3 ;
+ chctx -> skipFlags [ j + 1 ] = 0 ;
+ if ( ! get_bits1 ( & q -> gb ) ) {
+ chctx -> skipFlags [ j ] = 1 ;
+ chctx -> skipFlagCount [ i ] ++ ;
+ }
+ else {
+ chctx -> skipFlags [ j ] = 0 ;
+ }
+ }
+      
+25769803788 | BLOCK | { chctx -> skipFlags [ j ] = 1 ; chctx -> skipFlagCount [ i ] ++ ; }
+25769803789 | BLOCK | { chctx -> skipFlags [ j ] = 0 ; }
+25769803790 | BLOCK | 
+        {
+ chctx -> skipFlagBits [ i ] ++ ;
+ if ( ( chctx -> skipFlags [ j ] = get_bits1 ( & q -> gb ) ) ) chctx -> skipFlagCount [ i ] ++ ;
+ }
+      
+25769803791 | BLOCK | <empty>
+30064771072 | CALL | memset ( chctx -> skipFlagBits , 0 , sizeof ( chctx -> skipFlagBits ) )
+30064771073 | CALL | chctx -> skipFlagBits
+30064771074 | CALL | sizeof ( chctx -> skipFlagBits )
+30064771075 | CALL | chctx -> skipFlagBits
+30064771076 | CALL | memset ( chctx -> skipFlagCount , 0 , sizeof ( chctx -> skipFlagCou
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

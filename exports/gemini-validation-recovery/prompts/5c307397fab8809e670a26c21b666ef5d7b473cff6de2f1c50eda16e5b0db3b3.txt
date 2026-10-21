@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int adb_send ( socket_handle_t sock , const char * adb_service ) {
+ char buffer [ 4 ] ;
+ gssize used_buffer_length ;
+ gssize result ;
+ size_t adb_service_length ;
+ adb_service_length = strlen ( adb_service ) ;
+ result = send ( sock , adb_service , ( int ) adb_service_length , 0 ) ;
+ if ( result != ( gssize ) adb_service_length ) {
+ errmsg_print ( "ERROR: Error while sending <%s> to ADB" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_SENDING_ADB_PACKET_1 ;
+ }
+ used_buffer_length = 0 ;
+ while ( used_buffer_length < 4 ) {
+ result = recv ( sock , buffer + used_buffer_length , ( int ) ( sizeof ( buffer ) - used_buffer_length ) , 0 ) ;
+ if ( result <= 0 ) {
+ errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_STATUS ;
+ }
+ used_buffer_length += result ;
+ }
+ if ( memcmp ( buffer , "OKAY" , 4 ) ) {
+ errmsg_print ( "ERROR: Error while receiving by ADB for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_DATA ;
+ }
+ return EXIT_CODE_SUCCESS ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char buffer [ 4 ] ;
+ gssize used_buffer_length ;
+ gssize result ;
+ size_t adb_service_length ;
+ adb_service_length = strlen ( adb_service ) ;
+ result = send ( sock , adb_service , ( int ) adb_service_length , 0 ) ;
+ if ( result != ( gssize ) adb_service_length ) {
+ errmsg_print ( "ERROR: Error while sending <%s> to ADB" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_SENDING_ADB_PACKET_1 ;
+ }
+ used_buffer_length = 0 ;
+ while ( used_buffer_length < 4 ) {
+ result = recv ( sock , buffer + used_buffer_length , ( int ) ( sizeof ( buffer ) - used_buffer_length ) , 0 ) ;
+ if ( result <= 0 ) {
+ errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_STATUS ;
+ }
+ used_buffer_length += result ;
+ }
+ if ( memcmp ( buffer , "OKAY" , 4 ) ) {
+ errmsg_print ( "ERROR: Error while receiving by ADB for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_DATA ;
+ }
+ return EXIT_CO...
+      
+25769803777 | BLOCK | 
+        {
+ errmsg_print ( "ERROR: Error while sending <%s> to ADB" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_SENDING_ADB_PACKET_1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ result = recv ( sock , buffer + used_buffer_length , ( int ) ( sizeof ( buffer ) - used_buffer_length ) , 0 ) ;
+ if ( result <= 0 ) {
+ errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_STATUS ;
+ }
+ used_buffer_length += result ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_STATUS ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ errmsg_print ( "ERROR: Error while receiving by ADB for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_DATA ;
+ }
+      
+30064771072 | CALL | buffer [ 4 ]
+30064771073 | CALL | buffer [ 4 ]
+30064771074 | CALL | adb_service_length = strlen ( adb_service )
+30064771075 | CALL | strlen ( adb_service )
+30064771076 | CALL | result = send ( sock , adb_service , ( int ) adb_service_length , 0 )
+30064771077 | CALL | send ( sock , adb_service , ( int ) adb_service_length , 0 )
+30064771078 | CALL | ( int ) adb_service_length
+30064771079 | CALL | result != ( gssize ) adb_service_length
+30064771080 | CALL | ( gssize ) adb_service_length
+30064771081 | CALL | 
+        errmsg_print ( "ERROR: Error while sending <%s> to ADB" , adb_service )
+      
+30064771082 | CALL | used_buffer_length = 0
+30064771083 | CALL | used_buffer_length < 4
+30064771084 | CALL | 
+        result = recv ( sock , buffer + used_buffer_length , ( int ) ( sizeof ( buffer ) - used_buffer_length ) , 0 )
+      
+30064771085 | CALL | 
+        recv ( sock , buffer + used_buffer_length , ( int ) ( sizeof ( buffer ) - used_buffer_length ) , 0 )
+      
+30064771086 | CALL | buffer + used_buffer_length
+30064771087 | CALL | ( int ) ( sizeof ( buffer ) - used_buffer_length )
+30064771088 | CALL | sizeof ( buffer ) - used_buffer_length
+30064771089 | CALL | sizeof ( buffer )
+30064771090 | CALL | result <= 0
+30064771091 | CALL | 
+        errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service )
+      
+30064771092 | CALL | used_buffer_length += result
+30064771093 | CALL | memcmp ( buffer , "OKAY" , 4 )
+30064771094 | CALL | 
+        errmsg_print ( "ERROR: Error while receiving by ADB for <%s>" , adb_service )
+      
+47244640256 | CONTROL_STRUCTURE | 
+        if ( result != ( gssize ) adb_service_length ) {
+ errmsg_print ( "ERROR: Error while sending <%s> to ADB" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_SENDING_ADB_PACKET_1 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | while (used_buffer_length < 4)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( result <= 0 ) {
+ errmsg_print ( "ERROR: Broken socket connection while fetching reply status for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_STATUS ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( memcmp ( buffer , "OKAY" , 4 ) ) {
+ errmsg_print ( "ERROR: Error while receiving by ADB for <%s>" , adb_service ) ;
+ return EXIT_CODE_ERROR_WHILE_RECEIVING_ADB_PACKET_DATA ;
+ }
+      
+68719476736 | IDENTIFIER | buffer
+68719476737 | IDENTIFIER | char[4]
+68719476738 | IDENTIFIER | adb_service_length
+68719476739 | IDENTIFIER | adb_service
+68719476740 | IDENTIFIER | result
+68719476741 | IDENTIFIER | sock
+68719476742 | IDENTIFIER | adb_service
+68719476743 | IDENTIFIER | adb_service_length
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 47244640259 [AST]
+25769803777 -> 30064771081 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771092 [AST]
+25769803779 -> 30064771091 [AST]
+25769803780 -> 30064771094 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

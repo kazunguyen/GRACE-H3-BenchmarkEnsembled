@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ShortcutsBackendTest , AddAndUpdateShortcut ) {
+ InitBackend ( ) ;
+ EXPECT_FALSE ( changed_notified ( ) ) ;
+ ShortcutsDatabase : : Shortcut shortcut ( "BD85DBA2-8C29-49F9-84AE-48E1E90880DF" , base : : ASCIIToUTF16 ( "goog" ) , MatchCoreForTesting ( "http://www.google.com" ) , base : : Time : : Now ( ) , 100 ) ;
+ EXPECT_TRUE ( AddShortcut ( shortcut ) ) ;
+ EXPECT_TRUE ( changed_notified ( ) ) ;
+ ShortcutsBackend : : ShortcutMap : : const_iterator shortcut_iter ( shortcuts_map ( ) . find ( shortcut . text ) ) ;
+ ASSERT_TRUE ( shortcut_iter != shortcuts_map ( ) . end ( ) ) ;
+ EXPECT_EQ ( shortcut . id , shortcut_iter -> second . id ) ;
+ EXPECT_EQ ( shortcut . match_core . contents , shortcut_iter -> second . match_core . contents ) ;
+ set_changed_notified ( false ) ;
+ shortcut . match_core . contents = base : : ASCIIToUTF16 ( "Google Web Search" ) ;
+ EXPECT_TRUE ( UpdateShortcut ( shortcut ) ) ;
+ EXPECT_TRUE ( changed_notified ( ) ) ;
+ shortcut_iter = shortcuts_map ( ) . find ( shortcut . text ) ;
+ ASSERT_TRUE ( shortcut_iter != shortcuts_map ( ) . end ( ) ) ;
+ EXPECT_EQ ( shortcut . id , shortcut_iter -> second . id ) ;
+ EXPECT_EQ ( shortcut . match_core . contents , shortcut_iter -> second . match_core . contents ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ InitBackend ( ) ;
+ EXPECT_FALSE ( changed_notified ( ) ) ;
+ ShortcutsDatabase : : Shortcut shortcut ( "BD85DBA2-8C29-49F9-84AE-48E1E90880DF" , base : : ASCIIToUTF16 ( "goog" ) , MatchCoreForTesting ( "http://www.google.com" ) , base : : Time : : Now ( ) , 100 ) ;
+ EXPECT_TRUE ( AddShortcut ( shortcut ) ) ;
+ EXPECT_TRUE ( changed_notified ( ) ) ;
+ ShortcutsBackend : : ShortcutMap : : const_iterator shortcut_iter ( shortcuts_map ( ) . find ( shortcut . text ) ) ;
+ ASSERT_TRUE ( shortcut_iter != shortcuts_map ( ) . end ( ) ) ;
+ EXPECT_EQ ( shortcut . id , shortcut_iter -> second . id ) ;
+ EXPECT_EQ ( shortcut . match_core . contents , shortcut_iter -> second . match_core . contents ) ;
+ set_changed_notified ( false ) ;
+ shortcut . match_core . contents = base : : ASCIIToUTF16 ( "Google Web Search" ) ;
+ EXPECT_TRUE ( UpdateShortcut ( shortcut ) ) ;
+ EXPECT_TRUE ( changed_notified ( ) ) ;
+ shortcut_iter = shortcuts_map ( ) . find ( shortcut . text ) ;
+ ASSERT_TRUE ( shortcut_iter != s...
+      
+30064771072 | CALL | InitBackend ( )
+30064771073 | CALL | EXPECT_FALSE ( changed_notified ( ) )
+30064771074 | CALL | changed_notified ( )
+30064771075 | CALL | EXPECT_TRUE ( AddShortcut ( shortcut ) )
+30064771076 | CALL | AddShortcut ( shortcut )
+30064771077 | CALL | EXPECT_TRUE ( changed_notified ( ) )
+30064771078 | CALL | changed_notified ( )
+30064771079 | CALL | ASSERT_TRUE ( shortcut_iter != shortcuts_map ( ) . end ( ) )
+30064771080 | CALL | shortcut_iter != shortcuts_map ( ) . end ( )
+30064771081 | CALL | shortcuts_map ( ) . end ( )
+30064771082 | CALL | shortcuts_map ( ) . end
+30064771083 | CALL | shortcuts_map ( )
+30064771084 | CALL | EXPECT_EQ ( shortcut . id , shortcut_iter -> second . id )
+30064771085 | CALL | shortcut . id
+30064771086 | CALL | shortcut_iter -> second . id
+30064771087 | CALL | shortcut_iter -> second
+30064771088 | CALL | 
+        EXPECT_EQ ( shortcut . match_core . contents , shortcut_iter -> second . match_core . contents )
+      
+30064771089 | CALL | shortcut . match_core . contents
+30064771090 | CALL | shortcut . match_core
+30064771091 | CALL | shortcut_iter -> second . match_core . contents
+30064771092 | CALL | shortcut_iter -> second . match_core
+30064771093 | CALL | shortcut_iter -> second
+30064771094 | CALL | set_changed_notified ( false )
+30064771095 | CALL | shortcut . match_core . contents = base
+30064771096 | CALL | shortcut . match_core . contents
+30064771097 | CALL | shortcut . match_core
+30064771098 | CALL | EXPECT_TRUE ( UpdateShortcut ( shortcut ) )
+30064771099 | CALL | UpdateShortcut ( shortcut )
+30064771100 | CALL | EXPECT_TRUE ( changed_notified ( ) )
+30064771101 | CALL | changed_notified ( )
+30064771102 | CALL | shortcut_iter = shortcuts_map ( ) . find ( shortcut . text )
+30064771103 | CALL | shortcuts_map ( ) . find ( shortcut . text )
+30064771104 | CALL | shortcuts_map ( ) . find
+30064771105 | CALL | shortcuts_map ( )
+30064771106 | CALL | shortcut . text
+30064771107 | CALL | ASSERT_TRUE ( shortcut_iter != shortcuts_map ( ) . end ( ) )
+30064771108 | CALL | shortcut_iter != shortcuts_map ( ) . end ( )
+30064771109 | CALL | shortcuts_map ( ) . end ( )
+30064771110 | CALL | shortcuts_map ( ) . end
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771107 [AST]
+30064771072 -> 30064771074 [CFG]
+30064771072 -> 30064771074 [DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771072 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771078 [CFG]
+30064771075 -> 30064771078 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771075 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [RECEIVER]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771093 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771091 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771091 [AST]
+30064771088 -> 30064771091 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771097 [REACHING_DEF]
+30064771089 -> 30064771091 [RE
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

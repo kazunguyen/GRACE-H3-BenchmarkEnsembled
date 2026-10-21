@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void complete_from_nicklist ( GList * * outlist , CHANNEL_REC * channel , const char * nick , const char * suffix , const int match_case ) {
+ MODULE_CHANNEL_REC * mchannel ;
+ GSList * tmp ;
+ GList * ownlist ;
+ char * str ;
+ int len ;
+ ownlist = NULL ;
+ len = strlen ( nick ) ;
+ mchannel = MODULE_DATA ( channel ) ;
+ for ( tmp = mchannel -> lastmsgs ;
+ tmp != NULL ;
+ tmp = tmp -> next ) {
+ LAST_MSG_REC * rec = tmp -> data ;
+ if ( ( match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len ) ) == 0 && ( match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick ) ) == NULL ) {
+ str = g_strconcat ( rec -> nick , suffix , NULL ) ;
+ if ( completion_lowercase ) ascii_strdown ( str ) ;
+ if ( rec -> own ) ownlist = g_list_append ( ownlist , str ) ;
+ else * outlist = g_list_append ( * outlist , str ) ;
+ }
+ }
+ * outlist = g_list_concat ( ownlist , * outlist ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MODULE_CHANNEL_REC * mchannel ;
+ GSList * tmp ;
+ GList * ownlist ;
+ char * str ;
+ int len ;
+ ownlist = NULL ;
+ len = strlen ( nick ) ;
+ mchannel = MODULE_DATA ( channel ) ;
+ for ( tmp = mchannel -> lastmsgs ;
+ tmp != NULL ;
+ tmp = tmp -> next ) {
+ LAST_MSG_REC * rec = tmp -> data ;
+ if ( ( match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len ) ) == 0 && ( match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick ) ) == NULL ) {
+ str = g_strconcat ( rec -> nick , suffix , NULL ) ;
+ if ( completion_lowercase ) ascii_strdown ( str ) ;
+ if ( rec -> own ) ownlist = g_list_append ( ownlist , str ) ;
+ else * outlist = g_list_append ( * outlist , str ) ;
+ }
+ }
+ * outlist = g_list_concat ( ownlist , * outlist ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ LAST_MSG_REC * rec = tmp -> data ;
+ if ( ( match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len ) ) == 0 && ( match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick ) ) == NULL ) {
+ str = g_strconcat ( rec -> nick , suffix , NULL ) ;
+ if ( completion_lowercase ) ascii_strdown ( str ) ;
+ if ( rec -> own ) ownlist = g_list_append ( ownlist , str ) ;
+ else * outlist = g_list_append ( * outlist , str ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ str = g_strconcat ( rec -> nick , suffix , NULL ) ;
+ if ( completion_lowercase ) ascii_strdown ( str ) ;
+ if ( rec -> own ) ownlist = g_list_append ( ownlist , str ) ;
+ else * outlist = g_list_append ( * outlist , str ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | ownlist = NULL
+30064771073 | CALL | len = strlen ( nick )
+30064771074 | CALL | strlen ( nick )
+30064771075 | CALL | mchannel = MODULE_DATA ( channel )
+30064771076 | CALL | MODULE_DATA ( channel )
+30064771077 | CALL | tmp = mchannel -> lastmsgs
+30064771078 | CALL | mchannel -> lastmsgs
+30064771079 | CALL | tmp != NULL
+30064771080 | CALL | tmp = tmp -> next
+30064771081 | CALL | tmp -> next
+30064771082 | CALL | rec = tmp -> data
+30064771083 | CALL | tmp -> data
+30064771084 | CALL | 
+        ( match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len ) ) == 0 && ( match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick ) ) == NULL
+      
+30064771085 | CALL | 
+        ( match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len ) ) == 0
+      
+30064771086 | CALL | 
+        match_case ? strncmp ( rec -> nick , nick , len ) : g_ascii_strncasecmp ( rec -> nick , nick , len )
+      
+30064771087 | CALL | strncmp ( rec -> nick , nick , len )
+30064771088 | CALL | rec -> nick
+30064771089 | CALL | g_ascii_strncasecmp ( rec -> nick , nick , len )
+30064771090 | CALL | rec -> nick
+30064771091 | CALL | 
+        ( match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick ) ) == NULL
+      
+30064771092 | CALL | 
+        match_case ? glist_find_string ( * outlist , rec -> nick ) : glist_find_icase_string ( * outlist , rec -> nick )
+      
+30064771093 | CALL | glist_find_string ( * outlist , rec -> nick )
+30064771094 | CALL | * outlist
+30064771095 | CALL | rec -> nick
+30064771096 | CALL | glist_find_icase_string ( * outlist , rec -> nick )
+30064771097 | CALL | * outlist
+30064771098 | CALL | rec -> nick
+30064771099 | CALL | str = g_strconcat ( rec -> nick , suffix , NULL )
+30064771100 | CALL | g_strconcat ( rec -> nick , suffix , NULL )
+30064771101 | CALL | rec -> nick
+30064771102 | CALL | completion_lowercase != 0
+30064771103 | CALL | ascii_strdown ( str )
+30064771104 | CALL | rec -> own
+30064771105 | CALL | ownlist = g_list_append ( ownlist , str )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803777 -> 30064771082 [AST]
+25769803778 -> 30064771099 [AST]
+25769803779 -> 30064771103 [AST]
+25769803780 -> 30064771105 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771085 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771091 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771091 [AST]
+30064771084 -> 30064771099 [CDG]
+30064771084 -> 30064771100 [CDG]
+30064771084 -> 30064771101 [CDG]
+30064771084 -> 30064771102 [CDG]
+30064771084 -> 30064771104 [CDG]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771091 [POST_DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771091 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771089 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771089 [AST]
+30064771086 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

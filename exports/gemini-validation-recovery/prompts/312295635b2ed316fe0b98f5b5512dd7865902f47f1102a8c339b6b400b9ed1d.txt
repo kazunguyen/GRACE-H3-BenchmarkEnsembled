@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int s390_virtio_console_init ( VirtIOS390Device * dev ) {
+ VirtIOS390Bus * bus ;
+ VirtIODevice * vdev ;
+ int r ;
+ bus = DO_UPCAST ( VirtIOS390Bus , bus , dev -> qdev . parent_bus ) ;
+ vdev = virtio_console_init ( ( DeviceState * ) dev ) ;
+ if ( ! vdev ) {
+ return - 1 ;
+ }
+ r = s390_virtio_device_init ( dev , vdev ) ;
+ if ( ! r ) {
+ bus -> console = dev ;
+ }
+ return r ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VirtIOS390Bus * bus ;
+ VirtIODevice * vdev ;
+ int r ;
+ bus = DO_UPCAST ( VirtIOS390Bus , bus , dev -> qdev . parent_bus ) ;
+ vdev = virtio_console_init ( ( DeviceState * ) dev ) ;
+ if ( ! vdev ) {
+ return - 1 ;
+ }
+ r = s390_virtio_device_init ( dev , vdev ) ;
+ if ( ! r ) {
+ bus -> console = dev ;
+ }
+ return r ;
+ }
+      
+25769803777 | BLOCK | { return - 1 ; }
+25769803778 | BLOCK | { bus -> console = dev ; }
+30064771072 | CALL | bus = DO_UPCAST ( VirtIOS390Bus , bus , dev -> qdev . parent_bus )
+30064771073 | CALL | DO_UPCAST ( VirtIOS390Bus , bus , dev -> qdev . parent_bus )
+30064771074 | CALL | dev -> qdev . parent_bus
+30064771075 | CALL | dev -> qdev
+30064771076 | CALL | vdev = virtio_console_init ( ( DeviceState * ) dev )
+30064771077 | CALL | virtio_console_init ( ( DeviceState * ) dev )
+30064771078 | CALL | ( DeviceState * ) dev
+30064771079 | CALL | ! vdev
+30064771080 | CALL | - 1
+30064771081 | CALL | r = s390_virtio_device_init ( dev , vdev )
+30064771082 | CALL | s390_virtio_device_init ( dev , vdev )
+30064771083 | CALL | ! r
+30064771084 | CALL | bus -> console = dev
+30064771085 | CALL | bus -> console
+47244640256 | CONTROL_STRUCTURE | if ( ! vdev ) { return - 1 ; }
+47244640257 | CONTROL_STRUCTURE | if ( ! r ) { bus -> console = dev ; }
+55834574848 | FIELD_IDENTIFIER | qdev
+55834574849 | FIELD_IDENTIFIER | parent_bus
+55834574850 | FIELD_IDENTIFIER | console
+68719476736 | IDENTIFIER | bus
+68719476737 | IDENTIFIER | <unknown> VirtIOS390Bus
+68719476738 | IDENTIFIER | bus
+68719476739 | IDENTIFIER | dev
+68719476740 | IDENTIFIER | vdev
+68719476741 | IDENTIFIER | dev
+68719476742 | IDENTIFIER | vdev
+68719476743 | IDENTIFIER | r
+68719476744 | IDENTIFIER | dev
+68719476745 | IDENTIFIER | vdev
+68719476746 | IDENTIFIER | r
+68719476747 | IDENTIFIER | bus
+68719476748 | IDENTIFIER | dev
+68719476749 | IDENTIFIER | r
+90194313216 | LITERAL | 1
+94489280512 | LOCAL | VirtIOS390Bus * bus
+94489280513 | LOCAL | VirtIODevice * vdev
+94489280514 | LOCAL | int r
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476740 [CFG]
+30064771072 -> 68719476740 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 55834574848 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 55834574848 [AST]
+30064771075 -> 55834574849 [CFG]
+30064771075 -> 55834574849 [DOMINATE]
+30064771075 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 68719476740 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476741 [ARGUMENT]
+30064771078 -> 68719476741 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476741 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 90194313216 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 68719476749 [CDG]
+30064771079 -> 68719476745 [CDG]
+30064771079 -> 68719476746 [CDG]
+30064771079 -> 68719476743 [CDG]
+30064771079 -> 68719476744 [CDG]
+30064771079 -> 90194313216 [CFG]
+30064771079 -> 68719476743 [CFG]
+30064771079 -> 90194313216 [DOMINATE]
+30064771079 -> 68719476743 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int s390_virtio_serial_init ( VirtIOS390Device * dev ) {
+ VirtIOS390Bus * bus ;
+ VirtIODevice * vdev ;
+ int r ;
+ bus = DO_UPCAST ( VirtIOS390Bus , bus , dev -> qdev . parent_bus ) ;
+ vdev = virtio_serial_init ( ( DeviceState * ) dev , dev -> max_virtserial_ports ) ;
+ if ( ! vdev ) {
+ return - 1 ;
+ }
+ r = s390_virtio_device_init ( dev , vdev ) ;
+ if ( ! r ) {
+ bus -> console = dev ;
+ }
+ return r ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

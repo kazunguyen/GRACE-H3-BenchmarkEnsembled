@@ -1,0 +1,143 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+av_cold void ff_vp9dsp_init(VP9DSPContext *dsp)
+
+{
+
+    vp9dsp_intrapred_init(dsp);
+
+    vp9dsp_itxfm_init(dsp);
+
+    vp9dsp_loopfilter_init(dsp);
+
+    vp9dsp_mc_init(dsp);
+
+
+
+
+
+    if (ARCH_X86)
+
+        ff_vp9dsp_init_x86(dsp);
+
+}
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | Callee
+AST 3 | CallExpression
+AST 4 | ExpressionStatement
+AST 5 | CompoundStatement
+AST 6 | FunctionDef
+EDGES (original Joern endpoint IDs):
+7 -> 8 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+33 -> 36 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 43 [IS_AST_PARENT]
+3 -> 44 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+3 -> 45 [IS_AST_PARENT]
+49 -> 46 [FLOWS_TO]
+46 -> 5 [FLOWS_TO]
+5 -> 12 [FLOWS_TO]
+12 -> 19 [FLOWS_TO]
+19 -> 26 [FLOWS_TO]
+26 -> 34 [FLOWS_TO]
+34 -> 36 [FLOWS_TO]
+34 -> 50 [FLOWS_TO]
+36 -> 50 [FLOWS_TO]
+46 -> 51 [DEF]
+5 -> 51 [USE]
+10 -> 51 [USE]
+12 -> 51 [USE]
+17 -> 51 [USE]
+19 -> 51 [USE]
+24 -> 51 [USE]
+26 -> 51 [USE]
+31 -> 51 [USE]
+36 -> 51 [USE]
+41 -> 51 [USE]
+34 -> 52 [USE]
+46 -> 5 [REACHES]
+46 -> 12 [REACHES]
+46 -> 19 [REACHES]
+46 -> 26 [REACHES]
+46 -> 36 [REACHES]
+49 -> 46 [CONTROLS]
+49 -> 5 [CONTROLS]
+49 -> 12 [CONTROLS]
+49 -> 19 [CONTROLS]
+49 -> 26 [CONTROLS]
+49 -> 34 [CONTROLS]
+34 -> 36 [CONTROLS]
+34 -> 36 [DOM]
+49 -> 46 [DOM]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+av_cold void ff_vp8dsp_init_arm(VP8DSPContext *dsp)
+
+{
+
+    int cpu_flags = av_get_cpu_flags();
+
+
+
+    if (have_armv6(cpu_flags))
+
+        ff_vp8dsp_init_armv6(dsp);
+
+    if (have_neon(cpu_flags))
+
+        ff_vp8dsp_init_neon(dsp);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,307 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_vop_header(MpegEncContext *s, GetBitContext *gb){
+
+    int time_incr, time_increment;
+
+
+
+    s->pict_type = get_bits(gb, 2) + I_TYPE;	/* pict type: I = 0 , P = 1 */
+
+    if(s->pict_type==B_TYPE && s->low_delay && s->vol_control_parameters==0 && !(s->flags & CODEC_FLAG_LOW_DELAY)){
+
+        av_log(s->avctx, AV_LOG_ERROR, "low_delay flag set, but shouldnt, clearing it\n");
+
+        s->low_delay=0;
+
+    }
+
+ 
+
+    s->partitioned_frame= s->data_partitioning && s->pict_type!=B_TYPE;
+
+    if(s->partitioned_frame)
+
+        s->decode_mb= mpeg4_decode_partitioned_mb;
+
+    else
+
+        s->decode_mb= ff_h263_decode_mb;
+
+
+
+    if(s->time_increment_resolution==0){
+
+        s->time_increment_resolution=1;
+
+//        fprintf(stderr, "time_increment_resolution is illegal\n");
+
+    }
+
+    time_incr=0;
+
+    while (get_bits1(gb) != 0) 
+
+        time_incr++;
+
+
+
+    check_marker(gb, "before time_increment");
+
+    
+
+    if(s->time_increment_bits==0){
+
+        av_log(s->avctx, AV_LOG_ERROR, "hmm, seems the headers arnt complete, trying to guess time_increment_bits\n");
+
+
+
+        for(s->time_increment_bits=1 ;s->time_increment_bits<16; s->time_increment_bits++){
+
+            if(show_bits(gb, s->time_increment_bits+1)&1) break;
+
+        }
+
+
+
+        av_log(s->avctx, AV_LOG_ERROR, "my guess is %d bits ;)\n",s->time_increment_bits);
+
+    }
+
+    
+
+    if(IS_3IV1) time_increment= get_bits1(gb); //FIXME investigate further
+
+    else time_increment= get_bits(gb, s->time_increment_bits);
+
+    
+
+//    printf("%d %X\n", s->time_increment_bits, time_increment);
+
+//printf(" type:%d modulo_time_base:%d increment:%d\n", s->pict_type, time_incr, time_increment);
+
+    if(s->pict_type!=B_TYPE){
+
+        s->last_time_base= s->time_base;
+
+        s->time_base+= time_incr;
+
+        s->time= s->time_base*s->time_increment_resolution + time_increment;
+
+        if(s->workaround_bugs&FF_BUG_UMP4){
+
+            if(s->time < s->last_non_b_time){
+
+//                fprintf(stderr, "header is not mpeg4 compatible, broken encoder, trying to workaround\n");
+
+                s->time_base++;
+
+                s->time+= s->time_increment_resolution;
+
+            }
+
+        }
+
+        s->pp_time= s->time - s->last_non_b_time;
+
+        s->last_non_b_time= s->time;
+
+    }else{
+
+        s->time= (s->last_time_base + time_incr)*s->time_increment_resolution + time_increment;
+
+        s->pb_time= s->pp_time - (s->last_non_b_time - s->time);
+
+        if(s->pp_time <=s->pb_time || s->pp_time <= s->pp_time - s->pb_time || s->pp_time<=0){
+
+//            printf("messed up order, seeking?, skiping current b frame\n");
+
+            return FRAME_SKIPED;
+
+        }
+
+        
+
+        if(s->t_frame==0) s->t_frame= s->time - s->last_time_base;
+
+        if(s->t_frame==0) s->t_frame=1; // 1/0 protection
+
+//printf("%Ld %Ld %d %d\n", s->last_non_b_time, s->time, s->pp_time, s->t_frame); fflush(stdout);
+
+        s->pp_field_time= (  ROUNDED_DIV(s->last_non_b_time, s->t_frame) 
+
+                           - 
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+21 -> 24 [IS_AST_PARENT]
+18 -> 21 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 26 [IS_AST_PARENT]
+13 -> 17 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+39 -> 45 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+29 -> 35 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+57 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+57 -> 64 [IS_AST_PARENT]
+54 -> 57 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 71 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+52 -> 66 [IS_AST_PARENT]
+27 -> 52 [IS_AST_PARENT]
+4 -> 27 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int decode_vop_header(Mpeg4DecContext *ctx, GetBitContext *gb)
+
+{
+
+    MpegEncContext *s = &ctx->m;
+
+    int time_incr, time_increment;
+
+    int64_t pts;
+
+
+
+    s->pict_type = get_bits(gb, 2) + AV_PICTURE_TYPE_I;        /* pict type: I = 0 , P = 1 */
+
+    if (s->pict_type == AV_PICTURE_TYPE_B && s->low_delay &&
+
+        ctx->vol_control_parameters == 0 && !(s->flags & CODEC_FLAG_LOW_DELAY)) {
+
+        av_log(s->avctx, AV_LOG_ERROR, "low_delay flag set incorrectly, clearing it\n");
+
+        s->low_delay = 0;
+
+    }
+
+
+
+    s->partitioned_frame = s->data_partitioning && s->pict_type != AV_PICTURE_TYPE_B;
+
+    if (s->partitioned_frame)
+
+        s->decode_mb = mpeg4_decode_partitioned_mb;
+
+    else
+
+        s->decode_mb = mpeg4_decode_mb;
+
+
+
+    time_incr = 0;
+
+    while (get_bits1(gb) != 0)
+
+        time_incr++;
+
+
+
+    check_marker(gb, "before time_increment");
+
+
+
+    if (ctx->time_increment_bits == 0 ||
+
+        !(show_bits(gb, ctx->time_increment_bits + 1) & 1)) {
+
+        av_log(s->avctx, AV_LOG_WARNING,
+
+               "time_increment_bits %d is invalid in relation to the current bitstream, this is likely caused by a missing VOL header\n", ctx->time_increment_bits);
+
+
+
+        for (ctx->time_increment_bits = 1;
+
+             ctx->time_increment_bits < 16;
+
+             ctx->time_increment_bits++) {
+
+            if (s->pict_type == AV_PICTURE_TYPE_P ||
+
+                (s->pict_type == AV_PICTURE_TYPE_S &&
+
+                 ctx->vol_sprite_usage == GMC_SPRITE)) {
+
+     
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void _UTF16Open ( UConverter * cnv , UConverterLoadArgs * pArgs , UErrorCode * pErrorCode ) {
+ if ( UCNV_GET_VERSION ( cnv ) <= 2 ) {
+ if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+ _UTF16Reset ( cnv , UCNV_RESET_BOTH ) ;
+ }
+ else {
+ * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( UCNV_GET_VERSION ( cnv ) <= 2 ) {
+ if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+ _UTF16Reset ( cnv , UCNV_RESET_BOTH ) ;
+ }
+ else {
+ * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+ _UTF16Reset ( cnv , UCNV_RESET_BOTH ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+      
+25769803779 | BLOCK | { * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR ; }
+30064771072 | CALL | UCNV_GET_VERSION ( cnv ) <= 2
+30064771073 | CALL | UCNV_GET_VERSION ( cnv )
+30064771074 | CALL | UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable
+30064771075 | CALL | UCNV_GET_VERSION ( cnv ) == 2
+30064771076 | CALL | UCNV_GET_VERSION ( cnv )
+30064771077 | CALL | ! pArgs -> onlyTestIsLoadable
+30064771078 | CALL | pArgs -> onlyTestIsLoadable
+30064771079 | CALL | cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data
+30064771080 | CALL | cnv -> sharedData
+30064771081 | CALL | ( UConverterSharedData * ) & _UTF16v2Data
+30064771082 | CALL | & _UTF16v2Data
+30064771083 | CALL | 
+        uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN )
+      
+30064771084 | CALL | cnv -> subChars
+30064771085 | CALL | _UTF16v2Data . staticData -> subChar
+30064771086 | CALL | _UTF16v2Data . staticData
+30064771087 | CALL | _UTF16Reset ( cnv , UCNV_RESET_BOTH )
+30064771088 | CALL | * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR
+30064771089 | CALL | * pErrorCode
+47244640256 | CONTROL_STRUCTURE | 
+        if ( UCNV_GET_VERSION ( cnv ) <= 2 ) {
+ if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+ _UTF16Reset ( cnv , UCNV_RESET_BOTH ) ;
+ }
+ else {
+ * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | onlyTestIsLoadable
+55834574849 | FIELD_IDENTIFIER | sharedData
+55834574850 | FIELD_IDENTIFIER | subChars
+55834574851 | FIELD_IDENTIFIER | staticData
+55834574852 | FIELD_IDENTIFIER | subChar
+68719476736 | IDENTIFIER | cnv
+68719476737 | IDENTIFIER | cnv
+68719476738 | IDENTIFIER | pArgs
+68719476739 | IDENTIFIER | cnv
+68719476740 | IDENTIFIER | <unknown> _UTF16v2Data
+68719476741 | IDENTIFIER | cnv
+68719476742 | IDENTIFIER | <unknown> _UTF16v2Data
+68719476743 | IDENTIFIER | <unknown> UCNV_MAX_SUBCHAR_LEN
+68719476744 | IDENTIFIER | cnv
+68719476745 | IDENTIFIER | <unknown> UCNV_RESET_BOTH
+68719476746 | IDENTIFIER | pErrorCode
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771087 [AST]
+25769803778 -> 30064771079 [AST]
+25769803778 -> 30064771083 [AST]
+25769803779 -> 30064771088 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476744 [CDG]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476746 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476746 [DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 55834574852 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771084 [CDG]
+30064771074 -> 30064771085 [CDG]
+30064771074 -> 30064771086 [CDG]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476744 [CFG]
+30064771074 -> 68719476744 [DOMINATE]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574848 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 68719476738 [CDG]
+30064771075 -> 68719476738 [CFG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476738 [DOMINATE]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476737 [ARGUMENT]
+30064771076 -> 68719476737 [AST]
+30064771076 -> 68719476737 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 68719476738 [ARGUMENT]
+30064771078 -> 55834574848 [ARGUMENT]
+30064771078 -> 68719476738 [AST]
+30064771078 -> 55834574848 [AST]
+30064771078 -> 30064771077 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void U_CALLCONV _UTF16Open ( UConverter * cnv , UConverterLoadArgs * pArgs , UErrorCode * pErrorCode ) {
+ if ( UCNV_GET_VERSION ( cnv ) <= 2 ) {
+ if ( UCNV_GET_VERSION ( cnv ) == 2 && ! pArgs -> onlyTestIsLoadable ) {
+ cnv -> sharedData = ( UConverterSharedData * ) & _UTF16v2Data ;
+ uprv_memcpy ( cnv -> subChars , _UTF16v2Data . staticData -> subChar , UCNV_MAX_SUBCHAR_LEN ) ;
+ }
+ _UTF16Reset ( cnv , UCNV_RESET_BOTH ) ;
+ }
+ else {
+ * pErrorCode = U_ILLEGAL_ARGUMENT_ERROR ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

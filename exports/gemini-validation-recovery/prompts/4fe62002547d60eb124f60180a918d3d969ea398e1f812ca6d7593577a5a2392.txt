@@ -1,0 +1,256 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static enum AVPixelFormat get_pixel_format ( H264Context * h , int force_callback ) {
+ switch ( h -> sps . bit_depth_luma ) {
+ case 9 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP9 ;
+ }
+ else return AV_PIX_FMT_YUV444P9 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P9 ;
+ else return AV_PIX_FMT_YUV420P9 ;
+ break ;
+ case 10 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP10 ;
+ }
+ else return AV_PIX_FMT_YUV444P10 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P10 ;
+ else return AV_PIX_FMT_YUV420P10 ;
+ break ;
+ case 12 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP12 ;
+ }
+ else return AV_PIX_FMT_YUV444P12 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P12 ;
+ else return AV_PIX_FMT_YUV420P12 ;
+ break ;
+ case 14 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP14 ;
+ }
+ else return AV_PIX_FMT_YUV444P14 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P14 ;
+ else return AV_PIX_FMT_YUV420P14 ;
+ break ;
+ case 8 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ av_log ( h -> avctx , AV_LOG_DEBUG , "Detected GBR colorspace.\n" ) ;
+ return AV_PIX_FMT_GBR24P ;
+ }
+ else if ( h -> avctx -> colorspace == AVCOL_SPC_YCGCO ) {
+ av_log ( h -> avctx , AV_LOG_WARNING , "Detected unsupported YCgCo colorspace.\n" ) ;
+ }
+ return h -> avctx -> color_range == AVCOL_RANGE_JPEG ? AV_PIX_FMT_YUVJ444P : AV_PIX_FMT_YUV444P ;
+ }
+ else if ( CHROMA422 ( h ) ) {
+ return h -> avctx -> color_range == AVCOL_RANGE_JPEG ? AV_PIX_FMT_YUVJ422P : AV_PIX_FMT_YUV422P ;
+ }
+ else {
+ int i ;
+ const enum AVPixelFormat * fmt = h -> avctx -> codec -> pix_fmts ? h -> avctx -> codec -> pix_fmts : h -> avctx -> color_range == AVCOL_RANGE_JPEG ? h264_hwaccel_pixfmt_list_jpeg_420 : h264_hwaccel_pixfmt_list_420 ;
+ for ( i = 0 ;
+ fmt [ i ] != AV_PIX_FMT_NONE ;
+ i ++ ) if ( fmt [ i ] == h -> avctx -> pix_fmt && ! force_callback ) return fmt [ i ] ;
+ return ff_thread_get_format ( h -> avctx , fmt ) ;
+ }
+ break ;
+ default : av_log ( h -> avctx , AV_LOG_ERROR , "Unsupported bit depth: %d\n" , h -> sps . bit_depth_luma ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ switch ( h -> sps . bit_depth_luma ) {
+ case 9 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP9 ;
+ }
+ else return AV_PIX_FMT_YUV444P9 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P9 ;
+ else return AV_PIX_FMT_YUV420P9 ;
+ break ;
+ case 10 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP10 ;
+ }
+ else return AV_PIX_FMT_YUV444P10 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P10 ;
+ else return AV_PIX_FMT_YUV420P10 ;
+ break ;
+ case 12 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP12 ;
+ }
+ else return AV_PIX_FMT_YUV444P12 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P12 ;
+ else return AV_PIX_FMT_YUV420P12 ;
+ break ;
+ case 14 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP14 ;
+ }
+ else return AV_PIX_FMT_YUV444P14 ;
+ }
+ else if ( CHROM...
+      
+25769803777 | BLOCK | 
+        {
+ case 9 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP9 ;
+ }
+ else return AV_PIX_FMT_YUV444P9 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P9 ;
+ else return AV_PIX_FMT_YUV420P9 ;
+ break ;
+ case 10 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP10 ;
+ }
+ else return AV_PIX_FMT_YUV444P10 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P10 ;
+ else return AV_PIX_FMT_YUV420P10 ;
+ break ;
+ case 12 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP12 ;
+ }
+ else return AV_PIX_FMT_YUV444P12 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P12 ;
+ else return AV_PIX_FMT_YUV420P12 ;
+ break ;
+ case 14 : if ( CHROMA444 ( h ) ) {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP14 ;
+ }
+ else return AV_PIX_FMT_YUV444P14 ;
+ }
+ else if ( CHROMA422 ( h ) ) return AV_PIX_FMT_YUV422P14...
+      
+25769803778 | BLOCK | 
+        {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP9 ;
+ }
+ else return AV_PIX_FMT_YUV444P9 ;
+ }
+      
+25769803779 | BLOCK | { return AV_PIX_FMT_GBRP9 ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP10 ;
+ }
+ else return AV_PIX_FMT_YUV444P10 ;
+ }
+      
+25769803785 | BLOCK | { return AV_PIX_FMT_GBRP10 ; }
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP12 ;
+ }
+ else return AV_PIX_FMT_YUV444P12 ;
+ }
+      
+25769803791 | BLOCK | { return AV_PIX_FMT_GBRP12 ; }
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | 
+        {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ return AV_PIX_FMT_GBRP14 ;
+ }
+ else return AV_PIX_FMT_YUV444P14 ;
+ }
+      
+25769803797 | BLOCK | { return AV_PIX_FMT_GBRP14 ; }
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | <empty>
+25769803802 | BLOCK | 
+        {
+ if ( h -> avctx -> colorspace == AVCOL_SPC_RGB ) {
+ av_log ( h -> avctx , AV_LOG_DEBUG , "Detected GBR colorspace.\n" ) ;
+ return AV_PIX_FMT_GBR24P ;
+ }
+ else if ( h -> avctx -> colorspace == AVCOL_SPC_YCGCO ) {
+ av_log ( h -> avctx , AV_LOG_WARNING , "Detected unsupported YCgCo colorspace.\n" ) ;
+ }
+ return h -> avctx -> color_range == AVCOL_RANGE_JPEG ? AV_PIX_FMT_YUVJ444P : AV_PIX_FMT_YUV444P ;
+ }
+      
+25769803803 | BLOCK | 
+        {
+ av_log ( h -> avctx , AV_LOG_DEBUG , "Detected GBR colorspace.\n" ) ;
+ return AV_PIX_FMT_GBR24P ;
+ }
+      
+25769803804 | BLOCK | <empty>
+25769803805 | BLOCK | 
+        {
+ av_log ( h -> avctx , AV_LOG_WARNING , "Detected unsupported YCgCo colorspace.\n" ) ;
+ }
+      
+25769803806 | BLOCK | <empty>
+25769803807 | BLOCK | 
+        {
+ return h -> avctx -> color_range == AVCOL_RANGE_JPEG ? AV_PIX_FMT_YUVJ422P : AV_PIX_FMT_YUV422P ;
+ }
+      
+25769803808 | BLOCK | 
+        {
+ int i ;
+ const enum AVPixelFormat * fmt = h -> avctx -> codec -> pix_fmts ? h -> avctx -> codec -> pix_fmts : h -> avctx -> color_range == AVCOL_RANGE_JPEG ? h264_hwaccel_pixfmt_list_jpeg_420 : h264_hwaccel_pixfmt_list_420 ;
+ for ( i = 0 ;
+ fmt [ i ] != AV_PIX_FMT_NONE ;
+ i ++ ) if ( fmt [ i ] == h -> avctx -> pix_fmt && ! force_callback ) return fmt [ i ] ;
+ return ff_thread_get_format ( h -> avctx , fmt ) ;
+ }
+      
+25769803809 | BLOCK | <empty>
+30064771072 | CALL | h -> sps . bit_depth_luma
+30064771073 | CALL | h -> sps
+30064771074 | CALL | CHROMA444 ( h )
+30064771075 | CALL | h -> avctx -> colorspace == AVCOL_SPC_RGB
+30064771076 | CALL | h -> avctx -> colorspace
+30064771077 | CAL
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

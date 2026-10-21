@@ -1,0 +1,176 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_P ( BrowserCloseManagerBrowserTest , TestMultipleWindows ) {
+ browsers_ . push_back ( CreateBrowser ( browser ( ) -> profile ( ) ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browsers_ [ 0 ] , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browsers_ [ 1 ] , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) ) ) ;
+ PrepareForDialog ( browsers_ [ 0 ] ) ;
+ PrepareForDialog ( browsers_ [ 1 ] ) ;
+ {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 1 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) ) ;
+ cancel_observer . Wait ( ) ;
+ }
+ EXPECT_FALSE ( browser_shutdown : : IsTryingToQuit ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 1 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 2 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) ) ;
+ cancel_observer . Wait ( ) ;
+ }
+ EXPECT_FALSE ( browser_shutdown : : IsTryingToQuit ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 1 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ RepeatedNotificationObserver close_observer ( chrome : : NOTIFICATION_BROWSER_CLOSED , 2 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ close_observer . Wait ( ) ;
+ EXPECT_TRUE ( browser_shutdown : : IsTryingToQuit ( ) ) ;
+ EXPECT_TRUE ( BrowserList : : GetInstance ( ) -> empty ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ browsers_ . push_back ( CreateBrowser ( browser ( ) -> profile ( ) ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browsers_ [ 0 ] , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browsers_ [ 1 ] , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) ) ) ;
+ PrepareForDialog ( browsers_ [ 0 ] ) ;
+ PrepareForDialog ( browsers_ [ 1 ] ) ;
+ {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 1 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) ) ;
+ cancel_observer . Wait ( ) ;
+ }
+ EXPECT_FALSE ( browser_shutdown : : IsTryingToQuit ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ EXPECT_EQ ( 1 , browsers_ [ 1 ] -> tab_strip_model ( ) -> count ( ) ) ;
+ {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 2 ) ;
+ chrome :...
+      
+25769803777 | BLOCK | 
+        {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 1 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) ) ;
+ cancel_observer . Wait ( ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ RepeatedNotificationObserver cancel_observer ( chrome : : NOTIFICATION_BROWSER_CLOSE_CANCELLED , 2 ) ;
+ chrome : : CloseAllBrowsersAndQuit ( ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) ) ;
+ cancel_observer . Wait ( ) ;
+ }
+      
+30064771072 | CALL | browsers_ . push_back ( CreateBrowser ( browser ( ) -> profile ( ) ) )
+30064771073 | CALL | browsers_ . push_back
+30064771074 | CALL | CreateBrowser ( browser ( ) -> profile ( ) )
+30064771075 | CALL | browser ( ) -> profile ( )
+30064771076 | CALL | browser ( ) -> profile
+30064771077 | CALL | browser ( )
+30064771078 | CALL | PrepareForDialog ( browsers_ [ 0 ] )
+30064771079 | CALL | browsers_ [ 0 ]
+30064771080 | CALL | PrepareForDialog ( browsers_ [ 1 ] )
+30064771081 | CALL | browsers_ [ 1 ]
+30064771082 | CALL | ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) )
+30064771083 | CALL | CancelClose ( )
+30064771084 | CALL | cancel_observer . Wait ( )
+30064771085 | CALL | cancel_observer . Wait
+30064771086 | CALL | EXPECT_EQ ( 1 , browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( ) )
+30064771087 | CALL | browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( )
+30064771088 | CALL | browsers_ [ 0 ] -> tab_strip_model ( ) -> count
+30064771089 | CALL | browsers_ [ 0 ] -> tab_strip_model ( )
+30064771090 | CALL | browsers_ [ 0 ] -> tab_strip_model
+30064771091 | CALL | browsers_ [ 0 ]
+30064771092 | CALL | EXPECT_EQ ( 1 , browsers_ [ 1 ] -> tab_strip_model ( ) -> count ( ) )
+30064771093 | CALL | browsers_ [ 1 ] -> tab_strip_model ( ) -> count ( )
+30064771094 | CALL | browsers_ [ 1 ] -> tab_strip_model ( ) -> count
+30064771095 | CALL | browsers_ [ 1 ] -> tab_strip_model ( )
+30064771096 | CALL | browsers_ [ 1 ] -> tab_strip_model
+30064771097 | CALL | browsers_ [ 1 ]
+30064771098 | CALL | ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) )
+30064771099 | CALL | AcceptClose ( )
+30064771100 | CALL | ASSERT_NO_FATAL_FAILURE ( CancelClose ( ) )
+30064771101 | CALL | CancelClose ( )
+30064771102 | CALL | cancel_observer . Wait ( )
+30064771103 | CALL | cancel_observer . Wait
+30064771104 | CALL | EXPECT_EQ ( 1 , browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( ) )
+30064771105 | CALL | browsers_ [ 0 ] -> tab_strip_model ( ) -> count ( )
+30064771106 | CALL | browsers_ [ 0 ] -> tab_strip_model ( ) -> count
+30064771107 | CALL | browsers_ [ 0 ] -> tab_strip_model ( )
+30064771108 | CALL | browsers_ [ 0 ] -> tab_strip_model
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 25769803777 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 25769803778 [AST]
+25769803776 -> 30064771104 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771084 [POST_DOMINATE]
+25769803778 -> 30064771098 [AST]
+25769803778 -> 30064771100 [AST]
+25769803778 -> 30064771102 [AST]
+25769803778 -> 30064771102 [POST_DOMINATE]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771074 [POST_DOMINATE]
+30064771072 -> 30064771073 [RECEIVER]
+30064771073 -> 30064771077 [CFG]
+30064771073 -> 30064771077 [DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771072 [CFG]
+30064771074 -> 30064771072 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771073 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771091 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

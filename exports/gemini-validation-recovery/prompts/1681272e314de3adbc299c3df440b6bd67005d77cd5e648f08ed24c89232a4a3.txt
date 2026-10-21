@@ -1,0 +1,159 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ExtensionServiceSyncTest , GetSyncExtensionDataUserSettings ) {
+ InitializeEmptyExtensionService ( ) ;
+ InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW ) ;
+ const Extension * extension = service ( ) -> GetInstalledExtension ( good_crx ) ;
+ ASSERT_TRUE ( extension ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_TRUE ( data -> enabled ( ) ) ;
+ EXPECT_FALSE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_UNSET , data -> all_urls_enabled ( ) ) ;
+ }
+ service ( ) -> DisableExtension ( good_crx , extensions : : disable_reason : : DISABLE_USER_ACTION ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_FALSE ( data -> enabled ( ) ) ;
+ EXPECT_FALSE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_UNSET , data -> all_urls_enabled ( ) ) ;
+ }
+ extensions : : util : : SetIsIncognitoEnabled ( good_crx , profile ( ) , true ) ;
+ ScriptingPermissionsModifier permissions_modifier ( profile ( ) , registry ( ) -> GetExtensionById ( good_crx , extensions : : ExtensionRegistry : : EVERYTHING ) ) ;
+ permissions_modifier . SetAllowedOnAllUrls ( false ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_FALSE ( data -> enabled ( ) ) ;
+ EXPECT_TRUE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_FALSE , data -> all_urls_enabled ( ) ) ;
+ }
+ service ( ) -> EnableExtension ( good_crx ) ;
+ permissions_modifier . SetAllowedOnAllUrls ( true ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_TRUE ( data -> enabled ( ) ) ;
+ EXPECT_TRUE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_TRUE , data -> all_urls_enabled ( ) ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ InitializeEmptyExtensionService ( ) ;
+ InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW ) ;
+ const Extension * extension = service ( ) -> GetInstalledExtension ( good_crx ) ;
+ ASSERT_TRUE ( extension ) ;
+ extension_sync_service ( ) -> MergeDataAndStartSyncing ( syncer : : EXTENSIONS , syncer : : SyncDataList ( ) , base : : MakeUnique < syncer : : FakeSyncChangeProcessor > ( ) , base : : MakeUnique < syncer : : SyncErrorFactoryMock > ( ) ) ;
+ {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_TRUE ( data -> enabled ( ) ) ;
+ EXPECT_FALSE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_UNSET , data -> all_urls_enabled ( ) ) ;
+ }
+ service ( ) -> DisableExtension ( good_crx , extensions : : disab...
+      
+25769803777 | BLOCK | 
+        {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_TRUE ( data -> enabled ( ) ) ;
+ EXPECT_FALSE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_UNSET , data -> all_urls_enabled ( ) ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_FALSE ( data -> enabled ( ) ) ;
+ EXPECT_FALSE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_UNSET , data -> all_urls_enabled ( ) ) ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_FALSE ( data -> enabled ( ) ) ;
+ EXPECT_TRUE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_FALSE , data -> all_urls_enabled ( ) ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ syncer : : SyncDataList list = extension_sync_service ( ) -> GetAllSyncData ( syncer : : EXTENSIONS ) ;
+ ASSERT_EQ ( list . size ( ) , 1U ) ;
+ std : : unique_ptr < ExtensionSyncData > data = ExtensionSyncData : : CreateFromSyncData ( list [ 0 ] ) ;
+ ASSERT_TRUE ( data . get ( ) ) ;
+ EXPECT_TRUE ( data -> enabled ( ) ) ;
+ EXPECT_TRUE ( data -> incognito_enabled ( ) ) ;
+ EXPECT_EQ ( ExtensionSyncData : : BOOLEAN_TRUE , data -> all_urls_enabled ( ) ) ;
+ }
+      
+30064771072 | CALL | InitializeEmptyExtensionService ( )
+30064771073 | CALL | InstallCRX ( data_dir ( ) . AppendASCII ( "good.crx" ) , INSTALL_NEW )
+30064771074 | CALL | data_dir ( ) . AppendASCII ( "good.crx" )
+30064771075 | CALL | data_dir ( ) . AppendASCII
+30064771076 | CALL | data_dir ( )
+30064771077 | CALL | extension = service ( ) -> GetInstalledExtension ( good_crx )
+30064771078 | CALL | service ( ) -> GetInstalledExtension ( good_crx )
+30064771079 | CALL | service ( ) -> GetInstalledExtension
+30064771080 | CALL | service ( )
+30064771081 | CALL | ASSERT_TRUE ( extension )
+30064771082 | CALL | ASSERT_EQ ( list . size ( ) , 1U )
+30064771083 | CALL | list . size ( )
+30064771084 | CALL | list . size
+30064771085 | CALL | ASSERT_TRUE ( data . get ( ) )
+30064771086 | CALL | data . get ( )
+30064771087 | CALL | data . get
+30064771088 | CALL | EXPECT_TRUE ( data -> enabled ( ) )
+30064771089 | CALL | data -> enabled ( )
+30064771090 | CALL | data -> enabled
+30064771091 | CALL | EXPECT_FALSE ( data -> incognito_enabled ( ) )
+30064771092 | CALL | data -> incognito_enabled ( )
+30064771093 | CALL | data -> incognito_enabled
+30064771094 | CALL | ASSERT_EQ ( list . size ( ) , 1U )
+30064771095 | CALL | list . size ( )
+30064771096 | CALL | list . size
+30064771097 | CALL | ASSERT_TRUE ( data . get ( ) )
+30064771098 | CALL | data . get ( )
+30064771099 | CALL | data . get
+30064771100 | CALL | EXPECT_FALSE ( data -> enabled ( ) )
+300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

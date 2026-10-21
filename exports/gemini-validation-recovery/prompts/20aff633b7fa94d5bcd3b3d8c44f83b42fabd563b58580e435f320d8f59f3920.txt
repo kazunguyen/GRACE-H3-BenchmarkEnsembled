@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void sig_nick_changed ( CHANNEL_REC * channel , NICK_REC * nick , const char * oldnick ) {
+ MODULE_CHANNEL_REC * mchannel ;
+ LAST_MSG_REC * rec ;
+ mchannel = MODULE_DATA ( channel ) ;
+ rec = last_msg_find ( mchannel -> lastmsgs , oldnick ) ;
+ if ( rec != NULL ) {
+ g_free ( rec -> nick ) ;
+ rec -> nick = g_strdup ( nick -> nick ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ MODULE_CHANNEL_REC * mchannel ;
+ LAST_MSG_REC * rec ;
+ mchannel = MODULE_DATA ( channel ) ;
+ rec = last_msg_find ( mchannel -> lastmsgs , oldnick ) ;
+ if ( rec != NULL ) {
+ g_free ( rec -> nick ) ;
+ rec -> nick = g_strdup ( nick -> nick ) ;
+ }
+ }
+      
+25769803777 | BLOCK | { g_free ( rec -> nick ) ; rec -> nick = g_strdup ( nick -> nick ) ; }
+30064771072 | CALL | mchannel = MODULE_DATA ( channel )
+30064771073 | CALL | MODULE_DATA ( channel )
+30064771074 | CALL | rec = last_msg_find ( mchannel -> lastmsgs , oldnick )
+30064771075 | CALL | last_msg_find ( mchannel -> lastmsgs , oldnick )
+30064771076 | CALL | mchannel -> lastmsgs
+30064771077 | CALL | rec != NULL
+30064771078 | CALL | g_free ( rec -> nick )
+30064771079 | CALL | rec -> nick
+30064771080 | CALL | rec -> nick = g_strdup ( nick -> nick )
+30064771081 | CALL | rec -> nick
+30064771082 | CALL | g_strdup ( nick -> nick )
+30064771083 | CALL | nick -> nick
+47244640256 | CONTROL_STRUCTURE | 
+        if ( rec != NULL ) {
+ g_free ( rec -> nick ) ;
+ rec -> nick = g_strdup ( nick -> nick ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | lastmsgs
+55834574849 | FIELD_IDENTIFIER | nick
+55834574850 | FIELD_IDENTIFIER | nick
+55834574851 | FIELD_IDENTIFIER | nick
+68719476736 | IDENTIFIER | mchannel
+68719476737 | IDENTIFIER | channel
+68719476738 | IDENTIFIER | rec
+68719476739 | IDENTIFIER | mchannel
+68719476740 | IDENTIFIER | oldnick
+68719476741 | IDENTIFIER | rec
+68719476742 | IDENTIFIER | <unknown> NULL
+68719476743 | IDENTIFIER | rec
+68719476744 | IDENTIFIER | rec
+68719476745 | IDENTIFIER | nick
+94489280512 | LOCAL | MODULE_CHANNEL_REC * mchannel
+94489280513 | LOCAL | LAST_MSG_REC * rec
+94489280514 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static void sig_nick_changed ( CHANNEL_REC * channel , NICK_REC * nick , const char * oldnick ) {
+ MODULE_CHANNEL_REC * mchannel ;
+ LAST_MSG_REC * rec ;
+ mchannel = MODULE_DATA ( channel ) ;
+ rec = last_msg_find ( mchannel -> lastmsgs , oldnick ) ;
+ if ( rec != NULL ) {
+ g_free ( rec -> nick ) ;
+ rec -> nick = g_strdup ( nick -> nick ) ;
+ }
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | CHANNEL_REC * channel
+111669149697 | METHOD_PARAMETER_IN | NICK_REC * nick
+111669149698 | METHOD_PARAMETER_IN | const char * oldnick
+115964116992 | METHOD_PARAMETER_OUT | CHANNEL_REC * channel
+115964116993 | METHOD_PARAMETER_OUT | NICK_REC * nick
+115964116994 | METHOD_PARAMETER_OUT | const char * oldnick
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 55834574851 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 68719476744 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 55834574849 [CDG]
+30064771077 -> 55834574850 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 124554051584 [CFG]
+30064771077 -> 124554051584 [DOMINATE]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476744 [CFG]
+30064771078 -> 68719476744 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 124554051584 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void sig_nick_removed ( CHANNEL_REC * channel , NICK_REC * nick ) {
+ MODULE_CHANNEL_REC * mchannel ;
+ LAST_MSG_REC * rec ;
+ mchannel = MODULE_DATA ( channel ) ;
+ rec = last_msg_find ( mchannel -> lastmsgs , nick -> nick ) ;
+ if ( rec != NULL ) last_msg_destroy ( & mchannel -> lastmsgs , rec ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

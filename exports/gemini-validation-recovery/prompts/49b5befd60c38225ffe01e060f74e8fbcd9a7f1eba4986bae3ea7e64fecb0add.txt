@@ -1,0 +1,310 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void compute_curve_gamma_table_type_parametric ( float gamma_table [ 256 ] , float parameter [ 7 ] , int count ) {
+ size_t X ;
+ float interval ;
+ float a , b , c , e , f ;
+ float y = parameter [ 0 ] ;
+ if ( count == 0 ) {
+ a = 1 ;
+ b = 0 ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - INFINITY ;
+ }
+ else if ( count == 1 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+ else if ( count == 2 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = parameter [ 3 ] ;
+ f = parameter [ 3 ] ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+ else if ( count == 3 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = - c ;
+ f = 0 ;
+ interval = parameter [ 4 ] ;
+ }
+ else if ( count == 4 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = parameter [ 5 ] - c ;
+ f = parameter [ 6 ] ;
+ interval = parameter [ 4 ] ;
+ }
+ else {
+ assert ( 0 && "invalid parametric function type." ) ;
+ a = 1 ;
+ b = 0 ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - INFINITY ;
+ }
+ for ( X = 0 ;
+ X < 256 ;
+ X ++ ) {
+ float x = X / 255.0 ;
+ if ( x >= interval ) {
+ gamma_table [ X ] = clamp_float ( powf ( a * x + b , y ) + ( c + e ) ) ;
+ }
+ else {
+ gamma_table [ X ] = clamp_float ( c * x + f ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ size_t X ;
+ float interval ;
+ float a , b , c , e , f ;
+ float y = parameter [ 0 ] ;
+ if ( count == 0 ) {
+ a = 1 ;
+ b = 0 ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - INFINITY ;
+ }
+ else if ( count == 1 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+ else if ( count == 2 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = parameter [ 3 ] ;
+ f = parameter [ 3 ] ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+ else if ( count == 3 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = - c ;
+ f = 0 ;
+ interval = parameter [ 4 ] ;
+ }
+ else if ( count == 4 ) {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = parameter [ 5 ] - c ;
+ f = parameter [ 6 ] ;
+ interval = parameter [ 4 ] ;
+ }
+ else {
+ assert ( 0 && "invalid parametric function type." ) ;
+ a = 1 ;
+ b = 0 ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - INFINITY ;
+ }
+ for ( X = 0 ...
+      
+25769803777 | BLOCK | { a = 1 ; b = 0 ; c = 0 ; e = 0 ; f = 0 ; interval = - INFINITY ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = 0 ;
+ e = parameter [ 3 ] ;
+ f = parameter [ 3 ] ;
+ interval = - 1 * parameter [ 2 ] / parameter [ 1 ] ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = - c ;
+ f = 0 ;
+ interval = parameter [ 4 ] ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ a = parameter [ 1 ] ;
+ b = parameter [ 2 ] ;
+ c = parameter [ 3 ] ;
+ e = parameter [ 5 ] - c ;
+ f = parameter [ 6 ] ;
+ interval = parameter [ 4 ] ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ assert ( 0 && "invalid parametric function type." ) ;
+ a = 1 ;
+ b = 0 ;
+ c = 0 ;
+ e = 0 ;
+ f = 0 ;
+ interval = - INFINITY ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ float x = X / 255.0 ;
+ if ( x >= interval ) {
+ gamma_table [ X ] = clamp_float ( powf ( a * x + b , y ) + ( c + e ) ) ;
+ }
+ else {
+ gamma_table [ X ] = clamp_float ( c * x + f ) ;
+ }
+ }
+      
+25769803788 | BLOCK | { gamma_table [ X ] = clamp_float ( powf ( a * x + b , y ) + ( c + e ) ) ; }
+25769803789 | BLOCK | { gamma_table [ X ] = clamp_float ( c * x + f ) ; }
+30064771072 | CALL | y = parameter [ 0 ]
+30064771073 | CALL | parameter [ 0 ]
+30064771074 | CALL | count == 0
+30064771075 | CALL | a = 1
+30064771076 | CALL | b = 0
+30064771077 | CALL | c = 0
+30064771078 | CALL | e = 0
+30064771079 | CALL | f = 0
+30064771080 | CALL | interval = - INFINITY
+30064771081 | CALL | - INFINITY
+30064771082 | CALL | count == 1
+30064771083 | CALL | a = parameter [ 1 ]
+30064771084 | CALL | parameter [ 1 ]
+30064771085 | CALL | b = parameter [ 2 ]
+30064771086 | CALL | parameter [ 2 ]
+30064771087 | CALL | c = 0
+30064771088 | CALL | e = 0
+30064771089 | CALL | f = 0
+30064771090 | CALL | interval = - 1 * parameter [ 2 ] / parameter [ 1 ]
+30064771091 | CALL | - 1 * parameter [ 2 ] / parameter [ 1 ]
+30064771092 | CALL | - 1 * parameter [ 2 ]
+30064771093 | CALL | - 1
+30064771094 | CALL | parameter [ 2 ]
+30064771095 | CALL | parameter [ 1 ]
+30064771096 | CALL | count == 2
+30064771097 | CALL | a = parameter [ 1 ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771080 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771085 [AST]
+25769803779 -> 30064771087 [AST]
+25769803779 -> 30064771088 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771090 [AST]
+25769803781 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771095 [CDG]
+30064771082 -> 30064771096 [CDG]
+30064771082 -> 30064771093 [CDG]
+30064771082 -> 30064771094 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771091 [CDG]
+30064771082 -> 30064771092 [CDG]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771095 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771094 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771095 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771095 [AST]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771095 [POST_DOMINATE]
+30064771091 -> 30064771090 [REA
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

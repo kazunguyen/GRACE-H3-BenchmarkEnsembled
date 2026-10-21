@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void write_stats ( void ) {
+ FILE * fp ;
+ # ifdef DOSYNCTODR struct timeval tv ;
+ # if ! defined ( VMS ) int prio_set ;
+ # endif # ifdef HAVE_GETCLOCK struct timespec ts ;
+ # endif int o_prio ;
+ # if ! defined ( VMS ) errno = 0 ;
+ prio_set = 0 ;
+ o_prio = getpriority ( PRIO_PROCESS , 0 ) ;
+ if ( ( errno == 0 ) && ( setpriority ( PRIO_PROCESS , 0 , - 20 ) == 0 ) ) prio_set = 1 ;
+ # endif # ifdef HAVE_GETCLOCK ( void ) getclock ( TIMEOFDAY , & ts ) ;
+ tv . tv_sec = ts . tv_sec ;
+ tv . tv_usec = ts . tv_nsec / 1000 ;
+ # else GETTIMEOFDAY ( & tv , ( struct timezone * ) NULL ) ;
+ # endif if ( ntp_set_tod ( & tv , ( struct timezone * ) NULL ) != 0 ) msyslog ( LOG_ERR , "can't sync battery time: %m" ) ;
+ # if ! defined ( VMS ) if ( prio_set ) setpriority ( PRIO_PROCESS , 0 , o_prio ) ;
+ # endif # endif record_sys_stats ( ) ;
+ if ( stats_drift_file != 0 ) {
+ # ifdef DEBUG if ( debug ) printf ( "write_stats: frequency %.6lf thresh %.6lf, freq %.6lf\n" , ( prev_drift_comp - drift_comp ) * 1e6 , wander_resid * 1e6 , drift_comp * 1e6 ) ;
+ # endif if ( fabs ( prev_drift_comp - drift_comp ) < wander_resid ) {
+ wander_resid *= 0.5 ;
+ return ;
+ }
+ prev_drift_comp = drift_comp ;
+ wander_resid = wander_threshold ;
+ if ( ( fp = fopen ( stats_temp_file , "w" ) ) == NULL ) {
+ msyslog ( LOG_ERR , "frequency file %s: %m" , stats_temp_file ) ;
+ return ;
+ }
+ fprintf ( fp , "%.3f\n" , drift_comp * 1e6 ) ;
+ ( void ) fclose ( fp ) ;
+ # ifdef SYS_WINNT if ( _unlink ( stats_drift_file ) ) msyslog ( LOG_WARNING , "Unable to remove prior drift file %s, %m" , stats_drift_file ) ;
+ # endif # ifndef NO_RENAME if ( rename ( stats_temp_file , stats_drift_file ) ) msyslog ( LOG_WARNING , "Unable to rename temp drift file %s to %s, %m" , stats_temp_file , stats_drift_file ) ;
+ # else if ( ( fp = fopen ( stats_drift_file , "w" ) ) == NULL ) {
+ msyslog ( LOG_ERR , "frequency file %s: %m" , stats_drift_file ) ;
+ return ;
+ }
+ # endif # if defined ( VMS ) {
+ $DESCRIPTOR ( oldvers , ";
+-1" ) ;
+ struct dsc$descriptor driftdsc = {
+ strlen ( stats_drift_file ) , 0 , 0 , stats_drift_file }
+ ;
+ while ( lib$delete_file ( & oldvers , & driftdsc ) & 1 ) ;
+ }
+ # endif }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ FILE * fp ;
+ # ifdef DOSYNCTODR struct timeval tv ;
+ # if ! defined ( VMS ) int prio_set ;
+ # endif # ifdef HAVE_GETCLOCK struct timespec ts ;
+ # endif int o_prio ;
+ # if ! defined ( VMS ) errno = 0 ;
+ prio_set = 0 ;
+ o_prio = getpriority ( PRIO_PROCESS , 0 ) ;
+ if ( ( errno == 0 ) && ( setpriority ( PRIO_PROCESS , 0 , - 20 ) == 0 ) ) prio_set = 1 ;
+ # endif # ifdef HAVE_GETCLOCK ( void ) getclock ( TIMEOFDAY , & ts ) ;
+ tv . tv_sec = ts . tv_sec ;
+ tv . tv_usec = ts . tv_nsec / 1000 ;
+ # else GETTIMEOFDAY ( & tv , ( struct timezone * ) NULL ) ;
+ # endif if ( ntp_set_tod ( & tv , ( struct timezone * ) NULL ) != 0 ) msyslog ( LOG_ERR , "can't sync battery time: %m" ) ;
+ # if ! defined ( VMS ) if ( prio_set ) setpriority ( PRIO_PROCESS , 0 , o_prio ) ;
+ # endif # endif record_sys_stats ( ) ;
+ if ( stats_drift_file != 0 ) {
+ # ifdef DEBUG if ( debug ) printf ( "write_stats: frequency %.6lf thresh %.6lf, freq %.6lf\n" , ( prev_drift_comp - drift_comp ) * 1e6 , wander_resid * 1e6 , dr...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ # ifdef DEBUG if ( debug ) printf ( "write_stats: frequency %.6lf thresh %.6lf, freq %.6lf\n" , ( prev_drift_comp - drift_comp ) * 1e6 , wander_resid * 1e6 , drift_comp * 1e6 ) ;
+ # endif if ( fabs ( prev_drift_comp - drift_comp ) < wander_resid ) {
+ wander_resid *= 0.5 ;
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ msyslog ( LOG_ERR , "frequency file %s: %m" , stats_temp_file ) ;
+ return ;
+ }
+      
+30064771072 | CALL | prio_set = 0
+30064771073 | CALL | o_prio = getpriority ( PRIO_PROCESS , 0 )
+30064771074 | CALL | getpriority ( PRIO_PROCESS , 0 )
+30064771075 | CALL | ( errno == 0 ) && ( setpriority ( PRIO_PROCESS , 0 , - 20 ) == 0 )
+30064771076 | CALL | errno == 0
+30064771077 | CALL | setpriority ( PRIO_PROCESS , 0 , - 20 ) == 0
+30064771078 | CALL | setpriority ( PRIO_PROCESS , 0 , - 20 )
+30064771079 | CALL | - 20
+30064771080 | CALL | prio_set = 1
+30064771081 | CALL | tv . tv_sec = ts . tv_sec
+30064771082 | CALL | tv . tv_sec
+30064771083 | CALL | ts . tv_sec
+30064771084 | CALL | tv . tv_usec = ts . tv_nsec / 1000
+30064771085 | CALL | tv . tv_usec
+30064771086 | CALL | ts . tv_nsec / 1000
+30064771087 | CALL | ts . tv_nsec
+30064771088 | CALL | stats_drift_file != 0
+30064771089 | CALL | wander_resid *= 0.5
+30064771090 | CALL | prev_drift_comp = drift_comp
+30064771091 | CALL | wander_resid = wander_threshold
+30064771092 | CALL | ( fp = fopen ( stats_temp_file , "w" ) ) == NULL
+30064771093 | CALL | fp = fopen ( stats_temp_file , "w" )
+30064771094 | CALL | fopen ( stats_temp_file , "w" )
+30064771095 | CALL | msyslog ( LOG_ERR , "frequency file %s: %m" , stats_temp_file )
+30064771096 | CALL | fprintf ( fp , "%.3f\n" , drift_comp * 1e6 )
+30064771097 | CALL | drift_comp * 1e6
+30064771098 | CALL | ( void ) fclose ( fp )
+30064771099 | CALL | fclose ( fp )
+30064771100 | CALL | msyslog ( LOG_ERR , "frequency file %s: %m" , stats_drift_file )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ( errno == 0 ) && ( setpriority ( PRIO_PROCESS , 0 , - 20 ) == 0 ) ) prio_set = 1 ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( stats_drift_file != 0 ) {
+ # ifdef DEBUG if ( debug ) printf ( "write_stats: frequency %.6lf thresh %.6lf, freq %.6lf\n" , ( prev_drift_comp - drift_comp ) * 1e6 , wander_resid * 1e6 , drift_comp * 1e6 ) ;
+ # endif if ( fabs ( prev_drift_comp - drift_comp ) < wander_resid ) {
+ wander_resid *= 0.5 ;
+ return ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ( fp = fopen ( stats_temp_file , "w" ) ) == NULL ) {
+ msyslog ( LOG_ERR , "frequency file %s: %m" , stats_temp_file ) ;
+ return ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | tv_sec
+55834574849 | FIELD_IDENTIFIER | tv_sec
+55834574850 | FIELD_IDENTIFIER | tv_usec
+55834574851 | FIELD_IDENTIFIER | tv_nsec
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771089 [AST]
+25769803779 -> 30064771095 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771076 [REACHING_DEF]
+3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

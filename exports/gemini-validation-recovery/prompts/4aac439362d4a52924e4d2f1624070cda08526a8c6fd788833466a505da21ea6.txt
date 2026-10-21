@@ -1,0 +1,197 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+rfbBool rfbSendUpdateBuf ( rfbClientPtr cl ) {
+ if ( cl -> sock < 0 ) return FALSE ;
+ if ( rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen ) < 0 ) {
+ rfbLogPerror ( "rfbSendUpdateBuf: write" ) ;
+ rfbCloseClient ( cl ) ;
+ return FALSE ;
+ }
+ cl -> ublen = 0 ;
+ return TRUE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( cl -> sock < 0 ) return FALSE ;
+ if ( rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen ) < 0 ) {
+ rfbLogPerror ( "rfbSendUpdateBuf: write" ) ;
+ rfbCloseClient ( cl ) ;
+ return FALSE ;
+ }
+ cl -> ublen = 0 ;
+ return TRUE ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ rfbLogPerror ( "rfbSendUpdateBuf: write" ) ;
+ rfbCloseClient ( cl ) ;
+ return FALSE ;
+ }
+      
+30064771072 | CALL | cl -> sock < 0
+30064771073 | CALL | cl -> sock
+30064771074 | CALL | rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen ) < 0
+30064771075 | CALL | rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen )
+30064771076 | CALL | cl -> updateBuf
+30064771077 | CALL | cl -> ublen
+30064771078 | CALL | rfbLogPerror ( "rfbSendUpdateBuf: write" )
+30064771079 | CALL | rfbCloseClient ( cl )
+30064771080 | CALL | cl -> ublen = 0
+30064771081 | CALL | cl -> ublen
+47244640256 | CONTROL_STRUCTURE | if ( cl -> sock < 0 ) return FALSE ;
+47244640257 | CONTROL_STRUCTURE | 
+        if ( rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen ) < 0 ) {
+ rfbLogPerror ( "rfbSendUpdateBuf: write" ) ;
+ rfbCloseClient ( cl ) ;
+ return FALSE ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | sock
+55834574849 | FIELD_IDENTIFIER | updateBuf
+55834574850 | FIELD_IDENTIFIER | ublen
+55834574851 | FIELD_IDENTIFIER | ublen
+68719476736 | IDENTIFIER | cl
+68719476737 | IDENTIFIER | <unknown> FALSE
+68719476738 | IDENTIFIER | cl
+68719476739 | IDENTIFIER | cl
+68719476740 | IDENTIFIER | cl
+68719476741 | IDENTIFIER | cl
+68719476742 | IDENTIFIER | <unknown> FALSE
+68719476743 | IDENTIFIER | cl
+68719476744 | IDENTIFIER | <unknown> TRUE
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+90194313218 | LITERAL | "rfbSendUpdateBuf: write"
+90194313219 | LITERAL | 0
+94489280512 | LOCAL | <unknown> TRUE
+94489280513 | LOCAL | <unknown> FALSE
+107374182400 | METHOD | 
+        rfbBool rfbSendUpdateBuf ( rfbClientPtr cl ) {
+ if ( cl -> sock < 0 ) return FALSE ;
+ if ( rfbWriteExact ( cl , cl -> updateBuf , cl -> ublen ) < 0 ) {
+ rfbLogPerror ( "rfbSendUpdateBuf: write" ) ;
+ rfbCloseClient ( cl ) ;
+ return FALSE ;
+ }
+ cl -> ublen = 0 ;
+ return TRUE ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | rfbClientPtr cl
+115964116992 | METHOD_PARAMETER_OUT | rfbClientPtr cl
+124554051584 | METHOD_RETURN | RET
+141733920768 | RETURN | return FALSE ;
+141733920769 | RETURN | return FALSE ;
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803777 -> 141733920768 [AST]
+25769803778 -> 30064771078 [AST]
+25769803778 -> 30064771079 [AST]
+25769803778 -> 141733920769 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 141733920768 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 90194313216 [CFG]
+30064771073 -> 90194313216 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476740 [REACHING_DEF]
+30064771073 -> 68719476739 [REACHING_DEF]
+30064771073 -> 68719476741 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476738 [REACHING_DEF]
+30064771073 -> 115964116992 [REACHING_DEF]
+30064771073 -> 68719476743 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 141733920769 [CDG]
+30064771074 -> 90194313219 [CDG]
+30064771074 -> 90194313218 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 90194313218 [CFG]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 90194313218 [DOMINATE]
+30064771074 -> 68719476743 [DOMINATE]
+30064771074 -> 90194313217 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 90194313217 [CFG]
+30064771075 -> 90194313217 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+rfbBool rfbSendXvp ( rfbClientPtr cl , uint8_t version , uint8_t code ) {
+ rfbXvpMsg xvp ;
+ xvp . type = rfbXvp ;
+ xvp . pad = 0 ;
+ xvp . version = version ;
+ xvp . code = code ;
+ LOCK ( cl -> sendMutex ) ;
+ if ( rfbWriteExact ( cl , ( char * ) & xvp , sz_rfbXvpMsg ) < 0 ) {
+ rfbLogPerror ( "rfbSendXvp: write" ) ;
+ rfbCloseClient ( cl ) ;
+ }
+ UNLOCK ( cl -> sendMutex ) ;
+ rfbStatRecordMessageSent ( cl , rfbXvp , sz_rfbXvpMsg , sz_rfbXvpMsg ) ;
+ return TRUE ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

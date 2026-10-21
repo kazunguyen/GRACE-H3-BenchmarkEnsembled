@@ -1,0 +1,266 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int kvm_get_supported_msrs ( KVMState * s ) {
+ static int kvm_supported_msrs ;
+ int ret = 0 ;
+ if ( kvm_supported_msrs == 0 ) {
+ struct kvm_msr_list msr_list , * kvm_msr_list ;
+ kvm_supported_msrs = - 1 ;
+ msr_list . nmsrs = 0 ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , & msr_list ) ;
+ if ( ret < 0 && ret != - E2BIG ) {
+ return ret ;
+ }
+ kvm_msr_list = g_malloc0 ( MAX ( 1024 , sizeof ( msr_list ) + msr_list . nmsrs * sizeof ( msr_list . indices [ 0 ] ) ) ) ;
+ kvm_msr_list -> nmsrs = msr_list . nmsrs ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , kvm_msr_list ) ;
+ if ( ret >= 0 ) {
+ int i ;
+ for ( i = 0 ;
+ i < kvm_msr_list -> nmsrs ;
+ i ++ ) {
+ switch ( kvm_msr_list -> indices [ i ] ) {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+ break ;
+ case MSR_SMI_COUNT : has_msr_smi_count = true ;
+ break ;
+ case MSR_IA32_MISC_ENABLE : has_msr_misc_enable = true ;
+ break ;
+ case MSR_IA32_BNDCFGS : has_msr_bndcfgs = true ;
+ break ;
+ case MSR_IA32_XSS : has_msr_xss = true ;
+ break ;
+ case HV_X64_MSR_CRASH_CTL : has_msr_hv_crash = true ;
+ break ;
+ case HV_X64_MSR_RESET : has_msr_hv_reset = true ;
+ break ;
+ case HV_X64_MSR_VP_INDEX : has_msr_hv_vpindex = true ;
+ break ;
+ case HV_X64_MSR_VP_RUNTIME : has_msr_hv_runtime = true ;
+ break ;
+ case HV_X64_MSR_SCONTROL : has_msr_hv_synic = true ;
+ break ;
+ case HV_X64_MSR_STIMER0_CONFIG : has_msr_hv_stimer = true ;
+ break ;
+ case HV_X64_MSR_TSC_FREQUENCY : has_msr_hv_frequencies = true ;
+ break ;
+ case HV_X64_MSR_REENLIGHTENMENT_CONTROL : has_msr_hv_reenlightenment = true ;
+ break ;
+ case MSR_IA32_SPEC_CTRL : has_msr_spec_ctrl = true ;
+ break ;
+ case MSR_VIRT_SSBD : has_msr_virt_ssbd = true ;
+ break ;
+ }
+ }
+ }
+ g_free ( kvm_msr_list ) ;
+ }
+ return ret ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static int kvm_supported_msrs ;
+ int ret = 0 ;
+ if ( kvm_supported_msrs == 0 ) {
+ struct kvm_msr_list msr_list , * kvm_msr_list ;
+ kvm_supported_msrs = - 1 ;
+ msr_list . nmsrs = 0 ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , & msr_list ) ;
+ if ( ret < 0 && ret != - E2BIG ) {
+ return ret ;
+ }
+ kvm_msr_list = g_malloc0 ( MAX ( 1024 , sizeof ( msr_list ) + msr_list . nmsrs * sizeof ( msr_list . indices [ 0 ] ) ) ) ;
+ kvm_msr_list -> nmsrs = msr_list . nmsrs ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , kvm_msr_list ) ;
+ if ( ret >= 0 ) {
+ int i ;
+ for ( i = 0 ;
+ i < kvm_msr_list -> nmsrs ;
+ i ++ ) {
+ switch ( kvm_msr_list -> indices [ i ] ) {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+...
+      
+25769803777 | BLOCK | 
+        {
+ struct kvm_msr_list msr_list , * kvm_msr_list ;
+ kvm_supported_msrs = - 1 ;
+ msr_list . nmsrs = 0 ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , & msr_list ) ;
+ if ( ret < 0 && ret != - E2BIG ) {
+ return ret ;
+ }
+ kvm_msr_list = g_malloc0 ( MAX ( 1024 , sizeof ( msr_list ) + msr_list . nmsrs * sizeof ( msr_list . indices [ 0 ] ) ) ) ;
+ kvm_msr_list -> nmsrs = msr_list . nmsrs ;
+ ret = kvm_ioctl ( s , KVM_GET_MSR_INDEX_LIST , kvm_msr_list ) ;
+ if ( ret >= 0 ) {
+ int i ;
+ for ( i = 0 ;
+ i < kvm_msr_list -> nmsrs ;
+ i ++ ) {
+ switch ( kvm_msr_list -> indices [ i ] ) {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+ break ;
+ case MSR_SMI_COUNT : has_msr_smi_count = true ;
+ break ;
+ case MSR_IA32_...
+      
+25769803778 | BLOCK | { return ret ; }
+25769803779 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < kvm_msr_list -> nmsrs ;
+ i ++ ) {
+ switch ( kvm_msr_list -> indices [ i ] ) {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+ break ;
+ case MSR_SMI_COUNT : has_msr_smi_count = true ;
+ break ;
+ case MSR_IA32_MISC_ENABLE : has_msr_misc_enable = true ;
+ break ;
+ case MSR_IA32_BNDCFGS : has_msr_bndcfgs = true ;
+ break ;
+ case MSR_IA32_XSS : has_msr_xss = true ;
+ break ;
+ case HV_X64_MSR_CRASH_CTL : has_msr_hv_crash = true ;
+ break ;
+ case HV_X64_MSR_RESET : has_msr_hv_reset = true ;
+ break ;
+ case HV_X64_MSR_VP_INDEX : has_msr_hv_vpindex = true ;
+ break ;
+ case HV_X64_MSR_VP_RUNTIME : has_msr_hv_runtime = true ;
+ break ;
+ case HV_X64_MSR_SCONTROL : has_msr_hv_synic = true...
+      
+25769803780 | BLOCK | 
+        {
+ switch ( kvm_msr_list -> indices [ i ] ) {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+ break ;
+ case MSR_SMI_COUNT : has_msr_smi_count = true ;
+ break ;
+ case MSR_IA32_MISC_ENABLE : has_msr_misc_enable = true ;
+ break ;
+ case MSR_IA32_BNDCFGS : has_msr_bndcfgs = true ;
+ break ;
+ case MSR_IA32_XSS : has_msr_xss = true ;
+ break ;
+ case HV_X64_MSR_CRASH_CTL : has_msr_hv_crash = true ;
+ break ;
+ case HV_X64_MSR_RESET : has_msr_hv_reset = true ;
+ break ;
+ case HV_X64_MSR_VP_INDEX : has_msr_hv_vpindex = true ;
+ break ;
+ case HV_X64_MSR_VP_RUNTIME : has_msr_hv_runtime = true ;
+ break ;
+ case HV_X64_MSR_SCONTROL : has_msr_hv_synic = true ;
+ break ;
+ case HV_X64_MSR_STIMER0_CONFIG : has_msr_hv_stimer...
+      
+25769803781 | BLOCK | 
+        {
+ case MSR_STAR : has_msr_star = true ;
+ break ;
+ case MSR_VM_HSAVE_PA : has_msr_hsave_pa = true ;
+ break ;
+ case MSR_TSC_AUX : has_msr_tsc_aux = true ;
+ break ;
+ case MSR_TSC_ADJUST : has_msr_tsc_adjust = true ;
+ break ;
+ case MSR_IA32_TSCDEADLINE : has_msr_tsc_deadline = true ;
+ break ;
+ case MSR_IA32_SMBASE : has_msr_smbase = true ;
+ break ;
+ case MSR_SMI_COUNT : has_msr_smi_count = true ;
+ break ;
+ case MSR_IA32_MISC_ENABLE : has_msr_misc_enable = true ;
+ break ;
+ case MSR_IA32_BNDCFGS : has_msr_bndcfgs = true ;
+ break ;
+ case MSR_IA32_XSS : has_msr_xss = true ;
+ break ;
+ case HV_X64_MSR_CRASH_CTL : has_msr_hv_crash = true ;
+ break ;
+ case HV_X64_MSR_RESET : has_msr_hv_reset = true ;
+ break ;
+ case HV_X64_MSR_VP_INDEX : has_msr_hv_vpindex = true ;
+ break ;
+ case HV_X64_MSR_VP_RUNTIME : has_msr_hv_runtime = true ;
+ break ;
+ case HV_X64_MSR_SCONTROL : has_msr_hv_synic = true ;
+ break ;
+ case HV_X64_MSR_STIMER0_CONFIG : has_msr_hv_stimer = true ;
+ break ;
+ case HV_X64_MSR_TSC_FREQ...
+      
+30064771072 | CALL | ret = 0
+30064771073 | CALL | kvm_supported_msrs == 0
+30064771074 | CALL | kvm_supported_msrs = - 1
+30064771075 |
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

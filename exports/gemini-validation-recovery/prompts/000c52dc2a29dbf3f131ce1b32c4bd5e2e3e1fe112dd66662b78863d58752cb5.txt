@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void directory_count_start ( NautilusDirectory * directory , NautilusFile * file , gboolean * doing_io ) {
+ DirectoryCountState * state ;
+ GFile * location ;
+ if ( directory -> details -> count_in_progress != NULL ) {
+ * doing_io = TRUE ;
+ return ;
+ }
+ if ( ! is_needy ( file , should_get_directory_count_now , REQUEST_DIRECTORY_COUNT ) ) {
+ return ;
+ }
+ * doing_io = TRUE ;
+ if ( ! nautilus_file_is_directory ( file ) ) {
+ file -> details -> directory_count_is_up_to_date = TRUE ;
+ file -> details -> directory_count_failed = FALSE ;
+ file -> details -> got_directory_count = FALSE ;
+ nautilus_directory_async_state_changed ( directory ) ;
+ return ;
+ }
+ if ( ! async_job_start ( directory , "directory count" ) ) {
+ return ;
+ }
+ state = g_new0 ( DirectoryCountState , 1 ) ;
+ state -> count_file = file ;
+ state -> directory = nautilus_directory_ref ( directory ) ;
+ state -> cancellable = g_cancellable_new ( ) ;
+ directory -> details -> count_in_progress = state ;
+ location = nautilus_file_get_location ( file ) ;
+ # ifdef DEBUG_LOAD_DIRECTORY {
+ char * uri ;
+ uri = g_file_get_uri ( location ) ;
+ g_message ( "load_directory called to get shallow file count for %s" , uri ) ;
+ g_free ( uri ) ;
+ }
+ # endif g_file_enumerate_children_async ( location , G_FILE_ATTRIBUTE_STANDARD_NAME "," G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN "," G_FILE_ATTRIBUTE_STANDARD_IS_BACKUP , G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS , G_PRIORITY_DEFAULT , state -> cancellable , count_children_callback , state ) ;
+ g_object_unref ( location ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DirectoryCountState * state ;
+ GFile * location ;
+ if ( directory -> details -> count_in_progress != NULL ) {
+ * doing_io = TRUE ;
+ return ;
+ }
+ if ( ! is_needy ( file , should_get_directory_count_now , REQUEST_DIRECTORY_COUNT ) ) {
+ return ;
+ }
+ * doing_io = TRUE ;
+ if ( ! nautilus_file_is_directory ( file ) ) {
+ file -> details -> directory_count_is_up_to_date = TRUE ;
+ file -> details -> directory_count_failed = FALSE ;
+ file -> details -> got_directory_count = FALSE ;
+ nautilus_directory_async_state_changed ( directory ) ;
+ return ;
+ }
+ if ( ! async_job_start ( directory , "directory count" ) ) {
+ return ;
+ }
+ state = g_new0 ( DirectoryCountState , 1 ) ;
+ state -> count_file = file ;
+ state -> directory = nautilus_directory_ref ( directory ) ;
+ state -> cancellable = g_cancellable_new ( ) ;
+ directory -> details -> count_in_progress = state ;
+ location = nautilus_file_get_location ( file ) ;
+ # ifdef DEBUG_LOAD_DIRECTORY {
+ char * uri ;
+ uri = g_file_get_uri ( location ) ;
+ g...
+      
+25769803777 | BLOCK | { * doing_io = TRUE ; return ; }
+25769803778 | BLOCK | { return ; }
+25769803779 | BLOCK | 
+        {
+ file -> details -> directory_count_is_up_to_date = TRUE ;
+ file -> details -> directory_count_failed = FALSE ;
+ file -> details -> got_directory_count = FALSE ;
+ nautilus_directory_async_state_changed ( directory ) ;
+ return ;
+ }
+      
+25769803780 | BLOCK | { return ; }
+30064771072 | CALL | directory -> details -> count_in_progress != NULL
+30064771073 | CALL | directory -> details -> count_in_progress
+30064771074 | CALL | directory -> details
+30064771075 | CALL | * doing_io = TRUE
+30064771076 | CALL | * doing_io
+30064771077 | CALL | ! is_needy ( file , should_get_directory_count_now , REQUEST_DIRECTORY_COUNT )
+30064771078 | CALL | is_needy ( file , should_get_directory_count_now , REQUEST_DIRECTORY_COUNT )
+30064771079 | CALL | * doing_io = TRUE
+30064771080 | CALL | * doing_io
+30064771081 | CALL | ! nautilus_file_is_directory ( file )
+30064771082 | CALL | nautilus_file_is_directory ( file )
+30064771083 | CALL | file -> details -> directory_count_is_up_to_date = TRUE
+30064771084 | CALL | file -> details -> directory_count_is_up_to_date
+30064771085 | CALL | file -> details
+30064771086 | CALL | file -> details -> directory_count_failed = FALSE
+30064771087 | CALL | file -> details -> directory_count_failed
+30064771088 | CALL | file -> details
+30064771089 | CALL | file -> details -> got_directory_count = FALSE
+30064771090 | CALL | file -> details -> got_directory_count
+30064771091 | CALL | file -> details
+30064771092 | CALL | nautilus_directory_async_state_changed ( directory )
+30064771093 | CALL | ! async_job_start ( directory , "directory count" )
+30064771094 | CALL | async_job_start ( directory , "directory count" )
+30064771095 | CALL | state = g_new0 ( DirectoryCountState , 1 )
+30064771096 | CALL | g_new0 ( DirectoryCountState , 1 )
+30064771097 | CALL | state -> count_file = file
+30064771098 | CALL | state -> count_file
+30064771099 | CALL | state -> directory = nautilus_directory_ref ( directory )
+30064771100 | CALL | state -> directory
+30064771101 | CALL | nautilus_directory_ref ( directory )
+30064771102 | CALL | state -> cancellable = g_cancellable_new ( )
+30064771103 | CALL | state -> cancellable
+30064771104 | CALL | g_cancellable_new ( )
+30064771105 | CALL | directory -> details -> count_in_progress = state
+30064771106 | CALL | directory -> details -> count_in_progress
+EDGES:
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771105 [AST]
+25769803777 -> 30064771075 [AST]
+25769803779 -> 30064771083 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771088 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771091 [REACHI
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

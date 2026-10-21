@@ -1,0 +1,195 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ff_ivi_init_static_vlc ( void ) {
+ int i ;
+ static VLC_TYPE table_data [ 8192 * 16 ] [ 2 ] ;
+ static int initialized_vlcs = 0 ;
+ if ( initialized_vlcs ) return ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) {
+ ivi_mb_vlc_tabs [ i ] . table = table_data + i * 2 * 8192 ;
+ ivi_mb_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_mb_huff_desc [ i ] , & ivi_mb_vlc_tabs [ i ] , 1 ) ;
+ ivi_blk_vlc_tabs [ i ] . table = table_data + ( i * 2 + 1 ) * 8192 ;
+ ivi_blk_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_blk_huff_desc [ i ] , & ivi_blk_vlc_tabs [ i ] , 1 ) ;
+ }
+ initialized_vlcs = 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ static VLC_TYPE table_data [ 8192 * 16 ] [ 2 ] ;
+ static int initialized_vlcs = 0 ;
+ if ( initialized_vlcs ) return ;
+ for ( i = 0 ;
+ i < 8 ;
+ i ++ ) {
+ ivi_mb_vlc_tabs [ i ] . table = table_data + i * 2 * 8192 ;
+ ivi_mb_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_mb_huff_desc [ i ] , & ivi_mb_vlc_tabs [ i ] , 1 ) ;
+ ivi_blk_vlc_tabs [ i ] . table = table_data + ( i * 2 + 1 ) * 8192 ;
+ ivi_blk_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_blk_huff_desc [ i ] , & ivi_blk_vlc_tabs [ i ] , 1 ) ;
+ }
+ initialized_vlcs = 1 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ ivi_mb_vlc_tabs [ i ] . table = table_data + i * 2 * 8192 ;
+ ivi_mb_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_mb_huff_desc [ i ] , & ivi_mb_vlc_tabs [ i ] , 1 ) ;
+ ivi_blk_vlc_tabs [ i ] . table = table_data + ( i * 2 + 1 ) * 8192 ;
+ ivi_blk_vlc_tabs [ i ] . table_allocated = 8192 ;
+ ivi_create_huff_from_desc ( & ff_ivi_blk_huff_desc [ i ] , & ivi_blk_vlc_tabs [ i ] , 1 ) ;
+ }
+      
+30064771072 | CALL | table_data [ 8192 * 16 ] [ 2 ]
+30064771073 | CALL | table_data [ 8192 * 16 ] [ 2 ]
+30064771074 | CALL | 8192 * 16
+30064771075 | CALL | initialized_vlcs = 0
+30064771076 | CALL | initialized_vlcs != 0
+30064771077 | CALL | i = 0
+30064771078 | CALL | i < 8
+30064771079 | CALL | i ++
+30064771080 | CALL | ivi_mb_vlc_tabs [ i ] . table = table_data + i * 2 * 8192
+30064771081 | CALL | ivi_mb_vlc_tabs [ i ] . table
+30064771082 | CALL | ivi_mb_vlc_tabs [ i ]
+30064771083 | CALL | table_data + i * 2 * 8192
+30064771084 | CALL | i * 2 * 8192
+30064771085 | CALL | i * 2
+30064771086 | CALL | ivi_mb_vlc_tabs [ i ] . table_allocated = 8192
+30064771087 | CALL | ivi_mb_vlc_tabs [ i ] . table_allocated
+30064771088 | CALL | ivi_mb_vlc_tabs [ i ]
+30064771089 | CALL | 
+        ivi_create_huff_from_desc ( & ff_ivi_mb_huff_desc [ i ] , & ivi_mb_vlc_tabs [ i ] , 1 )
+      
+30064771090 | CALL | & ff_ivi_mb_huff_desc [ i ]
+30064771091 | CALL | ff_ivi_mb_huff_desc [ i ]
+30064771092 | CALL | & ivi_mb_vlc_tabs [ i ]
+30064771093 | CALL | ivi_mb_vlc_tabs [ i ]
+30064771094 | CALL | ivi_blk_vlc_tabs [ i ] . table = table_data + ( i * 2 + 1 ) * 8192
+30064771095 | CALL | ivi_blk_vlc_tabs [ i ] . table
+30064771096 | CALL | ivi_blk_vlc_tabs [ i ]
+30064771097 | CALL | table_data + ( i * 2 + 1 ) * 8192
+30064771098 | CALL | ( i * 2 + 1 ) * 8192
+30064771099 | CALL | i * 2 + 1
+30064771100 | CALL | i * 2
+30064771101 | CALL | ivi_blk_vlc_tabs [ i ] . table_allocated = 8192
+30064771102 | CALL | ivi_blk_vlc_tabs [ i ] . table_allocated
+30064771103 | CALL | ivi_blk_vlc_tabs [ i ]
+30064771104 | CALL | 
+        ivi_create_huff_from_desc ( & ff_ivi_blk_huff_desc [ i ] , & ivi_blk_vlc_tabs [ i ] , 1 )
+      
+30064771105 | CALL | & ff_ivi_blk_huff_desc [ i ]
+30064771106 | CALL | ff_ivi_blk_huff_desc [ i ]
+30064771107 | CALL | & ivi_blk_vlc_tabs [ i ]
+30064771108 | CALL | ivi_blk_vlc_tabs [ i ]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803778 -> 30064771080 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771089 [AST]
+25769803778 -> 30064771094 [AST]
+25769803778 -> 30064771101 [AST]
+25769803778 -> 30064771104 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771078 -> 30064771078 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771108 [CDG]
+30064771078 -> 30064771104 [CDG]
+30064771078 -> 30064771105 [CDG]
+30064771078 -> 30064771106 [CDG]
+30064771078 -> 30064771107 [CDG]
+30064771078 -> 30064771100 [CDG]
+30064771078 -> 30064771101 [CDG]
+30064771078 -> 30064771102 [CDG]
+30064771078 -> 30064771103 [CDG]
+30064771078 -> 30064771096 [CDG]
+30064771078 -> 30064771097 [CDG]
+30064771078 -> 30064771098 [CDG]
+30064771078 -> 30064771099 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771093 [CDG]
+30064771078 -> 30064771094 [CDG]
+30064771078 -> 30064771095 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771091 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771093 [REACHING_DEF]
+30064771081 -> 30064771088 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771093 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void init_mv ( FourXContext * f , int linesize ) {
+ int i ;
+ for ( i = 0 ;
+ i < 256 ;
+ i ++ ) {
+ if ( f -> version > 1 ) f -> mv [ i ] = mv [ i ] [ 0 ] + mv [ i ] [ 1 ] * linesize / 2 ;
+ else f -> mv [ i ] = ( i & 15 ) - 8 + ( ( i >> 4 ) - 8 ) * linesize / 2 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

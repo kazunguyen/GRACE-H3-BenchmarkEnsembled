@@ -1,0 +1,191 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static vpx_codec_err_t set_encoder_config ( VP9EncoderConfig * oxcf , const vpx_codec_enc_cfg_t * cfg , const struct vp9_extracfg * extra_cfg ) {
+ const int is_vbr = cfg -> rc_end_usage == VPX_VBR ;
+ oxcf -> profile = cfg -> g_profile ;
+ oxcf -> width = cfg -> g_w ;
+ oxcf -> height = cfg -> g_h ;
+ oxcf -> bit_depth = extra_cfg -> bit_depth ;
+ oxcf -> input_bit_depth = cfg -> g_input_bit_depth ;
+ oxcf -> init_framerate = ( double ) cfg -> g_timebase . den / cfg -> g_timebase . num ;
+ if ( oxcf -> init_framerate > 180 ) oxcf -> init_framerate = 30 ;
+ oxcf -> mode = GOOD ;
+ switch ( cfg -> g_pass ) {
+ case VPX_RC_ONE_PASS : oxcf -> pass = 0 ;
+ break ;
+ case VPX_RC_FIRST_PASS : oxcf -> pass = 1 ;
+ break ;
+ case VPX_RC_LAST_PASS : oxcf -> pass = 2 ;
+ break ;
+ }
+ oxcf -> lag_in_frames = cfg -> g_pass == VPX_RC_FIRST_PASS ? 0 : cfg -> g_lag_in_frames ;
+ oxcf -> rc_mode = cfg -> rc_end_usage ;
+ oxcf -> target_bandwidth = 1000 * cfg -> rc_target_bitrate ;
+ oxcf -> rc_max_intra_bitrate_pct = extra_cfg -> rc_max_intra_bitrate_pct ;
+ oxcf -> best_allowed_q = extra_cfg -> lossless ? 0 : vp9_quantizer_to_qindex ( cfg -> rc_min_quantizer ) ;
+ oxcf -> worst_allowed_q = extra_cfg -> lossless ? 0 : vp9_quantizer_to_qindex ( cfg -> rc_max_quantizer ) ;
+ oxcf -> cq_level = vp9_quantizer_to_qindex ( extra_cfg -> cq_level ) ;
+ oxcf -> fixed_q = - 1 ;
+ oxcf -> under_shoot_pct = cfg -> rc_undershoot_pct ;
+ oxcf -> over_shoot_pct = cfg -> rc_overshoot_pct ;
+ oxcf -> allow_spatial_resampling = cfg -> rc_resize_allowed ;
+ oxcf -> scaled_frame_width = cfg -> rc_scaled_width ;
+ oxcf -> scaled_frame_height = cfg -> rc_scaled_height ;
+ oxcf -> maximum_buffer_size_ms = is_vbr ? 240000 : cfg -> rc_buf_sz ;
+ oxcf -> starting_buffer_level_ms = is_vbr ? 60000 : cfg -> rc_buf_initial_sz ;
+ oxcf -> optimal_buffer_level_ms = is_vbr ? 60000 : cfg -> rc_buf_optimal_sz ;
+ oxcf -> drop_frames_water_mark = cfg -> rc_dropframe_thresh ;
+ oxcf -> two_pass_vbrbias = cfg -> rc_2pass_vbr_bias_pct ;
+ oxcf -> two_pass_vbrmin_section = cfg -> rc_2pass_vbr_minsection_pct ;
+ oxcf -> two_pass_vbrmax_section = cfg -> rc_2pass_vbr_maxsection_pct ;
+ oxcf -> auto_key = cfg -> kf_mode == VPX_KF_AUTO && cfg -> kf_min_dist != cfg -> kf_max_dist ;
+ oxcf -> key_freq = cfg -> kf_max_dist ;
+ oxcf -> speed = abs ( extra_cfg -> cpu_used ) ;
+ oxcf -> encode_breakout = extra_cfg -> static_thresh ;
+ oxcf -> play_alternate = extra_cfg -> enable_auto_alt_ref ;
+ oxcf -> noise_sensitivity = extra_cfg -> noise_sensitivity ;
+ oxcf -> sharpness = extra_cfg -> sharpness ;
+ oxcf -> two_pass_stats_in = cfg -> rc_twopass_stats_in ;
+ # if CONFIG_FP_MB_STATS oxcf -> firstpass_mb_stats_in = cfg -> rc_firstpass_mb_stats_in ;
+ # endif oxcf -> arnr_max_frames = extra_cfg -> arnr_max_frames ;
+ oxcf -> arnr_strength = extra_cfg -> arnr_strength ;
+ oxcf -> tuning = extra_cfg -> tuning ;
+ oxcf -> content = extra_cfg -> content ;
+ oxcf -> tile_columns = extra_cfg -> tile_columns ;
+ oxcf -> tile_rows = extra_cfg -> tile_rows ;
+ oxcf -> err
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int is_vbr = cfg -> rc_end_usage == VPX_VBR ;
+ oxcf -> profile = cfg -> g_profile ;
+ oxcf -> width = cfg -> g_w ;
+ oxcf -> height = cfg -> g_h ;
+ oxcf -> bit_depth = extra_cfg -> bit_depth ;
+ oxcf -> input_bit_depth = cfg -> g_input_bit_depth ;
+ oxcf -> init_framerate = ( double ) cfg -> g_timebase . den / cfg -> g_timebase . num ;
+ if ( oxcf -> init_framerate > 180 ) oxcf -> init_framerate = 30 ;
+ oxcf -> mode = GOOD ;
+ switch ( cfg -> g_pass ) {
+ case VPX_RC_ONE_PASS : oxcf -> pass = 0 ;
+ break ;
+ case VPX_RC_FIRST_PASS : oxcf -> pass = 1 ;
+ break ;
+ case VPX_RC_LAST_PASS : oxcf -> pass = 2 ;
+ break ;
+ }
+ oxcf -> lag_in_frames = cfg -> g_pass == VPX_RC_FIRST_PASS ? 0 : cfg -> g_lag_in_frames ;
+ oxcf -> rc_mode = cfg -> rc_end_usage ;
+ oxcf -> target_bandwidth = 1000 * cfg -> rc_target_bitrate ;
+ oxcf -> rc_max_intra_bitrate_pct = extra_cfg -> rc_max_intra_bitrate_pct ;
+ oxcf -> best_allowed_q = extra_cfg -> lossless ? 0 : vp9_quantizer_to_qindex ( cfg -> rc_min_quantizer ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ case VPX_RC_ONE_PASS : oxcf -> pass = 0 ;
+ break ;
+ case VPX_RC_FIRST_PASS : oxcf -> pass = 1 ;
+ break ;
+ case VPX_RC_LAST_PASS : oxcf -> pass = 2 ;
+ break ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < VPX_SS_MAX_LAYERS ;
+ ++ i ) {
+ oxcf -> ss_target_bitrate [ i ] = 1000 * cfg -> ss_target_bitrate [ i ] ;
+ # if CONFIG_SPATIAL_SVC oxcf -> ss_play_alternate [ i ] = cfg -> ss_enable_auto_alt_ref [ i ] ;
+ # endif }
+ }
+ else if ( oxcf -> ss_number_layers == 1 ) {
+ oxcf -> ss_target_bitrate [ 0 ] = ( int ) oxcf -> target_bandwidth ;
+ # if CONFIG_SPATIAL_SVC oxcf -> ss_play_alternate [ 0 ] = extra_cfg -> enable_auto_alt_ref ;
+ # endif }
+ oxcf -> ts_number_layers = cfg -> ts_number_layers ;
+ if ( oxcf -> ts_number_layers > 1 ) {
+ int i ;
+ for ( i = 0 ;
+ i < VPX_TS_MAX_LAYERS ;
+ ++ i ) {
+ oxcf -> ts_target_bitrate [ i ] = 1000 * cfg -> ts_target_bitrate [ i ] ;
+ oxcf -> ts_rate_decimator [ i ] = cfg -> ts_rate_decimator [ i ] ;
+ }
+ }
+ else if ( oxcf -> ts_number_layers == 1 ) {
+ oxcf -> ts_target_bitrate [ 0 ] = ( int ) oxcf -> target_bandwidth ;
+ oxcf -> ts_rate_decimator [ 0 ] = 1 ;
+ }
+ return VPX_CODEC_OK ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ oxcf -> ss_target_bitrate [ i ] = 1000 * cfg -> ss_target_bitrate [ i ] ;
+ # if CONFIG_SPATIAL_SVC oxcf -> ss_play_alternate [ i ] = cfg -> ss_enable_auto_alt_ref [ i ] ;
+ # endif }
+ }
+      
+30064771072 | CALL | is_vbr = cfg -> rc_end_usage == VPX_VBR
+30064771073 | CALL | cfg -> rc_end_usage == VPX_VBR
+30064771074 | CALL | cfg -> rc_end_usage
+30064771075 | CALL | oxcf -> profile = cfg -> g_profile
+30064771076 | CALL | oxcf -> profile
+30064771077 | CALL | cfg -> g_profile
+30064771078 | CALL | oxcf -> width = cfg -> g_w
+30064771079 | CALL | oxcf -> width
+30064771080 | CALL | cfg -> g_w
+30064771081 | CALL | oxcf -> height = cfg -> g_h
+30064771082 | CALL | oxcf -> height
+30064771083 | CALL | cfg -> g_h
+30064771084 | CALL | oxcf -> bit_depth = extra_cfg -> bit_depth
+30064771085 | CALL | oxcf -> bit_depth
+30064771086 | CALL | extra_cfg -> bit_depth
+30064771087 | CALL | oxcf -> input_bit_depth = cfg -> g_input_bit_depth
+30064771088 | CALL | oxcf -> input_bit_depth
+30064771089 | CALL | cfg -> g_input_bit_depth
+30064771090 | CALL | 
+        oxcf -> init_framerate = ( double ) cfg -> g_timebase . den / cfg -> g_timebase . num
+      
+30064771091 | CALL | oxcf -> init_framerate
+30064771092 | CALL | ( double ) cfg -> g_timebase . den / cfg -> g_timebase . num
+30064771093 | CALL | ( double ) cfg -> g_timebase . den
+30064771094 | CALL | cfg -> g_timebase . den
+30064771095 | CALL | cfg -> g_timebase
+30064771096 | CALL | cfg -> g_timebase . num
+30064771097 | CALL | cfg -> g_timebase
+30064771098 | CALL | oxcf -> init_framerate > 180
+30064771099 | CALL | oxcf -> init_framerate
+30064771100 | CALL | oxcf -> init_framerate = 30
+30064771101 | CALL | oxcf -> init_framerate
+30064771102 | CALL | oxcf -> mode = GOOD
+30064771103 | CALL | oxcf -> mode
+30064771104 | CALL | cfg -> g_pass
+30064771105 | CALL | oxcf -> pass = 0
+30064771106 | CALL | oxcf -> pass
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

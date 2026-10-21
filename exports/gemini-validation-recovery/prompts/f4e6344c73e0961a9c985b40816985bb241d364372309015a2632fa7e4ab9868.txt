@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+size_t WriteStr ( ArchiveHandle * AH , const char * c ) {
+ size_t res ;
+ if ( c ) {
+ int len = strlen ( c ) ;
+ res = WriteInt ( AH , len ) ;
+ ( * AH -> WriteBufPtr ) ( AH , c , len ) ;
+ res += len ;
+ }
+ else res = WriteInt ( AH , - 1 ) ;
+ return res ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ size_t res ;
+ if ( c ) {
+ int len = strlen ( c ) ;
+ res = WriteInt ( AH , len ) ;
+ ( * AH -> WriteBufPtr ) ( AH , c , len ) ;
+ res += len ;
+ }
+ else res = WriteInt ( AH , - 1 ) ;
+ return res ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int len = strlen ( c ) ;
+ res = WriteInt ( AH , len ) ;
+ ( * AH -> WriteBufPtr ) ( AH , c , len ) ;
+ res += len ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | c != NULL
+30064771073 | CALL | len = strlen ( c )
+30064771074 | CALL | strlen ( c )
+30064771075 | CALL | res = WriteInt ( AH , len )
+30064771076 | CALL | WriteInt ( AH , len )
+30064771077 | CALL | ( * AH -> WriteBufPtr ) ( AH , c , len )
+30064771078 | CALL | * AH -> WriteBufPtr
+30064771079 | CALL | AH -> WriteBufPtr
+30064771080 | CALL | res += len
+30064771081 | CALL | res = WriteInt ( AH , - 1 )
+30064771082 | CALL | WriteInt ( AH , - 1 )
+30064771083 | CALL | - 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( c ) {
+ int len = strlen ( c ) ;
+ res = WriteInt ( AH , len ) ;
+ ( * AH -> WriteBufPtr ) ( AH , c , len ) ;
+ res += len ;
+ }
+ else res = WriteInt ( AH , - 1 ) ;
+      
+55834574848 | FIELD_IDENTIFIER | WriteBufPtr
+68719476736 | IDENTIFIER | c
+68719476737 | IDENTIFIER | len
+68719476738 | IDENTIFIER | c
+68719476739 | IDENTIFIER | res
+68719476740 | IDENTIFIER | AH
+68719476741 | IDENTIFIER | len
+68719476742 | IDENTIFIER | AH
+68719476743 | IDENTIFIER | AH
+68719476744 | IDENTIFIER | c
+68719476745 | IDENTIFIER | len
+68719476746 | IDENTIFIER | res
+68719476747 | IDENTIFIER | len
+68719476748 | IDENTIFIER | res
+68719476749 | IDENTIFIER | AH
+68719476750 | IDENTIFIER | res
+90194313216 | LITERAL | NULL
+90194313217 | LITERAL | 1
+94489280512 | LOCAL | size_t res
+94489280513 | LOCAL | int len
+107374182400 | METHOD | 
+        size_t WriteStr ( ArchiveHandle * AH , const char * c ) {
+ size_t res ;
+ if ( c ) {
+ int len = strlen ( c ) ;
+ res = WriteInt ( AH , len ) ;
+ ( * AH -> WriteBufPtr ) ( AH , c , len ) ;
+ res += len ;
+ }
+ else res = WriteInt ( AH , - 1 ) ;
+ return res ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | ArchiveHandle * AH
+111669149697 | METHOD_PARAMETER_IN | const char * c
+115964116992 | METHOD_PARAMETER_OUT | ArchiveHandle * AH
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 94489280513 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771075 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771080 [AST]
+25769803778 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476741 [CDG]
+30064771072 -> 68719476744 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 68719476749 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 68719476745 [CDG]
+30064771072 -> 68719476748 [CDG]
+30064771072 -> 68719476747 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476748 [CFG]
+30064771072 -> 68719476750 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476748 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476744 [ARGUMENT]
+30064771077 -> 68719476745 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476744 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+size_t WriteInt ( ArchiveHandle * AH , int i ) {
+ int b ;
+ if ( i < 0 ) {
+ ( * AH -> WriteBytePtr ) ( AH , 1 ) ;
+ i = - i ;
+ }
+ else ( * AH -> WriteBytePtr ) ( AH , 0 ) ;
+ for ( b = 0 ;
+ b < AH -> intSize ;
+ b ++ ) {
+ ( * AH -> WriteBytePtr ) ( AH , i & 0xFF ) ;
+ i >>= 8 ;
+ }
+ return AH -> intSize + 1 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

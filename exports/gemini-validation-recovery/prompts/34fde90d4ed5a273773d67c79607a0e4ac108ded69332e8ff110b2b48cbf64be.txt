@@ -1,0 +1,226 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void apply_ir_filter ( float * out , const AMRFixed * in , const float * filter ) {
+ float filter1 [ AMR_SUBFRAME_SIZE ] , filter2 [ AMR_SUBFRAME_SIZE ] ;
+ int lag = in -> pitch_lag ;
+ float fac = in -> pitch_fac ;
+ int i ;
+ if ( lag < AMR_SUBFRAME_SIZE ) {
+ ff_celp_circ_addf ( filter1 , filter , filter , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ if ( lag < AMR_SUBFRAME_SIZE >> 1 ) ff_celp_circ_addf ( filter2 , filter , filter1 , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ }
+ memset ( out , 0 , sizeof ( float ) * AMR_SUBFRAME_SIZE ) ;
+ for ( i = 0 ;
+ i < in -> n ;
+ i ++ ) {
+ int x = in -> x [ i ] ;
+ float y = in -> y [ i ] ;
+ const float * filterp ;
+ if ( x >= AMR_SUBFRAME_SIZE - lag ) {
+ filterp = filter ;
+ }
+ else if ( x >= AMR_SUBFRAME_SIZE - ( lag << 1 ) ) {
+ filterp = filter1 ;
+ }
+ else filterp = filter2 ;
+ ff_celp_circ_addf ( out , out , filterp , x , y , AMR_SUBFRAME_SIZE ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ float filter1 [ AMR_SUBFRAME_SIZE ] , filter2 [ AMR_SUBFRAME_SIZE ] ;
+ int lag = in -> pitch_lag ;
+ float fac = in -> pitch_fac ;
+ int i ;
+ if ( lag < AMR_SUBFRAME_SIZE ) {
+ ff_celp_circ_addf ( filter1 , filter , filter , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ if ( lag < AMR_SUBFRAME_SIZE >> 1 ) ff_celp_circ_addf ( filter2 , filter , filter1 , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ }
+ memset ( out , 0 , sizeof ( float ) * AMR_SUBFRAME_SIZE ) ;
+ for ( i = 0 ;
+ i < in -> n ;
+ i ++ ) {
+ int x = in -> x [ i ] ;
+ float y = in -> y [ i ] ;
+ const float * filterp ;
+ if ( x >= AMR_SUBFRAME_SIZE - lag ) {
+ filterp = filter ;
+ }
+ else if ( x >= AMR_SUBFRAME_SIZE - ( lag << 1 ) ) {
+ filterp = filter1 ;
+ }
+ else filterp = filter2 ;
+ ff_celp_circ_addf ( out , out , filterp , x , y , AMR_SUBFRAME_SIZE ) ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ ff_celp_circ_addf ( filter1 , filter , filter , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ if ( lag < AMR_SUBFRAME_SIZE >> 1 ) ff_celp_circ_addf ( filter2 , filter , filter1 , lag , fac , AMR_SUBFRAME_SIZE ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ int x = in -> x [ i ] ;
+ float y = in -> y [ i ] ;
+ const float * filterp ;
+ if ( x >= AMR_SUBFRAME_SIZE - lag ) {
+ filterp = filter ;
+ }
+ else if ( x >= AMR_SUBFRAME_SIZE - ( lag << 1 ) ) {
+ filterp = filter1 ;
+ }
+ else filterp = filter2 ;
+ ff_celp_circ_addf ( out , out , filterp , x , y , AMR_SUBFRAME_SIZE ) ;
+ }
+      
+25769803780 | BLOCK | { filterp = filter ; }
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { filterp = filter1 ; }
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | filter1 [ AMR_SUBFRAME_SIZE ]
+30064771073 | CALL | filter1 [ AMR_SUBFRAME_SIZE ]
+30064771074 | CALL | filter2 [ AMR_SUBFRAME_SIZE ]
+30064771075 | CALL | filter2 [ AMR_SUBFRAME_SIZE ]
+30064771076 | CALL | lag = in -> pitch_lag
+30064771077 | CALL | in -> pitch_lag
+30064771078 | CALL | fac = in -> pitch_fac
+30064771079 | CALL | in -> pitch_fac
+30064771080 | CALL | lag < AMR_SUBFRAME_SIZE
+30064771081 | CALL | ff_celp_circ_addf ( filter1 , filter , filter , lag , fac , AMR_SUBFRAME_SIZE )
+30064771082 | CALL | lag < AMR_SUBFRAME_SIZE >> 1
+30064771083 | CALL | AMR_SUBFRAME_SIZE >> 1
+30064771084 | CALL | ff_celp_circ_addf ( filter2 , filter , filter1 , lag , fac , AMR_SUBFRAME_SIZE )
+30064771085 | CALL | memset ( out , 0 , sizeof ( float ) * AMR_SUBFRAME_SIZE )
+30064771086 | CALL | sizeof ( float ) * AMR_SUBFRAME_SIZE
+30064771087 | CALL | sizeof ( float )
+30064771088 | CALL | i = 0
+30064771089 | CALL | i < in -> n
+30064771090 | CALL | in -> n
+30064771091 | CALL | i ++
+30064771092 | CALL | x = in -> x [ i ]
+30064771093 | CALL | in -> x [ i ]
+30064771094 | CALL | in -> x
+30064771095 | CALL | y = in -> y [ i ]
+30064771096 | CALL | in -> y [ i ]
+30064771097 | CALL | in -> y
+30064771098 | CALL | x >= AMR_SUBFRAME_SIZE - lag
+30064771099 | CALL | AMR_SUBFRAME_SIZE - lag
+30064771100 | CALL | filterp = filter
+30064771101 | CALL | x >= AMR_SUBFRAME_SIZE - ( lag << 1 )
+30064771102 | CALL | AMR_SUBFRAME_SIZE - ( lag << 1 )
+30064771103 | CALL | lag << 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771085 [AST]
+25769803777 -> 30064771081 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771092 [AST]
+25769803779 -> 30064771095 [AST]
+25769803780 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771097 [CDG]
+30064771089 -> 30064771096 [CDG]
+30064771089 -> 30064771099 [CDG]
+30064771089 -> 30064771098 [CDG]
+30064771089 -> 30064771089 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771092 -> 30064771093 [POST_DOMINATE]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771092 [CFG]
+30064771093 -> 30064771092 [DOMINATE]
+30064771093 -> 30064771094 [REACHING_DEF]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771095 -> 30064771096 [ARGUMENT]
+30064771095 -> 30064771096 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void indent ( int32_t count , FILE * f ) {
+ char c [ BUF_SIZE ] ;
+ if ( count <= 0 ) {
+ return ;
+ }
+ if ( count < BUF_SIZE ) {
+ memset ( c , ( int ) ' ' , count ) ;
+ fwrite ( c , sizeof ( char ) , count , f ) ;
+ }
+ else {
+ int32_t i ;
+ for ( i = 0 ;
+ i < count ;
+ ++ i ) putc ( ' ' , f ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,92 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int bdrv_check(BlockDriverState *bs, BdrvCheckResult *res, BdrvCheckMode fix)
+
+{
+
+
+
+
+    if (bs->drv->bdrv_check == NULL) {
+
+        return -ENOTSUP;
+
+
+
+
+    memset(res, 0, sizeof(*res));
+
+    return bs->drv->bdrv_check(bs, res, fix);
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | CompoundStatement
+AST 2 | FunctionDef
+EDGES (original Joern endpoint IDs):
+3 -> 4 [IS_AST_PARENT]
+3 -> 5 [IS_AST_PARENT]
+3 -> 6 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+8 -> 10 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+7 -> 11 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+7 -> 14 [IS_AST_PARENT]
+3 -> 7 [IS_AST_PARENT]
+17 -> 8 [FLOWS_TO]
+8 -> 11 [FLOWS_TO]
+11 -> 14 [FLOWS_TO]
+14 -> 18 [FLOWS_TO]
+8 -> 19 [DEF]
+11 -> 20 [DEF]
+14 -> 21 [DEF]
+17 -> 8 [CONTROLS]
+17 -> 11 [CONTROLS]
+17 -> 14 [CONTROLS]
+17 -> 17 [DOM]
+8 -> 11 [DOM]
+14 -> 18 [DOM]
+17 -> 8 [DOM]
+11 -> 14 [DOM]
+8 -> 17 [POST_DOM]
+14 -> 11 [POST_DOM]
+18 -> 18 [POST_DOM]
+11 -> 8 [POST_DOM]
+18 -> 14 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+2 -> 17 [IS_FUNCTION_OF_CFG]
+1 -> 2 [IS_FILE_OF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int bdrv_check(BlockDriverState *bs, BdrvCheckResult *res)
+
+{
+
+    if (bs->drv->bdrv_check == NULL) {
+
+        return -ENOTSUP;
+
+    }
+
+
+
+    memset(res, 0, sizeof(*res));
+
+    return bs->drv->bdrv_check(bs, res);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

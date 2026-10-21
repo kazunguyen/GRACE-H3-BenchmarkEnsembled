@@ -1,0 +1,175 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static vout_thread_t * aout_request_vout ( void * p_private , vout_thread_t * p_vout , video_format_t * p_fmt , bool b_recyle ) {
+ decoder_t * p_dec = p_private ;
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ input_thread_t * p_input = p_owner -> p_input ;
+ p_vout = input_resource_RequestVout ( p_owner -> p_resource , p_vout , p_fmt , 1 , b_recyle ) ;
+ if ( p_input != NULL ) input_SendEventVout ( p_input ) ;
+ return p_vout ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decoder_t * p_dec = p_private ;
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ input_thread_t * p_input = p_owner -> p_input ;
+ p_vout = input_resource_RequestVout ( p_owner -> p_resource , p_vout , p_fmt , 1 , b_recyle ) ;
+ if ( p_input != NULL ) input_SendEventVout ( p_input ) ;
+ return p_vout ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | p_dec = p_private
+30064771073 | CALL | p_owner = p_dec -> p_owner
+30064771074 | CALL | p_dec -> p_owner
+30064771075 | CALL | p_input = p_owner -> p_input
+30064771076 | CALL | p_owner -> p_input
+30064771077 | CALL | 
+        p_vout = input_resource_RequestVout ( p_owner -> p_resource , p_vout , p_fmt , 1 , b_recyle )
+      
+30064771078 | CALL | 
+        input_resource_RequestVout ( p_owner -> p_resource , p_vout , p_fmt , 1 , b_recyle )
+      
+30064771079 | CALL | p_owner -> p_resource
+30064771080 | CALL | p_input != NULL
+30064771081 | CALL | input_SendEventVout ( p_input )
+47244640256 | CONTROL_STRUCTURE | if ( p_input != NULL ) input_SendEventVout ( p_input ) ;
+55834574848 | FIELD_IDENTIFIER | p_owner
+55834574849 | FIELD_IDENTIFIER | p_input
+55834574850 | FIELD_IDENTIFIER | p_resource
+68719476736 | IDENTIFIER | p_dec
+68719476737 | IDENTIFIER | p_private
+68719476738 | IDENTIFIER | p_owner
+68719476739 | IDENTIFIER | p_dec
+68719476740 | IDENTIFIER | p_input
+68719476741 | IDENTIFIER | p_owner
+68719476742 | IDENTIFIER | p_vout
+68719476743 | IDENTIFIER | p_owner
+68719476744 | IDENTIFIER | p_vout
+68719476745 | IDENTIFIER | p_fmt
+68719476746 | IDENTIFIER | b_recyle
+68719476747 | IDENTIFIER | p_input
+68719476748 | IDENTIFIER | <unknown> NULL
+68719476749 | IDENTIFIER | p_input
+68719476750 | IDENTIFIER | p_vout
+90194313216 | LITERAL | 1
+94489280512 | LOCAL | decoder_t * p_dec
+94489280513 | LOCAL | decoder_owner_sys_t * p_owner
+94489280514 | LOCAL | input_thread_t * p_input
+94489280515 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static vout_thread_t * aout_request_vout ( void * p_private , vout_thread_t * p_vout , video_format_t * p_fmt , bool b_recyle ) {
+ decoder_t * p_dec = p_private ;
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ input_thread_t * p_input = p_owner -> p_input ;
+ p_vout = input_resource_RequestVout ( p_owner -> p_resource , p_vout , p_fmt , 1 , b_recyle ) ;
+ if ( p_input != NULL ) input_SendEventVout ( p_input ) ;
+ return p_vout ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | void * p_private
+111669149697 | METHOD_PARAMETER_IN | vout_thread_t * p_vout
+111669149698 | METHOD_PARAMETER_IN | video_format_t * p_fmt
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280515 [AST]
+25769803777 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476743 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476747 [CFG]
+30064771077 -> 68719476747 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 90194313216 [ARGUMENT]
+30064771078 -> 68719476746 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 90194313216 [AST]
+30064771078 -> 68719476746 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476746 [POST_DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 68719476744 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void input_DecoderGetObjects ( decoder_t * p_dec , vout_thread_t * * pp_vout , audio_output_t * * pp_aout ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ if ( pp_vout ) * pp_vout = p_owner -> p_vout ? vlc_object_hold ( p_owner -> p_vout ) : NULL ;
+ if ( pp_aout ) * pp_aout = p_owner -> p_aout ? vlc_object_hold ( p_owner -> p_aout ) : NULL ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

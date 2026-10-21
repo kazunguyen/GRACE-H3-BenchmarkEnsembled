@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void close_detect_launch ( int fd , short what , void * arg ) {
+ struct evhttp_connection * evcon = arg ;
+ struct evhttp_request * req ;
+ req = evhttp_request_new ( close_detect_done , NULL ) ;
+ evhttp_add_header ( req -> output_headers , "Host" , "somehost" ) ;
+ if ( evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct evhttp_connection * evcon = arg ;
+ struct evhttp_request * req ;
+ req = evhttp_request_new ( close_detect_done , NULL ) ;
+ evhttp_add_header ( req -> output_headers , "Host" , "somehost" ) ;
+ if ( evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ }
+      
+25769803777 | BLOCK | { fprintf ( stdout , "FAILED\n" ) ; exit ( 1 ) ; }
+30064771072 | CALL | evcon = arg
+30064771073 | CALL | req = evhttp_request_new ( close_detect_done , NULL )
+30064771074 | CALL | evhttp_request_new ( close_detect_done , NULL )
+30064771075 | CALL | 
+        evhttp_add_header ( req -> output_headers , "Host" , "somehost" )
+      
+30064771076 | CALL | req -> output_headers
+30064771077 | CALL | evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1
+30064771078 | CALL | evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" )
+30064771079 | CALL | - 1
+30064771080 | CALL | fprintf ( stdout , "FAILED\n" )
+30064771081 | CALL | exit ( 1 )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | output_headers
+68719476736 | IDENTIFIER | evcon
+68719476737 | IDENTIFIER | arg
+68719476738 | IDENTIFIER | req
+68719476739 | IDENTIFIER | <unknown> close_detect_done
+68719476740 | IDENTIFIER | <unknown> NULL
+68719476741 | IDENTIFIER | req
+68719476742 | IDENTIFIER | evcon
+68719476743 | IDENTIFIER | req
+68719476744 | IDENTIFIER | <unknown> EVHTTP_REQ_GET
+68719476745 | IDENTIFIER | <unknown> stdout
+90194313216 | LITERAL | "Host"
+90194313217 | LITERAL | "somehost"
+90194313218 | LITERAL | "/test"
+90194313219 | LITERAL | 1
+90194313220 | LITERAL | "FAILED\n"
+90194313221 | LITERAL | 1
+94489280512 | LOCAL | struct evhttp_connection * evcon
+94489280513 | LOCAL | struct evhttp_request * req
+94489280514 | LOCAL | <unknown> stdout
+94489280515 | LOCAL | <unknown> EVHTTP_REQ_GET
+94489280516 | LOCAL | <unknown> NULL
+94489280517 | LOCAL | <unknown> close_detect_done
+107374182400 | METHOD | 
+        static void close_detect_launch ( int fd , short what , void * arg ) {
+ struct evhttp_connection * evcon = arg ;
+ struct evhttp_request * req ;
+ req = evhttp_request_new ( close_detect_done , NULL ) ;
+ evhttp_add_header ( req -> output_headers , "Host" , "somehost" ) ;
+ if ( evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | int fd
+111669149697 | METHOD_PARAMETER_IN | short what
+111669149698 | METHOD_PARAMETER_IN | void * arg
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 94489280516 [AST]
+25769803776 -> 94489280517 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 90194313216 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 90194313216 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 68719476742 [CFG]
+30064771075 -> 68719476742 [DOMINATE]
+30064771075 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 90194313216 [CFG]
+30064771076 -> 90194313216 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476743 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 90194313220 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 90194313221 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 68719476745 [CDG]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 90194313218 [ARGUMENT]
+30064771078 -> 68719476742 [AST]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 90194313218 [AST]
+30064771078 -> 90194313219 [CFG]
+30064771078 -> 90194313219 [DOMINATE]
+30064771078 -> 90194313218 [POST_DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 90194313219 [ARGUMENT]
+30064771079 -> 90194313219 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void http_negative_content_length_test ( void ) {
+ short port = - 1 ;
+ struct evhttp_connection * evcon = NULL ;
+ struct evhttp_request * req = NULL ;
+ test_ok = 0 ;
+ fprintf ( stdout , "Testing HTTP Negative Content Length: " ) ;
+ http = http_setup ( & port , NULL ) ;
+ evcon = evhttp_connection_new ( "127.0.0.1" , port ) ;
+ if ( evcon == NULL ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ req = evhttp_request_new ( http_request_bad , NULL ) ;
+ evhttp_add_header ( req -> output_headers , "X-Negative" , "makeitso" ) ;
+ if ( evhttp_make_request ( evcon , req , EVHTTP_REQ_GET , "/test" ) == - 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ event_dispatch ( ) ;
+ evhttp_free ( http ) ;
+ if ( test_ok != 1 ) {
+ fprintf ( stdout , "FAILED\n" ) ;
+ exit ( 1 ) ;
+ }
+ fprintf ( stdout , "OK\n" ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,187 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int SpoolssWritePrinter_q ( tvbuff_t * tvb , int offset , packet_info * pinfo , proto_tree * tree , dcerpc_info * di , guint8 * drep ) {
+ e_ctx_hnd policy_hnd ;
+ char * pol_name ;
+ guint32 size ;
+ proto_item * item ;
+ proto_tree * subtree ;
+ offset = dissect_nt_policy_hnd ( tvb , offset , pinfo , tree , di , drep , hf_hnd , & policy_hnd , NULL , FALSE , FALSE ) ;
+ dcerpc_fetch_polhnd_data ( & policy_hnd , & pol_name , NULL , NULL , NULL , pinfo -> num ) ;
+ if ( pol_name ) col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %s" , pol_name ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_buffer_size , & size ) ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %d bytes" , size ) ;
+ subtree = proto_tree_add_subtree ( tree , tvb , offset , 0 , ett_writeprinter_buffer , & item , "Buffer" ) ;
+ offset = dissect_ndr_uint8s ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_data , size , NULL ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_size , NULL ) ;
+ proto_item_set_len ( item , size + 4 ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ e_ctx_hnd policy_hnd ;
+ char * pol_name ;
+ guint32 size ;
+ proto_item * item ;
+ proto_tree * subtree ;
+ offset = dissect_nt_policy_hnd ( tvb , offset , pinfo , tree , di , drep , hf_hnd , & policy_hnd , NULL , FALSE , FALSE ) ;
+ dcerpc_fetch_polhnd_data ( & policy_hnd , & pol_name , NULL , NULL , NULL , pinfo -> num ) ;
+ if ( pol_name ) col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %s" , pol_name ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_buffer_size , & size ) ;
+ col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %d bytes" , size ) ;
+ subtree = proto_tree_add_subtree ( tree , tvb , offset , 0 , ett_writeprinter_buffer , & item , "Buffer" ) ;
+ offset = dissect_ndr_uint8s ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_data , size , NULL ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_size , NULL ) ;
+ proto_item_set_len ( item , size + 4 ) ;
+ return offset ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | 
+        offset = dissect_nt_policy_hnd ( tvb , offset , pinfo , tree , di , drep , hf_hnd , & policy_hnd , NULL , FALSE , FALSE )
+      
+30064771073 | CALL | 
+        dissect_nt_policy_hnd ( tvb , offset , pinfo , tree , di , drep , hf_hnd , & policy_hnd , NULL , FALSE , FALSE )
+      
+30064771074 | CALL | & policy_hnd
+30064771075 | CALL | 
+        dcerpc_fetch_polhnd_data ( & policy_hnd , & pol_name , NULL , NULL , NULL , pinfo -> num )
+      
+30064771076 | CALL | & policy_hnd
+30064771077 | CALL | & pol_name
+30064771078 | CALL | pinfo -> num
+30064771079 | CALL | pol_name != NULL
+30064771080 | CALL | col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %s" , pol_name )
+30064771081 | CALL | pinfo -> cinfo
+30064771082 | CALL | 
+        offset = dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_buffer_size , & size )
+      
+30064771083 | CALL | 
+        dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_buffer_size , & size )
+      
+30064771084 | CALL | & size
+30064771085 | CALL | col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %d bytes" , size )
+30064771086 | CALL | pinfo -> cinfo
+30064771087 | CALL | 
+        subtree = proto_tree_add_subtree ( tree , tvb , offset , 0 , ett_writeprinter_buffer , & item , "Buffer" )
+      
+30064771088 | CALL | 
+        proto_tree_add_subtree ( tree , tvb , offset , 0 , ett_writeprinter_buffer , & item , "Buffer" )
+      
+30064771089 | CALL | & item
+30064771090 | CALL | 
+        offset = dissect_ndr_uint8s ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_data , size , NULL )
+      
+30064771091 | CALL | 
+        dissect_ndr_uint8s ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_data , size , NULL )
+      
+30064771092 | CALL | 
+        offset = dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_size , NULL )
+      
+30064771093 | CALL | 
+        dissect_ndr_uint32 ( tvb , offset , pinfo , subtree , di , drep , hf_buffer_size , NULL )
+      
+30064771094 | CALL | proto_item_set_len ( item , size + 4 )
+30064771095 | CALL | size + 4
+47244640256 | CONTROL_STRUCTURE | 
+        if ( pol_name ) col_append_fstr ( pinfo -> cinfo , COL_INFO , ", %s" , pol_name ) ;
+      
+55834574848 | FIELD_IDENTIFIER | num
+55834574849 | FIELD_IDENTIFIER | cinfo
+55834574850 | FIELD_IDENTIFIER | cinfo
+68719476736 | IDENTIFIER | offset
+68719476737 | IDENTIFIER | tvb
+68719476738 | IDENTIFIER | offset
+68719476739 | IDENTIFIER | pinfo
+68719476740 | IDENTIFIER | tree
+68719476741 | IDENTIFIER | di
+68719476742 | IDENTIFIER | drep
+68719476743 | IDENTIFIER | <unknown> hf_hnd
+68719476744 | IDENTIFIER | policy_hnd
+68719476745 | IDENTIFIER | <unknown> NULL
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476740 [ARGUMENT]
+30064771073 -> 68719476741 [ARGUMENT]
+30064771073 -> 68719476742 [ARGUMENT]
+30064771073 -> 68719476743 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476745 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476740 [AST]
+30064771073 -> 68719476741 [AST]
+30064771073 -> 68719476742 [AST]
+30064771073 -> 68719476743 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476745 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476744 [ARGUMENT]
+30064771074 -> 68719476744 [AST]
+30064771074 -> 68719476745 [CFG]
+30064771074 -> 68719476745 [DOMINATE]
+30064771074 -> 68719476744 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 68719476740 [REACHING_DEF]
+30064771074 -> 68719476741 [REACHING_DEF]
+30064771074 -> 68719476742 [REACHING_DEF]
+30064771074 -> 68719476743 [REACHING_DEF]
+30064771074 -> 68719476745 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771078 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771078 [AST]
+30064771075 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771078 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 55834574848 [ARGUMENT]
+30064771078 -> 55834574848 [AST]
+30064771078 -> 30064771075 [CFG]
+30064771078 -> 30064771075 [D
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

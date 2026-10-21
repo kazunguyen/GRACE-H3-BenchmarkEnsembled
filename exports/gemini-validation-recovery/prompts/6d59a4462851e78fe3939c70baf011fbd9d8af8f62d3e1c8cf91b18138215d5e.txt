@@ -1,0 +1,289 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void mipsnet_ioport_write(void *opaque, target_phys_addr_t addr,
+
+                                 uint64_t val, unsigned int size)
+
+{
+
+    MIPSnetState *s = opaque;
+
+
+
+    addr &= 0x3f;
+
+    trace_mipsnet_write(addr, val);
+
+    switch (addr) {
+
+    case MIPSNET_TX_DATA_COUNT:
+
+	s->tx_count = (val <= MAX_ETH_FRAME_SIZE) ? val : 0;
+
+        s->tx_written = 0;
+
+        break;
+
+    case MIPSNET_INT_CTL:
+
+        if (val & MIPSNET_INTCTL_TXDONE) {
+
+            s->intctl &= ~MIPSNET_INTCTL_TXDONE;
+
+        } else if (val & MIPSNET_INTCTL_RXDONE) {
+
+            s->intctl &= ~MIPSNET_INTCTL_RXDONE;
+
+        } else if (val & MIPSNET_INTCTL_TESTBIT) {
+
+            mipsnet_reset(s);
+
+            s->intctl |= MIPSNET_INTCTL_TESTBIT;
+
+        } else if (!val) {
+
+            /* ACK testbit interrupt, flag was cleared on read. */
+
+        }
+
+        s->busy = !!s->intctl;
+
+        mipsnet_update_irq(s);
+
+        break;
+
+    case MIPSNET_TX_DATA_BUFFER:
+
+        s->tx_buffer[s->tx_written++] = val;
+
+        if (s->tx_written == s->tx_count) {
+
+            /* Send buffer. */
+
+            trace_mipsnet_send(s->tx_count);
+
+            qemu_send_packet(&s->nic->nc, s->tx_buffer, s->tx_count);
+
+            s->tx_count = s->tx_written = 0;
+
+            s->intctl |= MIPSNET_INTCTL_TXDONE;
+
+            s->busy = 1;
+
+            mipsnet_update_irq(s);
+
+        }
+
+        break;
+
+    /* Read-only registers */
+
+    case MIPSNET_DEV_ID:
+
+    case MIPSNET_BUSY:
+
+    case MIPSNET_RX_DATA_COUNT:
+
+    case MIPSNET_INTERRUPT_INFO:
+
+    case MIPSNET_RX_DATA_BUFFER:
+
+    default:
+
+        break;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 41 [IS_AST_PARENT]
+36 -> 42 [IS_AST_PARENT]
+32 -> 36 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+28 -> 43 [IS_AST_PARENT]
+28 -> 49 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+28 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+52 -> 57 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 76 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+65 -> 70 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+85 -> 88 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+93 -> 94 [IS_AST_PARENT]
+93 -> 95 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static uint64_t mipsnet_ioport_read(void *opaque, target_phys_addr_t addr,
+
+                                    unsigned int size)
+
+{
+
+    MIPSnetState *s = opaque;
+
+    int ret = 0;
+
+
+
+    addr &= 0x3f;
+
+    switch (addr) {
+
+    case MIPSNET_DEV_ID:
+
+	ret = be32_to_cpu(0x4d495053);		/* MIPS */
+
+        break;
+
+    case MIPSNET_DEV_ID + 4:
+
+	ret = be32_to_cpu(0x4e455430);		/* NET0 */
+
+        break;
+
+    case MIPSNET_BUSY:
+
+	ret = s->busy;
+
+        break;
+
+    case MIPSNET_RX_DATA_COUNT:
+
+	ret = s->rx_count;
+
+        break;
+
+    case MIPSNET_TX_DATA_COUNT:
+
+	ret = s->tx_count;
+
+        break;
+
+    case MIPSNET_INT_CTL:
+
+	ret = s->intctl;
+
+        s->intctl &= ~MIPSNET_INTCTL_TESTBIT;
+
+        break;
+
+    case MIPSNET_INTERRUPT_INFO:
+
+        /* XXX: This seems to be a per-VPE interrupt number. */
+
+	ret = 0;
+
+        break;
+
+    case MIPSNET_RX_DATA_BUFFER:
+
+        if (s->rx_count) {
+
+            s->rx_count--;
+
+            ret = s->rx_buffer[s->rx_read++];
+
+        }
+
+        break;
+
+    /* Reads as zero. */
+
+    case MIPSNET_TX_DATA_BUFFER:
+
+    default:
+
+        break;
+
+    }
+
+    trace_mipsnet_read(addr, ret);
+
+    return ret;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

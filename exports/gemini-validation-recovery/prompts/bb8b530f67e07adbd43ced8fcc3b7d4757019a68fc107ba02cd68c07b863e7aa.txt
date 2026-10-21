@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void jas_image_destroy ( jas_image_t * image ) {
+ int i ;
+ if ( image -> cmpts_ ) {
+ for ( i = 0 ;
+ i < image -> numcmpts_ ;
+ ++ i ) {
+ jas_image_cmpt_destroy ( image -> cmpts_ [ i ] ) ;
+ image -> cmpts_ [ i ] = 0 ;
+ }
+ jas_free ( image -> cmpts_ ) ;
+ }
+ if ( image -> cmprof_ ) jas_cmprof_destroy ( image -> cmprof_ ) ;
+ jas_free ( image ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i ;
+ if ( image -> cmpts_ ) {
+ for ( i = 0 ;
+ i < image -> numcmpts_ ;
+ ++ i ) {
+ jas_image_cmpt_destroy ( image -> cmpts_ [ i ] ) ;
+ image -> cmpts_ [ i ] = 0 ;
+ }
+ jas_free ( image -> cmpts_ ) ;
+ }
+ if ( image -> cmprof_ ) jas_cmprof_destroy ( image -> cmprof_ ) ;
+ jas_free ( image ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < image -> numcmpts_ ;
+ ++ i ) {
+ jas_image_cmpt_destroy ( image -> cmpts_ [ i ] ) ;
+ image -> cmpts_ [ i ] = 0 ;
+ }
+ jas_free ( image -> cmpts_ ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ jas_image_cmpt_destroy ( image -> cmpts_ [ i ] ) ;
+ image -> cmpts_ [ i ] = 0 ;
+ }
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | image -> cmpts_
+30064771073 | CALL | i = 0
+30064771074 | CALL | i < image -> numcmpts_
+30064771075 | CALL | image -> numcmpts_
+30064771076 | CALL | ++ i
+30064771077 | CALL | jas_image_cmpt_destroy ( image -> cmpts_ [ i ] )
+30064771078 | CALL | image -> cmpts_ [ i ]
+30064771079 | CALL | image -> cmpts_
+30064771080 | CALL | image -> cmpts_ [ i ] = 0
+30064771081 | CALL | image -> cmpts_ [ i ]
+30064771082 | CALL | image -> cmpts_
+30064771083 | CALL | jas_free ( image -> cmpts_ )
+30064771084 | CALL | image -> cmpts_
+30064771085 | CALL | image -> cmprof_
+30064771086 | CALL | jas_cmprof_destroy ( image -> cmprof_ )
+30064771087 | CALL | image -> cmprof_
+30064771088 | CALL | jas_free ( image )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( image -> cmpts_ ) {
+ for ( i = 0 ;
+ i < image -> numcmpts_ ;
+ ++ i ) {
+ jas_image_cmpt_destroy ( image -> cmpts_ [ i ] ) ;
+ image -> cmpts_ [ i ] = 0 ;
+ }
+ jas_free ( image -> cmpts_ ) ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | for (i = 0 ;i < image -> numcmpts_;++ i)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( image -> cmprof_ ) jas_cmprof_destroy ( image -> cmprof_ ) ;
+      
+55834574848 | FIELD_IDENTIFIER | cmpts_
+55834574849 | FIELD_IDENTIFIER | numcmpts_
+55834574850 | FIELD_IDENTIFIER | cmpts_
+55834574851 | FIELD_IDENTIFIER | cmpts_
+55834574852 | FIELD_IDENTIFIER | cmpts_
+55834574853 | FIELD_IDENTIFIER | cmprof_
+55834574854 | FIELD_IDENTIFIER | cmprof_
+68719476736 | IDENTIFIER | image
+68719476737 | IDENTIFIER | i
+68719476738 | IDENTIFIER | i
+68719476739 | IDENTIFIER | image
+68719476740 | IDENTIFIER | i
+68719476741 | IDENTIFIER | image
+68719476742 | IDENTIFIER | i
+68719476743 | IDENTIFIER | image
+68719476744 | IDENTIFIER | i
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771083 [AST]
+25769803778 -> 30064771077 [AST]
+25769803778 -> 30064771080 [AST]
+25769803779 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 55834574848 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 55834574848 [AST]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 55834574852 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [CFG]
+30064771073 -> 68719476738 [DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476738 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771074 [CDG]
+30064771074 -> 68719476741 [CFG]
+30064771074 -> 68719476741 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 55834574849 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 55834574849 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 55834574849 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 68719476743 [REACHING_DEF]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 68719476741 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476738 [CFG]
+30064771076 -> 68719476740 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476743 [CFG]
+30064771077 -> 68719476743 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476742 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476742 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+jas_image_t * jas_image_copy ( jas_image_t * image ) {
+ jas_image_t * newimage ;
+ int cmptno ;
+ newimage = jas_image_create0 ( ) ;
+ if ( jas_image_growcmpts ( newimage , image -> numcmpts_ ) ) {
+ goto error ;
+ }
+ for ( cmptno = 0 ;
+ cmptno < image -> numcmpts_ ;
+ ++ cmptno ) {
+ if ( ! ( newimage -> cmpts_ [ cmptno ] = jas_image_cmpt_copy ( image -> cmpts_ [ cmptno ] ) ) ) {
+ goto error ;
+ }
+ ++ newimage -> numcmpts_ ;
+ }
+ jas_image_setbbox ( newimage ) ;
+ if ( image -> cmprof_ ) {
+ if ( ! ( newimage -> cmprof_ = jas_cmprof_copy ( image -> cmprof_ ) ) ) goto error ;
+ }
+ return newimage ;
+ error : if ( newimage ) {
+ jas_image_destroy ( newimage ) ;
+ }
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

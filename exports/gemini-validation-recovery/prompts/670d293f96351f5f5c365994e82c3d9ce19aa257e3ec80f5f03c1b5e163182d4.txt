@@ -1,0 +1,304 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mxf_read_index_table_segment(void *arg, AVIOContext *pb, int tag, int size, UID uid)
+
+{
+
+    MXFIndexTableSegment *segment = arg;
+
+    switch(tag) {
+
+    case 0x3F05:
+
+        segment->edit_unit_byte_count = avio_rb32(pb);
+
+        av_dlog(NULL, "EditUnitByteCount %d\n", segment->edit_unit_byte_count);
+
+        break;
+
+    case 0x3F06:
+
+        segment->index_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "IndexSID %d\n", segment->index_sid);
+
+        break;
+
+    case 0x3F07:
+
+        segment->body_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "BodySID %d\n", segment->body_sid);
+
+        break;
+
+    case 0x3F08:
+
+        segment->slice_count = avio_r8(pb);
+
+        av_dlog(NULL, "SliceCount %d\n", segment->slice_count);
+
+        break;
+
+    case 0x3F09:
+
+        av_dlog(NULL, "DeltaEntryArray found\n");
+
+        return mxf_read_delta_entry_array(pb, segment);
+
+    case 0x3F0A:
+
+        av_dlog(NULL, "IndexEntryArray found\n");
+
+        return mxf_read_index_entry_array(pb, segment);
+
+    case 0x3F0B:
+
+        segment->index_edit_rate.num = avio_rb32(pb);
+
+        segment->index_edit_rate.den = avio_rb32(pb);
+
+        av_dlog(NULL, "IndexEditRate %d/%d\n", segment->index_edit_rate.num,
+
+                segment->index_edit_rate.den);
+
+        break;
+
+    case 0x3F0C:
+
+        segment->index_start_position = avio_rb64(pb);
+
+        av_dlog(NULL, "IndexStartPosition %"PRId64"\n", segment->index_start_position);
+
+        break;
+
+    case 0x3F0D:
+
+        segment->index_duration = avio_rb64(pb);
+
+        av_dlog(NULL, "IndexDuration %"PRId64"\n", segment->index_duration);
+
+        break;
+
+    }
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    MXFIndexTableSegment *segment = arg;
+
+    switch(tag) {
+
+    case 0x3F05:
+
+        segment->edit_unit_byte_count = avio_rb32(pb);
+
+        av_dlog(NULL, "EditUnitByteCount %d\n", segment->edit_unit_byte_count);
+
+        break;
+
+    case 0x3F06:
+
+        segment->index_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "IndexSID %d\n", segment->index_sid);
+
+        break;
+
+    case 0x3F07:
+
+        segment->body_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "BodySID %d\n", segment->body_sid);
+
+        break;
+
+    case 0x3F08:
+
+        segment->slice_count = avio_r8(pb);
+
+        av_dlog(NULL, "SliceCount %d\n", segment->slice_count);
+
+        break;
+
+    case 0x3F09:
+
+        av_dlog(NULL, "DeltaEntryArray found\n");
+
+        return mxf_read_delta_entry_array(pb, segment);
+
+    case 0x3F0A:
+
+        av_dlog(NULL, "IndexEntryArray found\n");
+
+        return mxf_read_index_entry_array(pb, segment);
+
+    case 0x3F0B:
+
+        segment->index_edit_rate.num = avio_rb32(pb);
+
+        segment-...
+      
+25769803777 | BLOCK | 
+        {
+
+    case 0x3F05:
+
+        segment->edit_unit_byte_count = avio_rb32(pb);
+
+        av_dlog(NULL, "EditUnitByteCount %d\n", segment->edit_unit_byte_count);
+
+        break;
+
+    case 0x3F06:
+
+        segment->index_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "IndexSID %d\n", segment->index_sid);
+
+        break;
+
+    case 0x3F07:
+
+        segment->body_sid = avio_rb32(pb);
+
+        av_dlog(NULL, "BodySID %d\n", segment->body_sid);
+
+        break;
+
+    case 0x3F08:
+
+        segment->slice_count = avio_r8(pb);
+
+        av_dlog(NULL, "SliceCount %d\n", segment->slice_count);
+
+        break;
+
+    case 0x3F09:
+
+        av_dlog(NULL, "DeltaEntryArray found\n");
+
+        return mxf_read_delta_entry_array(pb, segment);
+
+    case 0x3F0A:
+
+        av_dlog(NULL, "IndexEntryArray found\n");
+
+        return mxf_read_index_entry_array(pb, segment);
+
+    case 0x3F0B:
+
+        segment->index_edit_rate.num = avio_rb32(pb);
+
+        segment->index_edit_rate.den = avio_rb32(pb);
+
+        av_dlog(NULL, ...
+      
+30064771072 | CALL | segment = arg
+30064771073 | CALL | segment->edit_unit_byte_count = avio_rb32(pb)
+30064771074 | CALL | segment->edit_unit_byte_count
+30064771075 | CALL | avio_rb32(pb)
+30064771076 | CALL | av_dlog(NULL, "EditUnitByteCount %d\n", segment->edit_unit_byte_count)
+30064771077 | CALL | segment->edit_unit_byte_count
+30064771078 | CALL | segment->index_sid = avio_rb32(pb)
+30064771079 | CALL | segment->index_sid
+30064771080 | CALL | avio_rb32(pb)
+30064771081 | CALL | av_dlog(NULL, "IndexSID %d\n", segment->index_sid)
+30064771082 | CALL | segment->index_sid
+30064771083 | CALL | segment->body_sid = avio_rb32(pb)
+30064771084 | CALL | segment->body_sid
+30064771085 | CALL | avio_rb32(pb)
+30064771086 | CALL | av_dlog(NULL, "BodySID %d\n", segment->body_sid)
+30064771087 | CALL | segment->body_sid
+30064771088 | CALL | segment->slice_count = avio_r8(pb)
+30064771089 | CALL | segment->slice_count
+30064771090 | CALL | avio_r8(pb)
+30064771091 | CALL | av_dlog(NULL, "SliceCount %d\n", segment->slice_count)
+30064771092 | CALL | segment->slice_count
+30064771093 | CALL | av_dlog(NULL, "DeltaEntryArray found\n")
+30064771094 | CALL | mxf_read_delta_entry_array(pb, segment)
+30064771095 | CALL | av_dlog(NULL, "IndexEntryArray found\n")
+30064771096 | CALL | mxf_read_index_entry_array(pb, segment)
+30064771097 | CALL | segment->index_edit_rate.num = avio_rb32(pb)
+30064771098 | CALL | segment->index_edit_rate.num
+30064771099 | CALL | segment->index_edit_rate
+30064771100 | CALL | avio_rb32(pb)
+30064771101 | CALL | segment->index_edit_rate.den = avio_rb32(pb)
+30064771102 | CALL | segment->index_edit_rate.den
+30064771103 | CALL | segment->index_edit_rate
+30064771104 | CALL | avio_rb32(pb)
+30064771105 | CALL | 
+        av_dlog(NULL, "IndexEditRate %d/%d\n", segment->index_edit_rate.num,
+
+                segment->index_edit_rate.den)
+      
+30064771106 | CALL | segment->index_edit_rate.num
+30064771107 | CALL | segment->index_edit_rate
+30064771108 | CALL | segment->index_edit_rate.den
+30064771109 | CALL | segment->index_edit_rate
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771091 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771095 [AST]
+25769803777 -> 30064771097 [AST]
+25769803777 -> 30064771101 [AST]
+25769803777 -> 30064771105 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+3006477
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

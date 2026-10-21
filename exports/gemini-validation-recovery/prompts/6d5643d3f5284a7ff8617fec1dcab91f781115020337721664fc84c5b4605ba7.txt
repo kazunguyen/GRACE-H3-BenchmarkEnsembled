@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int me_sasl ( struct Client * client_p , struct Client * source_p , int parc , const char * parv [ ] ) {
+ struct Client * target_p , * agent_p ;
+ if ( strncmp ( parv [ 2 ] , me . id , 3 ) ) return 0 ;
+ if ( ( target_p = find_id ( parv [ 2 ] ) ) == NULL ) return 0 ;
+ if ( ( agent_p = find_id ( parv [ 1 ] ) ) == NULL ) return 0 ;
+ if ( source_p != agent_p -> servptr ) return 0 ;
+ if ( ! IsService ( agent_p ) ) return 0 ;
+ if ( * target_p -> localClient -> sasl_agent && strncmp ( parv [ 1 ] , target_p -> localClient -> sasl_agent , IDLEN ) ) return 0 ;
+ else if ( ! * target_p -> localClient -> sasl_agent ) rb_strlcpy ( target_p -> localClient -> sasl_agent , parv [ 1 ] , IDLEN ) ;
+ if ( * parv [ 3 ] == 'C' ) sendto_one ( target_p , "AUTHENTICATE %s" , parv [ 4 ] ) ;
+ else if ( * parv [ 3 ] == 'D' ) {
+ if ( * parv [ 4 ] == 'F' ) sendto_one ( target_p , form_str ( ERR_SASLFAIL ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ else if ( * parv [ 4 ] == 'S' ) {
+ sendto_one ( target_p , form_str ( RPL_SASLSUCCESS ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ target_p -> localClient -> sasl_complete = 1 ;
+ ServerStats . is_ssuc ++ ;
+ }
+ * target_p -> localClient -> sasl_agent = '\0' ;
+ }
+ else if ( * parv [ 3 ] == 'M' ) sendto_one ( target_p , form_str ( RPL_SASLMECHS ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name , parv [ 4 ] ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct Client * target_p , * agent_p ;
+ if ( strncmp ( parv [ 2 ] , me . id , 3 ) ) return 0 ;
+ if ( ( target_p = find_id ( parv [ 2 ] ) ) == NULL ) return 0 ;
+ if ( ( agent_p = find_id ( parv [ 1 ] ) ) == NULL ) return 0 ;
+ if ( source_p != agent_p -> servptr ) return 0 ;
+ if ( ! IsService ( agent_p ) ) return 0 ;
+ if ( * target_p -> localClient -> sasl_agent && strncmp ( parv [ 1 ] , target_p -> localClient -> sasl_agent , IDLEN ) ) return 0 ;
+ else if ( ! * target_p -> localClient -> sasl_agent ) rb_strlcpy ( target_p -> localClient -> sasl_agent , parv [ 1 ] , IDLEN ) ;
+ if ( * parv [ 3 ] == 'C' ) sendto_one ( target_p , "AUTHENTICATE %s" , parv [ 4 ] ) ;
+ else if ( * parv [ 3 ] == 'D' ) {
+ if ( * parv [ 4 ] == 'F' ) sendto_one ( target_p , form_str ( ERR_SASLFAIL ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ else if ( * parv [ 4 ] == 'S' ) {
+ sendto_one ( target_p , form_str ( RPL_SASLSUCCESS ) , me . name , EmptyString ( target_p -> name ) ?...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( * parv [ 4 ] == 'F' ) sendto_one ( target_p , form_str ( ERR_SASLFAIL ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ else if ( * parv [ 4 ] == 'S' ) {
+ sendto_one ( target_p , form_str ( RPL_SASLSUCCESS ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ target_p -> localClient -> sasl_complete = 1 ;
+ ServerStats . is_ssuc ++ ;
+ }
+ * target_p -> localClient -> sasl_agent = '\0' ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ sendto_one ( target_p , form_str ( RPL_SASLSUCCESS ) , me . name , EmptyString ( target_p -> name ) ? "*" : target_p -> name ) ;
+ target_p -> localClient -> sasl_complete = 1 ;
+ ServerStats . is_ssuc ++ ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+30064771072 | CALL | strncmp ( parv [ 2 ] , me . id , 3 )
+30064771073 | CALL | parv [ 2 ]
+30064771074 | CALL | me . id
+30064771075 | CALL | ( target_p = find_id ( parv [ 2 ] ) ) == NULL
+30064771076 | CALL | target_p = find_id ( parv [ 2 ] )
+30064771077 | CALL | find_id ( parv [ 2 ] )
+30064771078 | CALL | parv [ 2 ]
+30064771079 | CALL | ( agent_p = find_id ( parv [ 1 ] ) ) == NULL
+30064771080 | CALL | agent_p = find_id ( parv [ 1 ] )
+30064771081 | CALL | find_id ( parv [ 1 ] )
+30064771082 | CALL | parv [ 1 ]
+30064771083 | CALL | source_p != agent_p -> servptr
+30064771084 | CALL | agent_p -> servptr
+30064771085 | CALL | ! IsService ( agent_p )
+30064771086 | CALL | IsService ( agent_p )
+30064771087 | CALL | 
+        * target_p -> localClient -> sasl_agent && strncmp ( parv [ 1 ] , target_p -> localClient -> sasl_agent , IDLEN )
+      
+30064771088 | CALL | * target_p -> localClient -> sasl_agent
+30064771089 | CALL | target_p -> localClient -> sasl_agent
+30064771090 | CALL | target_p -> localClient
+30064771091 | CALL | strncmp ( parv [ 1 ] , target_p -> localClient -> sasl_agent , IDLEN )
+30064771092 | CALL | parv [ 1 ]
+30064771093 | CALL | target_p -> localClient -> sasl_agent
+30064771094 | CALL | target_p -> localClient
+EDGES:
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771074 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771074 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771078 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771084 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771092 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771088 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 300647
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

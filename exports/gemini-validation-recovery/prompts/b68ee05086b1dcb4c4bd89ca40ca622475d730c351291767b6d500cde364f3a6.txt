@@ -1,0 +1,335 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int EVP_DecodeUpdate ( EVP_ENCODE_CTX * ctx , unsigned char * out , int * outl , const unsigned char * in , int inl ) {
+ int seof = 0 , eof = 0 , rv = - 1 , ret = 0 , i , v , tmp , n , decoded_len ;
+ unsigned char * d ;
+ n = ctx -> num ;
+ d = ctx -> enc_data ;
+ if ( n > 0 && d [ n - 1 ] == '=' ) {
+ eof ++ ;
+ if ( n > 1 && d [ n - 2 ] == '=' ) eof ++ ;
+ }
+ if ( inl == 0 ) {
+ rv = 0 ;
+ goto end ;
+ }
+ for ( i = 0 ;
+ i < inl ;
+ i ++ ) {
+ tmp = * ( in ++ ) ;
+ v = conv_ascii2bin ( tmp ) ;
+ if ( v == B64_ERROR ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( tmp == '=' ) {
+ eof ++ ;
+ }
+ else if ( eof > 0 && B64_BASE64 ( v ) ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( eof > 2 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( v == B64_EOF ) {
+ seof = 1 ;
+ goto tail ;
+ }
+ if ( B64_BASE64 ( v ) ) {
+ if ( n >= 64 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ OPENSSL_assert ( n < ( int ) sizeof ( ctx -> enc_data ) ) ;
+ d [ n ++ ] = tmp ;
+ }
+ if ( n == 64 ) {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += decoded_len - eof ;
+ out += decoded_len - eof ;
+ }
+ }
+ tail : if ( n > 0 ) {
+ if ( ( n & 3 ) == 0 ) {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += ( decoded_len - eof ) ;
+ }
+ else if ( seof ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ }
+ rv = seof || ( n == 0 && eof ) ? 0 : 1 ;
+ end : * outl = ret ;
+ ctx -> num = n ;
+ return ( rv ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int seof = 0 , eof = 0 , rv = - 1 , ret = 0 , i , v , tmp , n , decoded_len ;
+ unsigned char * d ;
+ n = ctx -> num ;
+ d = ctx -> enc_data ;
+ if ( n > 0 && d [ n - 1 ] == '=' ) {
+ eof ++ ;
+ if ( n > 1 && d [ n - 2 ] == '=' ) eof ++ ;
+ }
+ if ( inl == 0 ) {
+ rv = 0 ;
+ goto end ;
+ }
+ for ( i = 0 ;
+ i < inl ;
+ i ++ ) {
+ tmp = * ( in ++ ) ;
+ v = conv_ascii2bin ( tmp ) ;
+ if ( v == B64_ERROR ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( tmp == '=' ) {
+ eof ++ ;
+ }
+ else if ( eof > 0 && B64_BASE64 ( v ) ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( eof > 2 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( v == B64_EOF ) {
+ seof = 1 ;
+ goto tail ;
+ }
+ if ( B64_BASE64 ( v ) ) {
+ if ( n >= 64 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ OPENSSL_assert ( n < ( int ) sizeof ( ctx -> enc_data ) ) ;
+ d [ n ++ ] = tmp ;
+ }
+ if ( n == 64 ) {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += decoded_len - eof ;
+ out += decoded_len - eof ;
+ }
+ }
+ tail :...
+      
+25769803777 | BLOCK | { eof ++ ; if ( n > 1 && d [ n - 2 ] == '=' ) eof ++ ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { rv = 0 ; goto end ; }
+25769803780 | BLOCK | 
+        {
+ tmp = * ( in ++ ) ;
+ v = conv_ascii2bin ( tmp ) ;
+ if ( v == B64_ERROR ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( tmp == '=' ) {
+ eof ++ ;
+ }
+ else if ( eof > 0 && B64_BASE64 ( v ) ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( eof > 2 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ if ( v == B64_EOF ) {
+ seof = 1 ;
+ goto tail ;
+ }
+ if ( B64_BASE64 ( v ) ) {
+ if ( n >= 64 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ OPENSSL_assert ( n < ( int ) sizeof ( ctx -> enc_data ) ) ;
+ d [ n ++ ] = tmp ;
+ }
+ if ( n == 64 ) {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += decoded_len - eof ;
+ out += decoded_len - eof ;
+ }
+ }
+      
+25769803781 | BLOCK | { rv = - 1 ; goto end ; }
+25769803782 | BLOCK | { eof ++ ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { rv = - 1 ; goto end ; }
+25769803785 | BLOCK | { rv = - 1 ; goto end ; }
+25769803786 | BLOCK | { seof = 1 ; goto tail ; }
+25769803787 | BLOCK | 
+        {
+ if ( n >= 64 ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ OPENSSL_assert ( n < ( int ) sizeof ( ctx -> enc_data ) ) ;
+ d [ n ++ ] = tmp ;
+ }
+      
+25769803788 | BLOCK | { rv = - 1 ; goto end ; }
+25769803789 | BLOCK | 
+        {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += decoded_len - eof ;
+ out += decoded_len - eof ;
+ }
+      
+25769803790 | BLOCK | { rv = - 1 ; goto end ; }
+25769803791 | BLOCK | 
+        {
+ if ( ( n & 3 ) == 0 ) {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += ( decoded_len - eof ) ;
+ }
+ else if ( seof ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ }
+      
+25769803792 | BLOCK | 
+        {
+ decoded_len = EVP_DecodeBlock ( out , d , n ) ;
+ n = 0 ;
+ if ( decoded_len < 0 || eof > decoded_len ) {
+ rv = - 1 ;
+ goto end ;
+ }
+ ret += ( decoded_len - eof ) ;
+ }
+      
+25769803793 | BLOCK | { rv = - 1 ; goto end ; }
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | { rv = - 1 ; goto end ; }
+30064771072 | CALL | seof = 0
+30064771073 | CALL | eof = 0
+30064771074 | CALL | rv = - 1
+30064771075 | CALL | - 1
+30064771076 | CALL | ret = 0
+30064771077 | CALL | n = ctx -> num
+30064771078 | CALL | ctx -> num
+30064771079 | CALL | d = ctx -> enc_data
+30064771080 | CALL | ctx -> enc_data
+30064771081 | CALL | n > 0 && d [ n - 1 ] == '='
+30064771082 | CALL | n > 0
+30064771083 | CALL | d [ n - 1 ] == '='
+30064771084 | CALL | d [ n - 1 ]
+30064771085 | CALL | n - 1
+30064771086 | CALL | eof ++
+30064771087 | CALL | n > 1 && d [ n - 2 ] == '='
+30064771088 | CALL | n > 1
+30064771089 | CALL | d [ n - 2 ] == '='
+30064771090 | CALL | d [ n - 2 ]
+30064771091 | CALL | n - 2
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803777 -> 30064771086 [AST]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

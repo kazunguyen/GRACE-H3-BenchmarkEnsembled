@@ -1,0 +1,270 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static abi_ulong setup_arg_pages(abi_ulong p, struct linux_binprm *bprm,
+
+                                 struct image_info *info)
+
+{
+
+    abi_ulong stack_base, size, error;
+
+    int i;
+
+
+
+    /* Create enough stack to hold everything.  If we don't use
+
+     * it for args, we'll use it for something else...
+
+     */
+
+    size = guest_stack_size;
+
+    if (size < MAX_ARG_PAGES*TARGET_PAGE_SIZE)
+
+        size = MAX_ARG_PAGES*TARGET_PAGE_SIZE;
+
+    error = target_mmap(0,
+
+                        size + qemu_host_page_size,
+
+                        PROT_READ | PROT_WRITE,
+
+                        MAP_PRIVATE | MAP_ANONYMOUS,
+
+                        -1, 0);
+
+    if (error == -1) {
+
+        perror("stk mmap");
+
+        exit(-1);
+
+    }
+
+    /* we reserve one extra page at the top of the stack as guard */
+
+    target_mprotect(error + size, qemu_host_page_size, PROT_NONE);
+
+
+
+    info->stack_limit = error;
+
+    stack_base = error + size - MAX_ARG_PAGES*TARGET_PAGE_SIZE;
+
+    p += stack_base;
+
+
+
+    for (i = 0 ; i < MAX_ARG_PAGES ; i++) {
+
+        if (bprm->page[i]) {
+
+            info->rss++;
+
+            /* FIXME - check return value of memcpy_to_target() for failure */
+
+            memcpy_to_target(stack_base, bprm->page[i], TARGET_PAGE_SIZE);
+
+            free(bprm->page[i]);
+
+        }
+
+        stack_base += TARGET_PAGE_SIZE;
+
+    }
+
+    return p;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+23 -> 30 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 52 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+42 -> 53 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+42 -> 57 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+42 -> 61 [IS_AST_PARENT]
+39 -> 42 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+84 -> 86 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+79 -> 82 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+70 -> 78 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int mmap_frag(abi_ulong real_start,
+
+                     abi_ulong start, abi_ulong end,
+
+                     int prot, int flags, int fd, abi_ulong offset)
+
+{
+
+    abi_ulong real_end, addr;
+
+    void *host_start;
+
+    int prot1, prot_new;
+
+
+
+    real_end = real_start + qemu_host_page_size;
+
+    host_start = g2h(real_start);
+
+
+
+    /* get the protection of the target pages outside the mapping */
+
+    prot1 = 0;
+
+    for(addr = real_start; addr < real_end; addr++) {
+
+        if (addr < start || addr >= end)
+
+            prot1 |= page_get_flags(addr);
+
+    }
+
+
+
+    if (prot1 == 0) {
+
+        /* no page was there, so we allocate one */
+
+        void *p = mmap(host_start, qemu_host_page_size, prot,
+
+                       flags | MAP_ANONYMOUS, -1, 0);
+
+        if (p == MAP_FAILED)
+
+            return -1;
+
+        prot1 = prot;
+
+    }
+
+    prot1 &= PAGE_BITS;
+
+
+
+    prot_new = prot | prot1;
+
+    if (!(flags & MAP_ANONYMOUS)) {
+
+        /* msync() won't work here, so we return an error if write is
+
+           possible while it is a shared mapping */
+
+        if ((flags & MAP_TYPE) == MAP_SHARED &&
+
+            (prot & PROT_WRITE))
+
+            return -EINVAL;
+
+
+
+        /* adjust protection to be able to read */
+
+        if (!(prot1 & PROT_WRITE))
+
+            mprotect(host_start, qemu_host_page_size, prot1 | PROT_WRITE);
+
+
+
+        /* read the corresponding file data */
+
+        if (pread(fd, g2h(start), end - start, offset) == -1)
+
+            return -1;
+
+
+
+        /* p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

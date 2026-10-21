@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int psf_fopen ( SF_PRIVATE * psf ) {
+ psf -> error = 0 ;
+ psf -> file . filedes = psf_open_fd ( & psf -> file ) ;
+ if ( psf -> file . filedes == - SFE_BAD_OPEN_MODE ) {
+ psf -> error = SFE_BAD_OPEN_MODE ;
+ psf -> file . filedes = - 1 ;
+ return psf -> error ;
+ }
+ ;
+ if ( psf -> file . filedes == - 1 ) psf_log_syserr ( psf , errno ) ;
+ return psf -> error ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ psf -> error = 0 ;
+ psf -> file . filedes = psf_open_fd ( & psf -> file ) ;
+ if ( psf -> file . filedes == - SFE_BAD_OPEN_MODE ) {
+ psf -> error = SFE_BAD_OPEN_MODE ;
+ psf -> file . filedes = - 1 ;
+ return psf -> error ;
+ }
+ ;
+ if ( psf -> file . filedes == - 1 ) psf_log_syserr ( psf , errno ) ;
+ return psf -> error ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ psf -> error = SFE_BAD_OPEN_MODE ;
+ psf -> file . filedes = - 1 ;
+ return psf -> error ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | psf -> error = 0
+30064771073 | CALL | psf -> error
+30064771074 | CALL | psf -> file . filedes = psf_open_fd ( & psf -> file )
+30064771075 | CALL | psf -> file . filedes
+30064771076 | CALL | psf -> file
+30064771077 | CALL | psf_open_fd ( & psf -> file )
+30064771078 | CALL | & psf -> file
+30064771079 | CALL | psf -> file
+30064771080 | CALL | psf -> file . filedes == - SFE_BAD_OPEN_MODE
+30064771081 | CALL | psf -> file . filedes
+30064771082 | CALL | psf -> file
+30064771083 | CALL | - SFE_BAD_OPEN_MODE
+30064771084 | CALL | psf -> error = SFE_BAD_OPEN_MODE
+30064771085 | CALL | psf -> error
+30064771086 | CALL | psf -> file . filedes = - 1
+30064771087 | CALL | psf -> file . filedes
+30064771088 | CALL | psf -> file
+30064771089 | CALL | - 1
+30064771090 | CALL | psf -> error
+30064771091 | CALL | psf -> file . filedes == - 1
+30064771092 | CALL | psf -> file . filedes
+30064771093 | CALL | psf -> file
+30064771094 | CALL | - 1
+30064771095 | CALL | psf_log_syserr ( psf , errno )
+30064771096 | CALL | psf -> error
+47244640256 | CONTROL_STRUCTURE | 
+        if ( psf -> file . filedes == - SFE_BAD_OPEN_MODE ) {
+ psf -> error = SFE_BAD_OPEN_MODE ;
+ psf -> file . filedes = - 1 ;
+ return psf -> error ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( psf -> file . filedes == - 1 ) psf_log_syserr ( psf , errno ) ;
+      
+55834574848 | FIELD_IDENTIFIER | error
+55834574849 | FIELD_IDENTIFIER | file
+55834574850 | FIELD_IDENTIFIER | filedes
+55834574851 | FIELD_IDENTIFIER | file
+55834574852 | FIELD_IDENTIFIER | file
+55834574853 | FIELD_IDENTIFIER | filedes
+55834574854 | FIELD_IDENTIFIER | error
+55834574855 | FIELD_IDENTIFIER | file
+55834574856 | FIELD_IDENTIFIER | filedes
+55834574857 | FIELD_IDENTIFIER | error
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803777 -> 30064771084 [AST]
+25769803777 -> 30064771086 [AST]
+25769803778 -> 30064771095 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771096 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771077 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771077 [AST]
+30064771074 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 55834574850 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 55834574850 [AST]
+30064771075 -> 55834574850 [POST_DOMINATE]
+30064771075 -> 30064771082 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 55834574850 [CFG]
+30064771076 -> 55834574850 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771074 [CFG]
+30064771077 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771082 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771093 [REACHING_DEF]
+30064771078 -> 30064771088 [REACHING_DEF]
+30064771079 -> 55834574851 [ARGUMENT]
+30064771079 -> 55834574851 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574851 [POST_DOMINATE]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771093 [REACHING_DEF]
+30064771079 -> 30064771088 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 55834574855 [CDG]
+30064771080 -> 55834574856 [CDG]
+30064771080 -> 55834574857 [CDG]
+30064771080 -> 55834574854 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771094 [CDG]
+30064771080 -> 30064771096 [CDG]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int psf_fclose ( SF_PRIVATE * psf ) {
+ int retval ;
+ if ( psf -> virtual_io ) return 0 ;
+ if ( psf -> file . do_not_close_descriptor ) {
+ psf -> file . filedes = - 1 ;
+ return 0 ;
+ }
+ ;
+ if ( ( retval = psf_close_fd ( psf -> file . filedes ) ) == - 1 ) psf_log_syserr ( psf , errno ) ;
+ psf -> file . filedes = - 1 ;
+ return retval ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

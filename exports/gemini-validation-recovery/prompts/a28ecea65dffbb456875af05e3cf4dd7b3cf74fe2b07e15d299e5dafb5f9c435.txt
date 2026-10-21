@@ -1,0 +1,358 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int cow_update_bitmap(BlockDriverState *bs, int64_t sector_num,
+
+        int nb_sectors)
+
+{
+
+    int64_t bitnum = sector_num + sizeof(struct cow_header_v2) * 8;
+
+    uint64_t offset = (bitnum / 8) & -BDRV_SECTOR_SIZE;
+
+    bool first = true;
+
+    int sector_bits;
+
+
+
+    for ( ; nb_sectors;
+
+            bitnum += sector_bits,
+
+            nb_sectors -= sector_bits,
+
+            offset += BDRV_SECTOR_SIZE) {
+
+        int ret, set;
+
+        uint8_t bitmap[BDRV_SECTOR_SIZE];
+
+
+
+        bitnum &= BITS_PER_BITMAP_SECTOR - 1;
+
+        sector_bits = MIN(nb_sectors, BITS_PER_BITMAP_SECTOR - bitnum);
+
+
+
+        ret = bdrv_pread(bs->file, offset, &bitmap, sizeof(bitmap));
+
+        if (ret < 0) {
+
+            return ret;
+
+        }
+
+
+
+        /* Skip over any already set bits */
+
+        set = cow_find_streak(bitmap, 1, bitnum, sector_bits);
+
+        bitnum += set;
+
+        sector_bits -= set;
+
+        nb_sectors -= set;
+
+        if (!sector_bits) {
+
+            continue;
+
+        }
+
+
+
+        if (first) {
+
+            ret = bdrv_flush(bs->file);
+
+            if (ret < 0) {
+
+                return ret;
+
+            }
+
+            first = false;
+
+        }
+
+
+
+        cow_set_bits(bitmap, bitnum, sector_bits);
+
+
+
+        ret = bdrv_pwrite(bs->file, offset, &bitmap, sizeof(bitmap));
+
+        if (ret < 0) {
+
+            return ret;
+
+        }
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int64_t bitnum = sector_num + sizeof(struct cow_header_v2) * 8;
+
+    uint64_t offset = (bitnum / 8) & -BDRV_SECTOR_SIZE;
+
+    bool first = true;
+
+    int sector_bits;
+
+
+
+    for ( ; nb_sectors;
+
+            bitnum += sector_bits,
+
+            nb_sectors -= sector_bits,
+
+            offset += BDRV_SECTOR_SIZE) {
+
+        int ret, set;
+
+        uint8_t bitmap[BDRV_SECTOR_SIZE];
+
+
+
+        bitnum &= BITS_PER_BITMAP_SECTOR - 1;
+
+        sector_bits = MIN(nb_sectors, BITS_PER_BITMAP_SECTOR - bitnum);
+
+
+
+        ret = bdrv_pread(bs->file, offset, &bitmap, sizeof(bitmap));
+
+        if (ret < 0) {
+
+            return ret;
+
+        }
+
+
+
+        /* Skip over any already set bits */
+
+        set = cow_find_streak(bitmap, 1, bitnum, sector_bits);
+
+        bitnum += set;
+
+        sector_bits -= set;
+
+        nb_sectors -= set;
+
+        if (!sector_bits) {
+
+            continue;
+
+        }
+
+
+
+        if (first) {
+
+            ret = bdrv_flush(bs->file);
+
+            if (ret < 0) {
+
+       ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+
+        int ret, set;
+
+        uint8_t bitmap[BDRV_SECTOR_SIZE];
+
+
+
+        bitnum &= BITS_PER_BITMAP_SECTOR - 1;
+
+        sector_bits = MIN(nb_sectors, BITS_PER_BITMAP_SECTOR - bitnum);
+
+
+
+        ret = bdrv_pread(bs->file, offset, &bitmap, sizeof(bitmap));
+
+        if (ret < 0) {
+
+            return ret;
+
+        }
+
+
+
+        /* Skip over any already set bits */
+
+        set = cow_find_streak(bitmap, 1, bitnum, sector_bits);
+
+        bitnum += set;
+
+        sector_bits -= set;
+
+        nb_sectors -= set;
+
+        if (!sector_bits) {
+
+            continue;
+
+        }
+
+
+
+        if (first) {
+
+            ret = bdrv_flush(bs->file);
+
+            if (ret < 0) {
+
+                return ret;
+
+            }
+
+            first = false;
+
+        }
+
+
+
+        cow_set_bits(bitmap, bitnum, sector_bits);
+
+
+
+        ret = bdrv_pwrite(bs->file, offset, &bitmap, sizeof(bitmap));
+
+        if (ret < 0) {
+
+            return ret;
+
+        }
+
+    }
+      
+25769803780 | BLOCK | { return ret; }
+25769803781 | BLOCK | { continue; }
+25769803782 | BLOCK | { ret = bdrv_flush(bs->file); if (ret < 0) { return ret; } first = false; }
+25769803783 | BLOCK | { return ret; }
+25769803784 | BLOCK | { return ret; }
+30064771072 | CALL | bitnum = sector_num + sizeof(struct cow_header_v2) * 8
+30064771073 | CALL | sector_num + sizeof(struct cow_header_v2) * 8
+30064771074 | CALL | sizeof(struct cow_header_v2) * 8
+30064771075 | CALL | sizeof(struct cow_header_v2)
+30064771076 | CALL | offset = (bitnum / 8) & -BDRV_SECTOR_SIZE
+30064771077 | CALL | (bitnum / 8) & -BDRV_SECTOR_SIZE
+30064771078 | CALL | bitnum / 8
+30064771079 | CALL | -BDRV_SECTOR_SIZE
+30064771080 | CALL | first = true
+30064771081 | CALL | nb_sectors != 0
+30064771082 | CALL | bitnum += sector_bits
+30064771083 | CALL | nb_sectors -= sector_bits
+30064771084 | CALL | offset += BDRV_SECTOR_SIZE
+30064771085 | CALL | bitmap[BDRV_SECTOR_SIZE]
+30064771086 | CALL | bitmap[BDRV_SECTOR_SIZE]
+30064771087 | CALL | bitnum &= BITS_PER_BITMAP_SECTOR - 1
+30064771088 | CALL | BITS_PER_BITMAP_SECTOR - 1
+30064771089 | CALL | sector_bits = MIN(nb_sectors, BITS_PER_BITMAP_SECTOR - bitnum)
+30064771090 | CALL | MIN(nb_sectors, BITS_PER_BITMAP_SECTOR - bitnum)
+30064771091 | CALL | BITS_PER_BITMAP_SECTOR - bitnum
+30064771092 | CALL | ret = bdrv_pread(bs->file, offset, &bitmap, sizeof(bitmap))
+30064771093 | CALL | bdrv_pread(bs->file, offset, &bitmap, sizeof(bitmap))
+30064771094 | CALL | bs->file
+30064771095 | CALL | &bitmap
+30064771096 | CALL | sizeof(bitmap)
+30064771097 | CALL | ret < 0
+30064771098 | CALL | set = cow_find_streak(bitmap, 1, bitnum, sector_bits)
+30064771099 | CALL | cow_find_streak(bitmap, 1, bitnum, sector_bits)
+30064771100 | CALL | bitnum += set
+30064771101 | CALL | sector_bits -= set
+30064771102 | CALL | nb_sectors -= set
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771085 [AST]
+25769803779 -> 30064771087 [AST]
+25769803779 -> 30064771089 [AST]
+25769803779 -> 30064771092 [AST]
+25769803779 -> 30064771098 [AST]
+25769803779 -> 30064771100 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771094 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771097 [CDG]
+30064771081 -> 30064771095 [CDG]
+30064771081 -> 30064771096 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

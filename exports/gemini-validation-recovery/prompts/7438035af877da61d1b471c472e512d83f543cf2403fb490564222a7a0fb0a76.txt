@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int pci_bridge_initfn(PCIDevice *dev)
+
+{
+
+    PCIBus *parent = dev->bus;
+
+    PCIBridge *br = DO_UPCAST(PCIBridge, dev, dev);
+
+    PCIBus *sec_bus = &br->sec_bus;
+
+
+
+    pci_set_word(dev->config + PCI_STATUS,
+
+                 PCI_STATUS_66MHZ | PCI_STATUS_FAST_BACK);
+
+    pci_config_set_class(dev->config, PCI_CLASS_BRIDGE_PCI);
+
+    dev->config[PCI_HEADER_TYPE] =
+
+        (dev->config[PCI_HEADER_TYPE] & PCI_HEADER_TYPE_MULTI_FUNCTION) |
+
+        PCI_HEADER_TYPE_BRIDGE;
+
+    pci_set_word(dev->config + PCI_SEC_STATUS,
+
+                 PCI_STATUS_66MHZ | PCI_STATUS_FAST_BACK);
+
+
+
+    qbus_create_inplace(&sec_bus->qbus, &pci_bus_info, &dev->qdev,
+
+                        br->bus_name);
+
+    sec_bus->parent_dev = dev;
+
+    sec_bus->map_irq = br->map_irq;
+
+    sec_bus->address_space_mem = &br->address_space_mem;
+
+    memory_region_init(&br->address_space_mem, "pci_bridge_pci", INT64_MAX);
+
+    sec_bus->address_space_io = &br->address_space_io;
+
+    memory_region_init(&br->address_space_io, "pci_bridge_io", 65536);
+
+    pci_bridge_region_init(br);
+
+    QLIST_INIT(&sec_bus->child);
+
+    QLIST_INSERT_HEAD(&parent->child, sec_bus, sibling);
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+23 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+23 -> 28 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 51 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+45 -> 52 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+60 -> 65 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 73 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 80 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+75 -> 81 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 82 [IS_AST_PARENT]
+68 -> 74 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+int pci_bridge_initfn(PCIDevice *dev)
+
+{
+
+    PCIBus *parent = dev->bus;
+
+    PCIBridge *br = DO_UPCAST(PCIBridge, dev, dev);
+
+    PCIBus *sec_bus = &br->sec_bus;
+
+
+
+    pci_word_test_and_set_mask(dev->config + PCI_STATUS,
+
+                               PCI_STATUS_66MHZ | PCI_STATUS_FAST_BACK);
+
+    pci_config_set_class(dev->config, PCI_CLASS_BRIDGE_PCI);
+
+    dev->config[PCI_HEADER_TYPE] =
+
+        (dev->config[PCI_HEADER_TYPE] & PCI_HEADER_TYPE_MULTI_FUNCTION) |
+
+        PCI_HEADER_TYPE_BRIDGE;
+
+    pci_set_word(dev->config + PCI_SEC_STATUS,
+
+                 PCI_STATUS_66MHZ | PCI_STATUS_FAST_BACK);
+
+
+
+    /*
+
+     * If we don't specify the name, the bus will be addressed as <id>.0, where
+
+     * id is the device id.
+
+     * Since PCI Bridge devices have a single bus each, we don't need the index:
+
+     * let users address the bus using the device name.
+
+     */
+
+    if (!br->bus_name && dev->qdev.id && *dev->qdev.id) {
+
+	    br->bus_name = dev->qdev.id;
+
+    }
+
+
+
+    qbus_create_inplace(&sec_bus->qbus, TYPE_PCI_BUS, &dev->qdev,
+
+                        br->bus_name);
+
+    sec_bus->parent_dev = dev;
+
+    sec_bus->map_irq = br->map_irq;
+
+    sec_bus->address_space_mem = &br->address_space_mem;
+
+    memory_region_init(&br->address_space_mem, "pci_bridge_pci", INT64_MAX);
+
+    sec_bus->address_space_io = &br->address_space_io;
+
+    memory_region_init(&br->address_space_io, "pci_bridge_io", 65536);
+
+    pci_bridge_region_init(br);
+
+    QLIST_INIT(&sec_bus->child);
+
+    QLIST_
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

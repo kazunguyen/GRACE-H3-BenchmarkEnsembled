@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ff_vdpau_add_data_chunk ( uint8_t * data , const uint8_t * buf , int buf_size ) {
+ struct vdpau_render_state * render = ( struct vdpau_render_state * ) data ;
+ assert ( render ) ;
+ render -> bitstream_buffers = av_fast_realloc ( render -> bitstream_buffers , & render -> bitstream_buffers_allocated , sizeof ( * render -> bitstream_buffers ) * ( render -> bitstream_buffers_used + 1 ) ) ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . struct_version = VDP_BITSTREAM_BUFFER_VERSION ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream = buf ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream_bytes = buf_size ;
+ render -> bitstream_buffers_used ++ ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct vdpau_render_state * render = ( struct vdpau_render_state * ) data ;
+ assert ( render ) ;
+ render -> bitstream_buffers = av_fast_realloc ( render -> bitstream_buffers , & render -> bitstream_buffers_allocated , sizeof ( * render -> bitstream_buffers ) * ( render -> bitstream_buffers_used + 1 ) ) ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . struct_version = VDP_BITSTREAM_BUFFER_VERSION ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream = buf ;
+ render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream_bytes = buf_size ;
+ render -> bitstream_buffers_used ++ ;
+ }
+      
+30064771072 | CALL | render = ( struct vdpau_render_state * ) data
+30064771073 | CALL | ( struct vdpau_render_state * ) data
+30064771074 | CALL | assert ( render )
+30064771075 | CALL | 
+        render -> bitstream_buffers = av_fast_realloc ( render -> bitstream_buffers , & render -> bitstream_buffers_allocated , sizeof ( * render -> bitstream_buffers ) * ( render -> bitstream_buffers_used + 1 ) )
+      
+30064771076 | CALL | render -> bitstream_buffers
+30064771077 | CALL | 
+        av_fast_realloc ( render -> bitstream_buffers , & render -> bitstream_buffers_allocated , sizeof ( * render -> bitstream_buffers ) * ( render -> bitstream_buffers_used + 1 ) )
+      
+30064771078 | CALL | render -> bitstream_buffers
+30064771079 | CALL | & render -> bitstream_buffers_allocated
+30064771080 | CALL | render -> bitstream_buffers_allocated
+30064771081 | CALL | 
+        sizeof ( * render -> bitstream_buffers ) * ( render -> bitstream_buffers_used + 1 )
+      
+30064771082 | CALL | sizeof ( * render -> bitstream_buffers )
+30064771083 | CALL | * render -> bitstream_buffers
+30064771084 | CALL | render -> bitstream_buffers
+30064771085 | CALL | render -> bitstream_buffers_used + 1
+30064771086 | CALL | render -> bitstream_buffers_used
+30064771087 | CALL | 
+        render -> bitstream_buffers [ render -> bitstream_buffers_used ] . struct_version = VDP_BITSTREAM_BUFFER_VERSION
+      
+30064771088 | CALL | 
+        render -> bitstream_buffers [ render -> bitstream_buffers_used ] . struct_version
+      
+30064771089 | CALL | render -> bitstream_buffers [ render -> bitstream_buffers_used ]
+30064771090 | CALL | render -> bitstream_buffers
+30064771091 | CALL | render -> bitstream_buffers_used
+30064771092 | CALL | 
+        render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream = buf
+      
+30064771093 | CALL | render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream
+30064771094 | CALL | render -> bitstream_buffers [ render -> bitstream_buffers_used ]
+30064771095 | CALL | render -> bitstream_buffers
+30064771096 | CALL | render -> bitstream_buffers_used
+30064771097 | CALL | 
+        render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream_bytes = buf_size
+      
+30064771098 | CALL | 
+        render -> bitstream_buffers [ render -> bitstream_buffers_used ] . bitstream_bytes
+      
+30064771099 | CALL | render -> bitstream_buffers [ render -> bitstream_buffers_used ]
+30064771100 | CALL | render -> bitstream_buffers
+30064771101 | CALL | render -> bitstream_buffers_used
+30064771102 | CALL | render -> bitstream_buffers_used ++
+30064771103 | CALL | render -> bitstream_buffers_used
+55834574848 | FIELD_IDENTIFIER | bitstream_buffers
+55834574849 | FIELD_IDENTIFIER | bitstream_buffers
+55834574850 | FIELD_IDENTIFIER | bitstream_buffers_allocated
+55834574851 | FIELD_IDENTIFIER | bitstream_buffers
+55834574852 | FIELD_IDENTIFIER | bitstream_buffers_used
+55834574853 | FIELD_IDENTIFIER | bitstream_buffers
+55834574854 | FIELD_IDENTIFIER | bitstream_buffers_used
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771095 [REACHING_DEF]
+30064771076 -> 30064771100 [REACHING_DEF]
+30064771076 -> 30064771090 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 30064771081 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 55834574849 [AST]
+30064771078 -> 55834574849 [POST_DOMINATE]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771081 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 55834574850 [ARGUMENT]
+30064771080 -> 55834574850 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 55834574850 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771085 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771085 [AST]
+30064771081 -> 30064771077 [CFG]
+30064771081 -> 30064771077 [DOMINATE]
+30064771081 -> 30064771085 [POST_DOMINATE]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771077 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 55834574851 [ARGUMENT]
+30064771084 -> 55834574851 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 5583
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

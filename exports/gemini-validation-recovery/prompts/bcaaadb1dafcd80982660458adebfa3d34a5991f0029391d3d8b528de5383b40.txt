@@ -1,0 +1,223 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int kex_agree_kex_hostkey ( LIBSSH2_SESSION * session , unsigned char * kex , unsigned long kex_len , unsigned char * hostkey , unsigned long hostkey_len ) {
+ const LIBSSH2_KEX_METHOD * * kexp = libssh2_kex_methods ;
+ unsigned char * s ;
+ if ( session -> kex_prefs ) {
+ s = ( unsigned char * ) session -> kex_prefs ;
+ while ( s && * s ) {
+ unsigned char * q , * p = ( unsigned char * ) strchr ( ( char * ) s , ',' ) ;
+ size_t method_len = ( p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s ) ) ;
+ if ( ( q = kex_agree_instr ( kex , kex_len , s , method_len ) ) ) {
+ const LIBSSH2_KEX_METHOD * method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp ) ;
+ if ( ! method ) {
+ return - 1 ;
+ }
+ if ( kex_agree_hostkey ( session , method -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ s = p ? p + 1 : NULL ;
+ }
+ return - 1 ;
+ }
+ while ( * kexp && ( * kexp ) -> name ) {
+ s = kex_agree_instr ( kex , kex_len , ( unsigned char * ) ( * kexp ) -> name , strlen ( ( * kexp ) -> name ) ) ;
+ if ( s ) {
+ if ( kex_agree_hostkey ( session , ( * kexp ) -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = * kexp ;
+ if ( session -> burn_optimistic_kexinit && ( kex == s ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ kexp ++ ;
+ }
+ return - 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const LIBSSH2_KEX_METHOD * * kexp = libssh2_kex_methods ;
+ unsigned char * s ;
+ if ( session -> kex_prefs ) {
+ s = ( unsigned char * ) session -> kex_prefs ;
+ while ( s && * s ) {
+ unsigned char * q , * p = ( unsigned char * ) strchr ( ( char * ) s , ',' ) ;
+ size_t method_len = ( p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s ) ) ;
+ if ( ( q = kex_agree_instr ( kex , kex_len , s , method_len ) ) ) {
+ const LIBSSH2_KEX_METHOD * method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp ) ;
+ if ( ! method ) {
+ return - 1 ;
+ }
+ if ( kex_agree_hostkey ( session , method -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ s = p ? p + 1 : NULL ;
+ }
+ return - 1 ;
+ }
+ while ( * kexp && ( * kexp ) -> name ) {
+ s = kex_agree_instr ( kex , kex_len , ( unsigned char * ) ( *...
+      
+25769803777 | BLOCK | 
+        {
+ s = ( unsigned char * ) session -> kex_prefs ;
+ while ( s && * s ) {
+ unsigned char * q , * p = ( unsigned char * ) strchr ( ( char * ) s , ',' ) ;
+ size_t method_len = ( p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s ) ) ;
+ if ( ( q = kex_agree_instr ( kex , kex_len , s , method_len ) ) ) {
+ const LIBSSH2_KEX_METHOD * method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp ) ;
+ if ( ! method ) {
+ return - 1 ;
+ }
+ if ( kex_agree_hostkey ( session , method -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ s = p ? p + 1 : NULL ;
+ }
+ return - 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ unsigned char * q , * p = ( unsigned char * ) strchr ( ( char * ) s , ',' ) ;
+ size_t method_len = ( p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s ) ) ;
+ if ( ( q = kex_agree_instr ( kex , kex_len , s , method_len ) ) ) {
+ const LIBSSH2_KEX_METHOD * method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp ) ;
+ if ( ! method ) {
+ return - 1 ;
+ }
+ if ( kex_agree_hostkey ( session , method -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ s = p ? p + 1 : NULL ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ const LIBSSH2_KEX_METHOD * method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp ) ;
+ if ( ! method ) {
+ return - 1 ;
+ }
+ if ( kex_agree_hostkey ( session , method -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+      
+25769803780 | BLOCK | { return - 1 ; }
+25769803781 | BLOCK | 
+        {
+ session -> kex = method ;
+ if ( session -> burn_optimistic_kexinit && ( kex == q ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+      
+25769803782 | BLOCK | { session -> burn_optimistic_kexinit = 0 ; }
+25769803783 | BLOCK | 
+        {
+ s = kex_agree_instr ( kex , kex_len , ( unsigned char * ) ( * kexp ) -> name , strlen ( ( * kexp ) -> name ) ) ;
+ if ( s ) {
+ if ( kex_agree_hostkey ( session , ( * kexp ) -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = * kexp ;
+ if ( session -> burn_optimistic_kexinit && ( kex == s ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+ kexp ++ ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ if ( kex_agree_hostkey ( session , ( * kexp ) -> flags , hostkey , hostkey_len ) == 0 ) {
+ session -> kex = * kexp ;
+ if ( session -> burn_optimistic_kexinit && ( kex == s ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ session -> kex = * kexp ;
+ if ( session -> burn_optimistic_kexinit && ( kex == s ) ) {
+ session -> burn_optimistic_kexinit = 0 ;
+ }
+ return 0 ;
+ }
+      
+25769803786 | BLOCK | { session -> burn_optimistic_kexinit = 0 ; }
+30064771072 | CALL | * kexp = libssh2_kex_methods
+30064771073 | CALL | session -> kex_prefs
+30064771074 | CALL | s = ( unsigned char * ) session -> kex_prefs
+30064771075 | CALL | ( unsigned char * ) session -> kex_prefs
+30064771076 | CALL | session -> kex_prefs
+30064771077 | CALL | s && * s
+30064771078 | CALL | * s
+30064771079 | CALL | p = ( unsigned char * ) strchr ( ( char * ) s , ',' )
+30064771080 | CALL | ( unsigned char * ) strchr ( ( char * ) s , ',' )
+30064771081 | CALL | strchr ( ( char * ) s , ',' )
+30064771082 | CALL | ( char * ) s
+30064771083 | CALL | method_len = ( p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s ) )
+30064771084 | CALL | p ? ( size_t ) ( p - s ) : strlen ( ( char * ) s )
+30064771085 | CALL | ( size_t ) ( p - s )
+30064771086 | CALL | p - s
+30064771087 | CALL | strlen ( ( char * ) s )
+30064771088 | CALL | ( char * ) s
+30064771089 | CALL | q = kex_agree_instr ( kex , kex_len , s , method_len )
+30064771090 | CALL | kex_agree_instr ( kex , kex_len , s , method_len )
+30064771091 | CALL | 
+        method = ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp )
+      
+30064771092 | CALL | 
+        ( const LIBSSH2_KEX_METHOD * ) kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp )
+      
+30064771093 | CALL | 
+        kex_get_method_by_name ( ( char * ) s , method_len , ( const LIBSSH2_COMMON_METHOD * * ) kexp )
+      
+30064771094 | CALL | ( char * ) s
+30064771095 | CALL | ( const LIBSSH2_COMMON_METHOD *
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

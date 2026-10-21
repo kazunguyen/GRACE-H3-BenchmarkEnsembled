@@ -1,0 +1,207 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void * pool_alloc ( size_t len ) {
+ struct mem_pool * p ;
+ void * r ;
+ if ( len & ( sizeof ( uintmax_t ) - 1 ) ) len += sizeof ( uintmax_t ) - ( len & ( sizeof ( uintmax_t ) - 1 ) ) ;
+ for ( p = mem_pool ;
+ p ;
+ p = p -> next_pool ) if ( ( p -> end - p -> next_free >= len ) ) break ;
+ if ( ! p ) {
+ if ( len >= ( mem_pool_alloc / 2 ) ) {
+ total_allocd += len ;
+ return xmalloc ( len ) ;
+ }
+ total_allocd += sizeof ( struct mem_pool ) + mem_pool_alloc ;
+ p = xmalloc ( sizeof ( struct mem_pool ) + mem_pool_alloc ) ;
+ p -> next_pool = mem_pool ;
+ p -> next_free = ( char * ) p -> space ;
+ p -> end = p -> next_free + mem_pool_alloc ;
+ mem_pool = p ;
+ }
+ r = p -> next_free ;
+ p -> next_free += len ;
+ return r ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct mem_pool * p ;
+ void * r ;
+ if ( len & ( sizeof ( uintmax_t ) - 1 ) ) len += sizeof ( uintmax_t ) - ( len & ( sizeof ( uintmax_t ) - 1 ) ) ;
+ for ( p = mem_pool ;
+ p ;
+ p = p -> next_pool ) if ( ( p -> end - p -> next_free >= len ) ) break ;
+ if ( ! p ) {
+ if ( len >= ( mem_pool_alloc / 2 ) ) {
+ total_allocd += len ;
+ return xmalloc ( len ) ;
+ }
+ total_allocd += sizeof ( struct mem_pool ) + mem_pool_alloc ;
+ p = xmalloc ( sizeof ( struct mem_pool ) + mem_pool_alloc ) ;
+ p -> next_pool = mem_pool ;
+ p -> next_free = ( char * ) p -> space ;
+ p -> end = p -> next_free + mem_pool_alloc ;
+ mem_pool = p ;
+ }
+ r = p -> next_free ;
+ p -> next_free += len ;
+ return r ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( len >= ( mem_pool_alloc / 2 ) ) {
+ total_allocd += len ;
+ return xmalloc ( len ) ;
+ }
+ total_allocd += sizeof ( struct mem_pool ) + mem_pool_alloc ;
+ p = xmalloc ( sizeof ( struct mem_pool ) + mem_pool_alloc ) ;
+ p -> next_pool = mem_pool ;
+ p -> next_free = ( char * ) p -> space ;
+ p -> end = p -> next_free + mem_pool_alloc ;
+ mem_pool = p ;
+ }
+      
+25769803780 | BLOCK | { total_allocd += len ; return xmalloc ( len ) ; }
+30064771072 | CALL | len & ( sizeof ( uintmax_t ) - 1 )
+30064771073 | CALL | sizeof ( uintmax_t ) - 1
+30064771074 | CALL | sizeof ( uintmax_t )
+30064771075 | CALL | len += sizeof ( uintmax_t ) - ( len & ( sizeof ( uintmax_t ) - 1 ) )
+30064771076 | CALL | sizeof ( uintmax_t ) - ( len & ( sizeof ( uintmax_t ) - 1 ) )
+30064771077 | CALL | sizeof ( uintmax_t )
+30064771078 | CALL | len & ( sizeof ( uintmax_t ) - 1 )
+30064771079 | CALL | sizeof ( uintmax_t ) - 1
+30064771080 | CALL | sizeof ( uintmax_t )
+30064771081 | CALL | p = mem_pool
+30064771082 | CALL | p != NULL
+30064771083 | CALL | p = p -> next_pool
+30064771084 | CALL | p -> next_pool
+30064771085 | CALL | p -> end - p -> next_free >= len
+30064771086 | CALL | p -> end - p -> next_free
+30064771087 | CALL | p -> end
+30064771088 | CALL | p -> next_free
+30064771089 | CALL | ! p
+30064771090 | CALL | len >= ( mem_pool_alloc / 2 )
+30064771091 | CALL | mem_pool_alloc / 2
+30064771092 | CALL | total_allocd += len
+30064771093 | CALL | xmalloc ( len )
+30064771094 | CALL | total_allocd += sizeof ( struct mem_pool ) + mem_pool_alloc
+30064771095 | CALL | sizeof ( struct mem_pool ) + mem_pool_alloc
+30064771096 | CALL | sizeof ( struct mem_pool )
+30064771097 | CALL | p = xmalloc ( sizeof ( struct mem_pool ) + mem_pool_alloc )
+30064771098 | CALL | xmalloc ( sizeof ( struct mem_pool ) + mem_pool_alloc )
+30064771099 | CALL | sizeof ( struct mem_pool ) + mem_pool_alloc
+30064771100 | CALL | sizeof ( struct mem_pool )
+30064771101 | CALL | p -> next_pool = mem_pool
+30064771102 | CALL | p -> next_pool
+30064771103 | CALL | p -> next_free = ( char * ) p -> space
+30064771104 | CALL | p -> next_free
+30064771105 | CALL | ( char * ) p -> space
+30064771106 | CALL | p -> space
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803779 -> 30064771094 [AST]
+25769803779 -> 30064771097 [AST]
+25769803779 -> 30064771101 [AST]
+25769803779 -> 30064771103 [AST]
+25769803780 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771078 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771078 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771078 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771076 [CFG]
+30064771078 -> 30064771076 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771076 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771082 [CDG]
+30064771085 -> 30064771083 [CDG]
+30064771085 -> 30064771084 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771088 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771088 [AST]
+30064771086 -> 30064771088 [POST_DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771086 [CFG]
+30064771088 -> 30064771086 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771092 [CDG]
+30064771090 -> 30064771093 [CDG]
+30064771090 -> 30064771094 [CDG]
+30064771090 -> 30064771095 [CDG]
+30064771090 -> 30064771096 [CDG]
+30064771090 -> 30064771097 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void alloc_objects ( unsigned int cnt ) {
+ struct object_entry_pool * b ;
+ b = xmalloc ( sizeof ( struct object_entry_pool ) + cnt * sizeof ( struct object_entry ) ) ;
+ b -> next_pool = blocks ;
+ b -> next_free = b -> entries ;
+ b -> end = b -> entries + cnt ;
+ blocks = b ;
+ alloc_count += cnt ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

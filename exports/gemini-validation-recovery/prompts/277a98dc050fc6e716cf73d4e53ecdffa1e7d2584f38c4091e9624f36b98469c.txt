@@ -1,0 +1,153 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static char * summary_template ( tvbuff_t * tvb , int offset ) {
+ const char * objtype ;
+ if ( tvb_get_guint8 ( tvb , offset + 2 ) == RSVP_CLASS_FILTER_SPEC ) objtype = "FILTERSPEC" ;
+ else objtype = "SENDER TEMPLATE" ;
+ switch ( tvb_get_guint8 ( tvb , offset + 3 ) ) {
+ case 1 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4, Sender %s, Port %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 7 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 8 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 8 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv6-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip6_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 20 ) , tvb_get_ntohs ( tvb , offset + 22 ) ) ;
+ break ;
+ case 9 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-Aggregate, Aggregator %s. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) ) ;
+ break ;
+ default : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: Type %d. " , objtype , tvb_get_guint8 ( tvb , offset + 3 ) ) ;
+ break ;
+ }
+ DISSECTOR_ASSERT_NOT_REACHED ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * objtype ;
+ if ( tvb_get_guint8 ( tvb , offset + 2 ) == RSVP_CLASS_FILTER_SPEC ) objtype = "FILTERSPEC" ;
+ else objtype = "SENDER TEMPLATE" ;
+ switch ( tvb_get_guint8 ( tvb , offset + 3 ) ) {
+ case 1 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4, Sender %s, Port %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 7 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 8 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 8 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv6-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip6_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 20 ) , tvb_get_ntohs ( tvb , offset + 22 ) ) ;
+ break ;
+ case 9 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ case 1 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4, Sender %s, Port %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 7 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 8 ) , tvb_get_ntohs ( tvb , offset + 10 ) ) ;
+ break ;
+ case 8 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv6-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip6_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 20 ) , tvb_get_ntohs ( tvb , offset + 22 ) ) ;
+ break ;
+ case 9 : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-Aggregate, Aggregator %s. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) ) ;
+ break ;
+ default : return wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: Type %d. " , objtype , tvb_get_guint8 ( tvb ...
+      
+30064771072 | CALL | tvb_get_guint8 ( tvb , offset + 2 ) == RSVP_CLASS_FILTER_SPEC
+30064771073 | CALL | tvb_get_guint8 ( tvb , offset + 2 )
+30064771074 | CALL | offset + 2
+30064771075 | CALL | objtype = "FILTERSPEC"
+30064771076 | CALL | objtype = "SENDER TEMPLATE"
+30064771077 | CALL | tvb_get_guint8 ( tvb , offset + 3 )
+30064771078 | CALL | offset + 3
+30064771079 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4, Sender %s, Port %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 10 ) )
+      
+30064771080 | CALL | wmem_packet_scope ( )
+30064771081 | CALL | tvb_ip_to_str ( tvb , offset + 4 )
+30064771082 | CALL | offset + 4
+30064771083 | CALL | tvb_get_ntohs ( tvb , offset + 10 )
+30064771084 | CALL | offset + 10
+30064771085 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 8 ) , tvb_get_ntohs ( tvb , offset + 10 ) )
+      
+30064771086 | CALL | wmem_packet_scope ( )
+30064771087 | CALL | tvb_ip_to_str ( tvb , offset + 4 )
+30064771088 | CALL | offset + 4
+30064771089 | CALL | tvb_get_ntohs ( tvb , offset + 8 )
+30064771090 | CALL | offset + 8
+30064771091 | CALL | tvb_get_ntohs ( tvb , offset + 10 )
+30064771092 | CALL | offset + 10
+30064771093 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv6-LSP, Tunnel Source: %s, Short Call ID: %d, LSP ID: %d. " , objtype , tvb_ip6_to_str ( tvb , offset + 4 ) , tvb_get_ntohs ( tvb , offset + 20 ) , tvb_get_ntohs ( tvb , offset + 22 ) )
+      
+30064771094 | CALL | wmem_packet_scope ( )
+30064771095 | CALL | tvb_ip6_to_str ( tvb , offset + 4 )
+30064771096 | CALL | offset + 4
+30064771097 | CALL | tvb_get_ntohs ( tvb , offset + 20 )
+30064771098 | CALL | offset + 20
+30064771099 | CALL | tvb_get_ntohs ( tvb , offset + 22 )
+30064771100 | CALL | offset + 22
+30064771101 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: IPv4-Aggregate, Aggregator %s. " , objtype , tvb_ip_to_str ( tvb , offset + 4 ) )
+      
+30064771102 | CALL | wmem_packet_scope ( )
+30064771103 | CALL | tvb_ip_to_str ( tvb , offset + 4 )
+30064771104 | CALL | offset + 4
+30064771105 | CALL | 
+        wmem_strdup_printf ( wmem_packet_scope ( ) , "%s: Type %d. " , objtype , tvb_get_guint8 ( tvb , offset + 3 ) )
+      
+30064771106 | CALL | wmem_packet_scope ( )
+30064771107 | CALL | tvb_get_guint8 ( tvb , offset + 3 )
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771076 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771107 [CDG]
+30064771077 -> 30064771106 [CDG]
+30064771077 -> 30064771101 [CDG]
+30064771077 -> 30064771100 [CDG]
+30064771077 -> 30064771099 [CDG]
+30064771077 -> 30064771098 [CDG]
+30064771077 -> 30064771105 [CDG]
+30064771077 -> 30064771104 [CDG]
+30064771077 -> 30064771103 [CDG]
+30064771077 -> 30064771102 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771093 [CDG]
+30064771077 -> 30064771092 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771097 [CDG]
+30064771077 -> 30064771096 [CDG]
+30064771077 -> 30064771095 [CDG]
+30064771077 -> 30064771094 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771089 [CDG]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,222 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mp3_header_compress(AVBitStreamFilterContext *bsfc, AVCodecContext *avctx, const char *args,
+
+                     uint8_t **poutbuf, int *poutbuf_size,
+
+                     const uint8_t *buf, int buf_size, int keyframe){
+
+    uint32_t header;
+
+    int mode_extension;
+
+
+
+    if(avctx->strict_std_compliance > FF_COMPLIANCE_EXPERIMENTAL){
+
+        av_log(avctx, AV_LOG_ERROR, "not standards compliant\n");
+
+        return -1;
+
+    }
+
+
+
+    header = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+
+    mode_extension= (header>>4)&3;
+
+
+
+    if(ff_mpa_check_header(header) < 0 || (header&0x70000) != 0x30000){
+
+        *poutbuf= (uint8_t *) buf;
+
+        *poutbuf_size= buf_size;
+
+
+
+        av_log(avctx, AV_LOG_INFO, "cannot compress %08X\n", header);
+
+        return 0;
+
+    }
+
+
+
+    *poutbuf_size= buf_size - 4;
+
+    *poutbuf= av_malloc(buf_size - 4 + FF_INPUT_BUFFER_PADDING_SIZE);
+
+    memcpy(*poutbuf, buf + 4, buf_size - 4 + FF_INPUT_BUFFER_PADDING_SIZE);
+
+
+
+    if(avctx->channels==2){
+
+        if((header & (3<<19)) != 3<<19){
+
+            (*poutbuf)[1] &= 0x3F;
+
+            (*poutbuf)[1] |= mode_extension<<6;
+
+            FFSWAP(int, (*poutbuf)[1], (*poutbuf)[2]);
+
+        }else{
+
+            (*poutbuf)[1] &= 0x8F;
+
+            (*poutbuf)[1] |= mode_extension<<4;
+
+        }
+
+    }
+
+
+
+    return 1;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 19 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+25 -> 30 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+20 -> 32 [IS_AST_PARENT]
+13 -> 20 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 50 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+52 -> 56 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+51 -> 57 [IS_AST_PARENT]
+45 -> 51 [IS_AST_PARENT]
+39 -> 45 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 78 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 82 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 83 [IS_AST_PARENT]
+70 -> 79 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static int noise(AVBitStreamFilterContext *bsfc, AVCodecContext *avctx, const char *args,
+
+                     uint8_t **poutbuf, int *poutbuf_size,
+
+                     const uint8_t *buf, int buf_size, int keyframe){
+
+    unsigned int *state= bsfc->priv_data;
+
+    int amount= args ? atoi(args) : (*state % 10001+1);
+
+    int i;
+
+
+
+    if(amount <= 0)
+
+        return AVERROR(EINVAL);
+
+
+
+    *poutbuf= av_malloc(buf_size + FF_INPUT_BUFFER_PADDING_SIZE);
+
+
+
+
+
+    memcpy(*poutbuf, buf, buf_size + FF_INPUT_BUFFER_PADDING_SIZE);
+
+    for(i=0; i<buf_size; i++){
+
+        (*state) += (*poutbuf)[i] + 1;
+
+        if(*state % amount == 0)
+
+            (*poutbuf)[i] = *state;
+
+    }
+
+    return 1;
+
+}
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

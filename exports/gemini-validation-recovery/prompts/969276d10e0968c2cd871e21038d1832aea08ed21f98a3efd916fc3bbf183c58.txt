@@ -1,0 +1,230 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void encode_frame_to_data_rate ( VP9_COMP * cpi , size_t * size , uint8_t * dest , unsigned int * frame_flags ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ struct segmentation * const seg = & cm -> seg ;
+ TX_SIZE t ;
+ int q ;
+ int top_index ;
+ int bottom_index ;
+ set_ext_overrides ( cpi ) ;
+ cpi -> Source = vp9_scale_if_required ( cm , cpi -> un_scaled_source , & cpi -> scaled_source ) ;
+ if ( cpi -> unscaled_last_source != NULL ) cpi -> Last_Source = vp9_scale_if_required ( cm , cpi -> unscaled_last_source , & cpi -> scaled_last_source ) ;
+ vp9_scale_references ( cpi ) ;
+ vp9_clear_system_state ( ) ;
+ cpi -> zbin_mode_boost = 0 ;
+ cpi -> zbin_mode_boost_enabled = 0 ;
+ set_arf_sign_bias ( cpi ) ;
+ cm -> lf . mode_ref_delta_update = 0 ;
+ set_mv_search_params ( cpi ) ;
+ if ( cpi -> oxcf . pass == 2 && cpi -> sf . adaptive_interp_filter_search ) cpi -> sf . interp_filter_search_mask = setup_interp_filter_search_mask ( cpi ) ;
+ if ( frame_is_intra_only ( cm ) ) {
+ vp9_reset_segment_features ( & cm -> seg ) ;
+ if ( seg -> enabled ) {
+ seg -> update_map = 1 ;
+ seg -> update_data = 1 ;
+ }
+ cpi -> rc . source_alt_ref_active = 0 ;
+ cm -> error_resilient_mode = oxcf -> error_resilient_mode ;
+ if ( cm -> error_resilient_mode ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ cm -> reset_frame_context = 0 ;
+ cm -> refresh_frame_context = 0 ;
+ }
+ else if ( cm -> intra_only ) {
+ cm -> frame_parallel_decoding_mode = oxcf -> frame_parallel_decoding_mode ;
+ cm -> reset_frame_context = 2 ;
+ }
+ }
+ if ( is_two_pass_svc ( cpi ) && cm -> error_resilient_mode == 0 ) {
+ cm -> frame_context_idx = cpi -> svc . spatial_layer_id * cpi -> svc . number_temporal_layers + cpi -> svc . temporal_layer_id ;
+ if ( cpi -> svc . number_temporal_layers == 1 ) {
+ if ( cpi -> svc . spatial_layer_id == 0 && cpi -> svc . layer_context [ 0 ] . last_frame_type == KEY_FRAME ) cm -> frame_parallel_decoding_mode = 1 ;
+ else cm -> frame_parallel_decoding_mode = 0 ;
+ }
+ else if ( cpi -> svc . spatial_layer_id == 0 ) {
+ int i ;
+ for ( i = 0 ;
+ i < cpi -> svc . number_temporal_layers ;
+ ++ i ) {
+ if ( cpi -> svc . layer_context [ 0 ] . frames_from_key_frame == 1 << i ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ break ;
+ }
+ }
+ if ( i == cpi -> svc . number_temporal_layers ) cm -> frame_parallel_decoding_mode = 0 ;
+ }
+ }
+ if ( oxcf -> pass == 2 && cpi -> sf . static_segmentation ) configure_static_seg_features ( cpi ) ;
+ if ( oxcf -> pass == 2 && ( ! cpi -> use_svc || is_two_pass_svc ( cpi ) ) ) {
+ cpi -> skippable_frame = is_skippable_frame ( cpi ) ;
+ }
+ if ( oxcf -> pass == 0 && oxcf -> rc_mode == VPX_CBR && cm -> frame_type != KEY_FRAME ) {
+ if ( vp9_rc_drop_frame ( cpi ) ) {
+ vp9_rc_postencode_update_drop_frame ( cpi ) ;
+ ++ cm -> current_video_frame ;
+ return ;
+ }
+ }
+ vp9_clear_system_state ( ) ;
+ # if CONFIG_VP9_POSTPROC if ( oxcf -> noise_sensitivity > 0 ) {
+ int l = 0 ;
+ switch ( oxcf -> noise_sensitivity ) {
+ case 1 : l = 20 ;
+ b
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & cpi -> common ;
+ const VP9EncoderConfig * const oxcf = & cpi -> oxcf ;
+ struct segmentation * const seg = & cm -> seg ;
+ TX_SIZE t ;
+ int q ;
+ int top_index ;
+ int bottom_index ;
+ set_ext_overrides ( cpi ) ;
+ cpi -> Source = vp9_scale_if_required ( cm , cpi -> un_scaled_source , & cpi -> scaled_source ) ;
+ if ( cpi -> unscaled_last_source != NULL ) cpi -> Last_Source = vp9_scale_if_required ( cm , cpi -> unscaled_last_source , & cpi -> scaled_last_source ) ;
+ vp9_scale_references ( cpi ) ;
+ vp9_clear_system_state ( ) ;
+ cpi -> zbin_mode_boost = 0 ;
+ cpi -> zbin_mode_boost_enabled = 0 ;
+ set_arf_sign_bias ( cpi ) ;
+ cm -> lf . mode_ref_delta_update = 0 ;
+ set_mv_search_params ( cpi ) ;
+ if ( cpi -> oxcf . pass == 2 && cpi -> sf . adaptive_interp_filter_search ) cpi -> sf . interp_filter_search_mask = setup_interp_filter_search_mask ( cpi ) ;
+ if ( frame_is_intra_only ( cm ) ) {
+ vp9_reset_segment_features ( & cm -> seg ) ;
+ if ( seg -> enabled ) {
+ seg ->...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ vp9_reset_segment_features ( & cm -> seg ) ;
+ if ( seg -> enabled ) {
+ seg -> update_map = 1 ;
+ seg -> update_data = 1 ;
+ }
+ cpi -> rc . source_alt_ref_active = 0 ;
+ cm -> error_resilient_mode = oxcf -> error_resilient_mode ;
+ if ( cm -> error_resilient_mode ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ cm -> reset_frame_context = 0 ;
+ cm -> refresh_frame_context = 0 ;
+ }
+ else if ( cm -> intra_only ) {
+ cm -> frame_parallel_decoding_mode = oxcf -> frame_parallel_decoding_mode ;
+ cm -> reset_frame_context = 2 ;
+ }
+ }
+      
+25769803780 | BLOCK | { seg -> update_map = 1 ; seg -> update_data = 1 ; }
+25769803781 | BLOCK | 
+        {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ cm -> reset_frame_context = 0 ;
+ cm -> refresh_frame_context = 0 ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ cm -> frame_parallel_decoding_mode = oxcf -> frame_parallel_decoding_mode ;
+ cm -> reset_frame_context = 2 ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ cm -> frame_context_idx = cpi -> svc . spatial_layer_id * cpi -> svc . number_temporal_layers + cpi -> svc . temporal_layer_id ;
+ if ( cpi -> svc . number_temporal_layers == 1 ) {
+ if ( cpi -> svc . spatial_layer_id == 0 && cpi -> svc . layer_context [ 0 ] . last_frame_type == KEY_FRAME ) cm -> frame_parallel_decoding_mode = 1 ;
+ else cm -> frame_parallel_decoding_mode = 0 ;
+ }
+ else if ( cpi -> svc . spatial_layer_id == 0 ) {
+ int i ;
+ for ( i = 0 ;
+ i < cpi -> svc . number_temporal_layers ;
+ ++ i ) {
+ if ( cpi -> svc . layer_context [ 0 ] . frames_from_key_frame == 1 << i ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ break ;
+ }
+ }
+ if ( i == cpi -> svc . number_temporal_layers ) cm -> frame_parallel_decoding_mode = 0 ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ if ( cpi -> svc . spatial_layer_id == 0 && cpi -> svc . layer_context [ 0 ] . last_frame_type == KEY_FRAME ) cm -> frame_parallel_decoding_mode = 1 ;
+ else cm -> frame_parallel_decoding_mode = 0 ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < cpi -> svc . number_temporal_layers ;
+ ++ i ) {
+ if ( cpi -> svc . layer_context [ 0 ] . frames_from_key_frame == 1 << i ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ break ;
+ }
+ }
+ if ( i == cpi -> svc . number_temporal_layers ) cm -> frame_parallel_decoding_mode = 0 ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ if ( cpi -> svc . layer_context [ 0 ] . frames_from_key_frame == 1 << i ) {
+ cm -> frame_parallel_decoding_mode = 1 ;
+ break ;
+ }
+ }
+      
+25769803791 | BLOCK | { cm -> frame_parallel_decoding_mode = 1 ; break ; }
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | { cpi -> skippable_frame = is_skippable_frame ( cpi ) ; }
+25769803795 | BLOCK | 
+        {
+ if ( vp9_rc_drop_frame ( cpi ) ) {
+ vp9_rc_postencode_update_drop_frame ( cpi ) ;
+ ++ cm -> current_video_frame ;
+ return ;
+ }
+ }
+      
+25769803796 | BLOCK | 
+        {
+ vp9_rc_postencode_update_drop_frame ( cpi ) ;
+ ++ cm -> current_video_frame ;
+ return ;
+ }
+      
+25769803797 | BLOCK | 
+        {
+ cm -> interp_filter = cpi -> sf . default_interp_filter ;
+ vp9_set_high_precision_mv ( cpi , q < HIGH_PRECISION_MV_QTHRESH ) ;
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

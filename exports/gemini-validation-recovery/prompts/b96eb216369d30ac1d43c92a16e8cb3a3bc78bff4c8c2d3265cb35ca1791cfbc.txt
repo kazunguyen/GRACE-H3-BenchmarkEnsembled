@@ -1,0 +1,203 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_slice ( AVCodecContext * avctx , void * tdata ) {
+ ProresThreadData * td = tdata ;
+ ProresContext * ctx = avctx -> priv_data ;
+ int mb_x_pos = td -> x_pos ;
+ int mb_y_pos = td -> y_pos ;
+ int pic_num = ctx -> pic_num ;
+ int slice_num = td -> slice_num ;
+ int mbs_per_slice = td -> slice_width ;
+ const uint8_t * buf ;
+ uint8_t * y_data , * u_data , * v_data ;
+ AVFrame * pic = ctx -> frame ;
+ int i , sf , slice_width_factor ;
+ int slice_data_size , hdr_size , y_data_size , u_data_size , v_data_size ;
+ int y_linesize , u_linesize , v_linesize ;
+ buf = ctx -> slice_data [ slice_num ] . index ;
+ slice_data_size = ctx -> slice_data [ slice_num + 1 ] . index - buf ;
+ slice_width_factor = av_log2 ( mbs_per_slice ) ;
+ y_data = pic -> data [ 0 ] ;
+ u_data = pic -> data [ 1 ] ;
+ v_data = pic -> data [ 2 ] ;
+ y_linesize = pic -> linesize [ 0 ] ;
+ u_linesize = pic -> linesize [ 1 ] ;
+ v_linesize = pic -> linesize [ 2 ] ;
+ if ( pic -> interlaced_frame ) {
+ if ( ! ( pic_num ^ pic -> top_field_first ) ) {
+ y_data += y_linesize ;
+ u_data += u_linesize ;
+ v_data += v_linesize ;
+ }
+ y_linesize <<= 1 ;
+ u_linesize <<= 1 ;
+ v_linesize <<= 1 ;
+ }
+ if ( slice_data_size < 6 ) {
+ av_log ( avctx , AV_LOG_ERROR , "slice data too small\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ hdr_size = buf [ 0 ] >> 3 ;
+ y_data_size = AV_RB16 ( buf + 2 ) ;
+ u_data_size = AV_RB16 ( buf + 4 ) ;
+ v_data_size = hdr_size > 7 ? AV_RB16 ( buf + 6 ) : slice_data_size - y_data_size - u_data_size - hdr_size ;
+ if ( hdr_size + y_data_size + u_data_size + v_data_size > slice_data_size || v_data_size < 0 || hdr_size < 6 ) {
+ av_log ( avctx , AV_LOG_ERROR , "invalid data size\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ sf = av_clip ( buf [ 1 ] , 1 , 224 ) ;
+ sf = sf > 128 ? ( sf - 96 ) << 2 : sf ;
+ if ( ctx -> qmat_changed || sf != td -> prev_slice_sf ) {
+ td -> prev_slice_sf = sf ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) {
+ td -> qmat_luma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_luma [ i ] * sf ;
+ td -> qmat_chroma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_chroma [ i ] * sf ;
+ }
+ }
+ decode_slice_plane ( ctx , td , buf + hdr_size , y_data_size , ( uint16_t * ) ( y_data + ( mb_y_pos << 4 ) * y_linesize + ( mb_x_pos << 5 ) ) , y_linesize , mbs_per_slice , 4 , slice_width_factor + 2 , td -> qmat_luma_scaled , 0 ) ;
+ decode_slice_plane ( ctx , td , buf + hdr_size + y_data_size , u_data_size , ( uint16_t * ) ( u_data + ( mb_y_pos << 4 ) * u_linesize + ( mb_x_pos << ctx -> mb_chroma_factor ) ) , u_linesize , mbs_per_slice , ctx -> num_chroma_blocks , slice_width_factor + ctx -> chroma_factor - 1 , td -> qmat_chroma_scaled , 1 ) ;
+ decode_slice_plane ( ctx , td , buf + hdr_size + y_data_size + u_data_size , v_data_size , ( uint16_t * ) ( v_data + ( mb_y_pos << 4 ) * v_linesize + ( mb_x_pos << ctx -> mb_chroma_factor ) ) , v_linesize , mbs_per_slice , ctx -> num_chroma_blocks , slice_width_factor + ctx -> chroma_factor - 1 , td -> qmat_chroma_scaled , 1 ) ;
+ return 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ProresThreadData * td = tdata ;
+ ProresContext * ctx = avctx -> priv_data ;
+ int mb_x_pos = td -> x_pos ;
+ int mb_y_pos = td -> y_pos ;
+ int pic_num = ctx -> pic_num ;
+ int slice_num = td -> slice_num ;
+ int mbs_per_slice = td -> slice_width ;
+ const uint8_t * buf ;
+ uint8_t * y_data , * u_data , * v_data ;
+ AVFrame * pic = ctx -> frame ;
+ int i , sf , slice_width_factor ;
+ int slice_data_size , hdr_size , y_data_size , u_data_size , v_data_size ;
+ int y_linesize , u_linesize , v_linesize ;
+ buf = ctx -> slice_data [ slice_num ] . index ;
+ slice_data_size = ctx -> slice_data [ slice_num + 1 ] . index - buf ;
+ slice_width_factor = av_log2 ( mbs_per_slice ) ;
+ y_data = pic -> data [ 0 ] ;
+ u_data = pic -> data [ 1 ] ;
+ v_data = pic -> data [ 2 ] ;
+ y_linesize = pic -> linesize [ 0 ] ;
+ u_linesize = pic -> linesize [ 1 ] ;
+ v_linesize = pic -> linesize [ 2 ] ;
+ if ( pic -> interlaced_frame ) {
+ if ( ! ( pic_num ^ pic -> top_field_first ) ) {
+ y_data += y_linesize ;
+ u_data += u_line...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ! ( pic_num ^ pic -> top_field_first ) ) {
+ y_data += y_linesize ;
+ u_data += u_linesize ;
+ v_data += v_linesize ;
+ }
+ y_linesize <<= 1 ;
+ u_linesize <<= 1 ;
+ v_linesize <<= 1 ;
+ }
+      
+25769803778 | BLOCK | { y_data += y_linesize ; u_data += u_linesize ; v_data += v_linesize ; }
+25769803779 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "slice data too small\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "invalid data size\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ td -> prev_slice_sf = sf ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) {
+ td -> qmat_luma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_luma [ i ] * sf ;
+ td -> qmat_chroma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_chroma [ i ] * sf ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ td -> qmat_luma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_luma [ i ] * sf ;
+ td -> qmat_chroma_scaled [ ctx -> dsp . idct_permutation [ i ] ] = ctx -> qmat_chroma [ i ] * sf ;
+ }
+      
+30064771072 | CALL | td = tdata
+30064771073 | CALL | ctx = avctx -> priv_data
+30064771074 | CALL | avctx -> priv_data
+30064771075 | CALL | mb_x_pos = td -> x_pos
+30064771076 | CALL | td -> x_pos
+30064771077 | CALL | mb_y_pos = td -> y_pos
+30064771078 | CALL | td -> y_pos
+30064771079 | CALL | pic_num = ctx -> pic_num
+30064771080 | CALL | ctx -> pic_num
+30064771081 | CALL | slice_num = td -> slice_num
+30064771082 | CALL | td -> slice_num
+30064771083 | CALL | mbs_per_slice = td -> slice_width
+30064771084 | CALL | td -> slice_width
+30064771085 | CALL | pic = ctx -> frame
+30064771086 | CALL | ctx -> frame
+30064771087 | CALL | buf = ctx -> slice_data [ slice_num ] . index
+30064771088 | CALL | ctx -> slice_data [ slice_num ] . index
+30064771089 | CALL | ctx -> slice_data [ slice_num ]
+30064771090 | CALL | ctx -> slice_data
+30064771091 | CALL | slice_data_size = ctx -> slice_data [ slice_num + 1 ] . index - buf
+30064771092 | CALL | ctx -> slice_data [ slice_num + 1 ] . index - buf
+30064771093 | CALL | ctx -> slice_data [ slice_num + 1 ] . index
+30064771094 | CALL | ctx -> slice_data [ slice_num + 1 ]
+30064771095 | CALL | ctx -> slice_data
+30064771096 | CALL | slice_num + 1
+30064771097 | CALL | slice_width_factor = av_log2 ( mbs_per_slice )
+30064771098 | CALL | av_log2 ( mbs_per_slice )
+30064771099 | CALL | y_data = pic -> data [ 0 ]
+30064771100 | CALL | pic -> data [ 0 ]
+30064771101 | CALL | pic -> data
+30064771102 | CALL | u_data = pic -> data [ 1 ]
+30064771103 | CALL | pic -> data [ 1 ]
+30064771104 | CALL | pic -> data
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771102 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

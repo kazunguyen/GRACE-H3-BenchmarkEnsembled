@@ -1,0 +1,218 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int ac3_decode_frame ( AVCodecContext * avctx , void * data , int * got_frame_ptr , AVPacket * avpkt ) {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ AC3DecodeContext * s = avctx -> priv_data ;
+ int blk , ch , err , ret ;
+ const uint8_t * channel_map ;
+ const float * output [ AC3_MAX_CHANNELS ] ;
+ if ( buf_size >= 2 && AV_RB16 ( buf ) == 0x770B ) {
+ int cnt = FFMIN ( buf_size , AC3_FRAME_BUFFER_SIZE ) >> 1 ;
+ s -> dsp . bswap16_buf ( ( uint16_t * ) s -> input_buffer , ( const uint16_t * ) buf , cnt ) ;
+ }
+ else memcpy ( s -> input_buffer , buf , FFMIN ( buf_size , AC3_FRAME_BUFFER_SIZE ) ) ;
+ buf = s -> input_buffer ;
+ init_get_bits ( & s -> gbc , buf , buf_size * 8 ) ;
+ err = parse_frame_header ( s ) ;
+ if ( err ) {
+ switch ( err ) {
+ case AAC_AC3_PARSE_ERROR_SYNC : av_log ( avctx , AV_LOG_ERROR , "frame sync error\n" ) ;
+ return - 1 ;
+ case AAC_AC3_PARSE_ERROR_BSID : av_log ( avctx , AV_LOG_ERROR , "invalid bitstream id\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_SAMPLE_RATE : av_log ( avctx , AV_LOG_ERROR , "invalid sample rate\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_SIZE : av_log ( avctx , AV_LOG_ERROR , "invalid frame size\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_TYPE : if ( s -> frame_type == EAC3_FRAME_TYPE_DEPENDENT || s -> substreamid ) {
+ av_log ( avctx , AV_LOG_ERROR , "unsupported frame type : " "skipping frame\n" ) ;
+ * got_frame_ptr = 0 ;
+ return s -> frame_size ;
+ }
+ else {
+ av_log ( avctx , AV_LOG_ERROR , "invalid frame type\n" ) ;
+ }
+ break ;
+ default : av_log ( avctx , AV_LOG_ERROR , "invalid header\n" ) ;
+ break ;
+ }
+ }
+ else {
+ if ( s -> frame_size > buf_size ) {
+ av_log ( avctx , AV_LOG_ERROR , "incomplete frame\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_FRAME_SIZE ;
+ }
+ else if ( avctx -> err_recognition & AV_EF_CRCCHECK ) {
+ if ( av_crc ( av_crc_get_table ( AV_CRC_16_ANSI ) , 0 , & buf [ 2 ] , s -> frame_size - 2 ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "frame CRC mismatch\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_CRC ;
+ }
+ }
+ }
+ if ( ! err ) {
+ avctx -> sample_rate = s -> sample_rate ;
+ avctx -> bit_rate = s -> bit_rate ;
+ }
+ if ( ! err || ( s -> channels && s -> out_channels != s -> channels ) ) {
+ s -> out_channels = s -> channels ;
+ s -> output_mode = s -> channel_mode ;
+ if ( s -> lfe_on ) s -> output_mode |= AC3_OUTPUT_LFEON ;
+ if ( avctx -> request_channels > 0 && avctx -> request_channels <= 2 && avctx -> request_channels < s -> channels ) {
+ s -> out_channels = avctx -> request_channels ;
+ s -> output_mode = avctx -> request_channels == 1 ? AC3_CHMODE_MONO : AC3_CHMODE_STEREO ;
+ s -> channel_layout = avpriv_ac3_channel_layout_tab [ s -> output_mode ] ;
+ }
+ avctx -> channels = s -> out_channels ;
+ avctx -> channel_layout = s -> channel_layout ;
+ if ( s -> channels != s -> out_channels && ! ( ( s -> output_mode & AC3_OUTPUT_LFEON ) && s -> fbw_channels == s -> out_channels ) ) {
+ set_downmix_coeffs ( s ) ;
+ }
+ }
+ else if ( ! s -> channels ) {
+ av_log ( avctx , AV_
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ AVFrame * frame = data ;
+ const uint8_t * buf = avpkt -> data ;
+ int buf_size = avpkt -> size ;
+ AC3DecodeContext * s = avctx -> priv_data ;
+ int blk , ch , err , ret ;
+ const uint8_t * channel_map ;
+ const float * output [ AC3_MAX_CHANNELS ] ;
+ if ( buf_size >= 2 && AV_RB16 ( buf ) == 0x770B ) {
+ int cnt = FFMIN ( buf_size , AC3_FRAME_BUFFER_SIZE ) >> 1 ;
+ s -> dsp . bswap16_buf ( ( uint16_t * ) s -> input_buffer , ( const uint16_t * ) buf , cnt ) ;
+ }
+ else memcpy ( s -> input_buffer , buf , FFMIN ( buf_size , AC3_FRAME_BUFFER_SIZE ) ) ;
+ buf = s -> input_buffer ;
+ init_get_bits ( & s -> gbc , buf , buf_size * 8 ) ;
+ err = parse_frame_header ( s ) ;
+ if ( err ) {
+ switch ( err ) {
+ case AAC_AC3_PARSE_ERROR_SYNC : av_log ( avctx , AV_LOG_ERROR , "frame sync error\n" ) ;
+ return - 1 ;
+ case AAC_AC3_PARSE_ERROR_BSID : av_log ( avctx , AV_LOG_ERROR , "invalid bitstream id\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_SAMPLE_RATE : av_log ( avctx , AV_LOG_ERROR , "invalid sample rate\n"...
+      
+25769803777 | BLOCK | 
+        {
+ int cnt = FFMIN ( buf_size , AC3_FRAME_BUFFER_SIZE ) >> 1 ;
+ s -> dsp . bswap16_buf ( ( uint16_t * ) s -> input_buffer , ( const uint16_t * ) buf , cnt ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ switch ( err ) {
+ case AAC_AC3_PARSE_ERROR_SYNC : av_log ( avctx , AV_LOG_ERROR , "frame sync error\n" ) ;
+ return - 1 ;
+ case AAC_AC3_PARSE_ERROR_BSID : av_log ( avctx , AV_LOG_ERROR , "invalid bitstream id\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_SAMPLE_RATE : av_log ( avctx , AV_LOG_ERROR , "invalid sample rate\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_SIZE : av_log ( avctx , AV_LOG_ERROR , "invalid frame size\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_TYPE : if ( s -> frame_type == EAC3_FRAME_TYPE_DEPENDENT || s -> substreamid ) {
+ av_log ( avctx , AV_LOG_ERROR , "unsupported frame type : " "skipping frame\n" ) ;
+ * got_frame_ptr = 0 ;
+ return s -> frame_size ;
+ }
+ else {
+ av_log ( avctx , AV_LOG_ERROR , "invalid frame type\n" ) ;
+ }
+ break ;
+ default : av_log ( avctx , AV_LOG_ERROR , "invalid header\n" ) ;
+ break ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ case AAC_AC3_PARSE_ERROR_SYNC : av_log ( avctx , AV_LOG_ERROR , "frame sync error\n" ) ;
+ return - 1 ;
+ case AAC_AC3_PARSE_ERROR_BSID : av_log ( avctx , AV_LOG_ERROR , "invalid bitstream id\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_SAMPLE_RATE : av_log ( avctx , AV_LOG_ERROR , "invalid sample rate\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_SIZE : av_log ( avctx , AV_LOG_ERROR , "invalid frame size\n" ) ;
+ break ;
+ case AAC_AC3_PARSE_ERROR_FRAME_TYPE : if ( s -> frame_type == EAC3_FRAME_TYPE_DEPENDENT || s -> substreamid ) {
+ av_log ( avctx , AV_LOG_ERROR , "unsupported frame type : " "skipping frame\n" ) ;
+ * got_frame_ptr = 0 ;
+ return s -> frame_size ;
+ }
+ else {
+ av_log ( avctx , AV_LOG_ERROR , "invalid frame type\n" ) ;
+ }
+ break ;
+ default : av_log ( avctx , AV_LOG_ERROR , "invalid header\n" ) ;
+ break ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "unsupported frame type : " "skipping frame\n" ) ;
+ * got_frame_ptr = 0 ;
+ return s -> frame_size ;
+ }
+      
+25769803782 | BLOCK | { av_log ( avctx , AV_LOG_ERROR , "invalid frame type\n" ) ; }
+25769803783 | BLOCK | 
+        {
+ if ( s -> frame_size > buf_size ) {
+ av_log ( avctx , AV_LOG_ERROR , "incomplete frame\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_FRAME_SIZE ;
+ }
+ else if ( avctx -> err_recognition & AV_EF_CRCCHECK ) {
+ if ( av_crc ( av_crc_get_table ( AV_CRC_16_ANSI ) , 0 , & buf [ 2 ] , s -> frame_size - 2 ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "frame CRC mismatch\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_CRC ;
+ }
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "incomplete frame\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_FRAME_SIZE ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+ if ( av_crc ( av_crc_get_table ( AV_CRC_16_ANSI ) , 0 , & buf [ 2 ] , s -> frame_size - 2 ) ) {
+ av_log ( avctx , AV_LOG_ERROR , "frame CRC mismatch\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_CRC ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "frame CRC mismatch\n" ) ;
+ err = AAC_AC3_PARSE_ERROR_CRC ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ avctx -> sample_rate = s -> sample_rate ;
+ avctx -> bit_rate = s -> bit_rate ;
+ 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

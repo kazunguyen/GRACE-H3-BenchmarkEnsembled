@@ -1,0 +1,213 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_0 ( void ) {
+ static char * good_strings [ ] = {
+ "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko" , "C= de, O=g10 Code , OU=qa ,CN=Pépé le Moko" , "CN=www.gnupg.org" , " CN=www.gnupg.org " , "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org" , NULL }
+ ;
+ gpg_error_t err ;
+ int i ;
+ unsigned char * buf ;
+ size_t off , len ;
+ for ( i = 0 ;
+ good_strings [ i ] ;
+ i ++ ) {
+ err = ksba_dn_str2der ( good_strings [ i ] , & buf , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ err = ksba_dn_teststr ( good_strings [ i ] , 0 , & off , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_teststr failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ xfree ( buf ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static char * good_strings [ ] = {
+ "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko" , "C= de, O=g10 Code , OU=qa ,CN=Pépé le Moko" , "CN=www.gnupg.org" , " CN=www.gnupg.org " , "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org" , NULL }
+ ;
+ gpg_error_t err ;
+ int i ;
+ unsigned char * buf ;
+ size_t off , len ;
+ for ( i = 0 ;
+ good_strings [ i ] ;
+ i ++ ) {
+ err = ksba_dn_str2der ( good_strings [ i ] , & buf , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ err = ksba_dn_teststr ( good_strings [ i ] , 0 , & off , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_teststr failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ xfree ( buf ) ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ err = ksba_dn_str2der ( good_strings [ i ] , & buf , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ err = ksba_dn_teststr ( good_strings [ i ] , 0 , & off , & len ) ;
+ if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_teststr failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+ xfree ( buf ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ fprintf ( stderr , "%s:%d: ksba_dn_teststr failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | 
+        good_strings [ ] = {
+ "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko" , "C= de, O=g10 Code , OU=qa ,CN=Pépé le Moko" , "CN=www.gnupg.org" , " CN=www.gnupg.org " , "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org" , NULL }
+      
+30064771073 | CALL | 
+        {
+ "C=de,O=g10 Code,OU=qa,CN=Pépé le Moko" , "C= de, O=g10 Code , OU=qa ,CN=Pépé le Moko" , "CN=www.gnupg.org" , " CN=www.gnupg.org " , "C=fr,L=Paris,CN=Julien Duvivier,EMAIL=julien@example.org" , NULL }
+      
+30064771074 | CALL | i = 0
+30064771075 | CALL | good_strings [ i ]
+30064771076 | CALL | i ++
+30064771077 | CALL | err = ksba_dn_str2der ( good_strings [ i ] , & buf , & len )
+30064771078 | CALL | ksba_dn_str2der ( good_strings [ i ] , & buf , & len )
+30064771079 | CALL | good_strings [ i ]
+30064771080 | CALL | & buf
+30064771081 | CALL | & len
+30064771082 | CALL | err != 0
+30064771083 | CALL | 
+        fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) )
+      
+30064771084 | CALL | __FILE__
+30064771085 | CALL | __LINE__
+30064771086 | CALL | good_strings [ i ]
+30064771087 | CALL | gpg_strerror ( err )
+30064771088 | CALL | exit ( 1 )
+30064771089 | CALL | err = ksba_dn_teststr ( good_strings [ i ] , 0 , & off , & len )
+30064771090 | CALL | ksba_dn_teststr ( good_strings [ i ] , 0 , & off , & len )
+30064771091 | CALL | good_strings [ i ]
+30064771092 | CALL | & off
+30064771093 | CALL | & len
+30064771094 | CALL | err != 0
+30064771095 | CALL | 
+        fprintf ( stderr , "%s:%d: ksba_dn_teststr failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) )
+      
+30064771096 | CALL | __FILE__
+30064771097 | CALL | __LINE__
+30064771098 | CALL | good_strings [ i ]
+30064771099 | CALL | gpg_strerror ( err )
+30064771100 | CALL | exit ( 1 )
+30064771101 | CALL | xfree ( buf )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;good_strings [ i ];i ++)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( err ) {
+ fprintf ( stderr , "%s:%d: ksba_dn_str2der failed for `%s': %s\n" , __FILE__ , __LINE__ , good_strings [ i ] , gpg_strerror ( err ) ) ;
+ exit ( 1 ) ;
+ }
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771101 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771088 [AST]
+25769803781 -> 30064771095 [AST]
+25769803781 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771091 [CDG]
+30064771075 -> 30064771090 [CDG]
+30064771075 -> 30064771089 [CDG]
+30064771075 -> 30064771094 [CDG]
+30064771075 -> 30064771093 [CDG]
+30064771075 -> 30064771092 [CDG]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771101 [CDG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771081 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771086 [REACHING_DEF]
+30064771079 -> 30064771091 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771078 [CFG]
+30064771081 -> 30064771078 [DOMINATE]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771093 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771085 [CDG]
+30064771082 -> 30064771084 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [A
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,283 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemu_savevm_state_begin(Monitor *mon, QEMUFile *f, int blk_enable,
+
+                            int shared)
+
+{
+
+    SaveStateEntry *se;
+
+    int ret;
+
+
+
+    QTAILQ_FOREACH(se, &savevm_handlers, entry) {
+
+        if(se->set_params == NULL) {
+
+            continue;
+
+	}
+
+	se->set_params(blk_enable, shared, se->opaque);
+
+    }
+
+    
+
+    qemu_put_be32(f, QEMU_VM_FILE_MAGIC);
+
+    qemu_put_be32(f, QEMU_VM_FILE_VERSION);
+
+
+
+    QTAILQ_FOREACH(se, &savevm_handlers, entry) {
+
+        int len;
+
+
+
+        if (se->save_live_state == NULL)
+
+            continue;
+
+
+
+        /* Section type */
+
+        qemu_put_byte(f, QEMU_VM_SECTION_START);
+
+        qemu_put_be32(f, se->section_id);
+
+
+
+        /* ID string */
+
+        len = strlen(se->idstr);
+
+        qemu_put_byte(f, len);
+
+        qemu_put_buffer(f, (uint8_t *)se->idstr, len);
+
+
+
+        qemu_put_be32(f, se->instance_id);
+
+        qemu_put_be32(f, se->version_id);
+
+
+
+        ret = se->save_live_state(mon, f, QEMU_VM_SECTION_START, se->opaque);
+
+        if (ret < 0) {
+
+            qemu_savevm_state_cancel(mon, f);
+
+            return ret;
+
+        }
+
+    }
+
+    ret = qemu_file_get_error(f);
+
+    if (ret != 0) {
+
+        qemu_savevm_state_cancel(mon, f);
+
+    }
+
+
+
+    return ret;
+
+
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 29 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+23 -> 30 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+38 -> 41 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+38 -> 43 [IS_AST_PARENT]
+33 -> 38 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+22 -> 32 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+51 -> 54 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+60 -> 63 [IS_AST_PARENT]
+57 -> 60 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+4 -> 56 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+4 -> 66 [IS_AST_PARENT]
+4 -> 67 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+4 -> 72 [IS_AST_PARENT]
+4 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 78 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 85 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int qemu_savevm_state_complete(Monitor *mon, QEMUFile *f)
+
+{
+
+    SaveStateEntry *se;
+
+
+
+    cpu_synchronize_all_states();
+
+
+
+    QTAILQ_FOREACH(se, &savevm_handlers, entry) {
+
+        if (se->save_live_state == NULL)
+
+            continue;
+
+
+
+        /* Section type */
+
+        qemu_put_byte(f, QEMU_VM_SECTION_END);
+
+        qemu_put_be32(f, se->section_id);
+
+
+
+        se->save_live_state(mon, f, QEMU_VM_SECTION_END, se->opaque);
+
+    }
+
+
+
+    QTAILQ_FOREACH(se, &savevm_handlers, entry) {
+
+        int len;
+
+
+
+	if (se->save_state == NULL && se->vmsd == NULL)
+
+	    continue;
+
+
+
+        /* Section type */
+
+        qemu_put_byte(f, QEMU_VM_SECTION_FULL);
+
+        qemu_put_be32(f, se->section_id);
+
+
+
+        /* ID string */
+
+        len = strlen(se->idstr);
+
+        qemu_put_byte(f, len);
+
+        qemu_put_buffer(f, (uint8_t *)se->idstr, len);
+
+
+
+        qemu_put_be32(f, se->instance_id);
+
+        qemu_put_be32(f, se->version_id);
+
+
+
+        vmstate_save(f, se);
+
+    }
+
+
+
+    qemu_put_byte(f, QEMU_VM_EOF);
+
+
+
+    return qemu_file_get_error(f);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

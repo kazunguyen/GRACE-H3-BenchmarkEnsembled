@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int qemuAssignDeviceNetAlias ( virDomainDefPtr def , virDomainNetDefPtr net , int idx ) {
+ if ( networkGetActualType ( net ) == VIR_DOMAIN_NET_TYPE_HOSTDEV ) return qemuAssignDeviceHostdevAlias ( def , & net -> info . alias , - 1 ) ;
+ if ( idx == - 1 ) {
+ size_t i ;
+ idx = 0 ;
+ for ( i = 0 ;
+ i < def -> nnets ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ }
+ if ( virAsprintf ( & net -> info . alias , "net%d" , idx ) < 0 ) return - 1 ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( networkGetActualType ( net ) == VIR_DOMAIN_NET_TYPE_HOSTDEV ) return qemuAssignDeviceHostdevAlias ( def , & net -> info . alias , - 1 ) ;
+ if ( idx == - 1 ) {
+ size_t i ;
+ idx = 0 ;
+ for ( i = 0 ;
+ i < def -> nnets ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ }
+ if ( virAsprintf ( & net -> info . alias , "net%d" , idx ) < 0 ) return - 1 ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ size_t i ;
+ idx = 0 ;
+ for ( i = 0 ;
+ i < def -> nnets ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | networkGetActualType ( net ) == VIR_DOMAIN_NET_TYPE_HOSTDEV
+30064771073 | CALL | networkGetActualType ( net )
+30064771074 | CALL | qemuAssignDeviceHostdevAlias ( def , & net -> info . alias , - 1 )
+30064771075 | CALL | & net -> info . alias
+30064771076 | CALL | net -> info . alias
+30064771077 | CALL | net -> info
+30064771078 | CALL | - 1
+30064771079 | CALL | idx == - 1
+30064771080 | CALL | - 1
+30064771081 | CALL | idx = 0
+30064771082 | CALL | i = 0
+30064771083 | CALL | i < def -> nnets
+30064771084 | CALL | def -> nnets
+30064771085 | CALL | i ++
+30064771086 | CALL | 
+        ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0
+      
+30064771087 | CALL | 
+        thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" )
+      
+30064771088 | CALL | 
+        qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" )
+      
+30064771089 | CALL | & def -> nets [ i ] -> info
+30064771090 | CALL | def -> nets [ i ] -> info
+30064771091 | CALL | def -> nets [ i ]
+30064771092 | CALL | def -> nets
+30064771093 | CALL | thisidx >= idx
+30064771094 | CALL | idx = thisidx + 1
+30064771095 | CALL | thisidx + 1
+30064771096 | CALL | virAsprintf ( & net -> info . alias , "net%d" , idx ) < 0
+30064771097 | CALL | virAsprintf ( & net -> info . alias , "net%d" , idx )
+30064771098 | CALL | & net -> info . alias
+30064771099 | CALL | net -> info . alias
+30064771100 | CALL | net -> info
+30064771101 | CALL | - 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( networkGetActualType ( net ) == VIR_DOMAIN_NET_TYPE_HOSTDEV ) return qemuAssignDeviceHostdevAlias ( def , & net -> info . alias , - 1 ) ;
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( idx == - 1 ) {
+ size_t i ;
+ idx = 0 ;
+ for ( i = 0 ;
+ i < def -> nnets ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "net" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ }
+      
+47244640258 | CONTROL_STRUCTURE | for (i = 0 ;i < def -> nnets;i ++)
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 47244640258 [AST]
+25769803781 -> 30064771094 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771100 [CDG]
+30064771072 -> 30064771098 [CDG]
+30064771072 -> 30064771099 [CDG]
+30064771072 -> 30064771096 [CDG]
+30064771072 -> 30064771097 [CDG]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771078 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771078 [AST]
+30064771074 -> 30064771078 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771074 [CFG]
+30064771078 -> 30064771074 [DOMINATE]
+30064771078 -> 30064771075 [REACHING_DEF]
+30064771078 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771084 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771083 [CDG]
+30064771083 -> 30064771092 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771091 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771093 [CDG]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771088 [POST_DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771087 [CFG]
+30064771088 -> 30064771087 [DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int qemuAssignDeviceHostdevAlias ( virDomainDefPtr def , char * * alias , int idx ) {
+ if ( idx == - 1 ) {
+ size_t i ;
+ idx = 0 ;
+ for ( i = 0 ;
+ i < def -> nhostdevs ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( def -> hostdevs [ i ] -> info , "hostdev" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ for ( i = 0 ;
+ i < def -> nnets ;
+ i ++ ) {
+ int thisidx ;
+ if ( ( thisidx = qemuDomainDeviceAliasIndex ( & def -> nets [ i ] -> info , "hostdev" ) ) < 0 ) continue ;
+ if ( thisidx >= idx ) idx = thisidx + 1 ;
+ }
+ }
+ if ( virAsprintf ( alias , "hostdev%d" , idx ) < 0 ) return - 1 ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

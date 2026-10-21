@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gpgme_error_t gpgsm_keylist ( void * engine , const char * pattern , int secret_only , gpgme_keylist_mode_t mode ) {
+ engine_gpgsm_t gpgsm = engine ;
+ char * line ;
+ gpgme_error_t err ;
+ int list_mode = 0 ;
+ if ( mode & GPGME_KEYLIST_MODE_LOCAL ) list_mode |= 1 ;
+ if ( mode & GPGME_KEYLIST_MODE_EXTERN ) list_mode |= 2 ;
+ if ( ! pattern ) pattern = "" ;
+ if ( secret_only || ( mode & GPGME_KEYLIST_MODE_WITH_SECRET ) ) gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , "GETINFO agent-check" , NULL , NULL ) ;
+ if ( asprintf ( & line , "OPTION list-mode=%d" , ( list_mode & 3 ) ) < 0 ) return gpg_error_from_syserror ( ) ;
+ err = gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , line , NULL , NULL ) ;
+ free ( line ) ;
+ if ( err ) return err ;
+ gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_VALIDATE ) ? "OPTION with-validation=1" : "OPTION with-validation=0" , NULL , NULL ) ;
+ gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_EPHEMERAL ) ? "OPTION with-ephemeral-keys=1" : "OPTION with-ephemeral-keys=0" , NULL , NULL ) ;
+ gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_WITH_SECRET ) ? "OPTION with-secret=1" : "OPTION with-secret=0" , NULL , NULL ) ;
+ line = malloc ( 15 + strlen ( pattern ) + 1 ) ;
+ if ( ! line ) return gpg_error_from_syserror ( ) ;
+ if ( secret_only ) {
+ strcpy ( line , "LISTSECRETKEYS " ) ;
+ strcpy ( & line [ 15 ] , pattern ) ;
+ }
+ else {
+ strcpy ( line , "LISTKEYS " ) ;
+ strcpy ( & line [ 9 ] , pattern ) ;
+ }
+ gpgsm_clear_fd ( gpgsm , INPUT_FD ) ;
+ gpgsm_clear_fd ( gpgsm , OUTPUT_FD ) ;
+ gpgsm_clear_fd ( gpgsm , MESSAGE_FD ) ;
+ gpgsm -> inline_data = NULL ;
+ err = start ( gpgsm , line ) ;
+ free ( line ) ;
+ return err ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ engine_gpgsm_t gpgsm = engine ;
+ char * line ;
+ gpgme_error_t err ;
+ int list_mode = 0 ;
+ if ( mode & GPGME_KEYLIST_MODE_LOCAL ) list_mode |= 1 ;
+ if ( mode & GPGME_KEYLIST_MODE_EXTERN ) list_mode |= 2 ;
+ if ( ! pattern ) pattern = "" ;
+ if ( secret_only || ( mode & GPGME_KEYLIST_MODE_WITH_SECRET ) ) gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , "GETINFO agent-check" , NULL , NULL ) ;
+ if ( asprintf ( & line , "OPTION list-mode=%d" , ( list_mode & 3 ) ) < 0 ) return gpg_error_from_syserror ( ) ;
+ err = gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , line , NULL , NULL ) ;
+ free ( line ) ;
+ if ( err ) return err ;
+ gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_VALIDATE ) ? "OPTION with-validation=1" : "OPTION with-validation=0" , NULL , NULL ) ;
+ gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_EPHEMERAL ) ? "OPTION with-ephemeral-keys=1" : "OPTION with-ephemeral-keys=0" , NULL , NULL ) ;
+ gpgsm_assuan_simp...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ strcpy ( line , "LISTSECRETKEYS " ) ;
+ strcpy ( & line [ 15 ] , pattern ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ strcpy ( line , "LISTKEYS " ) ;
+ strcpy ( & line [ 9 ] , pattern ) ;
+ }
+      
+30064771072 | CALL | gpgsm = engine
+30064771073 | CALL | list_mode = 0
+30064771074 | CALL | mode & GPGME_KEYLIST_MODE_LOCAL
+30064771075 | CALL | list_mode |= 1
+30064771076 | CALL | mode & GPGME_KEYLIST_MODE_EXTERN
+30064771077 | CALL | list_mode |= 2
+30064771078 | CALL | ! pattern
+30064771079 | CALL | pattern = ""
+30064771080 | CALL | secret_only || ( mode & GPGME_KEYLIST_MODE_WITH_SECRET )
+30064771081 | CALL | mode & GPGME_KEYLIST_MODE_WITH_SECRET
+30064771082 | CALL | 
+        gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , "GETINFO agent-check" , NULL , NULL )
+      
+30064771083 | CALL | gpgsm -> assuan_ctx
+30064771084 | CALL | 
+        asprintf ( & line , "OPTION list-mode=%d" , ( list_mode & 3 ) ) < 0
+      
+30064771085 | CALL | asprintf ( & line , "OPTION list-mode=%d" , ( list_mode & 3 ) )
+30064771086 | CALL | & line
+30064771087 | CALL | list_mode & 3
+30064771088 | CALL | gpg_error_from_syserror ( )
+30064771089 | CALL | err = gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , line , NULL , NULL )
+30064771090 | CALL | gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , line , NULL , NULL )
+30064771091 | CALL | gpgsm -> assuan_ctx
+30064771092 | CALL | free ( line )
+30064771093 | CALL | err != 0
+30064771094 | CALL | 
+        gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_VALIDATE ) ? "OPTION with-validation=1" : "OPTION with-validation=0" , NULL , NULL )
+      
+30064771095 | CALL | gpgsm -> assuan_ctx
+30064771096 | CALL | 
+        ( mode & GPGME_KEYLIST_MODE_VALIDATE ) ? "OPTION with-validation=1" : "OPTION with-validation=0"
+      
+30064771097 | CALL | mode & GPGME_KEYLIST_MODE_VALIDATE
+30064771098 | CALL | 
+        gpgsm_assuan_simple_command ( gpgsm -> assuan_ctx , ( mode & GPGME_KEYLIST_MODE_EPHEMERAL ) ? "OPTION with-ephemeral-keys=1" : "OPTION with-ephemeral-keys=0" , NULL , NULL )
+      
+30064771099 | CALL | gpgsm -> assuan_ctx
+30064771100 | CALL | 
+        ( mode & GPGME_KEYLIST_MODE_EPHEMERAL ) ? "OPTION with-ephemeral-keys=1" : "OPTION with-ephemeral-keys=0"
+      
+30064771101 | CALL | mode & GPGME_KEYLIST_MODE_EPHEMERAL
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771098 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771077 [AST]
+25769803779 -> 30064771079 [AST]
+25769803780 -> 30064771082 [AST]
+30064771074 -> 30064771075 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771083 -> 30064771091 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771091 [CDG]
+30064771084 -> 30064771090 [CDG]
+30064771084 -> 30064771093 [CDG]
+30064771084 -> 30064771092 [CDG]
+30064771084 -> 30064771088 [CFG]
+30064771084 -> 30064771088 [DOMINATE]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771090 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771089 [CFG]
+30064771090 -> 30064771089 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771091 -> 30064771095 [REACHING_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

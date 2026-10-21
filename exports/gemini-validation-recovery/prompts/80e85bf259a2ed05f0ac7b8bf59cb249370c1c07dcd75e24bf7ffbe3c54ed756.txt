@@ -1,0 +1,244 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rtdatetolfp ( char * str , l_fp * lfp ) {
+ register char * cp ;
+ register int i ;
+ struct calendar cal ;
+ char buf [ 4 ] ;
+ cal . yearday = 0 ;
+ cp = str ;
+ if ( ! isdigit ( ( int ) * cp ) ) {
+ if ( * cp == '-' ) {
+ L_CLR ( lfp ) ;
+ return 1 ;
+ }
+ return 0 ;
+ }
+ cal . monthday = ( u_char ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . monthday = ( u_char ) ( ( cal . monthday << 3 ) + ( cal . monthday << 1 ) ) ;
+ cal . monthday = ( u_char ) ( cal . monthday + * cp ++ - '0' ) ;
+ }
+ if ( * cp ++ != '-' ) return 0 ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) buf [ i ] = * cp ++ ;
+ buf [ 3 ] = '\0' ;
+ for ( i = 0 ;
+ i < 12 ;
+ i ++ ) if ( STREQ ( buf , months [ i ] ) ) break ;
+ if ( i == 12 ) return 0 ;
+ cal . month = ( u_char ) ( i + 1 ) ;
+ if ( * cp ++ != '-' ) return 0 ;
+ if ( ! isdigit ( ( int ) * cp ) ) return 0 ;
+ cal . year = ( u_short ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( * cp ++ - '0' ) ;
+ }
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( cal . year + * cp ++ - '0' ) ;
+ }
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( cal . year + * cp ++ - '0' ) ;
+ }
+ if ( cal . year == 0 ) {
+ L_CLR ( lfp ) ;
+ return 1 ;
+ }
+ if ( * cp ++ != ' ' || ! isdigit ( ( int ) * cp ) ) return 0 ;
+ cal . hour = ( u_char ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . hour = ( u_char ) ( ( cal . hour << 3 ) + ( cal . hour << 1 ) ) ;
+ cal . hour = ( u_char ) ( cal . hour + * cp ++ - '0' ) ;
+ }
+ if ( * cp ++ != ':' || ! isdigit ( ( int ) * cp ) ) return 0 ;
+ cal . minute = ( u_char ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . minute = ( u_char ) ( ( cal . minute << 3 ) + ( cal . minute << 1 ) ) ;
+ cal . minute = ( u_char ) ( cal . minute + * cp ++ - '0' ) ;
+ }
+ if ( * cp ++ != ':' || ! isdigit ( ( int ) * cp ) ) return 0 ;
+ cal . second = ( u_char ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . second = ( u_char ) ( ( cal . second << 3 ) + ( cal . second << 1 ) ) ;
+ cal . second = ( u_char ) ( cal . second + * cp ++ - '0' ) ;
+ }
+ if ( cal . year < 72 ) cal . year += 2000 ;
+ if ( cal . year < 100 ) cal . year += 1900 ;
+ lfp -> l_ui = caltontp ( & cal ) ;
+ lfp -> l_uf = 0 ;
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ register char * cp ;
+ register int i ;
+ struct calendar cal ;
+ char buf [ 4 ] ;
+ cal . yearday = 0 ;
+ cp = str ;
+ if ( ! isdigit ( ( int ) * cp ) ) {
+ if ( * cp == '-' ) {
+ L_CLR ( lfp ) ;
+ return 1 ;
+ }
+ return 0 ;
+ }
+ cal . monthday = ( u_char ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . monthday = ( u_char ) ( ( cal . monthday << 3 ) + ( cal . monthday << 1 ) ) ;
+ cal . monthday = ( u_char ) ( cal . monthday + * cp ++ - '0' ) ;
+ }
+ if ( * cp ++ != '-' ) return 0 ;
+ for ( i = 0 ;
+ i < 3 ;
+ i ++ ) buf [ i ] = * cp ++ ;
+ buf [ 3 ] = '\0' ;
+ for ( i = 0 ;
+ i < 12 ;
+ i ++ ) if ( STREQ ( buf , months [ i ] ) ) break ;
+ if ( i == 12 ) return 0 ;
+ cal . month = ( u_char ) ( i + 1 ) ;
+ if ( * cp ++ != '-' ) return 0 ;
+ if ( ! isdigit ( ( int ) * cp ) ) return 0 ;
+ cal . year = ( u_short ) ( * cp ++ - '0' ) ;
+ if ( isdigit ( ( int ) * cp ) ) {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( * cp ++ - '0' ) ;
+ }
+ if...
+      
+25769803777 | BLOCK | { if ( * cp == '-' ) { L_CLR ( lfp ) ; return 1 ; } return 0 ; }
+25769803778 | BLOCK | { L_CLR ( lfp ) ; return 1 ; }
+25769803779 | BLOCK | 
+        {
+ cal . monthday = ( u_char ) ( ( cal . monthday << 3 ) + ( cal . monthday << 1 ) ) ;
+ cal . monthday = ( u_char ) ( cal . monthday + * cp ++ - '0' ) ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( * cp ++ - '0' ) ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( cal . year + * cp ++ - '0' ) ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ cal . year = ( u_short ) ( ( cal . year << 3 ) + ( cal . year << 1 ) ) ;
+ cal . year = ( u_short ) ( cal . year + * cp ++ - '0' ) ;
+ }
+      
+25769803788 | BLOCK | { L_CLR ( lfp ) ; return 1 ; }
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ cal . hour = ( u_char ) ( ( cal . hour << 3 ) + ( cal . hour << 1 ) ) ;
+ cal . hour = ( u_char ) ( cal . hour + * cp ++ - '0' ) ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ cal . minute = ( u_char ) ( ( cal . minute << 3 ) + ( cal . minute << 1 ) ) ;
+ cal . minute = ( u_char ) ( cal . minute + * cp ++ - '0' ) ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ cal . second = ( u_char ) ( ( cal . second << 3 ) + ( cal . second << 1 ) ) ;
+ cal . second = ( u_char ) ( cal . second + * cp ++ - '0' ) ;
+ }
+      
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+30064771072 | CALL | buf [ 4 ]
+30064771073 | CALL | buf [ 4 ]
+30064771074 | CALL | cal . yearday = 0
+30064771075 | CALL | cal . yearday
+30064771076 | CALL | cp = str
+30064771077 | CALL | ! isdigit ( ( int ) * cp )
+30064771078 | CALL | isdigit ( ( int ) * cp )
+30064771079 | CALL | ( int ) * cp
+30064771080 | CALL | * cp
+30064771081 | CALL | * cp == '-'
+30064771082 | CALL | * cp
+30064771083 | CALL | L_CLR ( lfp )
+30064771084 | CALL | cal . monthday = ( u_char ) ( * cp ++ - '0' )
+30064771085 | CALL | cal . monthday
+30064771086 | CALL | ( u_char ) ( * cp ++ - '0' )
+30064771087 | CALL | * cp ++ - '0'
+30064771088 | CALL | * cp ++
+30064771089 | CALL | cp ++
+30064771090 | CALL | isdigit ( ( int ) * cp )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771084 [AST]
+25769803778 -> 30064771083 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771089 [CDG]
+30064771077 -> 30064771090 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771088 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 3006477
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

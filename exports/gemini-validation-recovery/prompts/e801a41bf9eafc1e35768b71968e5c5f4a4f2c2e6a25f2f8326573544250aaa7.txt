@@ -1,0 +1,173 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static struct object_entry * insert_object ( unsigned char * sha1 ) {
+ unsigned int h = sha1 [ 0 ] << 8 | sha1 [ 1 ] ;
+ struct object_entry * e = object_table [ h ] ;
+ while ( e ) {
+ if ( ! hashcmp ( sha1 , e -> idx . sha1 ) ) return e ;
+ e = e -> next ;
+ }
+ e = new_object ( sha1 ) ;
+ e -> next = object_table [ h ] ;
+ e -> idx . offset = 0 ;
+ object_table [ h ] = e ;
+ return e ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int h = sha1 [ 0 ] << 8 | sha1 [ 1 ] ;
+ struct object_entry * e = object_table [ h ] ;
+ while ( e ) {
+ if ( ! hashcmp ( sha1 , e -> idx . sha1 ) ) return e ;
+ e = e -> next ;
+ }
+ e = new_object ( sha1 ) ;
+ e -> next = object_table [ h ] ;
+ e -> idx . offset = 0 ;
+ object_table [ h ] = e ;
+ return e ;
+ }
+      
+25769803777 | BLOCK | { if ( ! hashcmp ( sha1 , e -> idx . sha1 ) ) return e ; e = e -> next ; }
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | h = sha1 [ 0 ] << 8 | sha1 [ 1 ]
+30064771073 | CALL | sha1 [ 0 ] << 8 | sha1 [ 1 ]
+30064771074 | CALL | sha1 [ 0 ] << 8
+30064771075 | CALL | sha1 [ 0 ]
+30064771076 | CALL | sha1 [ 1 ]
+30064771077 | CALL | e = object_table [ h ]
+30064771078 | CALL | object_table [ h ]
+30064771079 | CALL | e != NULL
+30064771080 | CALL | ! hashcmp ( sha1 , e -> idx . sha1 )
+30064771081 | CALL | hashcmp ( sha1 , e -> idx . sha1 )
+30064771082 | CALL | e -> idx . sha1
+30064771083 | CALL | e -> idx
+30064771084 | CALL | e = e -> next
+30064771085 | CALL | e -> next
+30064771086 | CALL | e = new_object ( sha1 )
+30064771087 | CALL | new_object ( sha1 )
+30064771088 | CALL | e -> next = object_table [ h ]
+30064771089 | CALL | e -> next
+30064771090 | CALL | object_table [ h ]
+30064771091 | CALL | e -> idx . offset = 0
+30064771092 | CALL | e -> idx . offset
+30064771093 | CALL | e -> idx
+30064771094 | CALL | object_table [ h ] = e
+30064771095 | CALL | object_table [ h ]
+47244640256 | CONTROL_STRUCTURE | while (e)
+47244640257 | CONTROL_STRUCTURE | if ( ! hashcmp ( sha1 , e -> idx . sha1 ) ) return e ;
+55834574848 | FIELD_IDENTIFIER | idx
+55834574849 | FIELD_IDENTIFIER | sha1
+55834574850 | FIELD_IDENTIFIER | next
+55834574851 | FIELD_IDENTIFIER | next
+55834574852 | FIELD_IDENTIFIER | idx
+55834574853 | FIELD_IDENTIFIER | offset
+68719476736 | IDENTIFIER | h
+68719476737 | IDENTIFIER | sha1
+68719476738 | IDENTIFIER | sha1
+68719476739 | IDENTIFIER | e
+68719476740 | IDENTIFIER | <unknown> object_table
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771076 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 30064771073 [CFG]
+30064771076 -> 30064771073 [DOMINATE]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476739 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 30064771090 [REACHING_DEF]
+30064771079 -> 55834574852 [CDG]
+30064771079 -> 55834574851 [CDG]
+30064771079 -> 55834574853 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 55834574848 [CDG]
+30064771079 -> 55834574849 [CDG]
+30064771079 -> 30064771090 [CDG]
+30064771079 -> 30064771089 [CDG]
+30064771079 -> 30064771092 [CDG]
+30064771079 -> 30064771091 [CDG]
+30064771079 -> 30064771086 [CDG]
+30064771079 -> 30064771088 [CDG]
+30064771079 -> 30064771087 [CDG]
+30064771079 -> 30064771094 [CDG]
+30064771079 -> 30064771093 [CDG]
+30064771079 -> 30064771095 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771079 [CDG]
+30064771080 -> 55834574850 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static struct object_entry * find_object ( unsigned char * sha1 ) {
+ unsigned int h = sha1 [ 0 ] << 8 | sha1 [ 1 ] ;
+ struct object_entry * e ;
+ for ( e = object_table [ h ] ;
+ e ;
+ e = e -> next ) if ( ! hashcmp ( sha1 , e -> idx . sha1 ) ) return e ;
+ return NULL ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,392 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int vtd_interrupt_remap_msi(IntelIOMMUState *iommu,
+
+                                   MSIMessage *origin,
+
+                                   MSIMessage *translated)
+
+{
+
+    int ret = 0;
+
+    VTD_IR_MSIAddress addr;
+
+    uint16_t index;
+
+    VTDIrq irq = {};
+
+
+
+    assert(origin && translated);
+
+
+
+    if (!iommu || !iommu->intr_enabled) {
+
+        goto do_not_translate;
+
+    }
+
+
+
+    if (origin->address & VTD_MSI_ADDR_HI_MASK) {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr high 32 bits nonzero"
+
+                    " during interrupt remapping: 0x%"PRIx32,
+
+                    (uint32_t)((origin->address & VTD_MSI_ADDR_HI_MASK) >> \
+
+                    VTD_MSI_ADDR_HI_SHIFT));
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+
+
+
+    addr.data = origin->address & VTD_MSI_ADDR_LO_MASK;
+
+    if (le16_to_cpu(addr.__head) != 0xfee) {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr low 32 bits invalid: "
+
+                    "0x%"PRIx32, addr.data);
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+
+
+
+    /* This is compatible mode. */
+
+    if (addr.int_mode != VTD_IR_INT_FORMAT_REMAP) {
+
+        goto do_not_translate;
+
+    }
+
+
+
+    index = addr.index_h << 15 | le16_to_cpu(addr.index_l);
+
+
+
+#define  VTD_IR_MSI_DATA_SUBHANDLE       (0x0000ffff)
+
+#define  VTD_IR_MSI_DATA_RESERVED        (0xffff0000)
+
+
+
+    if (addr.sub_valid) {
+
+        /* See VT-d spec 5.1.2.2 and 5.1.3 on subhandle */
+
+        index += origin->data & VTD_IR_MSI_DATA_SUBHANDLE;
+
+    }
+
+
+
+    ret = vtd_remap_irq_get(iommu, index, &irq);
+
+    if (ret) {
+
+        return ret;
+
+    }
+
+
+
+    if (addr.sub_valid) {
+
+        VTD_DPRINTF(IR, "received MSI interrupt");
+
+        if (origin->data & VTD_IR_MSI_DATA_RESERVED) {
+
+            VTD_DPRINTF(GENERAL, "error: MSI data bits non-zero for "
+
+                        "interrupt remappable entry: 0x%"PRIx32,
+
+                        origin->data);
+
+            return -VTD_FR_IR_REQ_RSVD;
+
+        }
+
+    } else {
+
+        uint8_t vector = origin->data & 0xff;
+
+        VTD_DPRINTF(IR, "received IOAPIC interrupt");
+
+        /* IOAPIC entry vector should be aligned with IRTE vector
+
+         * (see vt-d spec 5.1.5.1). */
+
+        if (vector != irq.vector) {
+
+            VTD_DPRINTF(GENERAL, "IOAPIC vector inconsistent: "
+
+                        "entry: %d, IRTE: %d, index: %d",
+
+                        vector, irq.vector, index);
+
+        }
+
+    }
+
+
+
+    /*
+
+     * We'd better keep the last two bits, assuming that guest OS
+
+     * might modify it. Keep it does not hurt after all.
+
+     */
+
+    irq.msi_addr_last_bits = addr.__not_care;
+
+
+
+    /* Translate VTDIrq to MSI message */
+
+    vtd_generate_msi_message(&irq, translated);
+
+
+
+    VTD_DPRINTF(IR, "mapping MSI 0x%"PRIx64":0x%"PRIx32 " -> "
+
+                "0x%"PRIx64":0x%"PRIx32, origin->address, origin->data,
+
+                translated->address, translated->data);
+
+    return 0;
+
+
+
+do_not_translate:
+
+    memcpy(translated, origin, sizeof(*origin));
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int ret = 0;
+
+    VTD_IR_MSIAddress addr;
+
+    uint16_t index;
+
+    VTDIrq irq = {};
+
+
+
+    assert(origin && translated);
+
+
+
+    if (!iommu || !iommu->intr_enabled) {
+
+        goto do_not_translate;
+
+    }
+
+
+
+    if (origin->address & VTD_MSI_ADDR_HI_MASK) {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr high 32 bits nonzero"
+
+                    " during interrupt remapping: 0x%"PRIx32,
+
+                    (uint32_t)((origin->address & VTD_MSI_ADDR_HI_MASK) >> \
+
+                    VTD_MSI_ADDR_HI_SHIFT));
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+
+
+
+    addr.data = origin->address & VTD_MSI_ADDR_LO_MASK;
+
+    if (le16_to_cpu(addr.__head) != 0xfee) {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr low 32 bits invalid: "
+
+                    "0x%"PRIx32, addr.data);
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+
+
+
+    /* This is compatible mode. */
+
+    if (addr.int_mode != VTD_IR_INT_FORMAT_REMAP) {
+
+        goto do_not_translate;
+
+    }
+
+
+
+    index = addr.index_h << 15 | ...
+      
+25769803777 | BLOCK | { goto do_not_translate; }
+25769803778 | BLOCK | 
+        {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr high 32 bits nonzero"
+
+                    " during interrupt remapping: 0x%"PRIx32,
+
+                    (uint32_t)((origin->address & VTD_MSI_ADDR_HI_MASK) >> \
+
+                    VTD_MSI_ADDR_HI_SHIFT));
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+      
+25769803779 | BLOCK | 
+        {
+
+        VTD_DPRINTF(GENERAL, "error: MSI addr low 32 bits invalid: "
+
+                    "0x%"PRIx32, addr.data);
+
+        return -VTD_FR_IR_REQ_RSVD;
+
+    }
+      
+25769803780 | BLOCK | { goto do_not_translate; }
+25769803781 | BLOCK | 
+        {
+
+        /* See VT-d spec 5.1.2.2 and 5.1.3 on subhandle */
+
+        index += origin->data & VTD_IR_MSI_DATA_SUBHANDLE;
+
+    }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | { return ret; }
+25769803784 | BLOCK | 
+        {
+
+        VTD_DPRINTF(IR, "received MSI interrupt");
+
+        if (origin->data & VTD_IR_MSI_DATA_RESERVED) {
+
+            VTD_DPRINTF(GENERAL, "error: MSI data bits non-zero for "
+
+                        "interrupt remappable entry: 0x%"PRIx32,
+
+                        origin->data);
+
+            return -VTD_FR_IR_REQ_RSVD;
+
+        }
+
+    }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | 
+        {
+
+            VTD_DPRINTF(GENERAL, "error: MSI data bits non-zero for "
+
+                        "interrupt remappable entry: 0x%"PRIx32,
+
+                        origin->data);
+
+            return -VTD_FR_IR_REQ_RSVD;
+
+        }
+      
+25769803787 | BLOCK | 
+        {
+
+        uint8_t vector = origin->data & 0xff;
+
+        VTD_DPRINTF(IR, "received IOAPIC interrupt");
+
+        /* IOAPIC entry vector should be aligned with IRTE vector
+
+         * (see vt-d spec 5.1.5.1). */
+
+        if (vector != irq.vector) {
+
+            VTD_DPRINTF(GENERAL, "IOAPIC vector inconsistent: "
+
+                        "entry: %d, IRTE: %d, index: %d",
+
+                        vector, irq.vector, index);
+
+        }
+
+    }
+      
+25769803788 | BLOCK | 
+        {
+
+            VTD_DPRINTF(GENERAL, "IOAPIC vector inconsistent: "
+
+                        "entry: %d, IRTE: %d, index: %d",
+
+                        vector, irq.vector, index);
+
+        }
+      
+30064771072 | CALL | ret = 0
+30064771073 | CALL | irq = {}
+30064771074 | CALL | {}
+30064771075 | CALL | assert(origin && translated)
+30064771076 | CALL | origin && translated
+30064771077 | CALL | !iommu || !iommu->intr_enabled
+30064771078 | CALL | !iommu
+30064771079 | CALL | !iommu->intr_enabled
+30064771080 | CALL | iommu->intr_enabled
+30064771081 | CALL | origin->address & VTD_MSI_ADDR_HI_MASK
+30064771082 | CALL | origin->address
+30064771083 | CALL | -VTD_FR_IR_REQ_RSVD
+30064771084 | CALL | addr.data = origin->address & VTD_MSI_ADDR_LO_MASK
+30064771085 | CALL | addr.data
+30064771086 | CALL | origin->address & VTD_MSI_ADDR_LO_MASK
+30064771087 | CALL | origin->address
+30064771088 | CALL | le16_to_cpu(addr.__head) != 0xfee
+30064771089 | CALL | le16_to_cpu(addr.__head)
+30064771090 | CALL | addr.__head
+30064771091 | CALL | -VTD_FR_IR_REQ_RSVD
+30064771092 | CALL | addr.int_mode != VTD_IR_INT_FORMAT_REMAP
+30064771093 | CALL | addr.int_mode
+30064771094 | CALL | index = addr.index_h << 15 | le16_to_cpu(addr.index_l)
+30064771095 | CALL | addr.index_h << 15 | le16_to_cpu(addr.index_l)
+30064771096 | CALL |
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

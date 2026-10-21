@@ -1,0 +1,216 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void move_task_thread_func ( GTask * task , gpointer source_object , gpointer task_data , GCancellable * cancellable ) {
+ CopyMoveJob * job ;
+ CommonJob * common ;
+ GList * fallbacks ;
+ SourceInfo source_info ;
+ TransferInfo transfer_info ;
+ char * dest_fs_id ;
+ char * dest_fs_type ;
+ GList * fallback_files ;
+ job = task_data ;
+ common = & job -> common ;
+ dest_fs_id = NULL ;
+ dest_fs_type = NULL ;
+ fallbacks = NULL ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ verify_destination ( & job -> common , job -> destination , & dest_fs_id , - 1 ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ move_files_prepare ( job , dest_fs_id , & dest_fs_type , & fallbacks ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ fallback_files = get_files_from_fallbacks ( fallbacks ) ;
+ scan_sources ( fallback_files , & source_info , common , OP_KIND_MOVE ) ;
+ g_list_free ( fallback_files ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ verify_destination ( & job -> common , job -> destination , NULL , source_info . num_bytes ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ memset ( & transfer_info , 0 , sizeof ( transfer_info ) ) ;
+ move_files ( job , fallbacks , dest_fs_id , & dest_fs_type , & source_info , & transfer_info ) ;
+ aborted : g_list_free_full ( fallbacks , g_free ) ;
+ g_free ( dest_fs_id ) ;
+ g_free ( dest_fs_type ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ CopyMoveJob * job ;
+ CommonJob * common ;
+ GList * fallbacks ;
+ SourceInfo source_info ;
+ TransferInfo transfer_info ;
+ char * dest_fs_id ;
+ char * dest_fs_type ;
+ GList * fallback_files ;
+ job = task_data ;
+ common = & job -> common ;
+ dest_fs_id = NULL ;
+ dest_fs_type = NULL ;
+ fallbacks = NULL ;
+ nautilus_progress_info_start ( job -> common . progress ) ;
+ verify_destination ( & job -> common , job -> destination , & dest_fs_id , - 1 ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ move_files_prepare ( job , dest_fs_id , & dest_fs_type , & fallbacks ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ fallback_files = get_files_from_fallbacks ( fallbacks ) ;
+ scan_sources ( fallback_files , & source_info , common , OP_KIND_MOVE ) ;
+ g_list_free ( fallback_files ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ verify_destination ( & job -> common , job -> destination , NULL , source_info . num_bytes ) ;
+ if ( job_aborted ( common ) ) {
+ goto aborted ;
+ }
+ me...
+      
+25769803777 | BLOCK | { goto aborted ; }
+25769803778 | BLOCK | { goto aborted ; }
+25769803779 | BLOCK | { goto aborted ; }
+25769803780 | BLOCK | { goto aborted ; }
+30064771072 | CALL | job = task_data
+30064771073 | CALL | common = & job -> common
+30064771074 | CALL | & job -> common
+30064771075 | CALL | job -> common
+30064771076 | CALL | dest_fs_id = NULL
+30064771077 | CALL | dest_fs_type = NULL
+30064771078 | CALL | fallbacks = NULL
+30064771079 | CALL | nautilus_progress_info_start ( job -> common . progress )
+30064771080 | CALL | job -> common . progress
+30064771081 | CALL | job -> common
+30064771082 | CALL | 
+        verify_destination ( & job -> common , job -> destination , & dest_fs_id , - 1 )
+      
+30064771083 | CALL | & job -> common
+30064771084 | CALL | job -> common
+30064771085 | CALL | job -> destination
+30064771086 | CALL | & dest_fs_id
+30064771087 | CALL | - 1
+30064771088 | CALL | job_aborted ( common )
+30064771089 | CALL | move_files_prepare ( job , dest_fs_id , & dest_fs_type , & fallbacks )
+30064771090 | CALL | & dest_fs_type
+30064771091 | CALL | & fallbacks
+30064771092 | CALL | job_aborted ( common )
+30064771093 | CALL | fallback_files = get_files_from_fallbacks ( fallbacks )
+30064771094 | CALL | get_files_from_fallbacks ( fallbacks )
+30064771095 | CALL | scan_sources ( fallback_files , & source_info , common , OP_KIND_MOVE )
+30064771096 | CALL | & source_info
+30064771097 | CALL | g_list_free ( fallback_files )
+30064771098 | CALL | job_aborted ( common )
+30064771099 | CALL | 
+        verify_destination ( & job -> common , job -> destination , NULL , source_info . num_bytes )
+      
+30064771100 | CALL | & job -> common
+30064771101 | CALL | job -> common
+30064771102 | CALL | job -> destination
+30064771103 | CALL | source_info . num_bytes
+30064771104 | CALL | job_aborted ( common )
+30064771105 | CALL | memset ( & transfer_info , 0 , sizeof ( transfer_info ) )
+30064771106 | CALL | & transfer_info
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771095 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771099 [AST]
+25769803776 -> 30064771105 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771084 [REACHING_DEF]
+30064771074 -> 30064771081 [REACHING_DEF]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771084 [REACHING_DEF]
+30064771075 -> 30064771081 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771101 [REACHING_DEF]
+30064771075 -> 30064771100 [REACHING_DEF]
+30064771075 -> 30064771083 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771084 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771086 [ARGUMENT]
+30064771082 -> 30064771087 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771086 [AST]
+30064771082 -> 30064771087 [AST]
+30064771082 -> 30064771087 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771101 [REACHING_DEF]
+30064771083 -> 30064771100 [REACHING_DEF]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771086 [REACHING_DEF]
+30064771083 -> 30064771087 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771101 [REACHING_DEF]
+30064771084 -> 30064771100 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771102 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771087 [REACHING_DEF]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771086 -> 30064771083 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771087 [REACHING_DEF]
+30064771086 -> 30064771082 [REACHING_DEF]
+30064771087 -> 30064771082 [CFG]
+30064771087 -> 30064771082 [DOMINATE]
+30064771087 -> 3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,351 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mov_read_header(AVFormatContext *s)
+
+{
+
+    MOVContext *mov = s->priv_data;
+
+    AVIOContext *pb = s->pb;
+
+    int j, err;
+
+    MOVAtom atom = { AV_RL32("root") };
+
+    int i;
+
+
+
+    if (mov->decryption_key_len != 0 && mov->decryption_key_len != AES_CTR_KEY_SIZE) {
+
+        av_log(s, AV_LOG_ERROR, "Invalid decryption key len %d expected %d\n",
+
+            mov->decryption_key_len, AES_CTR_KEY_SIZE);
+
+        return AVERROR(EINVAL);
+
+    }
+
+
+
+    mov->fc = s;
+
+    mov->trak_index = -1;
+
+    /* .mov and .mp4 aren't streamable anyway (only progressive download if moov is before mdat) */
+
+    if (pb->seekable)
+
+        atom.size = avio_size(pb);
+
+    else
+
+        atom.size = INT64_MAX;
+
+
+
+    /* check MOV header */
+
+    do {
+
+    if (mov->moov_retry)
+
+        avio_seek(pb, 0, SEEK_SET);
+
+    if ((err = mov_read_default(mov, pb, atom)) < 0) {
+
+        av_log(s, AV_LOG_ERROR, "error reading header\n");
+
+        mov_read_close(s);
+
+        return err;
+
+    }
+
+    } while (pb->seekable && !mov->found_moov && !mov->moov_retry++);
+
+    if (!mov->found_moov) {
+
+        av_log(s, AV_LOG_ERROR, "moov atom not found\n");
+
+        mov_read_close(s);
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+    av_log(mov->fc, AV_LOG_TRACE, "on_parse_exit_offset=%"PRId64"\n", avio_tell(pb));
+
+
+
+    if (pb->seekable) {
+
+        if (mov->nb_chapter_tracks > 0 && !mov->ignore_chapters)
+
+            mov_read_chapters(s);
+
+        for (i = 0; i < s->nb_streams; i++)
+
+            if (s->streams[i]->codecpar->codec_tag == AV_RL32("tmcd")) {
+
+                mov_read_timecode_track(s, s->streams[i]);
+
+            } else if (s->streams[i]->codecpar->codec_tag == AV_RL32("rtmd")) {
+
+                mov_read_rtmd_track(s, s->streams[i]);
+
+            }
+
+    }
+
+
+
+    /* copy timecode metadata from tmcd tracks to the related video streams */
+
+    for (i = 0; i < s->nb_streams; i++) {
+
+        AVStream *st = s->streams[i];
+
+        MOVStreamContext *sc = st->priv_data;
+
+        if (sc->timecode_track > 0) {
+
+            AVDictionaryEntry *tcr;
+
+            int tmcd_st_id = -1;
+
+
+
+            for (j = 0; j < s->nb_streams; j++)
+
+                if (s->streams[j]->id == sc->timecode_track)
+
+                    tmcd_st_id = j;
+
+
+
+            if (tmcd_st_id < 0 || tmcd_st_id == i)
+
+                continue;
+
+            tcr = av_dict_get(s->streams[tmcd_st_id]->metadata, "timecode", NULL, 0);
+
+            if (tcr)
+
+                av_dict_set(&st->metadata, "timecode", tcr->value, 0);
+
+        }
+
+    }
+
+    export_orphan_timecode(s);
+
+
+
+    for (i = 0; i < s->nb_streams; i++) {
+
+        AVStream *st = s->streams[i];
+
+        MOVStreamContext *sc = st->priv_data;
+
+        fix_timescale(mov, sc);
+
+        if(st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && st->codecpar->codec_id == AV_CODEC_ID_AAC) {
+
+            st->skip_samples = sc->start_pad;
+
+        }
+
+        if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && sc->nb_frames_for_fps > 0 && sc->duration_for_fps > 0)
+
+       
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+37 -> 40 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 54 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 59 [IS_AST_PARENT]
+49 -> 55 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+65 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+65 -> 72 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+65 -> 76 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+79 -> 82 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+60 -> 78 [IS_AST_PARENT]
+47 -> 60 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int mov_read_header(AVFormatContext *s)
+
+{
+
+    MOVContext *mov = s->priv_data;
+
+    AVIOContext *pb = s->pb;
+
+    int err;
+
+    MOVAtom atom = { AV_RL32("root") };
+
+    int i;
+
+
+
+    mov->fc = s;
+
+    /* .mov and .mp4 aren't streamable anyway (only progressive download if moov is before mdat) */
+
+    if (pb->seekable)
+
+        atom.size = avio_size(pb);
+
+    else
+
+        atom.size = INT64_MAX;
+
+
+
+    /* check MOV header */
+
+    if ((err = mov_read_default(mov, pb, atom)) < 0) {
+
+        av_log(s, AV_LOG_ERROR, "error reading header: %d\n", err);
+
+        mov_read_close(s);
+
+        return err;
+
+    }
+
+    if (!mov->found_moov) {
+
+        av_log(s, AV_LOG_ERROR, "moov atom not found\n");
+
+        mov_read_close(s);
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+    av_dlog(mov->fc, "on_parse_exit_offset=%"PRId64"\n", avio_tell(pb));
+
+
+
+    if (pb->seekable && mov->chapter_track > 0)
+
+        mov_read_chapters(s);
+
+
+
+    for (i = 0; i < s->nb_streams; i++) {
+
+        AVStream *st = s->streams[i];
+
+        MOVStreamContext *sc = st->priv_data;
+
+
+
+        if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+
+            if (st->codec->width <= 0 && st->codec->width <= 0) {
+
+                st->codec->width  = sc->width;
+
+                st->codec->height = sc->height;
+
+            }
+
+            if (st->codec->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+
+                if ((err = mov_rewrite_dvd_sub_extradata(st)) < 0)
+
+                    return err;
+
+            }
+
+       
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

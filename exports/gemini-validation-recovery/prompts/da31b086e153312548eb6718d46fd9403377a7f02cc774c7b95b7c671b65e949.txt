@@ -1,0 +1,168 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( OmniboxViewViewsTest , Emphasis ) {
+ constexpr struct {
+ const char * input ;
+ bool expected_base_text_emphasized ;
+ Range expected_emphasis_range ;
+ Range expected_scheme_range ;
+ }
+ test_cases [ ] = {
+ {
+ "data:text/html,Hello%20World" , false , Range ( 0 , 4 ) , Range ( 0 , 4 ) }
+ , {
+ "http://www.example.com/path/file.htm" , false , Range ( 7 , 22 ) , Range ( 0 , 4 ) }
+ , {
+ "https://www.example.com/path/file.htm" , false , Range ( 8 , 23 ) , Range ( 0 , 5 ) }
+ , {
+ "chrome-extension://ldfbacdbackkjhclmhnjabngnppnkagl" , false , Range : : InvalidRange ( ) , Range ( 0 , 16 ) }
+ , {
+ "nosuchscheme://opaque/string" , true , Range : : InvalidRange ( ) , Range ( 0 , 12 ) }
+ , {
+ "nosuchscheme:opaquestring" , true , Range : : InvalidRange ( ) , Range ( 0 , 12 ) }
+ , {
+ "host.com/path/file" , false , Range ( 0 , 8 ) , Range : : InvalidRange ( ) }
+ , {
+ "This is plain text" , true , Range : : InvalidRange ( ) , Range : : InvalidRange ( ) }
+ , }
+ ;
+ for ( const auto & test_case : test_cases ) {
+ SCOPED_TRACE ( test_case . input ) ;
+ SetAndEmphasizeText ( test_case . input , false ) ;
+ EXPECT_EQ ( TestingOmniboxView : : to_base_text_emphasis ( test_case . expected_base_text_emphasized ) , omnibox_view ( ) -> base_text_emphasis ( ) ) ;
+ EXPECT_EQ ( test_case . expected_emphasis_range , omnibox_view ( ) -> emphasis_range ( ) ) ;
+ EXPECT_FALSE ( omnibox_view ( ) -> scheme_range ( ) . IsValid ( ) ) ;
+ if ( test_case . expected_scheme_range . IsValid ( ) ) {
+ SetAndEmphasizeText ( test_case . input , true ) ;
+ EXPECT_EQ ( TestingOmniboxView : : to_base_text_emphasis ( test_case . expected_base_text_emphasized ) , omnibox_view ( ) -> base_text_emphasis ( ) ) ;
+ EXPECT_EQ ( test_case . expected_emphasis_range , omnibox_view ( ) -> emphasis_range ( ) ) ;
+ EXPECT_EQ ( test_case . expected_scheme_range , omnibox_view ( ) -> scheme_range ( ) ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ constexpr struct {
+ const char * input ;
+ bool expected_base_text_emphasized ;
+ Range expected_emphasis_range ;
+ Range expected_scheme_range ;
+ }
+ test_cases [ ] = {
+ {
+ "data:text/html,Hello%20World" , false , Range ( 0 , 4 ) , Range ( 0 , 4 ) }
+ , {
+ "http://www.example.com/path/file.htm" , false , Range ( 7 , 22 ) , Range ( 0 , 4 ) }
+ , {
+ "https://www.example.com/path/file.htm" , false , Range ( 8 , 23 ) , Range ( 0 , 5 ) }
+ , {
+ "chrome-extension://ldfbacdbackkjhclmhnjabngnppnkagl" , false , Range : : InvalidRange ( ) , Range ( 0 , 16 ) }
+      
+68719476736 | IDENTIFIER | <unknown> constexpr
+94489280512 | LOCAL | <unknown> constexpr
+107374182400 | METHOD | 
+        TEST_F ( OmniboxViewViewsTest , Emphasis ) {
+ constexpr struct {
+ const char * input ;
+ bool expected_base_text_emphasized ;
+ Range expected_emphasis_range ;
+ Range expected_scheme_range ;
+ }
+ test_cases [ ] = {
+ {
+ "data:text/html,Hello%20World" , false , Range ( 0 , 4 ) , Range ( 0 , 4 ) }
+ , {
+ "http://www.example.com/path/file.htm" , false , Range ( 7 , 22 ) , Range ( 0 , 4 ) }
+ , {
+ "https://www.example.com/path/file.htm" , false , Range ( 8 , 23 ) , Range ( 0 , 5 ) }
+ , {
+ "chrome-extension://ldfbacdbackkjhclmhnjabngnppnkagl" , false , Range : : InvalidRange ( ) , Range ( 0 , 16 ) }
+      
+111669149696 | METHOD_PARAMETER_IN | OmniboxViewViewsTest
+111669149697 | METHOD_PARAMETER_IN | Emphasis
+115964116992 | METHOD_PARAMETER_OUT | OmniboxViewViewsTest
+115964116993 | METHOD_PARAMETER_OUT | Emphasis
+124554051584 | METHOD_RETURN | RET
+EDGES:
+25769803776 -> 68719476736 [AST]
+25769803776 -> 94489280512 [AST]
+68719476736 -> 124554051584 [CFG]
+68719476736 -> 124554051584 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 94489280512 [REF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 68719476736 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 68719476736 [CONTAINS]
+107374182400 -> 68719476736 [DOMINATE]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 68719476736 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 68719476736 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+TEST_F ( TemplateURLTest , URLRefTestSearchTerms ) {
+ struct SearchTermsCase {
+ const char * url ;
+ const base : : string16 terms ;
+ const std : : string output ;
+ }
+ search_term_cases [ ] = {
+ {
+ "http://foo{
+searchTerms}
+" , ASCIIToUTF16 ( "sea rch/bar" ) , "http://foosea%20rch/bar" }
+ , {
+ "http://foo{
+searchTerms}
+?boo=abc" , ASCIIToUTF16 ( "sea rch/bar" ) , "http://foosea%20rch/bar?boo=abc" }
+ , {
+ "http://foo/?boo={
+searchTerms}
+" , ASCIIToUTF16 ( "sea rch/bar" ) , "http://foo/?boo=sea+rch%2Fbar" }
+ , {
+ "http://en.wikipedia.org/{
+searchTerms}
+" , ASCIIToUTF16 ( "wiki/?" ) , "http://en.wikipedia.org/wiki/%3F" }
+ }
+ ;
+ for ( size_t i = 0 ;
+ i < arraysize ( search_term_cases ) ;
+ ++ i ) {
+ const SearchTermsCase & value = search_term_cases [ i ] ;
+ TemplateURLData data ;
+ data . SetURL ( value . url ) ;
+ TemplateURL url ( data ) ;
+ EXPECT_TRUE ( url . url_ref ( ) . IsValid ( search_terms_data_ ) ) ;
+ ASSERT_TRUE ( url . url_ref ( ) . SupportsReplacement ( search_terms_data_ ) ) ;
+ GURL result ( url . url_ref ( ) . ReplaceSearchTerms ( TemplateURLRef : : SearchTermsArgs ( value . terms ) , search_terms_data_ ) ) ;
+ ASSERT_TRUE ( result . is_valid ( ) ) ;
+ EXPECT_EQ ( value . output , result . spec ( ) ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

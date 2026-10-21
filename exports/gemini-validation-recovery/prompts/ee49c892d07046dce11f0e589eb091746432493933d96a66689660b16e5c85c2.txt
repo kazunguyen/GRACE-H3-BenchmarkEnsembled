@@ -1,0 +1,170 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static unsigned long write_object ( struct sha1file * f , struct object_entry * entry , off_t write_offset ) {
+ unsigned long limit , len ;
+ int usable_delta , to_reuse ;
+ if ( ! pack_to_stdout ) crc32_begin ( f ) ;
+ if ( ! pack_size_limit || ! nr_written ) limit = 0 ;
+ else if ( pack_size_limit <= write_offset ) limit = 1 ;
+ else limit = pack_size_limit - write_offset ;
+ if ( ! entry -> delta ) usable_delta = 0 ;
+ else if ( ! pack_size_limit ) usable_delta = 1 ;
+ else if ( entry -> delta -> idx . offset == ( off_t ) - 1 ) usable_delta = 0 ;
+ else if ( entry -> delta -> idx . offset ) usable_delta = 1 ;
+ else usable_delta = 0 ;
+ if ( ! reuse_object ) to_reuse = 0 ;
+ else if ( ! entry -> in_pack ) to_reuse = 0 ;
+ else if ( entry -> type == OBJ_REF_DELTA || entry -> type == OBJ_OFS_DELTA ) to_reuse = usable_delta ;
+ else if ( entry -> type != entry -> in_pack_type ) to_reuse = 0 ;
+ else if ( entry -> delta ) to_reuse = 0 ;
+ else to_reuse = 1 ;
+ if ( ! to_reuse ) len = write_no_reuse_object ( f , entry , limit , usable_delta ) ;
+ else len = write_reuse_object ( f , entry , limit , usable_delta ) ;
+ if ( ! len ) return 0 ;
+ if ( usable_delta ) written_delta ++ ;
+ written ++ ;
+ if ( ! pack_to_stdout ) entry -> idx . crc32 = crc32_end ( f ) ;
+ return len ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned long limit , len ;
+ int usable_delta , to_reuse ;
+ if ( ! pack_to_stdout ) crc32_begin ( f ) ;
+ if ( ! pack_size_limit || ! nr_written ) limit = 0 ;
+ else if ( pack_size_limit <= write_offset ) limit = 1 ;
+ else limit = pack_size_limit - write_offset ;
+ if ( ! entry -> delta ) usable_delta = 0 ;
+ else if ( ! pack_size_limit ) usable_delta = 1 ;
+ else if ( entry -> delta -> idx . offset == ( off_t ) - 1 ) usable_delta = 0 ;
+ else if ( entry -> delta -> idx . offset ) usable_delta = 1 ;
+ else usable_delta = 0 ;
+ if ( ! reuse_object ) to_reuse = 0 ;
+ else if ( ! entry -> in_pack ) to_reuse = 0 ;
+ else if ( entry -> type == OBJ_REF_DELTA || entry -> type == OBJ_OFS_DELTA ) to_reuse = usable_delta ;
+ else if ( entry -> type != entry -> in_pack_type ) to_reuse = 0 ;
+ else if ( entry -> delta ) to_reuse = 0 ;
+ else to_reuse = 1 ;
+ if ( ! to_reuse ) len = write_no_reuse_object ( f , entry , limit , usable_delta ) ;
+ else len = write_reuse_object ( f , entry , limit , usable_delt...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | <empty>
+25769803796 | BLOCK | <empty>
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | <empty>
+25769803799 | BLOCK | <empty>
+25769803800 | BLOCK | <empty>
+25769803801 | BLOCK | <empty>
+25769803802 | BLOCK | <empty>
+25769803803 | BLOCK | <empty>
+25769803804 | BLOCK | <empty>
+30064771072 | CALL | ! pack_to_stdout
+30064771073 | CALL | crc32_begin ( f )
+30064771074 | CALL | ! pack_size_limit || ! nr_written
+30064771075 | CALL | ! pack_size_limit
+30064771076 | CALL | ! nr_written
+30064771077 | CALL | limit = 0
+30064771078 | CALL | pack_size_limit <= write_offset
+30064771079 | CALL | limit = 1
+30064771080 | CALL | limit = pack_size_limit - write_offset
+30064771081 | CALL | pack_size_limit - write_offset
+30064771082 | CALL | ! entry -> delta
+EDGES:
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771077 [AST]
+25769803780 -> 30064771079 [AST]
+25769803781 -> 30064771080 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static unsigned long write_no_reuse_object ( struct sha1file * f , struct object_entry * entry , unsigned long limit , int usable_delta ) {
+ unsigned long size , datalen ;
+ unsigned char header [ 10 ] , dheader [ 10 ] ;
+ unsigned hdrlen ;
+ enum object_type type ;
+ void * buf ;
+ struct git_istream * st = NULL ;
+ if ( ! usable_delta ) {
+ if ( entry -> type == OBJ_BLOB && entry -> size > big_file_threshold && ( st = open_istream ( entry -> idx . sha1 , & type , & size , NULL ) ) != NULL ) buf = NULL ;
+ else {
+ buf = read_sha1_file ( entry -> idx . sha1 , & type , & size ) ;
+ if ( ! buf ) die ( _ ( "unable to read %s" ) , sha1_to_hex ( entry -> idx . sha1 ) ) ;
+ }
+ free ( entry -> delta_data ) ;
+ entry -> delta_data = NULL ;
+ entry -> z_delta_size = 0 ;
+ }
+ else if ( entry -> delta_data ) {
+ size = entry -> delta_size ;
+ buf = entry -> delta_data ;
+ entry -> delta_data = NULL ;
+ type = ( allow_ofs_delta && entry -> delta -> idx . offset ) ? OBJ_OFS_DELTA : OBJ_REF_DELTA ;
+ }
+ else {
+ buf = get_delta ( entry ) ;
+ size = entry -> delta_size ;
+ type = ( allow_ofs_delta && entry -> delta -> idx . offset ) ? OBJ_OFS_DELTA : OBJ_REF_DELTA ;
+ }
+ if ( st ) datalen = size ;
+ else if ( entry -> z_delta_size ) datalen = entry -> z_delta_size ;
+ else datalen = do_compress ( & buf , size ) ;
+ hdrlen = encode_in_pack_object_header ( type , size , header ) ;
+ if ( type == OBJ_OFS_DELTA ) {
+ off_t ofs = entry -> idx . offset - entry -> delta -> idx . offset ;
+ unsigned pos = sizeof ( dheader ) -
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

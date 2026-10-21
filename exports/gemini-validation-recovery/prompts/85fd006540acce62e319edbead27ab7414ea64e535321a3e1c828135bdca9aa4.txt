@@ -1,0 +1,245 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void separate_arf_mbs ( VP9_COMP * cpi ) {
+ VP9_COMMON * const cm = & cpi -> common ;
+ int mb_col , mb_row , offset , i ;
+ int mi_row , mi_col ;
+ int ncnt [ 4 ] = {
+ 0 }
+ ;
+ int n_frames = cpi -> mbgraph_n_frames ;
+ int * arf_not_zz ;
+ CHECK_MEM_ERROR ( cm , arf_not_zz , vpx_calloc ( cm -> mb_rows * cm -> mb_cols * sizeof ( * arf_not_zz ) , 1 ) ) ;
+ if ( n_frames > cpi -> rc . frames_till_gf_update_due ) n_frames = cpi -> rc . frames_till_gf_update_due ;
+ for ( i = n_frames - 1 ;
+ i >= 0 ;
+ i -- ) {
+ MBGRAPH_FRAME_STATS * frame_stats = & cpi -> mbgraph_stats [ i ] ;
+ for ( offset = 0 , mb_row = 0 ;
+ mb_row < cm -> mb_rows ;
+ offset += cm -> mb_cols , mb_row ++ ) {
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & frame_stats -> mb_stats [ offset + mb_col ] ;
+ int altref_err = mb_stats -> ref [ ALTREF_FRAME ] . err ;
+ int intra_err = mb_stats -> ref [ INTRA_FRAME ] . err ;
+ int golden_err = mb_stats -> ref [ GOLDEN_FRAME ] . err ;
+ if ( altref_err > 1000 || altref_err > intra_err || altref_err > golden_err ) {
+ arf_not_zz [ offset + mb_col ] ++ ;
+ }
+ }
+ }
+ }
+ for ( mi_row = 0 ;
+ mi_row < cm -> mi_rows ;
+ mi_row ++ ) {
+ for ( mi_col = 0 ;
+ mi_col < cm -> mi_cols ;
+ mi_col ++ ) {
+ if ( arf_not_zz [ mi_row / 2 * cm -> mb_cols + mi_col / 2 ] ) {
+ ncnt [ 0 ] ++ ;
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 0 ;
+ }
+ else {
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 1 ;
+ ncnt [ 1 ] ++ ;
+ }
+ }
+ }
+ if ( 1 ) {
+ if ( cm -> MBs ) cpi -> static_mb_pct = ( ncnt [ 1 ] * 100 ) / ( cm -> mi_rows * cm -> mi_cols ) ;
+ else cpi -> static_mb_pct = 0 ;
+ vp9_enable_segmentation ( & cm -> seg ) ;
+ }
+ else {
+ cpi -> static_mb_pct = 0 ;
+ vp9_disable_segmentation ( & cm -> seg ) ;
+ }
+ vpx_free ( arf_not_zz ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VP9_COMMON * const cm = & cpi -> common ;
+ int mb_col , mb_row , offset , i ;
+ int mi_row , mi_col ;
+ int ncnt [ 4 ] = {
+ 0 }
+ ;
+ int n_frames = cpi -> mbgraph_n_frames ;
+ int * arf_not_zz ;
+ CHECK_MEM_ERROR ( cm , arf_not_zz , vpx_calloc ( cm -> mb_rows * cm -> mb_cols * sizeof ( * arf_not_zz ) , 1 ) ) ;
+ if ( n_frames > cpi -> rc . frames_till_gf_update_due ) n_frames = cpi -> rc . frames_till_gf_update_due ;
+ for ( i = n_frames - 1 ;
+ i >= 0 ;
+ i -- ) {
+ MBGRAPH_FRAME_STATS * frame_stats = & cpi -> mbgraph_stats [ i ] ;
+ for ( offset = 0 , mb_row = 0 ;
+ mb_row < cm -> mb_rows ;
+ offset += cm -> mb_cols , mb_row ++ ) {
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & frame_stats -> mb_stats [ offset + mb_col ] ;
+ int altref_err = mb_stats -> ref [ ALTREF_FRAME ] . err ;
+ int intra_err = mb_stats -> ref [ INTRA_FRAME ] . err ;
+ int golden_err = mb_stats -> ref [ GOLDEN_FRAME ] . err ;
+ if ( altref_err > 1000 || altref_err > intra_err ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ MBGRAPH_FRAME_STATS * frame_stats = & cpi -> mbgraph_stats [ i ] ;
+ for ( offset = 0 , mb_row = 0 ;
+ mb_row < cm -> mb_rows ;
+ offset += cm -> mb_cols , mb_row ++ ) {
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & frame_stats -> mb_stats [ offset + mb_col ] ;
+ int altref_err = mb_stats -> ref [ ALTREF_FRAME ] . err ;
+ int intra_err = mb_stats -> ref [ INTRA_FRAME ] . err ;
+ int golden_err = mb_stats -> ref [ GOLDEN_FRAME ] . err ;
+ if ( altref_err > 1000 || altref_err > intra_err || altref_err > golden_err ) {
+ arf_not_zz [ offset + mb_col ] ++ ;
+ }
+ }
+ }
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ for ( mb_col = 0 ;
+ mb_col < cm -> mb_cols ;
+ mb_col ++ ) {
+ MBGRAPH_MB_STATS * mb_stats = & frame_stats -> mb_stats [ offset + mb_col ] ;
+ int altref_err = mb_stats -> ref [ ALTREF_FRAME ] . err ;
+ int intra_err = mb_stats -> ref [ INTRA_FRAME ] . err ;
+ int golden_err = mb_stats -> ref [ GOLDEN_FRAME ] . err ;
+ if ( altref_err > 1000 || altref_err > intra_err || altref_err > golden_err ) {
+ arf_not_zz [ offset + mb_col ] ++ ;
+ }
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ MBGRAPH_MB_STATS * mb_stats = & frame_stats -> mb_stats [ offset + mb_col ] ;
+ int altref_err = mb_stats -> ref [ ALTREF_FRAME ] . err ;
+ int intra_err = mb_stats -> ref [ INTRA_FRAME ] . err ;
+ int golden_err = mb_stats -> ref [ GOLDEN_FRAME ] . err ;
+ if ( altref_err > 1000 || altref_err > intra_err || altref_err > golden_err ) {
+ arf_not_zz [ offset + mb_col ] ++ ;
+ }
+ }
+      
+25769803783 | BLOCK | { arf_not_zz [ offset + mb_col ] ++ ; }
+25769803784 | BLOCK | 
+        {
+ for ( mi_col = 0 ;
+ mi_col < cm -> mi_cols ;
+ mi_col ++ ) {
+ if ( arf_not_zz [ mi_row / 2 * cm -> mb_cols + mi_col / 2 ] ) {
+ ncnt [ 0 ] ++ ;
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 0 ;
+ }
+ else {
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 1 ;
+ ncnt [ 1 ] ++ ;
+ }
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ if ( arf_not_zz [ mi_row / 2 * cm -> mb_cols + mi_col / 2 ] ) {
+ ncnt [ 0 ] ++ ;
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 0 ;
+ }
+ else {
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 1 ;
+ ncnt [ 1 ] ++ ;
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ ncnt [ 0 ] ++ ;
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 0 ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ cpi -> segmentation_map [ mi_row * cm -> mi_cols + mi_col ] = 1 ;
+ ncnt [ 1 ] ++ ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ if ( cm -> MBs ) cpi -> static_mb_pct = ( ncnt [ 1 ] * 100 ) / ( cm -> mi_rows * cm -> mi_cols ) ;
+ else cpi -> static_mb_pct = 0 ;
+ vp9_enable_segmentation ( & cm -> seg ) ;
+ }
+      
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | 
+        {
+ cpi -> static_mb_pct = 0 ;
+ vp9_disable_segmentation ( & cm -> seg ) ;
+ }
+      
+30064771072 | CALL | const cm = & cpi -> common
+30064771073 | CALL | & cpi -> common
+30064771074 | CALL | cpi -> common
+30064771075 | CALL | ncnt [ 4 ] = { 0 }
+30064771076 | CALL | ncnt [ 4 ] = { 0 }
+30064771077 | CALL | ncnt [ 4 ] = { 0 }
+30064771078 | CALL | { 0 }
+30064771079 | CALL | n_frames = cpi -> mbgraph_n_frames
+30064771080 | CALL | cpi -> mbgraph_n_frames
+30064771081 | CALL | 
+        CHECK_MEM_ERROR ( cm , arf_not_zz , vpx_calloc ( cm -> mb_rows * cm -> mb_cols * sizeof ( * arf_not_zz ) , 1 ) )
+      
+30064771082 | CALL | vpx_calloc ( cm -> mb_rows * cm -> mb_cols * sizeof ( * arf_not_zz ) , 1 )
+30064771083 | CALL | cm -> mb_rows * cm -> mb_cols * sizeof ( * arf_not_zz )
+30064771084 | CALL | cm -> mb_rows * cm -> mb_cols
+30064771085 | CALL | cm -> mb_rows
+30064771086 | CALL | cm -> mb_cols
+30064771087 | CALL | sizeof ( * arf_not_zz )
+30064771088 | CALL | * arf_not_zz
+30064771089 | CALL | n_frames > cpi -> rc . frames_till_gf_update_due
+30064771090 | CALL | cpi -> rc . frames_till_gf_update_due
+30064771091 | CALL | cpi -> rc
+30064771092 | CALL | n_frames = cpi -> rc . frames_till_gf_update_due
+30064771093 | CALL | cpi -> rc . frames_till_gf_update_due
+30064771094 | CALL | cpi -> rc
+30064771095 | CALL | i = n_frames - 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803777 -> 30064771092 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

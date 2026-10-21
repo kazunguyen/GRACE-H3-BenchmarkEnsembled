@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void dissect_rtmpt_common ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , rtmpt_conv_t * rconv , int cdir , guint32 seq , guint32 lastackseq ) {
+ int offset = 0 ;
+ int remain ;
+ int want ;
+ guint8 header_type ;
+ int basic_hlen ;
+ int message_hlen ;
+ guint32 id ;
+ guint32 ts = 0 ;
+ guint32 tsd = 0 ;
+ int body_len ;
+ guint8 cmd ;
+ guint32 src ;
+ int chunk_size ;
+ guint32 save_seq = 0 ;
+ rtmpt_frag_t * tf ;
+ rtmpt_id_t * ti ;
+ rtmpt_packet_t * tp ;
+ tvbuff_t * pktbuf ;
+ remain = tvb_reported_length ( tvb ) ;
+ if ( ! remain ) return ;
+ RTMPT_DEBUG ( "Segment: cdir=%d seq=%d-%d\n" , cdir , seq , seq + remain - 1 ) ;
+ if ( pinfo -> fd -> flags . visited ) {
+ wmem_stack_t * packets ;
+ packets = wmem_stack_new ( wmem_packet_scope ( ) ) ;
+ wmem_stack_push ( packets , 0 ) ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , seq + remain - 1 ) ;
+ while ( tp && tp -> lastseq >= seq && tp -> lastseq >= save_seq ) {
+ wmem_stack_push ( packets , tp ) ;
+ save_seq = tp -> lastseq + 1 ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , tp -> lastseq - 1 ) ;
+ }
+ while ( ( tp = ( rtmpt_packet_t * ) wmem_stack_pop ( packets ) ) != NULL ) {
+ if ( tp -> resident ) {
+ pktbuf = tvb_new_child_real_data ( tvb , tp -> data . p , tp -> have , tp -> have ) ;
+ add_new_data_source ( pinfo , pktbuf , "Unchunked RTMP" ) ;
+ }
+ else {
+ pktbuf = tvb_new_subset_length ( tvb , tp -> data . offset , tp -> have ) ;
+ }
+ dissect_rtmpt ( pktbuf , pinfo , tree , rconv , cdir , tp ) ;
+ }
+ return ;
+ }
+ while ( remain > 0 ) {
+ tf = NULL ;
+ ti = NULL ;
+ tp = NULL ;
+ if ( offset == 0 ) {
+ tf = ( rtmpt_frag_t * ) wmem_tree_lookup32_le ( rconv -> frags [ cdir ] , seq + offset - 1 ) ;
+ if ( tf ) {
+ RTMPT_DEBUG ( " tf seq=%d lseq=%d h=%d l=%d\n" , tf -> seq , tf -> lastseq , tf -> have , tf -> len ) ;
+ if ( tf -> have >= tf -> len || seq + offset < tf -> seq || seq + offset > tf -> lastseq + tf -> len - tf -> have ) {
+ tf = NULL ;
+ }
+ else if ( ! tf -> ishdr ) {
+ ti = ( rtmpt_id_t * ) wmem_tree_lookup32 ( rconv -> ids [ cdir ] , tf -> saved . id ) ;
+ if ( ti ) {
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( ti -> packets , seq + offset - 1 ) ;
+ }
+ if ( tp && tp -> chunkwant ) {
+ goto unchunk ;
+ }
+ tf = NULL ;
+ ti = NULL ;
+ tp = NULL ;
+ }
+ if ( tf ) {
+ want = tf -> len - tf -> have ;
+ if ( remain < want ) want = remain ;
+ tvb_memcpy ( tvb , tf -> saved . d + tf -> have , offset , want ) ;
+ id = tf -> saved . d [ 0 ] ;
+ header_type = ( id >> 6 ) & 3 ;
+ basic_hlen = rtmpt_basic_header_length ( id ) ;
+ if ( ( header_type < 3 ) && ( tf -> have < ( basic_hlen + 3 ) ) && ( tf -> have + want >= ( basic_hlen + 3 ) ) ) {
+ if ( pntoh24 ( tf -> saved . d + basic_hlen ) == 0xffffff ) {
+ tf -> len += 4 ;
+ }
+ }
+ tf -> have += want ;
+ tf -> lastseq = seq + want - 1 ;
+ remain -= want ;
+ offset += want ;
+ if ( tf -> have < tf -> len ) {
+ return ;
+ }
+ }
+ }
+ }
+ if ( ! tf ) {
+ id = tvb_get_guint8 ( tvb , offset ) ;
+ if ( id == RTMPT_MAGIC 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int offset = 0 ;
+ int remain ;
+ int want ;
+ guint8 header_type ;
+ int basic_hlen ;
+ int message_hlen ;
+ guint32 id ;
+ guint32 ts = 0 ;
+ guint32 tsd = 0 ;
+ int body_len ;
+ guint8 cmd ;
+ guint32 src ;
+ int chunk_size ;
+ guint32 save_seq = 0 ;
+ rtmpt_frag_t * tf ;
+ rtmpt_id_t * ti ;
+ rtmpt_packet_t * tp ;
+ tvbuff_t * pktbuf ;
+ remain = tvb_reported_length ( tvb ) ;
+ if ( ! remain ) return ;
+ RTMPT_DEBUG ( "Segment: cdir=%d seq=%d-%d\n" , cdir , seq , seq + remain - 1 ) ;
+ if ( pinfo -> fd -> flags . visited ) {
+ wmem_stack_t * packets ;
+ packets = wmem_stack_new ( wmem_packet_scope ( ) ) ;
+ wmem_stack_push ( packets , 0 ) ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , seq + remain - 1 ) ;
+ while ( tp && tp -> lastseq >= seq && tp -> lastseq >= save_seq ) {
+ wmem_stack_push ( packets , tp ) ;
+ save_seq = tp -> lastseq + 1 ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , tp -> lastseq - 1 ) ;
+ }
+ while ( ( tp = ( rtmpt_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ wmem_stack_t * packets ;
+ packets = wmem_stack_new ( wmem_packet_scope ( ) ) ;
+ wmem_stack_push ( packets , 0 ) ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , seq + remain - 1 ) ;
+ while ( tp && tp -> lastseq >= seq && tp -> lastseq >= save_seq ) {
+ wmem_stack_push ( packets , tp ) ;
+ save_seq = tp -> lastseq + 1 ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , tp -> lastseq - 1 ) ;
+ }
+ while ( ( tp = ( rtmpt_packet_t * ) wmem_stack_pop ( packets ) ) != NULL ) {
+ if ( tp -> resident ) {
+ pktbuf = tvb_new_child_real_data ( tvb , tp -> data . p , tp -> have , tp -> have ) ;
+ add_new_data_source ( pinfo , pktbuf , "Unchunked RTMP" ) ;
+ }
+ else {
+ pktbuf = tvb_new_subset_length ( tvb , tp -> data . offset , tp -> have ) ;
+ }
+ dissect_rtmpt ( pktbuf , pinfo , tree , rconv , cdir , tp ) ;
+ }
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ wmem_stack_push ( packets , tp ) ;
+ save_seq = tp -> lastseq + 1 ;
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( rconv -> packets [ cdir ] , tp -> lastseq - 1 ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ if ( tp -> resident ) {
+ pktbuf = tvb_new_child_real_data ( tvb , tp -> data . p , tp -> have , tp -> have ) ;
+ add_new_data_source ( pinfo , pktbuf , "Unchunked RTMP" ) ;
+ }
+ else {
+ pktbuf = tvb_new_subset_length ( tvb , tp -> data . offset , tp -> have ) ;
+ }
+ dissect_rtmpt ( pktbuf , pinfo , tree , rconv , cdir , tp ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ pktbuf = tvb_new_child_real_data ( tvb , tp -> data . p , tp -> have , tp -> have ) ;
+ add_new_data_source ( pinfo , pktbuf , "Unchunked RTMP" ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ pktbuf = tvb_new_subset_length ( tvb , tp -> data . offset , tp -> have ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ tf = NULL ;
+ ti = NULL ;
+ tp = NULL ;
+ if ( offset == 0 ) {
+ tf = ( rtmpt_frag_t * ) wmem_tree_lookup32_le ( rconv -> frags [ cdir ] , seq + offset - 1 ) ;
+ if ( tf ) {
+ RTMPT_DEBUG ( " tf seq=%d lseq=%d h=%d l=%d\n" , tf -> seq , tf -> lastseq , tf -> have , tf -> len ) ;
+ if ( tf -> have >= tf -> len || seq + offset < tf -> seq || seq + offset > tf -> lastseq + tf -> len - tf -> have ) {
+ tf = NULL ;
+ }
+ else if ( ! tf -> ishdr ) {
+ ti = ( rtmpt_id_t * ) wmem_tree_lookup32 ( rconv -> ids [ cdir ] , tf -> saved . id ) ;
+ if ( ti ) {
+ tp = ( rtmpt_packet_t * ) wmem_tree_lookup32_le ( ti -> packets , seq + offset - 1 ) ;
+ }
+ if ( tp && tp -> chunkwant ) {
+ goto unchunk ;
+ }
+ tf = NULL ;
+ ti = NULL ;
+ tp = NULL ;
+ }
+ if ( tf ) {
+ want = tf -> len - tf -> have ;
+ if ( remain < want ) want = remain ;
+ tvb_memcpy ( tvb , tf -> saved . d + tf -> have , offset , want ) ;
+ id = tf -> saved . d [ 0 ] ;
+ header_type = ( id >> 6 ) & 3 ;
+ basic_hlen = rtmpt_basic_header_length ( id ) ;
+ if (...
+      
+25769803784 | BLOCK | 
+        {
+ tf = ( rtmpt_frag_t * ) wmem_tree_lookup32_le ( rconv -> frags [ cdir ] , seq + offset - 1 ) ;
+ if ( tf ) {
+ RTMPT_DEBUG ( " tf seq=%d lseq=%d h=%d l=%d\n" , tf -> seq , tf -> lastseq , tf -> have , tf -> len ) ;
+ if ( tf -> have >= tf -> len || seq + offset < tf -> seq || seq + offset > tf -> lastseq + tf -> len - tf -> have ) {
+ tf = NULL ;
+ }
+ else if ( ! tf -> ishdr ) {
+ ti = ( rtmpt_id_t * ) wmem_tree_lookup32 ( rconv -> ids 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

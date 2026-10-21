@@ -1,0 +1,192 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void deep_count_got_info ( GObject * source_object , GAsyncResult * res , gpointer user_data ) {
+ GFileInfo * info ;
+ const char * id ;
+ GFile * file = ( GFile * ) source_object ;
+ DeepCountState * state = ( DeepCountState * ) user_data ;
+ info = g_file_query_info_finish ( file , res , NULL ) ;
+ if ( info != NULL ) {
+ id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM ) ;
+ state -> fs_id = g_strdup ( id ) ;
+ g_object_unref ( info ) ;
+ }
+ deep_count_load ( state , file ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GFileInfo * info ;
+ const char * id ;
+ GFile * file = ( GFile * ) source_object ;
+ DeepCountState * state = ( DeepCountState * ) user_data ;
+ info = g_file_query_info_finish ( file , res , NULL ) ;
+ if ( info != NULL ) {
+ id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM ) ;
+ state -> fs_id = g_strdup ( id ) ;
+ g_object_unref ( info ) ;
+ }
+ deep_count_load ( state , file ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM ) ;
+ state -> fs_id = g_strdup ( id ) ;
+ g_object_unref ( info ) ;
+ }
+      
+30064771072 | CALL | file = ( GFile * ) source_object
+30064771073 | CALL | ( GFile * ) source_object
+30064771074 | CALL | state = ( DeepCountState * ) user_data
+30064771075 | CALL | ( DeepCountState * ) user_data
+30064771076 | CALL | info = g_file_query_info_finish ( file , res , NULL )
+30064771077 | CALL | g_file_query_info_finish ( file , res , NULL )
+30064771078 | CALL | info != NULL
+30064771079 | CALL | id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM )
+30064771080 | CALL | g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM )
+30064771081 | CALL | state -> fs_id = g_strdup ( id )
+30064771082 | CALL | state -> fs_id
+30064771083 | CALL | g_strdup ( id )
+30064771084 | CALL | g_object_unref ( info )
+30064771085 | CALL | deep_count_load ( state , file )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( info != NULL ) {
+ id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM ) ;
+ state -> fs_id = g_strdup ( id ) ;
+ g_object_unref ( info ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | fs_id
+68719476736 | IDENTIFIER | file
+68719476737 | IDENTIFIER | source_object
+68719476738 | IDENTIFIER | state
+68719476739 | IDENTIFIER | user_data
+68719476740 | IDENTIFIER | info
+68719476741 | IDENTIFIER | file
+68719476742 | IDENTIFIER | res
+68719476743 | IDENTIFIER | <unknown> NULL
+68719476744 | IDENTIFIER | info
+68719476745 | IDENTIFIER | <unknown> NULL
+68719476746 | IDENTIFIER | id
+68719476747 | IDENTIFIER | info
+68719476748 | IDENTIFIER | <unknown> G_FILE_ATTRIBUTE_ID_FILESYSTEM
+68719476749 | IDENTIFIER | state
+68719476750 | IDENTIFIER | id
+68719476751 | IDENTIFIER | info
+68719476752 | IDENTIFIER | state
+68719476753 | IDENTIFIER | file
+94489280512 | LOCAL | GFileInfo * info
+94489280513 | LOCAL | const char * id
+94489280514 | LOCAL | GFile * file
+94489280515 | LOCAL | DeepCountState * state
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771085 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771084 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 68719476743 [POST_DOMINATE]
+30064771077 -> 68719476740 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 55834574848 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 68719476751 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 68719476747 [CDG]
+30064771078 -> 68719476748 [CDG]
+30064771078 -> 68719476749 [CDG]
+30064771078 -> 68719476750 [CDG]
+30064771078 -> 68719476746 [CDG]
+30064771078 -> 68719476746 [CFG]
+30064771078 -> 68719476752 [CFG]
+30064771078 -> 68719476752 [DOMINATE]
+30064771078 -> 68719476746 [DOMINATE]
+30064771078 -> 68719476745 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static gboolean has_fs_id ( GFile * file , const char * fs_id ) {
+ const char * id ;
+ GFileInfo * info ;
+ gboolean res ;
+ res = FALSE ;
+ info = g_file_query_info ( file , G_FILE_ATTRIBUTE_ID_FILESYSTEM , G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS , NULL , NULL ) ;
+ if ( info ) {
+ id = g_file_info_get_attribute_string ( info , G_FILE_ATTRIBUTE_ID_FILESYSTEM ) ;
+ if ( id && strcmp ( id , fs_id ) == 0 ) {
+ res = TRUE ;
+ }
+ g_object_unref ( info ) ;
+ }
+ return res ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

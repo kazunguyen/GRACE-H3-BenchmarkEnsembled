@@ -1,0 +1,217 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_bug28934 ( ) {
+ my_bool error = 0 ;
+ MYSQL_BIND bind [ 5 ] ;
+ MYSQL_STMT * stmt ;
+ int cnt ;
+ myquery ( mysql_query ( mysql , "drop table if exists t1" ) ) ;
+ myquery ( mysql_query ( mysql , "create table t1(id int)" ) ) ;
+ myquery ( mysql_query ( mysql , "insert into t1 values(1),(2),(3),(4),(5)" ) ) ;
+ stmt = mysql_simple_prepare ( mysql , "select * from t1 where id in(?,?,?,?,?)" ) ;
+ check_stmt ( stmt ) ;
+ memset ( & bind , 0 , sizeof ( bind ) ) ;
+ for ( cnt = 0 ;
+ cnt < 5 ;
+ cnt ++ ) {
+ bind [ cnt ] . buffer_type = MYSQL_TYPE_LONG ;
+ bind [ cnt ] . buffer = ( char * ) & cnt ;
+ bind [ cnt ] . buffer_length = 0 ;
+ }
+ myquery ( mysql_stmt_bind_param ( stmt , bind ) ) ;
+ stmt -> param_count = 2 ;
+ error = mysql_stmt_execute ( stmt ) ;
+ DIE_UNLESS ( error != 0 ) ;
+ myerror ( NULL ) ;
+ mysql_stmt_close ( stmt ) ;
+ myquery ( mysql_query ( mysql , "drop table t1" ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ my_bool error = 0 ;
+ MYSQL_BIND bind [ 5 ] ;
+ MYSQL_STMT * stmt ;
+ int cnt ;
+ myquery ( mysql_query ( mysql , "drop table if exists t1" ) ) ;
+ myquery ( mysql_query ( mysql , "create table t1(id int)" ) ) ;
+ myquery ( mysql_query ( mysql , "insert into t1 values(1),(2),(3),(4),(5)" ) ) ;
+ stmt = mysql_simple_prepare ( mysql , "select * from t1 where id in(?,?,?,?,?)" ) ;
+ check_stmt ( stmt ) ;
+ memset ( & bind , 0 , sizeof ( bind ) ) ;
+ for ( cnt = 0 ;
+ cnt < 5 ;
+ cnt ++ ) {
+ bind [ cnt ] . buffer_type = MYSQL_TYPE_LONG ;
+ bind [ cnt ] . buffer = ( char * ) & cnt ;
+ bind [ cnt ] . buffer_length = 0 ;
+ }
+ myquery ( mysql_stmt_bind_param ( stmt , bind ) ) ;
+ stmt -> param_count = 2 ;
+ error = mysql_stmt_execute ( stmt ) ;
+ DIE_UNLESS ( error != 0 ) ;
+ myerror ( NULL ) ;
+ mysql_stmt_close ( stmt ) ;
+ myquery ( mysql_query ( mysql , "drop table t1" ) ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ bind [ cnt ] . buffer_type = MYSQL_TYPE_LONG ;
+ bind [ cnt ] . buffer = ( char * ) & cnt ;
+ bind [ cnt ] . buffer_length = 0 ;
+ }
+      
+30064771072 | CALL | error = 0
+30064771073 | CALL | bind [ 5 ]
+30064771074 | CALL | bind [ 5 ]
+30064771075 | CALL | myquery ( mysql_query ( mysql , "drop table if exists t1" ) )
+30064771076 | CALL | mysql_query ( mysql , "drop table if exists t1" )
+30064771077 | CALL | myquery ( mysql_query ( mysql , "create table t1(id int)" ) )
+30064771078 | CALL | mysql_query ( mysql , "create table t1(id int)" )
+30064771079 | CALL | 
+        myquery ( mysql_query ( mysql , "insert into t1 values(1),(2),(3),(4),(5)" ) )
+      
+30064771080 | CALL | mysql_query ( mysql , "insert into t1 values(1),(2),(3),(4),(5)" )
+30064771081 | CALL | 
+        stmt = mysql_simple_prepare ( mysql , "select * from t1 where id in(?,?,?,?,?)" )
+      
+30064771082 | CALL | 
+        mysql_simple_prepare ( mysql , "select * from t1 where id in(?,?,?,?,?)" )
+      
+30064771083 | CALL | check_stmt ( stmt )
+30064771084 | CALL | memset ( & bind , 0 , sizeof ( bind ) )
+30064771085 | CALL | & bind
+30064771086 | CALL | sizeof ( bind )
+30064771087 | CALL | cnt = 0
+30064771088 | CALL | cnt < 5
+30064771089 | CALL | cnt ++
+30064771090 | CALL | bind [ cnt ] . buffer_type = MYSQL_TYPE_LONG
+30064771091 | CALL | bind [ cnt ] . buffer_type
+30064771092 | CALL | bind [ cnt ]
+30064771093 | CALL | bind [ cnt ] . buffer = ( char * ) & cnt
+30064771094 | CALL | bind [ cnt ] . buffer
+30064771095 | CALL | bind [ cnt ]
+30064771096 | CALL | ( char * ) & cnt
+30064771097 | CALL | & cnt
+30064771098 | CALL | bind [ cnt ] . buffer_length = 0
+30064771099 | CALL | bind [ cnt ] . buffer_length
+30064771100 | CALL | bind [ cnt ]
+30064771101 | CALL | myquery ( mysql_stmt_bind_param ( stmt , bind ) )
+30064771102 | CALL | mysql_stmt_bind_param ( stmt , bind )
+30064771103 | CALL | stmt -> param_count = 2
+30064771104 | CALL | stmt -> param_count
+30064771105 | CALL | error = mysql_stmt_execute ( stmt )
+30064771106 | CALL | mysql_stmt_execute ( stmt )
+30064771107 | CALL | DIE_UNLESS ( error != 0 )
+30064771108 | CALL | error != 0
+30064771109 | CALL | myerror ( NULL )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771107 [AST]
+25769803776 -> 30064771109 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771098 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771086 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771088 -> 30064771100 [CDG]
+30064771088 -> 30064771099 [CDG]
+30064771088 -> 30064771098 [CDG]
+30064771088 -> 30064771097 [CDG]
+30064771088 -> 30064771096 [CDG]
+30064771088 -> 30064771095 [CDG]
+30064771088 -> 30064771094 [CDG]
+30064771088 -> 30064771093 [CDG]
+30064771088 -> 30064771092 [CDG]
+30064771088 -> 30064771091 [CDG]
+30064771088 -> 30064771090 [CDG]
+30064771088 -> 30064771089 [CDG]
+30064771088 -> 30064771088 [CDG]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771091 -> 30064771095 [REACHING_DEF]
+30064771091 -> 30064771100 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771096 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+30064771093 -> 30064771096 [AST]
+30064771093 -> 30064771096 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_bug4079 ( ) {
+ MYSQL_STMT * stmt ;
+ MYSQL_BIND my_bind [ 1 ] ;
+ const char * stmt_text ;
+ uint32 res ;
+ int rc ;
+ myheader ( "test_bug4079" ) ;
+ mysql_query ( mysql , "DROP TABLE IF EXISTS t1" ) ;
+ mysql_query ( mysql , "CREATE TABLE t1 (a int)" ) ;
+ mysql_query ( mysql , "INSERT INTO t1 VALUES (1), (2)" ) ;
+ stmt = mysql_stmt_init ( mysql ) ;
+ stmt_text = "SELECT 1 < (SELECT a FROM t1)" ;
+ rc = mysql_stmt_prepare ( stmt , stmt_text , strlen ( stmt_text ) ) ;
+ check_execute
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

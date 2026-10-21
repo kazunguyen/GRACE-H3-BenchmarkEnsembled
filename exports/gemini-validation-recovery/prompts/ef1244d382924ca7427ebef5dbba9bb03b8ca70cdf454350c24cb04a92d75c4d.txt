@@ -1,0 +1,205 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_2 ( void ) {
+ static char * invalid_labels [ ] = {
+ "C=de,FOO=something,O=bar" , "Y=foo, C=baz" , NULL }
+ ;
+ gpg_error_t err ;
+ int i ;
+ unsigned char * buf ;
+ size_t off , len ;
+ for ( i = 0 ;
+ invalid_labels [ i ] ;
+ i ++ ) {
+ err = ksba_dn_str2der ( invalid_labels [ i ] , & buf , & len ) ;
+ if ( gpg_err_code ( err ) != GPG_ERR_UNKNOWN_NAME ) fail ( "invalid label not detected" ) ;
+ err = ksba_dn_teststr ( invalid_labels [ i ] , 0 , & off , & len ) ;
+ if ( ! err ) fail ( "ksba_dn_test_str returned no error" ) ;
+ printf ( "string ->%s<- error at %lu.%lu (%.*s)\n" , invalid_labels [ i ] , ( unsigned long ) off , ( unsigned long ) len , ( int ) len , invalid_labels [ i ] + off ) ;
+ xfree ( buf ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ static char * invalid_labels [ ] = {
+ "C=de,FOO=something,O=bar" , "Y=foo, C=baz" , NULL }
+ ;
+ gpg_error_t err ;
+ int i ;
+ unsigned char * buf ;
+ size_t off , len ;
+ for ( i = 0 ;
+ invalid_labels [ i ] ;
+ i ++ ) {
+ err = ksba_dn_str2der ( invalid_labels [ i ] , & buf , & len ) ;
+ if ( gpg_err_code ( err ) != GPG_ERR_UNKNOWN_NAME ) fail ( "invalid label not detected" ) ;
+ err = ksba_dn_teststr ( invalid_labels [ i ] , 0 , & off , & len ) ;
+ if ( ! err ) fail ( "ksba_dn_test_str returned no error" ) ;
+ printf ( "string ->%s<- error at %lu.%lu (%.*s)\n" , invalid_labels [ i ] , ( unsigned long ) off , ( unsigned long ) len , ( int ) len , invalid_labels [ i ] + off ) ;
+ xfree ( buf ) ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ err = ksba_dn_str2der ( invalid_labels [ i ] , & buf , & len ) ;
+ if ( gpg_err_code ( err ) != GPG_ERR_UNKNOWN_NAME ) fail ( "invalid label not detected" ) ;
+ err = ksba_dn_teststr ( invalid_labels [ i ] , 0 , & off , & len ) ;
+ if ( ! err ) fail ( "ksba_dn_test_str returned no error" ) ;
+ printf ( "string ->%s<- error at %lu.%lu (%.*s)\n" , invalid_labels [ i ] , ( unsigned long ) off , ( unsigned long ) len , ( int ) len , invalid_labels [ i ] + off ) ;
+ xfree ( buf ) ;
+ }
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | 
+        invalid_labels [ ] = {
+ "C=de,FOO=something,O=bar" , "Y=foo, C=baz" , NULL }
+      
+30064771073 | CALL | { "C=de,FOO=something,O=bar" , "Y=foo, C=baz" , NULL }
+30064771074 | CALL | i = 0
+30064771075 | CALL | invalid_labels [ i ]
+30064771076 | CALL | i ++
+30064771077 | CALL | err = ksba_dn_str2der ( invalid_labels [ i ] , & buf , & len )
+30064771078 | CALL | ksba_dn_str2der ( invalid_labels [ i ] , & buf , & len )
+30064771079 | CALL | invalid_labels [ i ]
+30064771080 | CALL | & buf
+30064771081 | CALL | & len
+30064771082 | CALL | gpg_err_code ( err ) != GPG_ERR_UNKNOWN_NAME
+30064771083 | CALL | gpg_err_code ( err )
+30064771084 | CALL | fail ( "invalid label not detected" )
+30064771085 | CALL | err = ksba_dn_teststr ( invalid_labels [ i ] , 0 , & off , & len )
+30064771086 | CALL | ksba_dn_teststr ( invalid_labels [ i ] , 0 , & off , & len )
+30064771087 | CALL | invalid_labels [ i ]
+30064771088 | CALL | & off
+30064771089 | CALL | & len
+30064771090 | CALL | ! err
+30064771091 | CALL | fail ( "ksba_dn_test_str returned no error" )
+30064771092 | CALL | 
+        printf ( "string ->%s<- error at %lu.%lu (%.*s)\n" , invalid_labels [ i ] , ( unsigned long ) off , ( unsigned long ) len , ( int ) len , invalid_labels [ i ] + off )
+      
+30064771093 | CALL | invalid_labels [ i ]
+30064771094 | CALL | ( unsigned long ) off
+30064771095 | CALL | ( unsigned long ) len
+30064771096 | CALL | ( int ) len
+30064771097 | CALL | invalid_labels [ i ] + off
+30064771098 | CALL | invalid_labels [ i ]
+30064771099 | CALL | xfree ( buf )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;invalid_labels [ i ];i ++)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( gpg_err_code ( err ) != GPG_ERR_UNKNOWN_NAME ) fail ( "invalid label not detected" ) ;
+      
+47244640258 | CONTROL_STRUCTURE | if ( ! err ) fail ( "ksba_dn_test_str returned no error" ) ;
+68719476736 | IDENTIFIER | invalid_labels
+68719476737 | IDENTIFIER | <unknown> NULL
+68719476738 | IDENTIFIER | i
+68719476739 | IDENTIFIER | invalid_labels
+68719476740 | IDENTIFIER | i
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 30064771092 [AST]
+25769803777 -> 30064771099 [AST]
+25769803778 -> 30064771084 [AST]
+25769803779 -> 30064771091 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771098 [CDG]
+30064771075 -> 68719476739 [CDG]
+30064771075 -> 30064771099 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 30064771075 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771081 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771092 [CDG]
+30064771075 -> 30064771093 [CDG]
+30064771075 -> 30064771090 [CDG]
+30064771075 -> 30064771096 [CDG]
+30064771075 -> 30064771097 [CDG]
+30064771075 -> 30064771094 [CDG]
+30064771075 -> 30064771095 [CDG]
+30064771075 -> 30064771085 [CDG]
+30064771075 -> 30064771082 [CDG]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771088 [CDG]
+30064771075 -> 30064771089 [CDG]
+30064771075 -> 30064771086 [CDG]
+30064771075 -> 30064771087 [CDG]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476739 [CFG]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771081 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771081 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771081 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771087 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771081 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771081 -> 30064771078 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_1 ( void ) {
+ static char * empty_elements [ ] = {
+ "C=de,O=foo,OU=,CN=joe" , "C=de,O=foo,OU= ,CN=joe" , "C=de,O=foo,OU=\"\" ,CN=joe" , "C=de,O=foo,OU=" , "C=de,O=foo,OU= " , "C=,O=foo,OU=bar " , "C = ,O=foo,OU=bar " , "C=" , NULL }
+ ;
+ gpg_error_t err ;
+ int i ;
+ unsigned char * buf ;
+ size_t off , len ;
+ for ( i = 0 ;
+ empty_elements [ i ] ;
+ i ++ ) {
+ err = ksba_dn_str2der ( empty_elements [ i ] , & b
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

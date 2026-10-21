@@ -1,0 +1,220 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int nntp_mbox_sync ( struct Context * ctx , int * index_hint ) {
+ struct NntpData * nntp_data = ctx -> data ;
+ int rc ;
+ # ifdef USE_HCACHE header_cache_t * hc = NULL ;
+ # endif nntp_data -> nserv -> check_time = 0 ;
+ rc = check_mailbox ( ctx ) ;
+ if ( rc ) return rc ;
+ # ifdef USE_HCACHE nntp_data -> last_cached = 0 ;
+ hc = nntp_hcache_open ( nntp_data ) ;
+ # endif for ( int i = 0 ;
+ i < ctx -> msgcount ;
+ i ++ ) {
+ struct Header * hdr = ctx -> hdrs [ i ] ;
+ char buf [ 16 ] ;
+ snprintf ( buf , sizeof ( buf ) , "%d" , NHDR ( hdr ) -> article_num ) ;
+ if ( nntp_data -> bcache && hdr -> deleted ) {
+ mutt_debug ( 2 , "mutt_bcache_del %s\n" , buf ) ;
+ mutt_bcache_del ( nntp_data -> bcache , buf ) ;
+ }
+ # ifdef USE_HCACHE if ( hc && ( hdr -> changed || hdr -> deleted ) ) {
+ if ( hdr -> deleted && ! hdr -> read ) nntp_data -> unread -- ;
+ mutt_debug ( 2 , "mutt_hcache_store %s\n" , buf ) ;
+ mutt_hcache_store ( hc , buf , strlen ( buf ) , hdr , 0 ) ;
+ }
+ # endif }
+ # ifdef USE_HCACHE if ( hc ) {
+ mutt_hcache_close ( hc ) ;
+ nntp_data -> last_cached = nntp_data -> last_loaded ;
+ }
+ # endif nntp_newsrc_gen_entries ( ctx ) ;
+ nntp_newsrc_update ( nntp_data -> nserv ) ;
+ nntp_newsrc_close ( nntp_data -> nserv ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct NntpData * nntp_data = ctx -> data ;
+ int rc ;
+ # ifdef USE_HCACHE header_cache_t * hc = NULL ;
+ # endif nntp_data -> nserv -> check_time = 0 ;
+ rc = check_mailbox ( ctx ) ;
+ if ( rc ) return rc ;
+ # ifdef USE_HCACHE nntp_data -> last_cached = 0 ;
+ hc = nntp_hcache_open ( nntp_data ) ;
+ # endif for ( int i = 0 ;
+ i < ctx -> msgcount ;
+ i ++ ) {
+ struct Header * hdr = ctx -> hdrs [ i ] ;
+ char buf [ 16 ] ;
+ snprintf ( buf , sizeof ( buf ) , "%d" , NHDR ( hdr ) -> article_num ) ;
+ if ( nntp_data -> bcache && hdr -> deleted ) {
+ mutt_debug ( 2 , "mutt_bcache_del %s\n" , buf ) ;
+ mutt_bcache_del ( nntp_data -> bcache , buf ) ;
+ }
+ # ifdef USE_HCACHE if ( hc && ( hdr -> changed || hdr -> deleted ) ) {
+ if ( hdr -> deleted && ! hdr -> read ) nntp_data -> unread -- ;
+ mutt_debug ( 2 , "mutt_hcache_store %s\n" , buf ) ;
+ mutt_hcache_store ( hc , buf , strlen ( buf ) , hdr , 0 ) ;
+ }
+ # endif }
+ # ifdef USE_HCACHE if ( hc ) {
+ mutt_hcache_close ( hc ) ;
+ nntp_data -> last_cached = ...
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | nntp_data = ctx -> data
+30064771073 | CALL | ctx -> data
+30064771074 | CALL | rc = check_mailbox ( ctx )
+30064771075 | CALL | check_mailbox ( ctx )
+30064771076 | CALL | rc != 0
+30064771077 | CALL | i < ctx -> msgcount
+30064771078 | CALL | ctx -> msgcount
+30064771079 | CALL | i ++
+47244640256 | CONTROL_STRUCTURE | if ( rc ) return rc ;
+55834574848 | FIELD_IDENTIFIER | data
+55834574849 | FIELD_IDENTIFIER | msgcount
+68719476736 | IDENTIFIER | nntp_data
+68719476737 | IDENTIFIER | ctx
+68719476738 | IDENTIFIER | rc
+68719476739 | IDENTIFIER | ctx
+68719476740 | IDENTIFIER | rc
+68719476741 | IDENTIFIER | rc
+68719476742 | IDENTIFIER | <unknown> i
+68719476743 | IDENTIFIER | ctx
+68719476744 | IDENTIFIER | <unknown> i
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | struct NntpData * nntp_data
+94489280513 | LOCAL | int rc
+94489280514 | LOCAL | <unknown> i
+107374182400 | METHOD | 
+        static int nntp_mbox_sync ( struct Context * ctx , int * index_hint ) {
+ struct NntpData * nntp_data = ctx -> data ;
+ int rc ;
+ # ifdef USE_HCACHE header_cache_t * hc = NULL ;
+ # endif nntp_data -> nserv -> check_time = 0 ;
+ rc = check_mailbox ( ctx ) ;
+ if ( rc ) return rc ;
+ # ifdef USE_HCACHE nntp_data -> last_cached = 0 ;
+ hc = nntp_hcache_open ( nntp_data ) ;
+ # endif for ( int i = 0 ;
+ i < ctx -> msgcount ;
+ i ++ ) {
+ struct Header * hdr = ctx -> hdrs [ i ] ;
+ char buf [ 16 ] ;
+ snprintf ( buf , sizeof ( buf ) , "%d" , NHDR ( hdr ) -> article_num ) ;
+ if ( nntp_data -> bcache && hdr -> deleted ) {
+ mutt_debug ( 2 , "mutt_bcache_del %s\n" , buf ) ;
+ mutt_bcache_del ( nntp_data -> bcache , buf ) ;
+ }
+ # ifdef USE_HCACHE if ( hc && ( hdr -> changed || hdr -> deleted ) ) {
+ if ( hdr -> deleted && ! hdr -> read ) nntp_data -> unread -- ;
+ mutt_debug ( 2 , "mutt_hcache_store %s\n" , buf ) ;
+ mutt_hcache_store ( hc , buf , strlen ( buf ) , hdr , 0 ) ;
+ }
+ # endif }
+ # ifdef USE_HCACH...
+      
+111669149696 | METHOD_PARAMETER_IN | struct Context * ctx
+111669149697 | METHOD_PARAMETER_IN | int * index_hint
+115964116992 | METHOD_PARAMETER_OUT | struct Context * ctx
+115964116993 | METHOD_PARAMETER_OUT | int * index_hint
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return rc ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 141733920768 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 115964116992 [REACHING_DEF]
+30064771073 -> 68719476743 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 68719476739 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476740 [CFG]
+30064771074 -> 68719476740 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 141733920768 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 124554051584 [DOMINATE]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 90194313216 [POST_DOMINATE]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476744 [CFG]
+30064771077 -> 68719476744 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 55834574849 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 55834574849
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

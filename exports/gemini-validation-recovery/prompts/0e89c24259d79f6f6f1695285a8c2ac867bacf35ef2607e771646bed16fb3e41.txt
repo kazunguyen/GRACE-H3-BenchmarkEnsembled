@@ -1,0 +1,273 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_get_qtpalette ( int codec_id , AVIOContext * pb , uint32_t * palette ) {
+ int tmp , bit_depth , color_table_id , greyscale , i ;
+ avio_seek ( pb , 82 , SEEK_CUR ) ;
+ tmp = avio_rb16 ( pb ) ;
+ bit_depth = tmp & 0x1F ;
+ greyscale = tmp & 0x20 ;
+ color_table_id = avio_rb16 ( pb ) ;
+ if ( greyscale && codec_id == AV_CODEC_ID_CINEPAK ) return 0 ;
+ if ( ( bit_depth == 1 || bit_depth == 2 || bit_depth == 4 || bit_depth == 8 ) ) {
+ uint32_t color_count , color_start , color_end ;
+ uint32_t a , r , g , b ;
+ if ( greyscale && bit_depth > 1 && color_table_id ) {
+ int color_index , color_dec ;
+ color_count = 1 << bit_depth ;
+ color_index = 255 ;
+ color_dec = 256 / ( color_count - 1 ) ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = g = b = color_index ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ color_index -= color_dec ;
+ if ( color_index < 0 ) color_index = 0 ;
+ }
+ }
+ else if ( color_table_id ) {
+ const uint8_t * color_table ;
+ color_count = 1 << bit_depth ;
+ if ( bit_depth == 1 ) color_table = ff_qt_default_palette_2 ;
+ else if ( bit_depth == 2 ) color_table = ff_qt_default_palette_4 ;
+ else if ( bit_depth == 4 ) color_table = ff_qt_default_palette_16 ;
+ else color_table = ff_qt_default_palette_256 ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = color_table [ i * 3 + 0 ] ;
+ g = color_table [ i * 3 + 1 ] ;
+ b = color_table [ i * 3 + 2 ] ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+ }
+ else {
+ color_start = avio_rb32 ( pb ) ;
+ avio_rb16 ( pb ) ;
+ color_end = avio_rb16 ( pb ) ;
+ if ( ( color_start <= 255 ) && ( color_end <= 255 ) ) {
+ for ( i = color_start ;
+ i <= color_end ;
+ i ++ ) {
+ a = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ r = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ g = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ b = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ palette [ i ] = ( a << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+ }
+ }
+ return 1 ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int tmp , bit_depth , color_table_id , greyscale , i ;
+ avio_seek ( pb , 82 , SEEK_CUR ) ;
+ tmp = avio_rb16 ( pb ) ;
+ bit_depth = tmp & 0x1F ;
+ greyscale = tmp & 0x20 ;
+ color_table_id = avio_rb16 ( pb ) ;
+ if ( greyscale && codec_id == AV_CODEC_ID_CINEPAK ) return 0 ;
+ if ( ( bit_depth == 1 || bit_depth == 2 || bit_depth == 4 || bit_depth == 8 ) ) {
+ uint32_t color_count , color_start , color_end ;
+ uint32_t a , r , g , b ;
+ if ( greyscale && bit_depth > 1 && color_table_id ) {
+ int color_index , color_dec ;
+ color_count = 1 << bit_depth ;
+ color_index = 255 ;
+ color_dec = 256 / ( color_count - 1 ) ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = g = b = color_index ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ color_index -= color_dec ;
+ if ( color_index < 0 ) color_index = 0 ;
+ }
+ }
+ else if ( color_table_id ) {
+ const uint8_t * color_table ;
+ color_count = 1 << bit_depth ;
+ if ( bit_depth == 1 ) color_table = ff_qt_default_palette_2 ;
+ else if ( b...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ uint32_t color_count , color_start , color_end ;
+ uint32_t a , r , g , b ;
+ if ( greyscale && bit_depth > 1 && color_table_id ) {
+ int color_index , color_dec ;
+ color_count = 1 << bit_depth ;
+ color_index = 255 ;
+ color_dec = 256 / ( color_count - 1 ) ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = g = b = color_index ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ color_index -= color_dec ;
+ if ( color_index < 0 ) color_index = 0 ;
+ }
+ }
+ else if ( color_table_id ) {
+ const uint8_t * color_table ;
+ color_count = 1 << bit_depth ;
+ if ( bit_depth == 1 ) color_table = ff_qt_default_palette_2 ;
+ else if ( bit_depth == 2 ) color_table = ff_qt_default_palette_4 ;
+ else if ( bit_depth == 4 ) color_table = ff_qt_default_palette_16 ;
+ else color_table = ff_qt_default_palette_256 ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = color_table [ i * 3 + 0 ] ;
+ g = color_table [ i * 3 + 1 ] ;
+ b = color_table [ i * 3 + 2 ] ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r...
+      
+25769803779 | BLOCK | 
+        {
+ int color_index , color_dec ;
+ color_count = 1 << bit_depth ;
+ color_index = 255 ;
+ color_dec = 256 / ( color_count - 1 ) ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = g = b = color_index ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ color_index -= color_dec ;
+ if ( color_index < 0 ) color_index = 0 ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ r = g = b = color_index ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ color_index -= color_dec ;
+ if ( color_index < 0 ) color_index = 0 ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ const uint8_t * color_table ;
+ color_count = 1 << bit_depth ;
+ if ( bit_depth == 1 ) color_table = ff_qt_default_palette_2 ;
+ else if ( bit_depth == 2 ) color_table = ff_qt_default_palette_4 ;
+ else if ( bit_depth == 4 ) color_table = ff_qt_default_palette_16 ;
+ else color_table = ff_qt_default_palette_256 ;
+ for ( i = 0 ;
+ i < color_count ;
+ i ++ ) {
+ r = color_table [ i * 3 + 0 ] ;
+ g = color_table [ i * 3 + 1 ] ;
+ b = color_table [ i * 3 + 2 ] ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ r = color_table [ i * 3 + 0 ] ;
+ g = color_table [ i * 3 + 1 ] ;
+ b = color_table [ i * 3 + 2 ] ;
+ palette [ i ] = ( 0xFFU << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+      
+25769803791 | BLOCK | 
+        {
+ color_start = avio_rb32 ( pb ) ;
+ avio_rb16 ( pb ) ;
+ color_end = avio_rb16 ( pb ) ;
+ if ( ( color_start <= 255 ) && ( color_end <= 255 ) ) {
+ for ( i = color_start ;
+ i <= color_end ;
+ i ++ ) {
+ a = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ r = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ g = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ b = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ palette [ i ] = ( a << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+ }
+ }
+      
+25769803792 | BLOCK | 
+        {
+ for ( i = color_start ;
+ i <= color_end ;
+ i ++ ) {
+ a = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ r = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ g = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ b = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ palette [ i ] = ( a << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+ }
+      
+25769803793 | BLOCK | 
+        {
+ a = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ r = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ g = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ b = avio_r8 ( pb ) ;
+ avio_r8 ( pb ) ;
+ palette [ i ] = ( a << 24 ) | ( r << 16 ) | ( g << 8 ) | ( b ) ;
+ }
+      
+30064771072 | CALL | avio_seek ( pb , 82 , SEEK_CUR )
+30064771073 | CALL | tmp = avio_rb16 ( pb )
+30064771074 | CALL | avio_rb16 ( pb )
+30064771075 | CALL | bit_depth = tmp & 0x1F
+30064771076 | CALL | tmp & 0x1F
+30064771077 | CALL | greyscale = tmp & 0x20
+30064771078 | CALL | tmp & 0x20
+30064771079 | CALL | color_table_id = avio_rb16 ( pb )
+30064771080 | CALL | avio_rb16 ( pb )
+30064771081 | CALL | greyscale && codec_id == AV_CODEC_ID_CINEPAK
+30064771082 | CALL | codec_id == AV_CODEC_ID_CINEPAK
+30064771083 | CALL | bit_depth == 1 || bit_depth == 2 || bit_depth == 4 || bit_depth == 8
+30064771084 | CALL | bit_depth == 1 || bit_depth == 2 || bit_depth == 4
+30
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,325 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_extra_header(FFV1Context *f)
+
+{
+
+    RangeCoder *const c = &f->c;
+
+    uint8_t state[CONTEXT_SIZE];
+
+    int i, j, k, ret;
+
+    uint8_t state2[32][CONTEXT_SIZE];
+
+    unsigned crc = 0;
+
+
+
+    memset(state2, 128, sizeof(state2));
+
+    memset(state, 128, sizeof(state));
+
+
+
+    ff_init_range_decoder(c, f->avctx->extradata, f->avctx->extradata_size);
+
+    ff_build_rac_states(c, 0.05 * (1LL << 32), 256 - 8);
+
+
+
+    f->version = get_symbol(c, state, 0);
+
+    if (f->version < 2) {
+
+        av_log(f->avctx, AV_LOG_ERROR, "Invalid version in global header\n");
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+    if (f->version > 2) {
+
+        c->bytestream_end -= 4;
+
+        f->micro_version = get_symbol(c, state, 0);
+
+        if (f->micro_version < 0)
+
+            return AVERROR_INVALIDDATA;
+
+    }
+
+    f->ac = f->avctx->coder_type = get_symbol(c, state, 0);
+
+    if (f->ac > 1) {
+
+        for (i = 1; i < 256; i++)
+
+            f->state_transition[i] = get_symbol(c, state, 1) + c->one_state[i];
+
+    }
+
+
+
+    f->colorspace                 = get_symbol(c, state, 0); //YUV cs type
+
+    f->avctx->bits_per_raw_sample = get_symbol(c, state, 0);
+
+    f->chroma_planes              = get_rac(c, state);
+
+    f->chroma_h_shift             = get_symbol(c, state, 0);
+
+    f->chroma_v_shift             = get_symbol(c, state, 0);
+
+    f->transparency               = get_rac(c, state);
+
+    f->plane_count                = 1 + (f->chroma_planes || f->version<4) + f->transparency;
+
+    f->num_h_slices               = 1 + get_symbol(c, state, 0);
+
+    f->num_v_slices               = 1 + get_symbol(c, state, 0);
+
+
+
+    if (f->chroma_h_shift > 4U || f->chroma_v_shift > 4U) {
+
+        av_log(f->avctx, AV_LOG_ERROR, "chroma shift parameters %d %d are invalid\n",
+
+               f->chroma_h_shift, f->chroma_v_shift);
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+
+
+    if (f->num_h_slices > (unsigned)f->width  || !f->num_h_slices ||
+
+        f->num_v_slices > (unsigned)f->height || !f->num_v_slices
+
+       ) {
+
+        av_log(f->avctx, AV_LOG_ERROR, "slice count invalid\n");
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+
+
+    f->quant_table_count = get_symbol(c, state, 0);
+
+    if (f->quant_table_count > (unsigned)MAX_QUANT_TABLES)
+
+        return AVERROR_INVALIDDATA;
+
+
+
+    for (i = 0; i < f->quant_table_count; i++) {
+
+        f->context_count[i] = read_quant_tables(c, f->quant_tables[i]);
+
+        if (f->context_count[i] < 0) {
+
+            av_log(f->avctx, AV_LOG_ERROR, "read_quant_table error\n");
+
+            return AVERROR_INVALIDDATA;
+
+        }
+
+    }
+
+    if ((ret = ff_ffv1_allocate_initial_states(f)) < 0)
+
+        return ret;
+
+
+
+    for (i = 0; i < f->quant_table_count; i++)
+
+        if (get_rac(c, state)) {
+
+            for (j = 0; j < f->context_count[i]; j++)
+
+                for (k = 0; k < CONTEXT_SIZE; k++) {
+
+                    int pred = j ? f->initial_states[i][j - 1][k] : 128;
+
+                    f->initial_states[i][j][k] =
+
+                      
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Statement
+AST 2 | CompoundStatement
+AST 3 | FunctionDef
+EDGES (original Joern endpoint IDs):
+4 -> 5 [IS_AST_PARENT]
+4 -> 6 [IS_AST_PARENT]
+4 -> 7 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+8 -> 9 [IS_AST_PARENT]
+4 -> 8 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+17 -> 20 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+21 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+21 -> 28 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+21 -> 31 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+4 -> 34 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 44 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+42 -> 45 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+52 -> 57 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+4 -> 48 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+65 -> 70 [IS_AST_PARENT]
+62 -> 65 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+4 -> 61 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+78 -> 81 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int read_extra_header(FFV1Context *f)
+
+{
+
+    RangeCoder *const c = &f->c;
+
+    uint8_t state[CONTEXT_SIZE];
+
+    int i, j, k, ret;
+
+    uint8_t state2[32][CONTEXT_SIZE];
+
+
+
+    memset(state2, 128, sizeof(state2));
+
+    memset(state, 128, sizeof(state));
+
+
+
+    ff_init_range_decoder(c, f->avctx->extradata, f->avctx->extradata_size);
+
+    ff_build_rac_states(c, 0.05 * (1LL << 32), 256 - 8);
+
+
+
+    f->version = get_symbol(c, state, 0);
+
+    if (f->version < 2) {
+
+        av_log(f->avctx, AV_LOG_ERROR, "Invalid version in global header\n");
+
+        return AVERROR_INVALIDDATA;
+
+    }
+
+    if (f->version > 2) {
+
+        c->bytestream_end -= 4;
+
+        f->micro_version = get_symbol(c, state, 0);
+
+        if (f->micro_version < 0)
+
+            return AVERROR_INVALIDDATA;
+
+    }
+
+    f->ac = f->avctx->coder_type = get_symbol(c, state, 0);
+
+    if (f->ac > 1) {
+
+        for (i = 1; i < 256; i++)
+
+            f->state_transition[i] = get_symbol(c, state, 1) + c->one_state[i];
+
+    }
+
+
+
+    f->colorspace                 = get_symbol(c, state, 0); //YUV cs type
+
+    f->avctx->bits_per_raw_sample = get_symbol(c, state, 0);
+
+    f->chroma_planes              = get_rac(c, state);
+
+    f->chroma_h_shift             = get_symbol(c, state, 0);
+
+    f->chroma_v_shift             = get_symbol(c, state, 0);
+
+    f->transparency               = get_rac(c, state);
+
+    f->plane_count                = 1 + (f->chroma_planes || f->version<4) + f->transparency;
+
+    f->num_h_slices            
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

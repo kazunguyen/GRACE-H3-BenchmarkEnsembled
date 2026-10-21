@@ -1,0 +1,164 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static double calc_correction_factor ( double err_per_mb , double err_divisor , double pt_low , double pt_high , int q ) {
+ const double error_term = err_per_mb / err_divisor ;
+ const double power_term = MIN ( vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low , pt_high ) ;
+ if ( power_term < 1.0 ) assert ( error_term >= 0.0 ) ;
+ return fclamp ( pow ( error_term , power_term ) , 0.05 , 5.0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const double error_term = err_per_mb / err_divisor ;
+ const double power_term = MIN ( vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low , pt_high ) ;
+ if ( power_term < 1.0 ) assert ( error_term >= 0.0 ) ;
+ return fclamp ( pow ( error_term , power_term ) , 0.05 , 5.0 ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | error_term = err_per_mb / err_divisor
+30064771073 | CALL | err_per_mb / err_divisor
+30064771074 | CALL | power_term = MIN ( vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low , pt_high )
+30064771075 | CALL | MIN ( vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low , pt_high )
+30064771076 | CALL | vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low
+30064771077 | CALL | vp9_convert_qindex_to_q ( q ) * 0.0125
+30064771078 | CALL | vp9_convert_qindex_to_q ( q )
+30064771079 | CALL | power_term < 1.0
+30064771080 | CALL | assert ( error_term >= 0.0 )
+30064771081 | CALL | error_term >= 0.0
+30064771082 | CALL | fclamp ( pow ( error_term , power_term ) , 0.05 , 5.0 )
+30064771083 | CALL | pow ( error_term , power_term )
+47244640256 | CONTROL_STRUCTURE | if ( power_term < 1.0 ) assert ( error_term >= 0.0 ) ;
+68719476736 | IDENTIFIER | error_term
+68719476737 | IDENTIFIER | err_per_mb
+68719476738 | IDENTIFIER | err_divisor
+68719476739 | IDENTIFIER | power_term
+68719476740 | IDENTIFIER | q
+68719476741 | IDENTIFIER | pt_low
+68719476742 | IDENTIFIER | pt_high
+68719476743 | IDENTIFIER | power_term
+68719476744 | IDENTIFIER | error_term
+68719476745 | IDENTIFIER | error_term
+68719476746 | IDENTIFIER | power_term
+90194313216 | LITERAL | 0.0125
+90194313217 | LITERAL | 1.0
+90194313218 | LITERAL | 0.0
+90194313219 | LITERAL | 0.05
+90194313220 | LITERAL | 5.0
+94489280512 | LOCAL | const double error_term
+94489280513 | LOCAL | const double power_term
+107374182400 | METHOD | 
+        static double calc_correction_factor ( double err_per_mb , double err_divisor , double pt_low , double pt_high , int q ) {
+ const double error_term = err_per_mb / err_divisor ;
+ const double power_term = MIN ( vp9_convert_qindex_to_q ( q ) * 0.0125 + pt_low , pt_high ) ;
+ if ( power_term < 1.0 ) assert ( error_term >= 0.0 ) ;
+ return fclamp ( pow ( error_term , power_term ) , 0.05 , 5.0 ) ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | double err_per_mb
+111669149697 | METHOD_PARAMETER_IN | double err_divisor
+111669149698 | METHOD_PARAMETER_IN | double pt_low
+111669149699 | METHOD_PARAMETER_IN | double pt_high
+111669149700 | METHOD_PARAMETER_IN | int q
+115964116992 | METHOD_PARAMETER_OUT | double err_per_mb
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476743 [CFG]
+30064771074 -> 68719476743 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476742 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476742 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 68719476742 [POST_DOMINATE]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 90194313216 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 90194313216 [AST]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476741 [DOMINATE]
+30064771077 -> 90194313216 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 90194313216 [CFG]
+30064771078 -> 90194313216 [DOMINATE]
+30064771078 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476743 [ARGUMENT]
+30064771079 -> 90194313217 [ARGUMENT]
+30064771079 -> 68719476743 [AST]
+30064771079 -> 90194313217 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 68719476744 [CDG]
+30064771079 -> 90194313218 [CDG]
+30064771079 -> 68719476744 [CFG]
+30064771079 -> 68719476745 [CFG]
+30064771079 -> 68719476745 [DOMINATE]
+30064771079 -> 68719476744 [DOMINATE]
+30064771079 -> 90194313217 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 68719476745 [CFG]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 68719476744 [ARGUMENT]
+30064771081 -> 90194313218 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static double calc_correction_factor ( double err_per_mb , double err_divisor , double pt_low , double pt_high , int q , vpx_bit_depth_t bit_depth ) {
+ const double error_term = err_per_mb / err_divisor ;
+ const double power_term = MIN ( vp9_convert_qindex_to_q ( q , bit_depth ) * 0.0125 + pt_low , pt_high ) ;
+ if ( power_term < 1.0 ) assert ( error_term >= 0.0 ) ;
+ return fclamp ( pow ( error_term , power_term ) , 0.05 , 5.0 ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void send_restrict_entry ( restrict_u * pres , int ipv6 , u_int idx ) {
+ const char addr_fmtu [ ] = "addr.%u" ;
+ const char mask_fmtu [ ] = "mask.%u" ;
+ const char hits_fmt [ ] = "hits.%u" ;
+ const char flags_fmt [ ] = "flags.%u" ;
+ char tag [ 32 ] ;
+ u_char sent [ RESLIST_FIELDS ] ;
+ int noisebits ;
+ u_int32 noise ;
+ u_int which ;
+ u_int remaining ;
+ sockaddr_u addr ;
+ sockaddr_u mask ;
+ const char * pch ;
+ char * buf ;
+ const char * match_str ;
+ const char * access_str ;
+ sockaddrs_from_restrict_u ( & addr , & mask , pres , ipv6 ) ;
+ remaining = COUNTOF ( sent ) ;
+ ZERO ( sent ) ;
+ noise = 0 ;
+ noisebits = 0 ;
+ while ( remaining > 0 ) {
+ if ( noisebits < 2 ) {
+ noise = rand ( ) ^ ( rand ( ) << 16 ) ;
+ noisebits = 31 ;
+ }
+ which = ( noise & 0x3 ) % COUNTOF ( sent ) ;
+ noise >>= 2 ;
+ noisebits -= 2 ;
+ while ( sent [ which ] ) which = ( which + 1 ) % COUNTOF ( sent ) ;
+ switch ( which ) {
+ case 0 : snprintf ( tag , sizeof ( tag ) , addr_fmtu , idx ) ;
+ pch = stoa ( & addr ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 1 : snprintf ( tag , sizeof ( tag ) , mask_fmtu , idx ) ;
+ pch = stoa ( & mask ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 2 : snprintf ( tag , sizeof ( tag ) , hits_fmt , idx ) ;
+ ctl_putuint ( tag , pres -> count ) ;
+ break ;
+ case 3 : snprintf ( tag , sizeof ( tag ) , flags_fmt , idx ) ;
+ match_str = res_match_flags ( pres -> mflags ) ;
+ access_str = res_access_flags ( pres -> flags ) ;
+ if ( '\0' == match_str [ 0 ] ) {
+ pch = access_str ;
+ }
+ else {
+ LIB_GETBUF ( buf ) ;
+ snprintf ( buf , LIB_BUFLENGTH , "%s %s" , match_str , access_str ) ;
+ pch = buf ;
+ }
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ }
+ sent [ which ] = TRUE ;
+ remaining -- ;
+ }
+ send_random_tag_value ( ( int ) idx ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char addr_fmtu [ ] = "addr.%u" ;
+ const char mask_fmtu [ ] = "mask.%u" ;
+ const char hits_fmt [ ] = "hits.%u" ;
+ const char flags_fmt [ ] = "flags.%u" ;
+ char tag [ 32 ] ;
+ u_char sent [ RESLIST_FIELDS ] ;
+ int noisebits ;
+ u_int32 noise ;
+ u_int which ;
+ u_int remaining ;
+ sockaddr_u addr ;
+ sockaddr_u mask ;
+ const char * pch ;
+ char * buf ;
+ const char * match_str ;
+ const char * access_str ;
+ sockaddrs_from_restrict_u ( & addr , & mask , pres , ipv6 ) ;
+ remaining = COUNTOF ( sent ) ;
+ ZERO ( sent ) ;
+ noise = 0 ;
+ noisebits = 0 ;
+ while ( remaining > 0 ) {
+ if ( noisebits < 2 ) {
+ noise = rand ( ) ^ ( rand ( ) << 16 ) ;
+ noisebits = 31 ;
+ }
+ which = ( noise & 0x3 ) % COUNTOF ( sent ) ;
+ noise >>= 2 ;
+ noisebits -= 2 ;
+ while ( sent [ which ] ) which = ( which + 1 ) % COUNTOF ( sent ) ;
+ switch ( which ) {
+ case 0 : snprintf ( tag , sizeof ( tag ) , addr_fmtu , idx ) ;
+ pch = stoa ( & addr ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 1 : snprintf (...
+      
+25769803777 | BLOCK | 
+        {
+ if ( noisebits < 2 ) {
+ noise = rand ( ) ^ ( rand ( ) << 16 ) ;
+ noisebits = 31 ;
+ }
+ which = ( noise & 0x3 ) % COUNTOF ( sent ) ;
+ noise >>= 2 ;
+ noisebits -= 2 ;
+ while ( sent [ which ] ) which = ( which + 1 ) % COUNTOF ( sent ) ;
+ switch ( which ) {
+ case 0 : snprintf ( tag , sizeof ( tag ) , addr_fmtu , idx ) ;
+ pch = stoa ( & addr ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 1 : snprintf ( tag , sizeof ( tag ) , mask_fmtu , idx ) ;
+ pch = stoa ( & mask ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 2 : snprintf ( tag , sizeof ( tag ) , hits_fmt , idx ) ;
+ ctl_putuint ( tag , pres -> count ) ;
+ break ;
+ case 3 : snprintf ( tag , sizeof ( tag ) , flags_fmt , idx ) ;
+ match_str = res_match_flags ( pres -> mflags ) ;
+ access_str = res_access_flags ( pres -> flags ) ;
+ if ( '\0' == match_str [ 0 ] ) {
+ pch = access_str ;
+ }
+ else {
+ LIB_GETBUF ( buf ) ;
+ snprintf ( buf , LIB_BUFLENGTH , "%s %s" , match_str , access_str ) ;
+ pch = buf ;
+ }...
+      
+25769803778 | BLOCK | { noise = rand ( ) ^ ( rand ( ) << 16 ) ; noisebits = 31 ; }
+25769803779 | BLOCK | 
+        {
+ case 0 : snprintf ( tag , sizeof ( tag ) , addr_fmtu , idx ) ;
+ pch = stoa ( & addr ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 1 : snprintf ( tag , sizeof ( tag ) , mask_fmtu , idx ) ;
+ pch = stoa ( & mask ) ;
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ case 2 : snprintf ( tag , sizeof ( tag ) , hits_fmt , idx ) ;
+ ctl_putuint ( tag , pres -> count ) ;
+ break ;
+ case 3 : snprintf ( tag , sizeof ( tag ) , flags_fmt , idx ) ;
+ match_str = res_match_flags ( pres -> mflags ) ;
+ access_str = res_access_flags ( pres -> flags ) ;
+ if ( '\0' == match_str [ 0 ] ) {
+ pch = access_str ;
+ }
+ else {
+ LIB_GETBUF ( buf ) ;
+ snprintf ( buf , LIB_BUFLENGTH , "%s %s" , match_str , access_str ) ;
+ pch = buf ;
+ }
+ ctl_putunqstr ( tag , pch , strlen ( pch ) ) ;
+ break ;
+ }
+      
+25769803780 | BLOCK | { pch = access_str ; }
+25769803781 | BLOCK | 
+        {
+ LIB_GETBUF ( buf ) ;
+ snprintf ( buf , LIB_BUFLENGTH , "%s %s" , match_str , access_str ) ;
+ pch = buf ;
+ }
+      
+30064771072 | CALL | addr_fmtu [ ] = "addr.%u"
+30064771073 | CALL | mask_fmtu [ ] = "mask.%u"
+30064771074 | CALL | hits_fmt [ ] = "hits.%u"
+30064771075 | CALL | flags_fmt [ ] = "flags.%u"
+30064771076 | CALL | tag [ 32 ]
+30064771077 | CALL | tag [ 32 ]
+30064771078 | CALL | sent [ RESLIST_FIELDS ]
+30064771079 | CALL | sent [ RESLIST_FIELDS ]
+30064771080 | CALL | sockaddrs_from_restrict_u ( & addr , & mask , pres , ipv6 )
+30064771081 | CALL | & addr
+30064771082 | CALL | & mask
+30064771083 | CALL | remaining = COUNTOF ( sent )
+30064771084 | CALL | COUNTOF ( sent )
+30064771085 | CALL | ZERO ( sent )
+30064771086 | CALL | noise = 0
+30064771087 | CALL | noisebits = 0
+30064771088 | CALL | remaining > 0
+30064771089 | CALL | noisebits < 2
+30064771090 | CALL | noise = rand ( ) ^ ( rand ( ) << 16 )
+30064771091 | CALL | rand ( ) ^ ( rand ( ) << 16 )
+30064771092 | CALL | rand ( )
+30064771093 | CALL | rand ( ) << 16
+30064771094 | CALL | rand ( )
+30064771095 | CALL | noisebits = 31
+30064771096 | CALL | which = ( noise & 0x3 ) % COUNTOF ( sent )
+30064771097 | CALL | ( noise & 0x3 ) % COUNTOF ( sent )
+30064771098 | CALL | noise & 0x3
+30064771099 | CALL | COUNTOF ( sent )
+30064771100 | CALL | noise >>= 2
+30064771101 | CALL | noisebits -= 2
+30064771102 | CALL | sent [ which ]
+30064771103 | CALL | which = ( which + 1 ) % COUNTOF ( sent )
+30064771104 | CALL | ( which + 1 ) % COUNTOF ( sent )
+30064771105 | CALL | which + 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771087 [AST]
+25769803777 -> 30064771096 [AST]
+25769803777 -> 30064771100 [AST]
+25769803777 -> 30064771101 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771095 [AST]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 300
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

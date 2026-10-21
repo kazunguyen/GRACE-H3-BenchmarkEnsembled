@@ -1,0 +1,248 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_uncompressed_sgi ( unsigned char * out_buf , uint8_t * out_end , SgiState * s ) {
+ int x , y , z ;
+ unsigned int offset = s -> height * s -> width * s -> bytes_per_channel ;
+ GetByteContext gp [ 4 ] ;
+ if ( offset * s -> depth > bytestream2_get_bytes_left ( & s -> g ) ) return AVERROR_INVALIDDATA ;
+ for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) {
+ gp [ z ] = s -> g ;
+ bytestream2_skip ( & gp [ z ] , z * offset ) ;
+ }
+ for ( y = s -> height - 1 ;
+ y >= 0 ;
+ y -- ) {
+ out_end = out_buf + ( y * s -> linesize ) ;
+ if ( s -> bytes_per_channel == 1 ) {
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out_end ++ = bytestream2_get_byteu ( & gp [ z ] ) ;
+ }
+ else {
+ uint16_t * out16 = ( uint16_t * ) out_end ;
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out16 ++ = bytestream2_get_ne16u ( & gp [ z ] ) ;
+ }
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y , z ;
+ unsigned int offset = s -> height * s -> width * s -> bytes_per_channel ;
+ GetByteContext gp [ 4 ] ;
+ if ( offset * s -> depth > bytestream2_get_bytes_left ( & s -> g ) ) return AVERROR_INVALIDDATA ;
+ for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) {
+ gp [ z ] = s -> g ;
+ bytestream2_skip ( & gp [ z ] , z * offset ) ;
+ }
+ for ( y = s -> height - 1 ;
+ y >= 0 ;
+ y -- ) {
+ out_end = out_buf + ( y * s -> linesize ) ;
+ if ( s -> bytes_per_channel == 1 ) {
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out_end ++ = bytestream2_get_byteu ( & gp [ z ] ) ;
+ }
+ else {
+ uint16_t * out16 = ( uint16_t * ) out_end ;
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out16 ++ = bytestream2_get_ne16u ( & gp [ z ] ) ;
+ }
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { gp [ z ] = s -> g ; bytestream2_skip ( & gp [ z ] , z * offset ) ; }
+25769803779 | BLOCK | 
+        {
+ out_end = out_buf + ( y * s -> linesize ) ;
+ if ( s -> bytes_per_channel == 1 ) {
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out_end ++ = bytestream2_get_byteu ( & gp [ z ] ) ;
+ }
+ else {
+ uint16_t * out16 = ( uint16_t * ) out_end ;
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out16 ++ = bytestream2_get_ne16u ( & gp [ z ] ) ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out_end ++ = bytestream2_get_byteu ( & gp [ z ] ) ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ uint16_t * out16 = ( uint16_t * ) out_end ;
+ for ( x = s -> width ;
+ x > 0 ;
+ x -- ) for ( z = 0 ;
+ z < s -> depth ;
+ z ++ ) * out16 ++ = bytestream2_get_ne16u ( & gp [ z ] ) ;
+ }
+      
+30064771072 | CALL | offset = s -> height * s -> width * s -> bytes_per_channel
+30064771073 | CALL | s -> height * s -> width * s -> bytes_per_channel
+30064771074 | CALL | s -> height * s -> width
+30064771075 | CALL | s -> height
+30064771076 | CALL | s -> width
+30064771077 | CALL | s -> bytes_per_channel
+30064771078 | CALL | gp [ 4 ]
+30064771079 | CALL | gp [ 4 ]
+30064771080 | CALL | offset * s -> depth > bytestream2_get_bytes_left ( & s -> g )
+30064771081 | CALL | offset * s -> depth
+30064771082 | CALL | s -> depth
+30064771083 | CALL | bytestream2_get_bytes_left ( & s -> g )
+30064771084 | CALL | & s -> g
+30064771085 | CALL | s -> g
+30064771086 | CALL | z = 0
+30064771087 | CALL | z < s -> depth
+30064771088 | CALL | s -> depth
+30064771089 | CALL | z ++
+30064771090 | CALL | gp [ z ] = s -> g
+30064771091 | CALL | gp [ z ]
+30064771092 | CALL | s -> g
+30064771093 | CALL | bytestream2_skip ( & gp [ z ] , z * offset )
+30064771094 | CALL | & gp [ z ]
+30064771095 | CALL | gp [ z ]
+30064771096 | CALL | z * offset
+30064771097 | CALL | y = s -> height - 1
+30064771098 | CALL | s -> height - 1
+30064771099 | CALL | s -> height
+30064771100 | CALL | y >= 0
+30064771101 | CALL | y --
+30064771102 | CALL | out_end = out_buf + ( y * s -> linesize )
+30064771103 | CALL | out_buf + ( y * s -> linesize )
+30064771104 | CALL | y * s -> linesize
+30064771105 | CALL | s -> linesize
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771093 [AST]
+25769803779 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771077 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771077 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771077 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771099 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771073 [CFG]
+30064771077 -> 30064771073 [DOMINATE]
+30064771077 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771073 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771099 [CDG]
+30064771080 -> 30064771100 [CDG]
+30064771080 -> 30064771097 [CDG]
+30064771080 -> 30064771098 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771088 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771092 [REACHING_DEF]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771085 -> 30064771092 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int read_rle_sgi ( uint8_t * out_buf , SgiState * s ) {
+ uint8_t * dest_row ;
+ unsigned int len = s -> height * s -> depth * 4 ;
+ GetByteContext g_table = s -> g ;
+ unsigned int y , z ;
+ unsigned int start_offset ;
+ if ( len * 2 > bytestream2_get_byt
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,124 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int write_string ( buffer_t buffer , PyObject * py_string ) {
+ Py_ssize_t string_length ;
+ const char * string ;
+ # if PY_MAJOR_VERSION >= 3 if ( PyUnicode_Check ( py_string ) ) {
+ return write_unicode ( buffer , py_string ) ;
+ }
+ string = PyBytes_AsString ( py_string ) ;
+ # else string = PyString_AsString ( py_string ) ;
+ # endif if ( ! string ) {
+ return 0 ;
+ }
+ # if PY_MAJOR_VERSION >= 3 string_length = PyBytes_Size ( py_string ) + 1 ;
+ # else string_length = PyString_Size ( py_string ) + 1 ;
+ # endif if ( ! buffer_write_bytes ( buffer , ( const char * ) & string_length , 4 ) ) {
+ return 0 ;
+ }
+ if ( ! buffer_write_bytes ( buffer , string , string_length ) ) {
+ return 0 ;
+ }
+ return 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Py_ssize_t string_length ;
+ const char * string ;
+ # if PY_MAJOR_VERSION >= 3 if ( PyUnicode_Check ( py_string ) ) {
+ return write_unicode ( buffer , py_string ) ;
+ }
+ string = PyBytes_AsString ( py_string ) ;
+ # else string = PyString_AsString ( py_string ) ;
+ # endif if ( ! string ) {
+ return 0 ;
+ }
+      
+90194313216 | LITERAL | 0
+94489280512 | LOCAL | Py_ssize_t string_length
+94489280513 | LOCAL | const char * string
+107374182400 | METHOD | 
+        static int write_string ( buffer_t buffer , PyObject * py_string ) {
+ Py_ssize_t string_length ;
+ const char * string ;
+ # if PY_MAJOR_VERSION >= 3 if ( PyUnicode_Check ( py_string ) ) {
+ return write_unicode ( buffer , py_string ) ;
+ }
+ string = PyBytes_AsString ( py_string ) ;
+ # else string = PyString_AsString ( py_string ) ;
+ # endif if ( ! string ) {
+ return 0 ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | buffer_t buffer
+111669149697 | METHOD_PARAMETER_IN | PyObject * py_string
+115964116992 | METHOD_PARAMETER_OUT | buffer_t buffer
+115964116993 | METHOD_PARAMETER_OUT | PyObject * py_string
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return 0 ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 141733920768 [AST]
+90194313216 -> 141733920768 [CFG]
+90194313216 -> 141733920768 [DOMINATE]
+90194313216 -> 107374182400 [POST_DOMINATE]
+90194313216 -> 141733920768 [REACHING_DEF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 90194313216 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 141733920768 [CONTAINS]
+107374182400 -> 90194313216 [CONTAINS]
+107374182400 -> 90194313216 [DOMINATE]
+107374182400 -> 90194313216 [REACHING_DEF]
+107374182400 -> 111669149697 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+107374182400 -> 141733920768 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+111669149697 -> 115964116993 [PARAMETER_LINK]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 115964116993 [REACHING_DEF]
+111669149697 -> 124554051584 [REACHING_DEF]
+124554051584 -> 141733920768 [POST_DOMINATE]
+141733920768 -> 90194313216 [ARGUMENT]
+141733920768 -> 90194313216 [AST]
+141733920768 -> 124554051584 [CFG]
+141733920768 -> 124554051584 [DOMINATE]
+141733920768 -> 90194313216 [POST_DOMINATE]
+141733920768 -> 124554051584 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static PyObject * string_partition ( PyStringObject * self , PyObject * sep_obj ) {
+ const char * sep ;
+ Py_ssize_t sep_len ;
+ if ( PyString_Check ( sep_obj ) ) {
+ sep = PyString_AS_STRING ( sep_obj ) ;
+ sep_len = PyString_GET_SIZE ( sep_obj ) ;
+ }
+ # ifdef Py_USING_UNICODE else if ( PyUnicode_Check ( sep_obj ) ) return PyUnicode_Partition ( ( PyObject * ) self , sep_obj ) ;
+ # endif else if ( PyObject_AsCharBuffer ( sep_obj , & sep , & sep_len ) ) return NULL ;
+ return stringlib_partition ( ( PyObject * ) self , PyString_AS_STRING ( self ) , PyString_GET_SIZE ( self ) , sep_obj , sep , sep_len ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

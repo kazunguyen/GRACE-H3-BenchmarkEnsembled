@@ -1,0 +1,169 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void input_DecoderWait ( decoder_t * p_dec ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ while ( p_owner -> b_waiting && ! p_owner -> b_has_data ) {
+ block_FifoWake ( p_owner -> p_fifo ) ;
+ vlc_cond_wait ( & p_owner -> wait_acknowledge , & p_owner -> lock ) ;
+ }
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ while ( p_owner -> b_waiting && ! p_owner -> b_has_data ) {
+ block_FifoWake ( p_owner -> p_fifo ) ;
+ vlc_cond_wait ( & p_owner -> wait_acknowledge , & p_owner -> lock ) ;
+ }
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ block_FifoWake ( p_owner -> p_fifo ) ;
+ vlc_cond_wait ( & p_owner -> wait_acknowledge , & p_owner -> lock ) ;
+ }
+      
+30064771072 | CALL | p_owner = p_dec -> p_owner
+30064771073 | CALL | p_dec -> p_owner
+30064771074 | CALL | vlc_mutex_lock ( & p_owner -> lock )
+30064771075 | CALL | & p_owner -> lock
+30064771076 | CALL | p_owner -> lock
+30064771077 | CALL | p_owner -> b_waiting && ! p_owner -> b_has_data
+30064771078 | CALL | p_owner -> b_waiting
+30064771079 | CALL | ! p_owner -> b_has_data
+30064771080 | CALL | p_owner -> b_has_data
+30064771081 | CALL | block_FifoWake ( p_owner -> p_fifo )
+30064771082 | CALL | p_owner -> p_fifo
+30064771083 | CALL | vlc_cond_wait ( & p_owner -> wait_acknowledge , & p_owner -> lock )
+30064771084 | CALL | & p_owner -> wait_acknowledge
+30064771085 | CALL | p_owner -> wait_acknowledge
+30064771086 | CALL | & p_owner -> lock
+30064771087 | CALL | p_owner -> lock
+30064771088 | CALL | vlc_mutex_unlock ( & p_owner -> lock )
+30064771089 | CALL | & p_owner -> lock
+30064771090 | CALL | p_owner -> lock
+47244640256 | CONTROL_STRUCTURE | while (p_owner -> b_waiting && ! p_owner -> b_has_data)
+55834574848 | FIELD_IDENTIFIER | p_owner
+55834574849 | FIELD_IDENTIFIER | lock
+55834574850 | FIELD_IDENTIFIER | b_waiting
+55834574851 | FIELD_IDENTIFIER | b_has_data
+55834574852 | FIELD_IDENTIFIER | p_fifo
+55834574853 | FIELD_IDENTIFIER | wait_acknowledge
+55834574854 | FIELD_IDENTIFIER | lock
+55834574855 | FIELD_IDENTIFIER | lock
+68719476736 | IDENTIFIER | p_owner
+68719476737 | IDENTIFIER | p_dec
+68719476738 | IDENTIFIER | p_owner
+68719476739 | IDENTIFIER | p_owner
+68719476740 | IDENTIFIER | p_owner
+68719476741 | IDENTIFIER | p_owner
+68719476742 | IDENTIFIER | p_owner
+68719476743 | IDENTIFIER | p_owner
+68719476744 | IDENTIFIER | p_owner
+94489280512 | LOCAL | decoder_owner_sys_t * p_owner
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771088 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771083 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 55834574848 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 55834574848 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771086 [REACHING_DEF]
+30064771075 -> 30064771090 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771089 [REACHING_DEF]
+30064771075 -> 30064771087 [REACHING_DEF]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 55834574849 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 55834574849 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574849 [POST_DOMINATE]
+30064771076 -> 68719476741 [REACHING_DEF]
+30064771076 -> 30064771086 [REACHING_DEF]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771090 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771089 [REACHING_DEF]
+30064771076 -> 68719476743 [REACHING_DEF]
+30064771076 -> 30064771087 [REACHING_DEF]
+30064771076 -> 68719476742 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 68719476744 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 68719476739 [CDG]
+30064771077 -> 30064771087 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771086 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 55834574853 [CDG]
+30064771077 -> 55834574854 [CDG]
+30064771077 -> 68719476741 [CDG]
+30064771077 -> 55834574850 [CDG]
+30064771077 -> 68719476742 [CDG]
+30064771077 -> 68719476743 [CDG]
+30064771077 -> 55834574852 [CDG]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476744 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void input_DecoderStopWait ( decoder_t * p_dec ) {
+ decoder_owner_sys_t * p_owner = p_dec -> p_owner ;
+ vlc_mutex_lock ( & p_owner -> lock ) ;
+ p_owner -> b_waiting = false ;
+ vlc_cond_signal ( & p_owner -> wait_request ) ;
+ vlc_mutex_unlock ( & p_owner -> lock ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

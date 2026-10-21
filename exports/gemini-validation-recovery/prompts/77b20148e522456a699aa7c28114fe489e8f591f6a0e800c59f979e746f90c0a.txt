@@ -1,0 +1,153 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void qemu_init_child_watch(void)
+
+{
+
+    struct sigaction act;
+
+    sigchld_bh = qemu_bh_new(sigchld_bh_handler, NULL);
+
+
+
+    memset(&act, 0, sizeof(act));
+
+    act.sa_handler = sigchld_handler;
+
+    act.sa_flags = SA_NOCLDSTOP;
+
+    sigaction(SIGCHLD, &act, NULL);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+12 -> 15 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+24 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+24 -> 31 [IS_AST_PARENT]
+21 -> 24 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 46 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+4 -> 41 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+51 -> 54 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+51 -> 58 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+4 -> 47 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 60 [IS_AST_PARENT]
+3 -> 61 [IS_AST_PARENT]
+3 -> 62 [IS_AST_PARENT]
+63 -> 5 [FLOWS_TO]
+5 -> 9 [FLOWS_TO]
+9 -> 20 [FLOWS_TO]
+20 -> 35 [FLOWS_TO]
+35 -> 41 [FLOWS_TO]
+41 -> 47 [FLOWS_TO]
+47 -> 64 [FLOWS_TO]
+9 -> 65 [USE]
+10 -> 65 [USE]
+35 -> 66 [DEF]
+36 -> 66 [DEF]
+47 -> 67 [USE]
+52 -> 67 [USE]
+5 -> 68 [DEF]
+6 -> 68 [DEF]
+35 -> 68 [USE]
+37 -> 68 [USE]
+35 -> 68 [DEF]
+36 -> 68 [DEF]
+41 -> 68 [DEF]
+42 -> 68 [DEF]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void qemu_tcg_init_cpu_signals(void)
+
+{
+
+#ifdef CONFIG_IOTHREAD
+
+    sigset_t set;
+
+    struct sigaction sigact;
+
+
+
+    memset(&sigact, 0, sizeof(sigact));
+
+    sigact.sa_handler = cpu_signal;
+
+    sigaction(SIG_IPI, &sigact, NULL);
+
+
+
+    sigemptyset(&set);
+
+    sigaddset(&set, SIG_IPI);
+
+    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+
+#endif
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

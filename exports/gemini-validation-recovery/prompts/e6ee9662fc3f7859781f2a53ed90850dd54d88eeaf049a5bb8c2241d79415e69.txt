@@ -1,0 +1,145 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void qemu_mutex_lock_iothread(void)
+
+{
+
+    if (kvm_enabled()) {
+
+        qemu_mutex_lock(&qemu_fair_mutex);
+
+        qemu_mutex_lock(&qemu_global_mutex);
+
+        qemu_mutex_unlock(&qemu_fair_mutex);
+
+    } else
+
+        qemu_signal_lock(100);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | Callee
+AST 3 | CallExpression
+AST 4 | Condition
+AST 5 | IfStatement
+AST 6 | CompoundStatement
+AST 7 | FunctionDef
+EDGES (original Joern endpoint IDs):
+8 -> 9 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+7 -> 10 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+22 -> 25 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+11 -> 21 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+11 -> 30 [IS_AST_PARENT]
+5 -> 11 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+5 -> 39 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 47 [IS_AST_PARENT]
+3 -> 48 [IS_AST_PARENT]
+3 -> 49 [IS_AST_PARENT]
+50 -> 6 [FLOWS_TO]
+6 -> 12 [FLOWS_TO]
+6 -> 40 [FLOWS_TO]
+12 -> 21 [FLOWS_TO]
+21 -> 30 [FLOWS_TO]
+30 -> 51 [FLOWS_TO]
+40 -> 51 [FLOWS_TO]
+21 -> 52 [USE]
+26 -> 52 [USE]
+12 -> 53 [USE]
+17 -> 53 [USE]
+30 -> 53 [USE]
+35 -> 53 [USE]
+6 -> 54 [USE]
+50 -> 6 [CONTROLS]
+6 -> 12 [CONTROLS]
+6 -> 21 [CONTROLS]
+6 -> 30 [CONTROLS]
+6 -> 40 [CONTROLS]
+21 -> 30 [DOM]
+12 -> 21 [DOM]
+50 -> 6 [DOM]
+50 -> 50 [DOM]
+6 -> 12 [DOM]
+6 -> 40 [DOM]
+6 -> 51 [DOM]
+51 -> 30 [POST_DOM]
+30 -> 21 [POST_DOM]
+51 -> 6 [POST_DOM]
+21 -> 12 [POST_DOM]
+6 -> 50 [POST_DOM]
+51 -> 40 [POST_DOM]
+51 -> 51 [POST_DOM]
+2 -> 3 [IS_FUNCTION_OF_AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void qemu_signal_lock(unsigned int msecs)
+
+{
+
+    qemu_mutex_lock(&qemu_fair_mutex);
+
+
+
+    while (qemu_mutex_trylock(&qemu_global_mutex)) {
+
+        qemu_thread_signal(tcg_cpu_thread, SIGUSR1);
+
+        if (!qemu_mutex_timedlock(&qemu_global_mutex, msecs))
+
+            break;
+
+    }
+
+    qemu_mutex_unlock(&qemu_fair_mutex);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

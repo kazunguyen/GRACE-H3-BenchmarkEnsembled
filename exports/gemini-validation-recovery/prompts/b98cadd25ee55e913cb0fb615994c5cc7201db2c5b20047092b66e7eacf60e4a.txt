@@ -1,0 +1,162 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int get_logical_cpus ( AVCodecContext * avctx ) {
+ int ret , nb_cpus = 1 ;
+ # if HAVE_SCHED_GETAFFINITY && defined ( CPU_COUNT ) cpu_set_t cpuset ;
+ CPU_ZERO ( & cpuset ) ;
+ ret = sched_getaffinity ( 0 , sizeof ( cpuset ) , & cpuset ) ;
+ if ( ! ret ) {
+ nb_cpus = CPU_COUNT ( & cpuset ) ;
+ }
+ # elif HAVE_GETPROCESSAFFINITYMASK DWORD_PTR proc_aff , sys_aff ;
+ ret = GetProcessAffinityMask ( GetCurrentProcess ( ) , & proc_aff , & sys_aff ) ;
+ if ( ret ) nb_cpus = av_popcount64 ( proc_aff ) ;
+ # elif HAVE_SYSCTL && defined ( HW_NCPU ) int mib [ 2 ] = {
+ CTL_HW , HW_NCPU }
+ ;
+ size_t len = sizeof ( nb_cpus ) ;
+ ret = sysctl ( mib , 2 , & nb_cpus , & len , NULL , 0 ) ;
+ if ( ret == - 1 ) nb_cpus = 0 ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROC_ONLN ) nb_cpus = sysconf ( _SC_NPROC_ONLN ) ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROCESSORS_ONLN ) nb_cpus = sysconf ( _SC_NPROCESSORS_ONLN ) ;
+ # endif av_log ( avctx , AV_LOG_DEBUG , "detected %d logical cores\n" , nb_cpus ) ;
+ return nb_cpus ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int ret , nb_cpus = 1 ;
+ # if HAVE_SCHED_GETAFFINITY && defined ( CPU_COUNT ) cpu_set_t cpuset ;
+ CPU_ZERO ( & cpuset ) ;
+ ret = sched_getaffinity ( 0 , sizeof ( cpuset ) , & cpuset ) ;
+ if ( ! ret ) {
+ nb_cpus = CPU_COUNT ( & cpuset ) ;
+ }
+ # elif HAVE_GETPROCESSAFFINITYMASK DWORD_PTR proc_aff , sys_aff ;
+ ret = GetProcessAffinityMask ( GetCurrentProcess ( ) , & proc_aff , & sys_aff ) ;
+ if ( ret ) nb_cpus = av_popcount64 ( proc_aff ) ;
+ # elif HAVE_SYSCTL && defined ( HW_NCPU ) int mib [ 2 ] = {
+ CTL_HW , HW_NCPU }
+ ;
+ size_t len = sizeof ( nb_cpus ) ;
+ ret = sysctl ( mib , 2 , & nb_cpus , & len , NULL , 0 ) ;
+ if ( ret == - 1 ) nb_cpus = 0 ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROC_ONLN ) nb_cpus = sysconf ( _SC_NPROC_ONLN ) ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROCESSORS_ONLN ) nb_cpus = sysconf ( _SC_NPROCESSORS_ONLN ) ;
+ # endif av_log ( avctx , AV_LOG_DEBUG , "detected %d logical cores\n" , nb_cpus ) ;
+ return nb_cpus ;
+ }
+      
+30064771072 | CALL | nb_cpus = 1
+68719476736 | IDENTIFIER | nb_cpus
+68719476737 | IDENTIFIER | nb_cpus
+90194313216 | LITERAL | 1
+94489280512 | LOCAL | int ret
+94489280513 | LOCAL | int nb_cpus
+107374182400 | METHOD | 
+        static int get_logical_cpus ( AVCodecContext * avctx ) {
+ int ret , nb_cpus = 1 ;
+ # if HAVE_SCHED_GETAFFINITY && defined ( CPU_COUNT ) cpu_set_t cpuset ;
+ CPU_ZERO ( & cpuset ) ;
+ ret = sched_getaffinity ( 0 , sizeof ( cpuset ) , & cpuset ) ;
+ if ( ! ret ) {
+ nb_cpus = CPU_COUNT ( & cpuset ) ;
+ }
+ # elif HAVE_GETPROCESSAFFINITYMASK DWORD_PTR proc_aff , sys_aff ;
+ ret = GetProcessAffinityMask ( GetCurrentProcess ( ) , & proc_aff , & sys_aff ) ;
+ if ( ret ) nb_cpus = av_popcount64 ( proc_aff ) ;
+ # elif HAVE_SYSCTL && defined ( HW_NCPU ) int mib [ 2 ] = {
+ CTL_HW , HW_NCPU }
+ ;
+ size_t len = sizeof ( nb_cpus ) ;
+ ret = sysctl ( mib , 2 , & nb_cpus , & len , NULL , 0 ) ;
+ if ( ret == - 1 ) nb_cpus = 0 ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROC_ONLN ) nb_cpus = sysconf ( _SC_NPROC_ONLN ) ;
+ # elif HAVE_SYSCONF && defined ( _SC_NPROCESSORS_ONLN ) nb_cpus = sysconf ( _SC_NPROCESSORS_ONLN ) ;
+ # endif av_log ( avctx , AV_LOG_DEBUG , "detected %d logical cores\n" , nb_cpus ) ;
+ return n...
+      
+111669149696 | METHOD_PARAMETER_IN | AVCodecContext * avctx
+115964116992 | METHOD_PARAMETER_OUT | AVCodecContext * avctx
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return nb_cpus ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 141733920768 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+68719476736 -> 90194313216 [CFG]
+68719476736 -> 90194313216 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+68719476736 -> 68719476737 [REACHING_DEF]
+68719476736 -> 124554051584 [REACHING_DEF]
+68719476736 -> 94489280513 [REF]
+68719476737 -> 141733920768 [CFG]
+68719476737 -> 141733920768 [DOMINATE]
+68719476737 -> 30064771072 [POST_DOMINATE]
+68719476737 -> 141733920768 [REACHING_DEF]
+68719476737 -> 94489280513 [REF]
+90194313216 -> 30064771072 [CFG]
+90194313216 -> 30064771072 [DOMINATE]
+90194313216 -> 68719476736 [POST_DOMINATE]
+90194313216 -> 68719476736 [REACHING_DEF]
+90194313216 -> 30064771072 [REACHING_DEF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 68719476736 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 30064771072 [CONTAINS]
+107374182400 -> 141733920768 [CONTAINS]
+107374182400 -> 68719476736 [CONTAINS]
+107374182400 -> 90194313216 [CONTAINS]
+107374182400 -> 68719476737 [CONTAINS]
+107374182400 -> 68719476736 [DOMINATE]
+107374182400 -> 68719476737 [REACHING_DEF]
+107374182400 -> 90194313216 [REACHING_DEF]
+107374182400 -> 111669149696 [REACHING_DEF]
+111669149696 -> 115964116992 [PARAMETER_LINK]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 115964116992 [REACHING_DEF]
+111669149696 -> 124554051584 [REACHING_DEF]
+124554051584 -> 141733920768 [POST_DOMINATE]
+141733920768 -> 68719476737 [ARGUMENT]
+141733920768 -> 68719476737 [AST]
+141733920768 -> 124554051584 [CFG]
+141733920768 -> 124554051584 [DOMINATE]
+141733920768 -> 68719476737 [POST_DOMINATE]
+141733920768 -> 124554051584 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void h264_close_context ( PayloadContext * data ) {
+ # ifdef DEBUG int ii ;
+ for ( ii = 0 ;
+ ii < 32 ;
+ ii ++ ) {
+ if ( data -> packet_types_received [ ii ] ) av_log ( NULL , AV_LOG_DEBUG , "Received %d packets of type %d\n" , data -> packet_types_received [ ii ] , ii ) ;
+ }
+ # endif }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

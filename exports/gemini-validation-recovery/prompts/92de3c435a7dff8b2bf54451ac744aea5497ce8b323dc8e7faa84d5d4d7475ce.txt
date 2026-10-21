@@ -1,0 +1,154 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void set_frozenxids ( bool minmxid_only ) {
+ int dbnum ;
+ PGconn * conn , * conn_template1 ;
+ PGresult * dbres ;
+ int ntups ;
+ int i_datname ;
+ int i_datallowconn ;
+ if ( ! minmxid_only ) prep_status ( "Setting frozenxid and minmxid counters in new cluster" ) ;
+ else prep_status ( "Setting minmxid counter in new cluster" ) ;
+ conn_template1 = connectToServer ( & new_cluster , "template1" ) ;
+ if ( ! minmxid_only ) PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datfrozenxid = '%u'" , old_cluster . controldata . chkpnt_nxtxid ) ) ;
+ PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datminmxid = '%u'" , old_cluster . controldata . chkpnt_nxtmulti ) ) ;
+ dbres = executeQueryOrDie ( conn_template1 , "SELECT datname, datallowconn " "FROM pg_catalog.pg_database" ) ;
+ i_datname = PQfnumber ( dbres , "datname" ) ;
+ i_datallowconn = PQfnumber ( dbres , "datallowconn" ) ;
+ ntups = PQntuples ( dbres ) ;
+ for ( dbnum = 0 ;
+ dbnum < ntups ;
+ dbnum ++ ) {
+ char * datname = PQgetvalue ( dbres , dbnum , i_datname ) ;
+ char * datallowconn = PQgetvalue ( dbres , dbnum , i_datallowconn ) ;
+ if ( strcmp ( datallowconn , "f" ) == 0 ) PQclear ( executeQueryOrDie ( conn_template1 , "ALTER DATABASE %s ALLOW_CONNECTIONS = true" , quote_identifier ( datname ) ) ) ;
+ conn = connectToServer ( & new_cluster , datname ) ;
+ if ( ! minmxid_only ) PQclear ( executeQueryOrDie ( conn , "UPDATE pg_catalog.pg_class " "SET relfrozenxid = '%u' " "WHERE relkind IN ('r', 'm', 't')" , old_cluster . controldata . chkpnt_nxtxid ) ) ;
+ PQclear ( executeQueryOrDie ( conn , "UPDATE pg_catalog.pg_class " "SET relminmxid = '%u' " "WHERE relkind IN ('r', 'm', 't')" , old_cluster . controldata . chkpnt_nxtmulti ) ) ;
+ PQfinish ( conn ) ;
+ if ( strcmp ( datallowconn , "f" ) == 0 ) PQclear ( executeQueryOrDie ( conn_template1 , "ALTER DATABASE %s ALLOW_CONNECTIONS = false" , quote_identifier ( datname ) ) ) ;
+ }
+ PQclear ( dbres ) ;
+ PQfinish ( conn_template1 ) ;
+ check_ok ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int dbnum ;
+ PGconn * conn , * conn_template1 ;
+ PGresult * dbres ;
+ int ntups ;
+ int i_datname ;
+ int i_datallowconn ;
+ if ( ! minmxid_only ) prep_status ( "Setting frozenxid and minmxid counters in new cluster" ) ;
+ else prep_status ( "Setting minmxid counter in new cluster" ) ;
+ conn_template1 = connectToServer ( & new_cluster , "template1" ) ;
+ if ( ! minmxid_only ) PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datfrozenxid = '%u'" , old_cluster . controldata . chkpnt_nxtxid ) ) ;
+ PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datminmxid = '%u'" , old_cluster . controldata . chkpnt_nxtmulti ) ) ;
+ dbres = executeQueryOrDie ( conn_template1 , "SELECT datname, datallowconn " "FROM pg_catalog.pg_database" ) ;
+ i_datname = PQfnumber ( dbres , "datname" ) ;
+ i_datallowconn = PQfnumber ( dbres , "datallowconn" ) ;
+ ntups = PQntuples ( dbres ) ;
+ for ( dbnum = 0 ;
+ dbnum < ntups ;
+ dbnum ++ ) {
+ char * dat...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ char * datname = PQgetvalue ( dbres , dbnum , i_datname ) ;
+ char * datallowconn = PQgetvalue ( dbres , dbnum , i_datallowconn ) ;
+ if ( strcmp ( datallowconn , "f" ) == 0 ) PQclear ( executeQueryOrDie ( conn_template1 , "ALTER DATABASE %s ALLOW_CONNECTIONS = true" , quote_identifier ( datname ) ) ) ;
+ conn = connectToServer ( & new_cluster , datname ) ;
+ if ( ! minmxid_only ) PQclear ( executeQueryOrDie ( conn , "UPDATE pg_catalog.pg_class " "SET relfrozenxid = '%u' " "WHERE relkind IN ('r', 'm', 't')" , old_cluster . controldata . chkpnt_nxtxid ) ) ;
+ PQclear ( executeQueryOrDie ( conn , "UPDATE pg_catalog.pg_class " "SET relminmxid = '%u' " "WHERE relkind IN ('r', 'm', 't')" , old_cluster . controldata . chkpnt_nxtmulti ) ) ;
+ PQfinish ( conn ) ;
+ if ( strcmp ( datallowconn , "f" ) == 0 ) PQclear ( executeQueryOrDie ( conn_template1 , "ALTER DATABASE %s ALLOW_CONNECTIONS = false" , quote_identifier ( datname ) ) ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | ! minmxid_only
+30064771073 | CALL | prep_status ( "Setting frozenxid and minmxid counters in new cluster" )
+30064771074 | CALL | prep_status ( "Setting minmxid counter in new cluster" )
+30064771075 | CALL | conn_template1 = connectToServer ( & new_cluster , "template1" )
+30064771076 | CALL | connectToServer ( & new_cluster , "template1" )
+30064771077 | CALL | & new_cluster
+30064771078 | CALL | ! minmxid_only
+30064771079 | CALL | 
+        PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datfrozenxid = '%u'" , old_cluster . controldata . chkpnt_nxtxid ) )
+      
+30064771080 | CALL | 
+        executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datfrozenxid = '%u'" , old_cluster . controldata . chkpnt_nxtxid )
+      
+30064771081 | CALL | old_cluster . controldata . chkpnt_nxtxid
+30064771082 | CALL | old_cluster . controldata
+30064771083 | CALL | 
+        PQclear ( executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datminmxid = '%u'" , old_cluster . controldata . chkpnt_nxtmulti ) )
+      
+30064771084 | CALL | 
+        executeQueryOrDie ( conn_template1 , "UPDATE pg_catalog.pg_database " "SET datminmxid = '%u'" , old_cluster . controldata . chkpnt_nxtmulti )
+      
+30064771085 | CALL | old_cluster . controldata . chkpnt_nxtmulti
+30064771086 | CALL | old_cluster . controldata
+30064771087 | CALL | 
+        dbres = executeQueryOrDie ( conn_template1 , "SELECT datname, datallowconn " "FROM pg_catalog.pg_database" )
+      
+30064771088 | CALL | 
+        executeQueryOrDie ( conn_template1 , "SELECT datname, datallowconn " "FROM pg_catalog.pg_database" )
+      
+30064771089 | CALL | i_datname = PQfnumber ( dbres , "datname" )
+30064771090 | CALL | PQfnumber ( dbres , "datname" )
+30064771091 | CALL | i_datallowconn = PQfnumber ( dbres , "datallowconn" )
+30064771092 | CALL | PQfnumber ( dbres , "datallowconn" )
+30064771093 | CALL | ntups = PQntuples ( dbres )
+30064771094 | CALL | PQntuples ( dbres )
+30064771095 | CALL | dbnum = 0
+30064771096 | CALL | dbnum < ntups
+30064771097 | CALL | dbnum ++
+30064771098 | CALL | datname = PQgetvalue ( dbres , dbnum , i_datname )
+30064771099 | CALL | PQgetvalue ( dbres , dbnum , i_datname )
+30064771100 | CALL | datallowconn = PQgetvalue ( dbres , dbnum , i_datallowconn )
+30064771101 | CALL | PQgetvalue ( dbres , dbnum , i_datallowconn )
+30064771102 | CALL | strcmp ( datallowconn , "f" ) == 0
+30064771103 | CALL | strcmp ( datallowconn , "f" )
+EDGES:
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 30064771073 [AST]
+25769803778 -> 30064771074 [AST]
+25769803779 -> 30064771079 [AST]
+25769803780 -> 30064771098 [AST]
+25769803780 -> 30064771100 [AST]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

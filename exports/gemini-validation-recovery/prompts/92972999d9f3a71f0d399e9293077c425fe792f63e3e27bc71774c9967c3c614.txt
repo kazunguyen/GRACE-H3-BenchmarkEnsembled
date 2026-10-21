@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Node * eval_const_expressions_mutator ( Node * node , eval_const_expressions_context * context ) {
+ if ( node == NULL ) return NULL ;
+ switch ( nodeTag ( node ) ) {
+ case T_Param : {
+ Param * param = ( Param * ) node ;
+ if ( param -> paramkind == PARAM_EXTERN && context -> boundParams != NULL && param -> paramid > 0 && param -> paramid <= context -> boundParams -> numParams ) {
+ ParamExternData * prm = & context -> boundParams -> params [ param -> paramid - 1 ] ;
+ if ( OidIsValid ( prm -> ptype ) ) {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+ }
+ return ( Node * ) copyObject ( param ) ;
+ }
+ case T_WindowFunc : {
+ WindowFunc * expr = ( WindowFunc * ) node ;
+ Oid funcid = expr -> winfnoid ;
+ List * args ;
+ Expr * aggfilter ;
+ HeapTuple func_tuple ;
+ WindowFunc * newexpr ;
+ func_tuple = SearchSysCache1 ( PROCOID , ObjectIdGetDatum ( funcid ) ) ;
+ if ( ! HeapTupleIsValid ( func_tuple ) ) elog ( ERROR , "cache lookup failed for function %u" , funcid ) ;
+ args = expand_function_arguments ( expr -> args , expr -> wintype , func_tuple ) ;
+ ReleaseSysCache ( func_tuple ) ;
+ args = ( List * ) expression_tree_mutator ( ( Node * ) args , eval_const_expressions_mutator , ( void * ) context ) ;
+ aggfilter = ( Expr * ) eval_const_expressions_mutator ( ( Node * ) expr -> aggfilter , context ) ;
+ newexpr = makeNode ( WindowFunc ) ;
+ newexpr -> winfnoid = expr -> winfnoid ;
+ newexpr -> wintype = expr -> wintype ;
+ newexpr -> wincollid = expr -> wincollid ;
+ newexpr -> inputcollid = expr -> inputcollid ;
+ newexpr -> args = args ;
+ newexpr -> aggfilter = aggfilter ;
+ newexpr -> winref = expr -> winref ;
+ newexpr -> winstar = expr -> winstar ;
+ newexpr -> winagg = expr -> winagg ;
+ newexpr -> location = expr -> location ;
+ return ( Node * ) newexpr ;
+ }
+ case T_FuncExpr : {
+ FuncExpr * expr = ( FuncExpr * ) node ;
+ List * args = expr -> args ;
+ Expr * simple ;
+ FuncExpr * newexpr ;
+ simple = simplify_function ( expr -> funcid , expr -> funcresulttype , exprTypmod ( node ) , expr -> funccollid , expr -> inputcollid , & args , expr -> funcvariadic , true , true , context ) ;
+ if ( simple ) return ( Node * ) simple ;
+ newexpr = makeNode ( FuncExpr ) ;
+ newexpr -> funcid = expr -> funcid ;
+ newexpr -> funcresulttype = expr -> funcresulttype ;
+ newexpr -> funcretset = expr -> funcretset ;
+ newexpr -> funcvariadic = expr -> funcvariadic ;
+ newexpr -> funcformat = expr -> funcformat ;
+ newexpr -> funccollid = expr -> funccollid ;
+ newexpr -> inputcollid = expr -> inputcollid ;
+ newexpr -> args = args ;
+ newexpr 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( node == NULL ) return NULL ;
+ switch ( nodeTag ( node ) ) {
+ case T_Param : {
+ Param * param = ( Param * ) node ;
+ if ( param -> paramkind == PARAM_EXTERN && context -> boundParams != NULL && param -> paramid > 0 && param -> paramid <= context -> boundParams -> numParams ) {
+ ParamExternData * prm = & context -> boundParams -> params [ param -> paramid - 1 ] ;
+ if ( OidIsValid ( prm -> ptype ) ) {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+ }
+ return ( Node * ) copyObject ( param ) ;
+ }
+ case T_WindowFunc : {
+ WindowFun...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ case T_Param : {
+ Param * param = ( Param * ) node ;
+ if ( param -> paramkind == PARAM_EXTERN && context -> boundParams != NULL && param -> paramid > 0 && param -> paramid <= context -> boundParams -> numParams ) {
+ ParamExternData * prm = & context -> boundParams -> params [ param -> paramid - 1 ] ;
+ if ( OidIsValid ( prm -> ptype ) ) {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+ }
+ return ( Node * ) copyObject ( param ) ;
+ }
+ case T_WindowFunc : {
+ WindowFunc * expr = ( WindowFunc * ) node ;
+ Oid funcid = expr -> winfnoid ...
+      
+25769803779 | BLOCK | 
+        {
+ Param * param = ( Param * ) node ;
+ if ( param -> paramkind == PARAM_EXTERN && context -> boundParams != NULL && param -> paramid > 0 && param -> paramid <= context -> boundParams -> numParams ) {
+ ParamExternData * prm = & context -> boundParams -> params [ param -> paramid - 1 ] ;
+ if ( OidIsValid ( prm -> ptype ) ) {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+ }
+ return ( Node * ) copyObject ( param ) ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ ParamExternData * prm = & context -> boundParams -> params [ param -> paramid - 1 ] ;
+ if ( OidIsValid ( prm -> ptype ) ) {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( context -> estimate || ( prm -> pflags & PARAM_FLAG_CONST ) ) {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_typlenbyval ( param -> paramtype , & typLen , & typByVal ) ;
+ if ( prm -> isnull || typByVal ) pval = prm -> value ;
+ else pval = datumCopy ( prm -> value , typByVal , typLen ) ;
+ return ( Node * ) makeConst ( param -> paramtype , param -> paramtypmod , param -> paramcollid , ( int ) typLen , pval , prm -> isnull , typByVal ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ int16 typLen ;
+ bool typByVal ;
+ Datum pval ;
+ Assert ( prm -> ptype == param -> paramtype ) ;
+ get_
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

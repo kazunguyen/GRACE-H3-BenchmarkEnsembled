@@ -1,0 +1,144 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_P ( BrowserCloseManagerBrowserTest , MAYBE_AddBeforeUnloadDuringClosing ) {
+ if ( GetParam ( ) ) return ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/title1.html" ) ) ) ;
+ ui_test_utils : : NavigateToURLWithDisposition ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) , WindowOpenDisposition : : NEW_WINDOW , ui_test_utils : : BROWSER_TEST_WAIT_FOR_BROWSER ) ;
+ EXPECT_EQ ( 2u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ auto * browser2 = BrowserList : : GetInstance ( ) -> get ( 0 ) != browser ( ) ? BrowserList : : GetInstance ( ) -> get ( 0 ) : BrowserList : : GetInstance ( ) -> get ( 1 ) ;
+ content : : WaitForLoadStop ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) ) ;
+ EXPECT_TRUE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) -> NeedToFireBeforeUnload ( ) ) ;
+ ui_test_utils : : NavigateToURLWithDisposition ( browser2 , embedded_test_server ( ) -> GetURL ( "/title2.html" ) , WindowOpenDisposition : : NEW_FOREGROUND_TAB , ui_test_utils : : BROWSER_TEST_WAIT_FOR_NAVIGATION ) ;
+ content : : WaitForLoadStop ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) ) ;
+ EXPECT_FALSE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> NeedToFireBeforeUnload ( ) ) ;
+ EXPECT_EQ ( 2 , browser2 -> tab_strip_model ( ) -> count ( ) ) ;
+ PrepareForDialog ( browser2 ) ;
+ TabRestoreServiceChangesObserver restore_observer ( browser2 -> profile ( ) ) ;
+ content : : WindowedNotificationObserver observer ( chrome : : NOTIFICATION_BROWSER_CLOSED , content : : NotificationService : : AllSources ( ) ) ;
+ chrome : : CloseWindow ( browser2 ) ;
+ content : : RunAllPendingInMessageLoop ( ) ;
+ EXPECT_EQ ( 2u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ ASSERT_TRUE ( content : : ExecuteScript ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> GetRenderViewHost ( ) , "window.addEventListener('beforeunload', " "function(event) {
+ event.returnValue = 'Foo';
+ }
+);
+" ) ) ;
+ EXPECT_TRUE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> NeedToFireBeforeUnload ( ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ content : : RunAllPendingInMessageLoop ( ) ;
+ EXPECT_EQ ( 2u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ EXPECT_EQ ( 2 , browser2 -> tab_strip_model ( ) -> count ( ) ) ;
+ ASSERT_NO_FATAL_FAILURE ( AcceptClose ( ) ) ;
+ observer . Wait ( ) ;
+ EXPECT_EQ ( 1u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ EXPECT_EQ ( browser ( ) , BrowserList : : GetInstance ( ) -> get ( 0 ) ) ;
+ EXPECT_EQ ( 1u , restore_observer . changes_count ( ) ) ;
+ content : : WindowedNotificationObserver open_window_observer ( chrome : : NOTIFICATION_BROWSER_OPENED , content : : NotificationService : : AllSources ( ) ) ;
+ chrome : : OpenWindowWithRestoredTabs ( browser ( ) -> profile ( ) ) ;
+ open_window_observer . Wait ( ) ;
+ EXPECT_EQ ( 2u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ browser2 =
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( GetParam ( ) ) return ;
+ ASSERT_NO_FATAL_FAILURE ( ui_test_utils : : NavigateToURL ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/title1.html" ) ) ) ;
+ ui_test_utils : : NavigateToURLWithDisposition ( browser ( ) , embedded_test_server ( ) -> GetURL ( "/beforeunload.html" ) , WindowOpenDisposition : : NEW_WINDOW , ui_test_utils : : BROWSER_TEST_WAIT_FOR_BROWSER ) ;
+ EXPECT_EQ ( 2u , BrowserList : : GetInstance ( ) -> size ( ) ) ;
+ auto * browser2 = BrowserList : : GetInstance ( ) -> get ( 0 ) != browser ( ) ? BrowserList : : GetInstance ( ) -> get ( 0 ) : BrowserList : : GetInstance ( ) -> get ( 1 ) ;
+ content : : WaitForLoadStop ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) ) ;
+ EXPECT_TRUE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) -> NeedToFireBeforeUnload ( ) ) ;
+ ui_test_utils : : NavigateToURLWithDisposition ( browser2 , embedded_test_server ( ) -> GetURL ( "/title2.html" ) , WindowOpenDisposition : : NEW_FOREGROUND_TAB , ui_test_...
+      
+25769803777 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | GetParam ( )
+30064771073 | CALL | browser2 = BrowserList
+30064771074 | CALL | 
+        EXPECT_TRUE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) -> NeedToFireBeforeUnload ( ) )
+      
+30064771075 | CALL | 
+        browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) -> NeedToFireBeforeUnload ( )
+      
+30064771076 | CALL | 
+        browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 ) -> NeedToFireBeforeUnload
+      
+30064771077 | CALL | browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 0 )
+30064771078 | CALL | browser2 -> tab_strip_model ( ) -> GetWebContentsAt
+30064771079 | CALL | browser2 -> tab_strip_model ( )
+30064771080 | CALL | browser2 -> tab_strip_model
+30064771081 | CALL | 
+        EXPECT_FALSE ( browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> NeedToFireBeforeUnload ( ) )
+      
+30064771082 | CALL | 
+        browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> NeedToFireBeforeUnload ( )
+      
+30064771083 | CALL | 
+        browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 ) -> NeedToFireBeforeUnload
+      
+30064771084 | CALL | browser2 -> tab_strip_model ( ) -> GetWebContentsAt ( 1 )
+30064771085 | CALL | browser2 -> tab_strip_model ( ) -> GetWebContentsAt
+30064771086 | CALL | browser2 -> tab_strip_model ( )
+30064771087 | CALL | browser2 -> tab_strip_model
+30064771088 | CALL | EXPECT_EQ ( 2 , browser2 -> tab_strip_model ( ) -> count ( ) )
+30064771089 | CALL | browser2 -> tab_strip_model ( ) -> count ( )
+30064771090 | CALL | browser2 -> tab_strip_model ( ) -> count
+30064771091 | CALL | browser2 -> tab_strip_model ( )
+30064771092 | CALL | browser2 -> tab_strip_model
+30064771093 | CALL | PrepareForDialog ( browser2 )
+30064771094 | CALL | restore_observer ( browser2 -> profile ( ) )
+30064771095 | CALL | browser2 -> profile ( )
+30064771096 | CALL | browser2 -> profile
+47244640256 | CONTROL_STRUCTURE | if ( GetParam ( ) ) return ;
+55834574848 | FIELD_IDENTIFIER | tab_strip_model
+55834574849 | FIELD_IDENTIFIER | GetWebContentsAt
+55834574850 | FIELD_IDENTIFIER | NeedToFireBeforeUnload
+55834574851 | FIELD_IDENTIFIER | tab_strip_model
+55834574852 | FIELD_IDENTIFIER | GetWebContentsAt
+55834574853 | FIELD_IDENTIFIER | NeedToFireBeforeUnload
+55834574854 | FIELD_IDENTIFIER | tab_strip_model
+55834574855 | FIELD_IDENTIFIER | count
+55834574856 | FIELD_IDENTIFIER | profile
+68719476736 | IDENTIFIER | browser2
+68719476737 | IDENTIFIER | <unknown> BrowserList
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771094 [AST]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 55834574856 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 3006
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

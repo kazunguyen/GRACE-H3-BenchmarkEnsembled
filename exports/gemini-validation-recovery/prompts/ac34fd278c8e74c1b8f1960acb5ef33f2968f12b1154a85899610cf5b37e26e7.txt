@@ -1,0 +1,237 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static gboolean copy_move_directory ( CopyMoveJob * copy_job , GFile * src , GFile * * dest , gboolean same_fs , gboolean create_dest , char * * parent_dest_fs_type , SourceInfo * source_info , TransferInfo * transfer_info , GHashTable * debuting_files , gboolean * skipped_file , gboolean readonly_source_fs ) {
+ GFileInfo * info ;
+ GError * error ;
+ GFile * src_file ;
+ GFileEnumerator * enumerator ;
+ char * primary , * secondary , * details ;
+ char * dest_fs_type ;
+ int response ;
+ gboolean skip_error ;
+ gboolean local_skipped_file ;
+ CommonJob * job ;
+ GFileCopyFlags flags ;
+ job = ( CommonJob * ) copy_job ;
+ if ( create_dest ) {
+ switch ( create_dest_dir ( job , src , dest , same_fs , parent_dest_fs_type ) ) {
+ case CREATE_DEST_DIR_RETRY : {
+ return FALSE ;
+ }
+ case CREATE_DEST_DIR_FAILED : {
+ * skipped_file = TRUE ;
+ return TRUE ;
+ }
+ case CREATE_DEST_DIR_SUCCESS : default : {
+ }
+ break ;
+ }
+ if ( debuting_files ) {
+ g_hash_table_replace ( debuting_files , g_object_ref ( * dest ) , GINT_TO_POINTER ( TRUE ) ) ;
+ }
+ }
+ local_skipped_file = FALSE ;
+ dest_fs_type = NULL ;
+ skip_error = should_skip_readdir_error ( job , src ) ;
+ retry : error = NULL ;
+ enumerator = g_file_enumerate_children ( src , G_FILE_ATTRIBUTE_STANDARD_NAME , G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS , job -> cancellable , & error ) ;
+ if ( enumerator ) {
+ error = NULL ;
+ while ( ! job_aborted ( job ) && ( info = g_file_enumerator_next_file ( enumerator , job -> cancellable , skip_error ? NULL : & error ) ) != NULL ) {
+ src_file = g_file_get_child ( src , g_file_info_get_name ( info ) ) ;
+ copy_move_file ( copy_job , src_file , * dest , same_fs , FALSE , & dest_fs_type , source_info , transfer_info , NULL , NULL , FALSE , & local_skipped_file , readonly_source_fs ) ;
+ if ( local_skipped_file ) {
+ transfer_add_file_to_count ( src_file , job , transfer_info ) ;
+ report_copy_progress ( copy_job , source_info , transfer_info ) ;
+ }
+ g_object_unref ( src_file ) ;
+ g_object_unref ( info ) ;
+ }
+ g_file_enumerator_close ( enumerator , job -> cancellable , NULL ) ;
+ g_object_unref ( enumerator ) ;
+ if ( error && IS_IO_ERROR ( error , CANCELLED ) ) {
+ g_error_free ( error ) ;
+ }
+ else if ( error ) {
+ if ( copy_job -> is_move ) {
+ primary = f ( _ ( "Error while moving." ) ) ;
+ }
+ else {
+ primary = f ( _ ( "Error while copying." ) ) ;
+ }
+ details = NULL ;
+ if ( IS_IO_ERROR ( error , PERMISSION_DENIED ) ) {
+ secondary = f ( _ ( "Files in the folder “%B” cannot be copied because you do " "not have permissions to see them." ) , src ) ;
+ }
+ else {
+ secondary = f ( _ ( "There was an error getting information about the files in the folder “%B”." ) , src ) ;
+ details = error -> message ;
+ }
+ response = run_warning ( job , primary , secondary , details , FALSE , CANCEL , _ ( "_Skip files" ) , NULL ) ;
+ g_error_free ( error ) ;
+ if ( response == 0 || response == GTK_RESPONSE_DELETE_EVENT ) {
+ abort_job ( job ) ;
+ }
+ else if ( response == 1 ) {
+ local_skipped_file = TRUE ;
+ }
+ else {
+ g_assert_not_reache
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GFileInfo * info ;
+ GError * error ;
+ GFile * src_file ;
+ GFileEnumerator * enumerator ;
+ char * primary , * secondary , * details ;
+ char * dest_fs_type ;
+ int response ;
+ gboolean skip_error ;
+ gboolean local_skipped_file ;
+ CommonJob * job ;
+ GFileCopyFlags flags ;
+ job = ( CommonJob * ) copy_job ;
+ if ( create_dest ) {
+ switch ( create_dest_dir ( job , src , dest , same_fs , parent_dest_fs_type ) ) {
+ case CREATE_DEST_DIR_RETRY : {
+ return FALSE ;
+ }
+ case CREATE_DEST_DIR_FAILED : {
+ * skipped_file = TRUE ;
+ return TRUE ;
+ }
+ case CREATE_DEST_DIR_SUCCESS : default : {
+ }
+ break ;
+ }
+ if ( debuting_files ) {
+ g_hash_table_replace ( debuting_files , g_object_ref ( * dest ) , GINT_TO_POINTER ( TRUE ) ) ;
+ }
+ }
+ local_skipped_file = FALSE ;
+ dest_fs_type = NULL ;
+ skip_error = should_skip_readdir_error ( job , src ) ;
+ retry : error = NULL ;
+ enumerator = g_file_enumerate_children ( src , G_FILE_ATTRIBUTE_STANDARD_NAME , G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS , job -> cancellable , ...
+      
+25769803777 | BLOCK | 
+        {
+ switch ( create_dest_dir ( job , src , dest , same_fs , parent_dest_fs_type ) ) {
+ case CREATE_DEST_DIR_RETRY : {
+ return FALSE ;
+ }
+ case CREATE_DEST_DIR_FAILED : {
+ * skipped_file = TRUE ;
+ return TRUE ;
+ }
+ case CREATE_DEST_DIR_SUCCESS : default : {
+ }
+ break ;
+ }
+ if ( debuting_files ) {
+ g_hash_table_replace ( debuting_files , g_object_ref ( * dest ) , GINT_TO_POINTER ( TRUE ) ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ case CREATE_DEST_DIR_RETRY : {
+ return FALSE ;
+ }
+ case CREATE_DEST_DIR_FAILED : {
+ * skipped_file = TRUE ;
+ return TRUE ;
+ }
+ case CREATE_DEST_DIR_SUCCESS : default : {
+ }
+ break ;
+ }
+      
+25769803779 | BLOCK | { return FALSE ; }
+25769803780 | BLOCK | { * skipped_file = TRUE ; return TRUE ; }
+25769803781 | BLOCK | { }
+25769803782 | BLOCK | 
+        {
+ g_hash_table_replace ( debuting_files , g_object_ref ( * dest ) , GINT_TO_POINTER ( TRUE ) ) ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ error = NULL ;
+ while ( ! job_aborted ( job ) && ( info = g_file_enumerator_next_file ( enumerator , job -> cancellable , skip_error ? NULL : & error ) ) != NULL ) {
+ src_file = g_file_get_child ( src , g_file_info_get_name ( info ) ) ;
+ copy_move_file ( copy_job , src_file , * dest , same_fs , FALSE , & dest_fs_type , source_info , transfer_info , NULL , NULL , FALSE , & local_skipped_file , readonly_source_fs ) ;
+ if ( local_skipped_file ) {
+ transfer_add_file_to_count ( src_file , job , transfer_info ) ;
+ report_copy_progress ( copy_job , source_info , transfer_info ) ;
+ }
+ g_object_unref ( src_file ) ;
+ g_object_unref ( info ) ;
+ }
+ g_file_enumerator_close ( enumerator , job -> cancellable , NULL ) ;
+ g_object_unref ( enumerator ) ;
+ if ( error && IS_IO_ERROR ( error , CANCELLED ) ) {
+ g_error_free ( error ) ;
+ }
+ else if ( error ) {
+ if ( copy_job -> is_move ) {
+ primary = f ( _ ( "Error while moving." ) ) ;
+ }
+ else {
+ primary = f ( _ ( "Error while copying." ) ) ;
+ }
+ deta...
+      
+25769803784 | BLOCK | 
+        {
+ src_file = g_file_get_child ( src , g_file_info_get_name ( info ) ) ;
+ copy_move_file ( copy_job , src_file , * dest , same_fs , FALSE , & dest_fs_type , source_info , transfer_info , NULL , NULL , FALSE , & local_skipped_file , readonly_source_fs ) ;
+ if ( local_skipped_file ) {
+ transfer_add_file_to_count ( src_file , job , transfer_info ) ;
+ report_copy_progress ( copy_job , source_info , transfer_info ) ;
+ }
+ g_object_unref ( src_file ) ;
+ g_object_unref ( info ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ transfer_add_file_to_count ( src_file , job , transfer_info ) ;
+ report_copy_progress ( copy_job , source_info , transfer_info ) ;
+ }
+      
+25769803786 | BLOCK | { g_error_free ( error ) ; }
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | 
+        {
+ if ( copy_job -> is_move ) {
+ primary = f ( _ ( "Error while moving." ) ) ;
+ }
+ else {
+ primary = f ( _ ( "Error while copying." ) ) ;
+ }
+ details = NULL ;
+ if ( IS_IO_ERROR ( error , PERMISSION_DENIED ) ) {
+ secondary = f ( _ ( "Files in the folder “%B” cannot be copied because you do " "not have permissions to see them." ) , src ) ;
+ }
+ else {
+ secondary = f ( _ ( "There was an error getting information about the files in the folder “%B”." ) , src ) ;
+ details = error -> message ;
+ }
+ response = run_warning ( job , primary , secondary , det
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void full_to_model_counts ( vp9_coeff_count_model * model_count , vp9_coeff_count * full_count ) {
+ int i , j , k , l ;
+ for ( i = 0 ;
+ i < PLANE_TYPES ;
+ ++ i ) for ( j = 0 ;
+ j < REF_TYPES ;
+ ++ j ) for ( k = 0 ;
+ k < COEF_BANDS ;
+ ++ k ) for ( l = 0 ;
+ l < BAND_COEFF_CONTEXTS ( k ) ;
+ ++ l ) full_to_model_count ( model_count [ i ] [ j ] [ k ] [ l ] , full_count [ i ] [ j ] [ k ] [ l ] ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int i , j , k , l ;
+ for ( i = 0 ;
+ i < PLANE_TYPES ;
+ ++ i ) for ( j = 0 ;
+ j < REF_TYPES ;
+ ++ j ) for ( k = 0 ;
+ k < COEF_BANDS ;
+ ++ k ) for ( l = 0 ;
+ l < BAND_COEFF_CONTEXTS ( k ) ;
+ ++ l ) full_to_model_count ( model_count [ i ] [ j ] [ k ] [ l ] , full_count [ i ] [ j ] [ k ] [ l ] ) ;
+ }
+      
+30064771072 | CALL | i = 0
+30064771073 | CALL | i < PLANE_TYPES
+30064771074 | CALL | ++ i
+30064771075 | CALL | j = 0
+30064771076 | CALL | j < REF_TYPES
+30064771077 | CALL | ++ j
+30064771078 | CALL | k = 0
+30064771079 | CALL | k < COEF_BANDS
+30064771080 | CALL | ++ k
+30064771081 | CALL | l = 0
+30064771082 | CALL | l < BAND_COEFF_CONTEXTS ( k )
+30064771083 | CALL | BAND_COEFF_CONTEXTS ( k )
+30064771084 | CALL | ++ l
+30064771085 | CALL | 
+        full_to_model_count ( model_count [ i ] [ j ] [ k ] [ l ] , full_count [ i ] [ j ] [ k ] [ l ] )
+      
+30064771086 | CALL | model_count [ i ] [ j ] [ k ] [ l ]
+30064771087 | CALL | model_count [ i ] [ j ] [ k ]
+30064771088 | CALL | model_count [ i ] [ j ]
+30064771089 | CALL | model_count [ i ]
+30064771090 | CALL | full_count [ i ] [ j ] [ k ] [ l ]
+30064771091 | CALL | full_count [ i ] [ j ] [ k ]
+30064771092 | CALL | full_count [ i ] [ j ]
+30064771093 | CALL | full_count [ i ]
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < PLANE_TYPES;++ i)
+47244640257 | CONTROL_STRUCTURE | for (j = 0 ;j < REF_TYPES;++ j)
+47244640258 | CONTROL_STRUCTURE | for (k = 0 ;k < COEF_BANDS;++ k)
+47244640259 | CONTROL_STRUCTURE | for (l = 0 ;l < BAND_COEFF_CONTEXTS ( k );++ l)
+68719476736 | IDENTIFIER | i
+68719476737 | IDENTIFIER | i
+68719476738 | IDENTIFIER | <unknown> PLANE_TYPES
+68719476739 | IDENTIFIER | i
+68719476740 | IDENTIFIER | j
+68719476741 | IDENTIFIER | j
+68719476742 | IDENTIFIER | <unknown> REF_TYPES
+68719476743 | IDENTIFIER | j
+68719476744 | IDENTIFIER | k
+68719476745 | IDENTIFIER | k
+68719476746 | IDENTIFIER | <unknown> COEF_BANDS
+68719476747 | IDENTIFIER | k
+68719476748 | IDENTIFIER | l
+EDGES:
+25769803776 -> 47244640256 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 68719476740 [CDG]
+30064771073 -> 68719476739 [CDG]
+30064771073 -> 68719476738 [CDG]
+30064771073 -> 68719476737 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771074 [CDG]
+30064771073 -> 30064771073 [CDG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476737 [CFG]
+30064771074 -> 68719476739 [POST_DOMINATE]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 68719476746 [CDG]
+30064771076 -> 68719476745 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771076 [CDG]
+30064771076 -> 68719476744 [CFG]
+30064771076 -> 68719476739 [CFG]
+30064771076 -> 68719476744 [DOMINATE]
+30064771076 -> 68719476739 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 68719476741 [CFG]
+30064771077 -> 68719476743 [POST_DOMINATE]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 68719476745 [CFG]
+30064771078 -> 68719476745 [DOMINATE]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 68719476746 [ARGUMENT]
+30064771079 -> 68719476745 [AST]
+30064771079 -> 68719476746 [AST]
+30064771079 -> 68719476748 [CDG]
+30064771079 -> 68719476747 [CDG]
+30064771079 -> 68719476746 [CDG]
+30064771079 -> 68719476745 [CDG]
+30064771079 -> 30064771079 [CDG]
+30064771079 -> 30064771083 [CDG]
+30064771079 -> 30064771082 [CDG]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 68719476748 [CFG]
+30064771079 -> 68719476743 [CFG]
+30064771079 -> 68719476748 [DOMINATE]
+30064771079 -> 68719476743 [DOMINATE]
+30064771079 -> 68719476746 [POST_DOMINATE]
+30064771080 -> 68719476747 [ARGUMENT]
+30064771080 -> 68719476747 [AST]
+30064771080 -> 68719476745 [CFG]
+30064771080 -> 68719476747 [POST_DOMINATE]
+30064771081 -> 68719476748 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void create_clusters ( const AVFrame * frame , int w , int h , uint8_t * yuvClusters ) {
+ int i , j , k , l ;
+ for ( i = 0 ;
+ i < h ;
+ i += 4 ) for ( j = 0 ;
+ j < w ;
+ j += 4 ) {
+ for ( k = 0 ;
+ k < 2 ;
+ k ++ ) for ( l = 0 ;
+ l < 2 ;
+ l ++ ) frame_block_to_cell ( yuvClusters + ( l + 2 * k ) * 6 , frame -> data , i + 2 * k , j + 2 * l , frame -> linesize ) ;
+ yuvClusters += 24 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

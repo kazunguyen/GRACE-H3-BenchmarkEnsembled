@@ -1,0 +1,211 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static const char * cgfs_canonical_path ( void * hdata ) {
+ struct cgfs_data * d = hdata ;
+ struct cgroup_process_info * info_ptr ;
+ char * path = NULL ;
+ if ( ! d ) return NULL ;
+ for ( info_ptr = d -> info ;
+ info_ptr ;
+ info_ptr = info_ptr -> next ) {
+ if ( ! path ) path = info_ptr -> cgroup_path ;
+ else if ( strcmp ( path , info_ptr -> cgroup_path ) != 0 ) {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+ }
+ return path ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct cgfs_data * d = hdata ;
+ struct cgroup_process_info * info_ptr ;
+ char * path = NULL ;
+ if ( ! d ) return NULL ;
+ for ( info_ptr = d -> info ;
+ info_ptr ;
+ info_ptr = info_ptr -> next ) {
+ if ( ! path ) path = info_ptr -> cgroup_path ;
+ else if ( strcmp ( path , info_ptr -> cgroup_path ) != 0 ) {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+ }
+ return path ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( ! path ) path = info_ptr -> cgroup_path ;
+ else if ( strcmp ( path , info_ptr -> cgroup_path ) != 0 ) {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+      
+30064771072 | CALL | d = hdata
+30064771073 | CALL | path = NULL
+30064771074 | CALL | ! d
+30064771075 | CALL | info_ptr = d -> info
+30064771076 | CALL | d -> info
+30064771077 | CALL | info_ptr != NULL
+30064771078 | CALL | info_ptr = info_ptr -> next
+30064771079 | CALL | info_ptr -> next
+30064771080 | CALL | ! path
+30064771081 | CALL | path = info_ptr -> cgroup_path
+30064771082 | CALL | info_ptr -> cgroup_path
+30064771083 | CALL | strcmp ( path , info_ptr -> cgroup_path ) != 0
+30064771084 | CALL | strcmp ( path , info_ptr -> cgroup_path )
+30064771085 | CALL | info_ptr -> cgroup_path
+30064771086 | CALL | 
+        ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path )
+      
+30064771087 | CALL | info_ptr -> hierarchy -> subsystems [ 0 ]
+30064771088 | CALL | info_ptr -> hierarchy -> subsystems
+30064771089 | CALL | info_ptr -> hierarchy
+30064771090 | CALL | info_ptr -> cgroup_path
+47244640256 | CONTROL_STRUCTURE | if ( ! d ) return NULL ;
+47244640257 | CONTROL_STRUCTURE | for (info_ptr = d -> info ;info_ptr;info_ptr = info_ptr -> next)
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ! path ) path = info_ptr -> cgroup_path ;
+ else if ( strcmp ( path , info_ptr -> cgroup_path ) != 0 ) {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+      
+47244640259 | CONTROL_STRUCTURE | 
+        if ( strcmp ( path , info_ptr -> cgroup_path ) != 0 ) {
+ ERROR ( "not all paths match %s, %s has path %s" , path , info_ptr -> hierarchy -> subsystems [ 0 ] , info_ptr -> cgroup_path ) ;
+ return NULL ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | info
+55834574849 | FIELD_IDENTIFIER | next
+55834574850 | FIELD_IDENTIFIER | cgroup_path
+55834574851 | FIELD_IDENTIFIER | cgroup_path
+55834574852 | FIELD_IDENTIFIER | hierarchy
+55834574853 | FIELD_IDENTIFIER | subsystems
+55834574854 | FIELD_IDENTIFIER | cgroup_path
+68719476736 | IDENTIFIER | d
+68719476737 | IDENTIFIER | hdata
+68719476738 | IDENTIFIER | path
+68719476739 | IDENTIFIER | <unknown> NULL
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 47244640258 [AST]
+25769803779 -> 30064771081 [AST]
+25769803780 -> 47244640259 [AST]
+25769803781 -> 30064771086 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 55834574848 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 55834574849 [ARGUMENT]
+30064771079 -> 55834574849 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574849 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 55834574849 [CDG]
+30064771080 -> 55834574850 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771077 [CDG]
+30064771080 -> 30064771078 [CDG]
+30064771080 -> 30064771079 [CDG]
+30064771080 -> 55834574851 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 55834574850 [ARGUMENT]
+30064771082 -> 55834574850 [AST]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 55834574850 [POST_DOMINATE]
+30064771082 -> 30064771085 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771089 [CDG]
+30064771083 -> 30064771090 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771087 [CDG]
+30064771083 -> 30064771088 [CDG]
+30064771083 -> 55834574849 [CDG]
+30064771083 -> 30064771077 [CDG]
+30064771083 -> 30064771078 [CDG]
+30064771083 -> 30064771079 [CDG]
+30064771083 -> 55834574852 [CDG]
+30064771083 -> 55834574853 [CDG]
+30064771083 -> 55834574854 [CDG]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static char * lxc_cgroup_get_hierarchy_abs_path_data ( const char * subsystem , struct cgfs_data * d ) {
+ struct cgroup_process_info * info = d -> info ;
+ struct cgroup_mount_point * mp = NULL ;
+ info = find_info_for_subsystem ( info , subsystem ) ;
+ if ( ! info ) return NULL ;
+ if ( info -> designated_mount_point ) {
+ mp = info -> designated_mount_point ;
+ }
+ else {
+ mp = lxc_cgroup_find_mount_point ( info -> hierarchy , info -> cgroup_path , true ) ;
+ if ( ! mp ) return NULL ;
+ }
+ return cgroup_to_absolute_path ( mp , info -> cgroup_path , NULL ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

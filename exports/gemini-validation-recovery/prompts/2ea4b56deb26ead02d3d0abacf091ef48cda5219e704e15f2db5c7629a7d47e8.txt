@@ -1,0 +1,359 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void xen_hvm_init(PCMachineState *pcms, MemoryRegion **ram_memory)
+
+{
+
+    int i, rc;
+
+    xen_pfn_t ioreq_pfn;
+
+    xen_pfn_t bufioreq_pfn;
+
+    evtchn_port_t bufioreq_evtchn;
+
+    XenIOState *state;
+
+
+
+    state = g_malloc0(sizeof (XenIOState));
+
+
+
+    state->xce_handle = xenevtchn_open(NULL, 0);
+
+    if (state->xce_handle == NULL) {
+
+        perror("xen: event channel open");
+
+        goto err;
+
+    }
+
+
+
+    state->xenstore = xs_daemon_open();
+
+    if (state->xenstore == NULL) {
+
+        perror("xen: xenstore open");
+
+        goto err;
+
+    }
+
+
+
+    rc = xen_create_ioreq_server(xen_xc, xen_domid, &state->ioservid);
+
+    if (rc < 0) {
+
+        perror("xen: ioreq server create");
+
+        goto err;
+
+    }
+
+
+
+    state->exit.notify = xen_exit_notifier;
+
+    qemu_add_exit_notifier(&state->exit);
+
+
+
+    state->suspend.notify = xen_suspend_notifier;
+
+    qemu_register_suspend_notifier(&state->suspend);
+
+
+
+    state->wakeup.notify = xen_wakeup_notifier;
+
+    qemu_register_wakeup_notifier(&state->wakeup);
+
+
+
+    rc = xen_get_ioreq_server_info(xen_xc, xen_domid, state->ioservid,
+
+                                   &ioreq_pfn, &bufioreq_pfn,
+
+                                   &bufioreq_evtchn);
+
+    if (rc < 0) {
+
+        error_report("failed to get ioreq server info: error %d handle=" XC_INTERFACE_FMT,
+
+                     errno, xen_xc);
+
+        goto err;
+
+    }
+
+
+
+    DPRINTF("shared page at pfn %lx\n", ioreq_pfn);
+
+    DPRINTF("buffered io page at pfn %lx\n", bufioreq_pfn);
+
+    DPRINTF("buffered io evtchn is %x\n", bufioreq_evtchn);
+
+
+
+    state->shared_page = xc_map_foreign_range(xen_xc, xen_domid, XC_PAGE_SIZE,
+
+                                              PROT_READ|PROT_WRITE, ioreq_pfn);
+
+    if (state->shared_page == NULL) {
+
+        error_report("map shared IO page returned error %d handle=" XC_INTERFACE_FMT,
+
+                     errno, xen_xc);
+
+        goto err;
+
+    }
+
+
+
+    rc = xen_get_vmport_regs_pfn(xen_xc, xen_domid, &ioreq_pfn);
+
+    if (!rc) {
+
+        DPRINTF("shared vmport page at pfn %lx\n", ioreq_pfn);
+
+        state->shared_vmport_page =
+
+            xc_map_foreign_range(xen_xc, xen_domid, XC_PAGE_SIZE,
+
+                                 PROT_READ|PROT_WRITE, ioreq_pfn);
+
+        if (state->shared_vmport_page == NULL) {
+
+            error_report("map shared vmport IO page returned error %d handle="
+
+                         XC_INTERFACE_FMT, errno, xen_xc);
+
+            goto err;
+
+        }
+
+    } else if (rc != -ENOSYS) {
+
+        error_report("get vmport regs pfn returned error %d, rc=%d",
+
+                     errno, rc);
+
+        goto err;
+
+    }
+
+
+
+    state->buffered_io_page = xc_map_foreign_range(xen_xc, xen_domid,
+
+                                                   XC_PAGE_SIZE,
+
+                                                   PROT_READ|PROT_WRITE,
+
+                                                   bufioreq_pfn);
+
+    if (state->buffered_io_page == NULL) {
+
+        error_report("map buffered IO page returned err
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+4 -> 12 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+17 -> 19 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+4 -> 16 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+4 -> 20 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 27 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+4 -> 24 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+4 -> 28 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+40 -> 44 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+4 -> 39 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+55 -> 57 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 58 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+61 -> 64 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+59 -> 67 [IS_AST_PARENT]
+52 -> 59 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 77 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+4 -> 69 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+80 -> 84 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void xen_hvm_init(PCMachineState *pcms, MemoryRegion **ram_memory)
+
+{
+
+    int i, rc;
+
+    xen_pfn_t ioreq_pfn;
+
+    xen_pfn_t bufioreq_pfn;
+
+    evtchn_port_t bufioreq_evtchn;
+
+    XenIOState *state;
+
+
+
+    state = g_malloc0(sizeof (XenIOState));
+
+
+
+    state->xce_handle = xen_xc_evtchn_open(NULL, 0);
+
+    if (state->xce_handle == XC_HANDLER_INITIAL_VALUE) {
+
+        perror("xen: event channel open");
+
+        goto err;
+
+    }
+
+
+
+    state->xenstore = xs_daemon_open();
+
+    if (state->xenstore == NULL) {
+
+        perror("xen: xenstore open");
+
+        goto err;
+
+    }
+
+
+
+    rc = xen_create_ioreq_server(xen_xc, xen_domid, &state->ioservid);
+
+    if (rc < 0) {
+
+        perror("xen: ioreq server create");
+
+        goto err;
+
+    }
+
+
+
+    state->exit.notify = xen_exit_notifier;
+
+    qemu_add_exit_notifier(&state->exit);
+
+
+
+    state->suspend.notify = xen_suspend_notifier;
+
+    qemu_register_suspend_notifier(&state->suspend);
+
+
+
+    state->wakeup.notify = xen_wakeup_notifier;
+
+    qemu_register_wakeup_notifier(&state->wakeup);
+
+
+
+    rc = xen_get_ioreq_server_info(xen_xc, xen_domid, state->ioservid,
+
+                                   &ioreq_pfn, &bufioreq_pfn,
+
+                                   &bufioreq_evtchn);
+
+    if (rc < 0) {
+
+        error_report("failed to get ioreq server info: error %d handle=" XC_INTERFACE_FMT,
+
+                     errno, xen_xc);
+
+        goto err;
+
+    }
+
+
+
+    DPRINTF("shared page at pfn %lx\n", ioreq_pfn);
+
+    DPRINTF("buffered io page at pfn 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,234 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static size_t try_block ( const char * d , size_t dlen , const char * fromcode , const char * tocode , encoder_t * encoder , size_t * wlen ) {
+ char buf [ ENCWORD_LEN_MAX - ENCWORD_LEN_MIN + 1 ] ;
+ const char * ib = NULL ;
+ char * ob = NULL ;
+ size_t ibl , obl ;
+ int count , len , len_b , len_q ;
+ if ( fromcode ) {
+ iconv_t cd = mutt_ch_iconv_open ( tocode , fromcode , 0 ) ;
+ assert ( cd != ( iconv_t ) ( - 1 ) ) ;
+ ib = d ;
+ ibl = dlen ;
+ ob = buf ;
+ obl = sizeof ( buf ) - strlen ( tocode ) ;
+ if ( iconv ( cd , ( ICONV_CONST char * * ) & ib , & ibl , & ob , & obl ) == ( size_t ) ( - 1 ) || iconv ( cd , NULL , NULL , & ob , & obl ) == ( size_t ) ( - 1 ) ) {
+ assert ( errno == E2BIG ) ;
+ iconv_close ( cd ) ;
+ assert ( ib > d ) ;
+ return ( ib - d == dlen ) ? dlen : ib - d + 1 ;
+ }
+ iconv_close ( cd ) ;
+ }
+ else {
+ if ( dlen > ( sizeof ( buf ) - strlen ( tocode ) ) ) return ( sizeof ( buf ) - strlen ( tocode ) + 1 ) ;
+ memcpy ( buf , d , dlen ) ;
+ ob = buf + dlen ;
+ }
+ count = 0 ;
+ for ( char * p = buf ;
+ p < ob ;
+ p ++ ) {
+ unsigned char c = * p ;
+ assert ( strchr ( MimeSpecials , '?' ) ) ;
+ if ( ( c >= 0x7f ) || ( c < 0x20 ) || ( * p == '_' ) || ( ( c != ' ' ) && strchr ( MimeSpecials , * p ) ) ) {
+ count ++ ;
+ }
+ }
+ len = ENCWORD_LEN_MIN - 2 + strlen ( tocode ) ;
+ len_b = len + ( ( ( ob - buf ) + 2 ) / 3 ) * 4 ;
+ len_q = len + ( ob - buf ) + 2 * count ;
+ if ( mutt_str_strcasecmp ( tocode , "ISO-2022-JP" ) == 0 ) len_q = ENCWORD_LEN_MAX + 1 ;
+ if ( ( len_b < len_q ) && ( len_b <= ENCWORD_LEN_MAX ) ) {
+ * encoder = b_encoder ;
+ * wlen = len_b ;
+ return 0 ;
+ }
+ else if ( len_q <= ENCWORD_LEN_MAX ) {
+ * encoder = q_encoder ;
+ * wlen = len_q ;
+ return 0 ;
+ }
+ else return dlen ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ char buf [ ENCWORD_LEN_MAX - ENCWORD_LEN_MIN + 1 ] ;
+ const char * ib = NULL ;
+ char * ob = NULL ;
+ size_t ibl , obl ;
+ int count , len , len_b , len_q ;
+ if ( fromcode ) {
+ iconv_t cd = mutt_ch_iconv_open ( tocode , fromcode , 0 ) ;
+ assert ( cd != ( iconv_t ) ( - 1 ) ) ;
+ ib = d ;
+ ibl = dlen ;
+ ob = buf ;
+ obl = sizeof ( buf ) - strlen ( tocode ) ;
+ if ( iconv ( cd , ( ICONV_CONST char * * ) & ib , & ibl , & ob , & obl ) == ( size_t ) ( - 1 ) || iconv ( cd , NULL , NULL , & ob , & obl ) == ( size_t ) ( - 1 ) ) {
+ assert ( errno == E2BIG ) ;
+ iconv_close ( cd ) ;
+ assert ( ib > d ) ;
+ return ( ib - d == dlen ) ? dlen : ib - d + 1 ;
+ }
+ iconv_close ( cd ) ;
+ }
+ else {
+ if ( dlen > ( sizeof ( buf ) - strlen ( tocode ) ) ) return ( sizeof ( buf ) - strlen ( tocode ) + 1 ) ;
+ memcpy ( buf , d , dlen ) ;
+ ob = buf + dlen ;
+ }
+ count = 0 ;
+ for ( char * p = buf ;
+ p < ob ;
+ p ++ ) {
+ unsigned char c = * p ;
+ assert ( strchr ( MimeSpecials , '?' ) ) ;
+ if ( ( c >= 0x7f ) || ( c < 0x20...
+      
+25769803777 | BLOCK | 
+        {
+ iconv_t cd = mutt_ch_iconv_open ( tocode , fromcode , 0 ) ;
+ assert ( cd != ( iconv_t ) ( - 1 ) ) ;
+ ib = d ;
+ ibl = dlen ;
+ ob = buf ;
+ obl = sizeof ( buf ) - strlen ( tocode ) ;
+ if ( iconv ( cd , ( ICONV_CONST char * * ) & ib , & ibl , & ob , & obl ) == ( size_t ) ( - 1 ) || iconv ( cd , NULL , NULL , & ob , & obl ) == ( size_t ) ( - 1 ) ) {
+ assert ( errno == E2BIG ) ;
+ iconv_close ( cd ) ;
+ assert ( ib > d ) ;
+ return ( ib - d == dlen ) ? dlen : ib - d + 1 ;
+ }
+ iconv_close ( cd ) ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ assert ( errno == E2BIG ) ;
+ iconv_close ( cd ) ;
+ assert ( ib > d ) ;
+ return ( ib - d == dlen ) ? dlen : ib - d + 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( dlen > ( sizeof ( buf ) - strlen ( tocode ) ) ) return ( sizeof ( buf ) - strlen ( tocode ) + 1 ) ;
+ memcpy ( buf , d , dlen ) ;
+ ob = buf + dlen ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ unsigned char c = * p ;
+ assert ( strchr ( MimeSpecials , '?' ) ) ;
+ if ( ( c >= 0x7f ) || ( c < 0x20 ) || ( * p == '_' ) || ( ( c != ' ' ) && strchr ( MimeSpecials , * p ) ) ) {
+ count ++ ;
+ }
+ }
+      
+25769803782 | BLOCK | { count ++ ; }
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | { * encoder = b_encoder ; * wlen = len_b ; return 0 ; }
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | { * encoder = q_encoder ; * wlen = len_q ; return 0 ; }
+25769803787 | BLOCK | <empty>
+30064771072 | CALL | buf [ ENCWORD_LEN_MAX - ENCWORD_LEN_MIN + 1 ]
+30064771073 | CALL | buf [ ENCWORD_LEN_MAX - ENCWORD_LEN_MIN + 1 ]
+30064771074 | CALL | ENCWORD_LEN_MAX - ENCWORD_LEN_MIN + 1
+30064771075 | CALL | ENCWORD_LEN_MAX - ENCWORD_LEN_MIN
+30064771076 | CALL | ib = NULL
+30064771077 | CALL | ob = NULL
+30064771078 | CALL | fromcode != NULL
+30064771079 | CALL | cd = mutt_ch_iconv_open ( tocode , fromcode , 0 )
+30064771080 | CALL | mutt_ch_iconv_open ( tocode , fromcode , 0 )
+30064771081 | CALL | assert ( cd != ( iconv_t ) ( - 1 ) )
+30064771082 | CALL | cd != ( iconv_t ) ( - 1 )
+30064771083 | CALL | ( iconv_t ) ( - 1 )
+30064771084 | CALL | - 1
+30064771085 | CALL | ib = d
+30064771086 | CALL | ibl = dlen
+30064771087 | CALL | ob = buf
+30064771088 | CALL | obl = sizeof ( buf ) - strlen ( tocode )
+30064771089 | CALL | sizeof ( buf ) - strlen ( tocode )
+30064771090 | CALL | sizeof ( buf )
+30064771091 | CALL | strlen ( tocode )
+30064771092 | CALL | 
+        iconv ( cd , ( ICONV_CONST char * * ) & ib , & ibl , & ob , & obl ) == ( size_t ) ( - 1 ) || iconv ( cd , NULL , NULL , & ob , & obl ) == ( size_t ) ( - 1 ) != 0
+      
+30064771093 | CALL | assert ( errno == E2BIG )
+30064771094 | CALL | errno == E2BIG
+30064771095 | CALL | iconv_close ( cd )
+30064771096 | CALL | assert ( ib > d )
+30064771097 | CALL | ib > d
+30064771098 | CALL | ( ib - d == dlen ) ? dlen : ib - d + 1
+30064771099 | CALL | ib - d == dlen
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771081 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771093 [AST]
+25769803778 -> 30064771095 [AST]
+25769803778 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771091 [CDG]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,179 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void postfilter ( WMAVoiceContext * s , const float * synth , float * samples , int size , const float * lpcs , float * zero_exc_pf , int fcb_type , int pitch ) {
+ float synth_filter_in_buf [ MAX_FRAMESIZE / 2 ] , * synth_pf = & s -> synth_filter_out_buf [ MAX_LSPS_ALIGN16 ] , * synth_filter_in = zero_exc_pf ;
+ assert ( size <= MAX_FRAMESIZE / 2 ) ;
+ ff_celp_lp_zero_synthesis_filterf ( zero_exc_pf , lpcs , synth , size , s -> lsps ) ;
+ if ( fcb_type >= FCB_TYPE_AW_PULSES && ! kalman_smoothen ( s , pitch , zero_exc_pf , synth_filter_in_buf , size ) ) synth_filter_in = synth_filter_in_buf ;
+ ff_celp_lp_synthesis_filterf ( synth_pf , lpcs , synth_filter_in , size , s -> lsps ) ;
+ memcpy ( & synth_pf [ - s -> lsps ] , & synth_pf [ size - s -> lsps ] , sizeof ( synth_pf [ 0 ] ) * s -> lsps ) ;
+ wiener_denoise ( s , fcb_type , synth_pf , size , lpcs ) ;
+ adaptive_gain_control ( samples , synth_pf , synth , size , 0.99 , & s -> postfilter_agc ) ;
+ if ( s -> dc_level > 8 ) {
+ ff_acelp_apply_order_2_transfer_function ( samples , samples , ( const float [ 2 ] ) {
+ - 1.99997 , 1.0 }
+ , ( const float [ 2 ] ) {
+ - 1.9330735188 , 0.93589198496 }
+ , 0.93980580475 , s -> dcf_mem , size ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ float synth_filter_in_buf [ MAX_FRAMESIZE / 2 ] , * synth_pf = & s -> synth_filter_out_buf [ MAX_LSPS_ALIGN16 ] , * synth_filter_in = zero_exc_pf ;
+ assert ( size <= MAX_FRAMESIZE / 2 ) ;
+ ff_celp_lp_zero_synthesis_filterf ( zero_exc_pf , lpcs , synth , size , s -> lsps ) ;
+ if ( fcb_type >= FCB_TYPE_AW_PULSES && ! kalman_smoothen ( s , pitch , zero_exc_pf , synth_filter_in_buf , size ) ) synth_filter_in = synth_filter_in_buf ;
+ ff_celp_lp_synthesis_filterf ( synth_pf , lpcs , synth_filter_in , size , s -> lsps ) ;
+ memcpy ( & synth_pf [ - s -> lsps ] , & synth_pf [ size - s -> lsps ] , sizeof ( synth_pf [ 0 ] ) * s -> lsps ) ;
+ wiener_denoise ( s , fcb_type , synth_pf , size , lpcs ) ;
+ adaptive_gain_control ( samples , synth_pf , synth , size , 0.99 , & s -> postfilter_agc ) ;
+ if ( s -> dc_level > 8 ) {
+ ff_acelp_apply_order_2_transfer_function ( samples , samples , ( const float [ 2 ] ) {
+ - 1.99997 , 1.0 }
+ , ( const float [ 2 ] ) {
+ - 1.9330735188 , 0.93589198496 }
+ , 0.939...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ ff_acelp_apply_order_2_transfer_function ( samples , samples , ( const float [ 2 ] ) {
+ - 1.99997 , 1.0 }
+ , ( const float [ 2 ] ) {
+ - 1.9330735188 , 0.93589198496 }
+ , 0.93980580475 , s -> dcf_mem , size ) ;
+ }
+      
+30064771072 | CALL | synth_filter_in_buf [ MAX_FRAMESIZE / 2 ]
+30064771073 | CALL | synth_filter_in_buf [ MAX_FRAMESIZE / 2 ]
+30064771074 | CALL | MAX_FRAMESIZE / 2
+30064771075 | CALL | synth_pf = & s -> synth_filter_out_buf [ MAX_LSPS_ALIGN16 ]
+30064771076 | CALL | & s -> synth_filter_out_buf [ MAX_LSPS_ALIGN16 ]
+30064771077 | CALL | s -> synth_filter_out_buf [ MAX_LSPS_ALIGN16 ]
+30064771078 | CALL | s -> synth_filter_out_buf
+30064771079 | CALL | synth_filter_in = zero_exc_pf
+30064771080 | CALL | assert ( size <= MAX_FRAMESIZE / 2 )
+30064771081 | CALL | size <= MAX_FRAMESIZE / 2
+30064771082 | CALL | MAX_FRAMESIZE / 2
+30064771083 | CALL | 
+        ff_celp_lp_zero_synthesis_filterf ( zero_exc_pf , lpcs , synth , size , s -> lsps )
+      
+30064771084 | CALL | s -> lsps
+30064771085 | CALL | 
+        fcb_type >= FCB_TYPE_AW_PULSES && ! kalman_smoothen ( s , pitch , zero_exc_pf , synth_filter_in_buf , size )
+      
+30064771086 | CALL | fcb_type >= FCB_TYPE_AW_PULSES
+30064771087 | CALL | ! kalman_smoothen ( s , pitch , zero_exc_pf , synth_filter_in_buf , size )
+30064771088 | CALL | kalman_smoothen ( s , pitch , zero_exc_pf , synth_filter_in_buf , size )
+30064771089 | CALL | synth_filter_in = synth_filter_in_buf
+30064771090 | CALL | 
+        ff_celp_lp_synthesis_filterf ( synth_pf , lpcs , synth_filter_in , size , s -> lsps )
+      
+30064771091 | CALL | s -> lsps
+30064771092 | CALL | 
+        memcpy ( & synth_pf [ - s -> lsps ] , & synth_pf [ size - s -> lsps ] , sizeof ( synth_pf [ 0 ] ) * s -> lsps )
+      
+30064771093 | CALL | & synth_pf [ - s -> lsps ]
+30064771094 | CALL | synth_pf [ - s -> lsps ]
+30064771095 | CALL | - s -> lsps
+30064771096 | CALL | s -> lsps
+30064771097 | CALL | & synth_pf [ size - s -> lsps ]
+30064771098 | CALL | synth_pf [ size - s -> lsps ]
+30064771099 | CALL | size - s -> lsps
+30064771100 | CALL | s -> lsps
+30064771101 | CALL | sizeof ( synth_pf [ 0 ] ) * s -> lsps
+30064771102 | CALL | sizeof ( synth_pf [ 0 ] )
+30064771103 | CALL | synth_pf [ 0 ]
+30064771104 | CALL | s -> lsps
+30064771105 | CALL | wiener_denoise ( s , fcb_type , synth_pf , size , lpcs )
+30064771106 | CALL | 
+        adaptive_gain_control ( samples , synth_pf , synth , size , 0.99 , & s -> postfilter_agc )
+      
+30064771107 | CALL | & s -> postfilter_agc
+30064771108 | CALL | s -> postfilter_agc
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771106 [AST]
+25769803777 -> 30064771089 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771087 [CDG]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771086 -> 30064771087 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void xhci_events_update ( XHCIState * xhci , int v ) {
+ XHCIInterrupter * intr = & xhci -> intr [ v ] ;
+ dma_addr_t erdp ;
+ unsigned int dp_idx ;
+ bool do_irq = 0 ;
+ if ( xhci -> usbsts & USBSTS_HCH ) {
+ return ;
+ }
+ erdp = xhci_addr64 ( intr -> erdp_low , intr -> erdp_high ) ;
+ if ( erdp < intr -> er_start || erdp >= ( intr -> er_start + TRB_SIZE * intr -> er_size ) ) {
+ DPRINTF ( "xhci: ERDP out of bounds: " DMA_ADDR_FMT "\n" , erdp ) ;
+ DPRINTF ( "xhci: ER[%d] at " DMA_ADDR_FMT " len %d\n" , v , intr -> er_start , intr -> er_size ) ;
+ xhci_die ( xhci ) ;
+ return ;
+ }
+ dp_idx = ( erdp - intr -> er_start ) / TRB_SIZE ;
+ assert ( dp_idx < intr -> er_size ) ;
+ if ( intr -> er_full ) {
+ int er_free = dp_idx - intr -> er_ep_idx ;
+ if ( er_free <= 0 ) {
+ er_free += intr -> er_size ;
+ }
+ if ( er_free < ( intr -> er_size / 2 ) ) {
+ DPRINTF ( "xhci_events_update(): event ring still " "more than half full (hack)\n" ) ;
+ return ;
+ }
+ }
+ while ( intr -> ev_buffer_put != intr -> ev_buffer_get ) {
+ assert ( intr -> er_full ) ;
+ if ( ( ( intr -> er_ep_idx + 1 ) % intr -> er_size ) == dp_idx ) {
+ DPRINTF ( "xhci_events_update(): event ring full again\n" ) ;
+ # ifndef ER_FULL_HACK XHCIEvent full = {
+ ER_HOST_CONTROLLER , CC_EVENT_RING_FULL_ERROR }
+ ;
+ xhci_write_event ( xhci , & full , v ) ;
+ # endif do_irq = 1 ;
+ break ;
+ }
+ XHCIEvent * event = & intr -> ev_buffer [ intr -> ev_buffer_get ] ;
+ xhci_write_event ( xhci , event , v ) ;
+ intr -> ev_buffer_get ++ ;
+ do_irq = 1 ;
+ if ( intr -> ev_buffer_get == EV_QUEUE ) {
+ intr -> ev_buffer_get = 0 ;
+ }
+ }
+ if ( do_irq ) {
+ xhci_intr_raise ( xhci , v ) ;
+ }
+ if ( intr -> er_full && intr -> ev_buffer_put == intr -> ev_buffer_get ) {
+ DPRINTF ( "xhci_events_update(): event ring no longer full\n" ) ;
+ intr -> er_full = 0 ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ XHCIInterrupter * intr = & xhci -> intr [ v ] ;
+ dma_addr_t erdp ;
+ unsigned int dp_idx ;
+ bool do_irq = 0 ;
+ if ( xhci -> usbsts & USBSTS_HCH ) {
+ return ;
+ }
+ erdp = xhci_addr64 ( intr -> erdp_low , intr -> erdp_high ) ;
+ if ( erdp < intr -> er_start || erdp >= ( intr -> er_start + TRB_SIZE * intr -> er_size ) ) {
+ DPRINTF ( "xhci: ERDP out of bounds: " DMA_ADDR_FMT "\n" , erdp ) ;
+ DPRINTF ( "xhci: ER[%d] at " DMA_ADDR_FMT " len %d\n" , v , intr -> er_start , intr -> er_size ) ;
+ xhci_die ( xhci ) ;
+ return ;
+ }
+ dp_idx = ( erdp - intr -> er_start ) / TRB_SIZE ;
+ assert ( dp_idx < intr -> er_size ) ;
+ if ( intr -> er_full ) {
+ int er_free = dp_idx - intr -> er_ep_idx ;
+ if ( er_free <= 0 ) {
+ er_free += intr -> er_size ;
+ }
+ if ( er_free < ( intr -> er_size / 2 ) ) {
+ DPRINTF ( "xhci_events_update(): event ring still " "more than half full (hack)\n" ) ;
+ return ;
+ }
+ }
+ while ( intr -> ev_buffer_put != intr -> ev_buffer_get ) {
+ assert ( intr -> er_full ) ;
+ if ( ( ( intr -> e...
+      
+25769803777 | BLOCK | { return ; }
+25769803778 | BLOCK | 
+        {
+ DPRINTF ( "xhci: ERDP out of bounds: " DMA_ADDR_FMT "\n" , erdp ) ;
+ DPRINTF ( "xhci: ER[%d] at " DMA_ADDR_FMT " len %d\n" , v , intr -> er_start , intr -> er_size ) ;
+ xhci_die ( xhci ) ;
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ int er_free = dp_idx - intr -> er_ep_idx ;
+ if ( er_free <= 0 ) {
+ er_free += intr -> er_size ;
+ }
+ if ( er_free < ( intr -> er_size / 2 ) ) {
+ DPRINTF ( "xhci_events_update(): event ring still " "more than half full (hack)\n" ) ;
+ return ;
+ }
+ }
+      
+25769803780 | BLOCK | { er_free += intr -> er_size ; }
+25769803781 | BLOCK | 
+        {
+ DPRINTF ( "xhci_events_update(): event ring still " "more than half full (hack)\n" ) ;
+ return ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ assert ( intr -> er_full ) ;
+ if ( ( ( intr -> er_ep_idx + 1 ) % intr -> er_size ) == dp_idx ) {
+ DPRINTF ( "xhci_events_update(): event ring full again\n" ) ;
+ # ifndef ER_FULL_HACK XHCIEvent full = {
+ ER_HOST_CONTROLLER , CC_EVENT_RING_FULL_ERROR }
+ ;
+ xhci_write_event ( xhci , & full , v ) ;
+ # endif do_irq = 1 ;
+ break ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ DPRINTF ( "xhci_events_update(): event ring full again\n" ) ;
+ # ifndef ER_FULL_HACK XHCIEvent full = {
+ ER_HOST_CONTROLLER , CC_EVENT_RING_FULL_ERROR }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | { intr -> ev_buffer_get = 0 ; }
+30064771072 | CALL | intr = & xhci -> intr [ v ]
+30064771073 | CALL | & xhci -> intr [ v ]
+30064771074 | CALL | xhci -> intr [ v ]
+30064771075 | CALL | xhci -> intr
+30064771076 | CALL | do_irq = 0
+30064771077 | CALL | xhci -> usbsts & USBSTS_HCH
+30064771078 | CALL | xhci -> usbsts
+30064771079 | CALL | erdp = xhci_addr64 ( intr -> erdp_low , intr -> erdp_high )
+30064771080 | CALL | xhci_addr64 ( intr -> erdp_low , intr -> erdp_high )
+30064771081 | CALL | intr -> erdp_low
+30064771082 | CALL | intr -> erdp_high
+30064771083 | CALL | 
+        erdp < intr -> er_start || erdp >= ( intr -> er_start + TRB_SIZE * intr -> er_size )
+      
+30064771084 | CALL | erdp < intr -> er_start
+30064771085 | CALL | intr -> er_start
+30064771086 | CALL | erdp >= ( intr -> er_start + TRB_SIZE * intr -> er_size )
+30064771087 | CALL | intr -> er_start + TRB_SIZE * intr -> er_size
+30064771088 | CALL | intr -> er_start
+30064771089 | CALL | TRB_SIZE * intr -> er_size
+30064771090 | CALL | intr -> er_size
+30064771091 | CALL | xhci_die ( xhci )
+30064771092 | CALL | dp_idx = ( erdp - intr -> er_start ) / TRB_SIZE
+30064771093 | CALL | ( erdp - intr -> er_start ) / TRB_SIZE
+30064771094 | CALL | erdp - intr -> er_start
+30064771095 | CALL | intr -> er_start
+30064771096 | CALL | assert ( dp_idx < intr -> er_size )
+30064771097 | CALL | dp_idx < intr -> er_size
+30064771098 | CALL | intr -> er_size
+30064771099 | CALL | intr -> er_full
+30064771100 | CALL | er_free = dp_idx - intr -> er_ep_idx
+30064771101 | CALL | dp_idx - intr -> er_ep_idx
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771096 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771100 [AST]
+25769803783 -> 25769803784 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771085 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

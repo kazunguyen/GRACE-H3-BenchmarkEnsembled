@@ -1,0 +1,323 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int ff_dirac_golomb_read_32bit(DiracGolombLUT *lut_ctx, const uint8_t *buf,
+
+                               int bytes, uint8_t *_dst, int coeffs)
+
+{
+
+    int i, b, c_idx = 0;
+
+    int32_t *dst = (int32_t *)_dst;
+
+    DiracGolombLUT *future[4], *l = &lut_ctx[2*LUT_SIZE + buf[0]];
+
+    INIT_RESIDUE(res, 0, 0);
+
+
+
+#define APPEND_RESIDUE(N, M)         \
+
+    N          |= M >> (N ## _bits); \
+
+    N ## _bits +=      (M ## _bits)
+
+
+
+    for (b = 1; b <= bytes; b++) {
+
+        future[0] = &lut_ctx[buf[b]];
+
+        future[1] = future[0] + 1*LUT_SIZE;
+
+        future[2] = future[0] + 2*LUT_SIZE;
+
+        future[3] = future[0] + 3*LUT_SIZE;
+
+
+
+        if ((c_idx + 1) > coeffs)
+
+            return c_idx;
+
+
+
+        /* res_bits is a hint for better branch prediction */
+
+        if (res_bits && l->sign) {
+
+            int32_t coeff = 1;
+
+            APPEND_RESIDUE(res, l->preamble);
+
+            for (i = 0; i < (res_bits >> 1) - 1; i++) {
+
+                coeff <<= 1;
+
+                coeff |= (res >> (RSIZE_BITS - 2*i - 2)) & 1;
+
+            }
+
+            dst[c_idx++] = l->sign * (coeff - 1);
+
+            res_bits = res = 0;
+
+        }
+
+
+
+        memcpy(&dst[c_idx], l->ready, LUT_BITS*sizeof(int32_t));
+
+        c_idx += l->ready_num;
+
+
+
+        APPEND_RESIDUE(res, l->leftover);
+
+
+
+        l = future[l->need_s ? 3 : !res_bits ? 2 : res_bits & 1];
+
+    }
+
+
+
+    return c_idx;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    int i, b, c_idx = 0;
+
+    int32_t *dst = (int32_t *)_dst;
+
+    DiracGolombLUT *future[4], *l = &lut_ctx[2*LUT_SIZE + buf[0]];
+
+    INIT_RESIDUE(res, 0, 0);
+
+
+
+#define APPEND_RESIDUE(N, M)         \
+
+    N          |= M >> (N ## _bits); \
+
+    N ## _bits +=      (M ## _bits)
+
+
+
+    for (b = 1; b <= bytes; b++) {
+
+        future[0] = &lut_ctx[buf[b]];
+
+        future[1] = future[0] + 1*LUT_SIZE;
+
+        future[2] = future[0] + 2*LUT_SIZE;
+
+        future[3] = future[0] + 3*LUT_SIZE;
+
+
+
+        if ((c_idx + 1) > coeffs)
+
+            return c_idx;
+
+
+
+        /* res_bits is a hint for better branch prediction */
+
+        if (res_bits && l->sign) {
+
+            int32_t coeff = 1;
+
+            APPEND_RESIDUE(res, l->preamble);
+
+            for (i = 0; i < (res_bits >> 1) - 1; i++) {
+
+                coeff <<= 1;
+
+                coeff |= (res >> (RSIZE_BITS - 2*i - 2)) & 1;
+
+            }
+
+            dst[c_idx++] = l->sign * (coeff - 1);
+
+            res_bits = res = 0;
+
+        }...
+      
+30064771072 | CALL | c_idx = 0
+30064771073 | CALL | dst = (int32_t *)_dst
+30064771074 | CALL | (int32_t *)_dst
+30064771075 | CALL | *future[4]
+30064771076 | CALL | *future[4]
+30064771077 | CALL | l = &lut_ctx[2*LUT_SIZE + buf[0]]
+30064771078 | CALL | &lut_ctx[2*LUT_SIZE + buf[0]]
+30064771079 | CALL | lut_ctx[2*LUT_SIZE + buf[0]]
+30064771080 | CALL | 2*LUT_SIZE + buf[0]
+30064771081 | CALL | 2*LUT_SIZE
+30064771082 | CALL | buf[0]
+30064771083 | CALL | INIT_RESIDUE(res, 0, 0)
+30064771084 | CALL | b <= bytes
+30064771085 | CALL | b++
+68719476736 | IDENTIFIER | c_idx
+68719476737 | IDENTIFIER | dst
+68719476738 | IDENTIFIER | _dst
+68719476739 | IDENTIFIER | future
+68719476740 | IDENTIFIER | DiracGolombLUT**[4]
+68719476741 | IDENTIFIER | l
+68719476742 | IDENTIFIER | lut_ctx
+68719476743 | IDENTIFIER | <unknown> LUT_SIZE
+68719476744 | IDENTIFIER | buf
+68719476745 | IDENTIFIER | <unknown> res
+68719476746 | IDENTIFIER | <unknown> N
+68719476747 | IDENTIFIER | b
+68719476748 | IDENTIFIER | bytes
+68719476749 | IDENTIFIER | b
+68719476750 | IDENTIFIER | c_idx
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 4
+90194313218 | LITERAL | 2
+90194313219 | LITERAL | 0
+90194313220 | LITERAL | 0
+90194313221 | LITERAL | 0
+94489280512 | LOCAL | int i
+94489280513 | LOCAL | int b
+94489280514 | LOCAL | int c_idx
+94489280515 | LOCAL | int32_t *dst
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280515 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 68719476746 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771085 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 90194313217 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 90194313217 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 68719476739 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 68719476741 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 90194313218 [ARGUMENT]
+30064771081 -> 68719476743 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int ff_dirac_golomb_read_32bit(DiracGolombLUT *lut_ctx, const uint8_t *buf,
+
+                               int bytes, uint8_t *_dst, int coeffs)
+
+{
+
+    int i, b, c_idx = 0;
+
+    int32_t *dst = (int32_t *)_dst;
+
+    DiracGolombLUT *future[4], *l = &lut_ctx[2*LUT_SIZE + buf[0]];
+
+    INIT_RESIDUE(res);
+
+
+
+    for (b = 1; b <= bytes; b++) {
+
+        future[0] = &lut_ctx[buf[b]];
+
+        future[1] = future[0] + 1*LUT_SIZE;
+
+        future[2] = future[0] + 2*LUT_SIZE;
+
+        future[3] = future[0] + 3*LUT_SIZE;
+
+
+
+        if ((c_idx + 1) > coeffs)
+
+            return c_idx;
+
+
+
+        /* res_bits is a hint for better branch prediction */
+
+        if (res_bits && l->sign) {
+
+  
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

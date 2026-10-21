@@ -1,0 +1,199 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void pk_transaction_search_groups ( PkTransaction * transaction , GVariant * params , GDBusMethodInvocation * context ) {
+ gboolean ret ;
+ guint i ;
+ PkBitfield filter ;
+ g_autofree gchar * * values = NULL ;
+ g_autoptr ( GError ) error = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_variant_get ( params , "(t^a&s)" , & filter , & values ) ;
+ g_debug ( "SearchGroups method called: %" G_GUINT64_FORMAT ", %s" , filter , values [ 0 ] ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_SEARCH_GROUP ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "SearchGroups not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ ret = pk_transaction_search_check ( values , & error ) ;
+ if ( ! ret ) {
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ for ( i = 0 ;
+ values [ i ] != NULL ;
+ i ++ ) {
+ if ( strstr ( values [ i ] , " " ) != NULL ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_SEARCH_INVALID , "Invalid search containing spaces" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ }
+ transaction -> priv -> cached_filters = filter ;
+ transaction -> priv -> cached_values = g_strdupv ( values ) ;
+ pk_transaction_set_role ( transaction , PK_ROLE_ENUM_SEARCH_GROUP ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_READY ) ;
+ out : pk_transaction_dbus_return ( context , error ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gboolean ret ;
+ guint i ;
+ PkBitfield filter ;
+ g_autofree gchar * * values = NULL ;
+ g_autoptr ( GError ) error = NULL ;
+ g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) ) ;
+ g_return_if_fail ( transaction -> priv -> tid != NULL ) ;
+ g_variant_get ( params , "(t^a&s)" , & filter , & values ) ;
+ g_debug ( "SearchGroups method called: %" G_GUINT64_FORMAT ", %s" , filter , values [ 0 ] ) ;
+ if ( ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_SEARCH_GROUP ) ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "SearchGroups not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ ret = pk_transaction_search_check ( values , & error ) ;
+ if ( ! ret ) {
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ for ( i = 0 ;
+ values [ i ] != NULL ;
+ i ++ ) {
+ if ( strstr ( values [ i ] , " " ) != NULL ) {
+ g_set_error ( & erro...
+      
+25769803777 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "SearchGroups not supported by backend" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ if ( strstr ( values [ i ] , " " ) != NULL ) {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_SEARCH_INVALID , "Invalid search containing spaces" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_SEARCH_INVALID , "Invalid search containing spaces" ) ;
+ pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR ) ;
+ goto out ;
+ }
+      
+30064771072 | CALL | * * values = NULL
+30064771073 | CALL | * * values
+30064771074 | CALL | * values
+30064771075 | CALL | error = NULL
+30064771076 | CALL | g_return_if_fail ( PK_IS_TRANSACTION ( transaction ) )
+30064771077 | CALL | PK_IS_TRANSACTION ( transaction )
+30064771078 | CALL | g_return_if_fail ( transaction -> priv -> tid != NULL )
+30064771079 | CALL | transaction -> priv -> tid != NULL
+30064771080 | CALL | transaction -> priv -> tid
+30064771081 | CALL | transaction -> priv
+30064771082 | CALL | g_variant_get ( params , "(t^a&s)" , & filter , & values )
+30064771083 | CALL | & filter
+30064771084 | CALL | & values
+30064771085 | CALL | 
+        ! pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_SEARCH_GROUP )
+      
+30064771086 | CALL | 
+        pk_backend_is_implemented ( transaction -> priv -> backend , PK_ROLE_ENUM_SEARCH_GROUP )
+      
+30064771087 | CALL | transaction -> priv -> backend
+30064771088 | CALL | transaction -> priv
+30064771089 | CALL | 
+        g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_NOT_SUPPORTED , "SearchGroups not supported by backend" )
+      
+30064771090 | CALL | & error
+30064771091 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+30064771092 | CALL | ret = pk_transaction_search_check ( values , & error )
+30064771093 | CALL | pk_transaction_search_check ( values , & error )
+30064771094 | CALL | & error
+30064771095 | CALL | ! ret
+30064771096 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+30064771097 | CALL | i = 0
+30064771098 | CALL | values [ i ] != NULL
+30064771099 | CALL | values [ i ]
+30064771100 | CALL | i ++
+30064771101 | CALL | strstr ( values [ i ] , " " ) != NULL
+30064771102 | CALL | strstr ( values [ i ] , " " )
+30064771103 | CALL | values [ i ]
+30064771104 | CALL | 
+        g_set_error ( & error , PK_TRANSACTION_ERROR , PK_TRANSACTION_ERROR_SEARCH_INVALID , "Invalid search containing spaces" )
+      
+30064771105 | CALL | & error
+30064771106 | CALL | pk_transaction_set_state ( transaction , PK_TRANSACTION_STATE_ERROR )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771092 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 30064771091 [AST]
+25769803778 -> 30064771096 [AST]
+25769803780 -> 30064771104 [AST]
+25769803780 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771088 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771082 [CFG]
+30064771084 ->
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

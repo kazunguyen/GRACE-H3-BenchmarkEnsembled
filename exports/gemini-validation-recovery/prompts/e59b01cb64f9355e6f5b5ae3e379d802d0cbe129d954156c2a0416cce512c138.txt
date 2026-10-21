@@ -1,0 +1,172 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void vdpau_h264_set_rf ( VdpReferenceFrameH264 * rf , Picture * pic , int pic_structure ) {
+ VdpVideoSurface surface = ff_vdpau_get_surface_id ( pic ) ;
+ if ( pic_structure == 0 ) pic_structure = pic -> reference ;
+ rf -> surface = surface ;
+ rf -> is_long_term = pic -> reference && pic -> long_ref ;
+ rf -> top_is_reference = ( pic_structure & PICT_TOP_FIELD ) != 0 ;
+ rf -> bottom_is_reference = ( pic_structure & PICT_BOTTOM_FIELD ) != 0 ;
+ rf -> field_order_cnt [ 0 ] = h264_foc ( pic -> field_poc [ 0 ] ) ;
+ rf -> field_order_cnt [ 1 ] = h264_foc ( pic -> field_poc [ 1 ] ) ;
+ rf -> frame_idx = pic -> long_ref ? pic -> pic_id : pic -> frame_num ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VdpVideoSurface surface = ff_vdpau_get_surface_id ( pic ) ;
+ if ( pic_structure == 0 ) pic_structure = pic -> reference ;
+ rf -> surface = surface ;
+ rf -> is_long_term = pic -> reference && pic -> long_ref ;
+ rf -> top_is_reference = ( pic_structure & PICT_TOP_FIELD ) != 0 ;
+ rf -> bottom_is_reference = ( pic_structure & PICT_BOTTOM_FIELD ) != 0 ;
+ rf -> field_order_cnt [ 0 ] = h264_foc ( pic -> field_poc [ 0 ] ) ;
+ rf -> field_order_cnt [ 1 ] = h264_foc ( pic -> field_poc [ 1 ] ) ;
+ rf -> frame_idx = pic -> long_ref ? pic -> pic_id : pic -> frame_num ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | surface = ff_vdpau_get_surface_id ( pic )
+30064771073 | CALL | ff_vdpau_get_surface_id ( pic )
+30064771074 | CALL | pic_structure == 0
+30064771075 | CALL | pic_structure = pic -> reference
+30064771076 | CALL | pic -> reference
+30064771077 | CALL | rf -> surface = surface
+30064771078 | CALL | rf -> surface
+30064771079 | CALL | rf -> is_long_term = pic -> reference && pic -> long_ref
+30064771080 | CALL | rf -> is_long_term
+30064771081 | CALL | pic -> reference && pic -> long_ref
+30064771082 | CALL | pic -> reference
+30064771083 | CALL | pic -> long_ref
+30064771084 | CALL | rf -> top_is_reference = ( pic_structure & PICT_TOP_FIELD ) != 0
+30064771085 | CALL | rf -> top_is_reference
+30064771086 | CALL | ( pic_structure & PICT_TOP_FIELD ) != 0
+30064771087 | CALL | pic_structure & PICT_TOP_FIELD
+30064771088 | CALL | rf -> bottom_is_reference = ( pic_structure & PICT_BOTTOM_FIELD ) != 0
+30064771089 | CALL | rf -> bottom_is_reference
+30064771090 | CALL | ( pic_structure & PICT_BOTTOM_FIELD ) != 0
+30064771091 | CALL | pic_structure & PICT_BOTTOM_FIELD
+30064771092 | CALL | rf -> field_order_cnt [ 0 ] = h264_foc ( pic -> field_poc [ 0 ] )
+30064771093 | CALL | rf -> field_order_cnt [ 0 ]
+30064771094 | CALL | rf -> field_order_cnt
+30064771095 | CALL | h264_foc ( pic -> field_poc [ 0 ] )
+30064771096 | CALL | pic -> field_poc [ 0 ]
+30064771097 | CALL | pic -> field_poc
+30064771098 | CALL | rf -> field_order_cnt [ 1 ] = h264_foc ( pic -> field_poc [ 1 ] )
+30064771099 | CALL | rf -> field_order_cnt [ 1 ]
+30064771100 | CALL | rf -> field_order_cnt
+30064771101 | CALL | h264_foc ( pic -> field_poc [ 1 ] )
+30064771102 | CALL | pic -> field_poc [ 1 ]
+30064771103 | CALL | pic -> field_poc
+30064771104 | CALL | rf -> frame_idx = pic -> long_ref ? pic -> pic_id : pic -> frame_num
+30064771105 | CALL | rf -> frame_idx
+30064771106 | CALL | pic -> long_ref ? pic -> pic_id : pic -> frame_num
+30064771107 | CALL | pic -> long_ref
+30064771108 | CALL | pic -> pic_id
+30064771109 | CALL | pic -> frame_num
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771092 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771104 [AST]
+25769803777 -> 30064771075 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771075 [CDG]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771082 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771081 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [AST]
+30064771079 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771079 [CFG]
+30064771081 -> 30064771079 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771081 [CFG]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771086 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771086 [AST]
+30064771084 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771084 [CFG]
+30064771086 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771086 -> 30064771084 [REACHING_DEF]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771088 [CFG]
+30064771090 -> 30064771088 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771095 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static void vdpau_h264_set_rf ( VdpReferenceFrameH264 * rf , Picture * pic , int pic_structure ) {
+ VdpVideoSurface surface = ff_vdpau_get_surface_id ( pic ) ;
+ if ( pic_structure == 0 ) pic_structure = pic -> f . reference ;
+ rf -> surface = surface ;
+ rf -> is_long_term = pic -> f . reference && pic -> long_ref ;
+ rf -> top_is_reference = ( pic_structure & PICT_TOP_FIELD ) != 0 ;
+ rf -> bottom_is_reference = ( pic_structure & PICT_BOTTOM_FIELD ) != 0 ;
+ rf -> field_order_cnt [ 0 ] = h264_foc ( pic -> field_poc [ 0 ] ) ;
+ rf -> field_order_cnt [ 1 ] = h264_foc ( pic -> field_poc [ 1 ] ) ;
+ rf -> frame_idx = pic -> long_ref ? pic -> pic_id : pic -> frame_num ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

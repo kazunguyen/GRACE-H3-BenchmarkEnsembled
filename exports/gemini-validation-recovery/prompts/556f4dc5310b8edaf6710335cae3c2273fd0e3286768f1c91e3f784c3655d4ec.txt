@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+IN_PROC_BROWSER_TEST_F ( DownloadExtensionTest , DownloadExtensionTest_OnDeterminingFilename_IllegalFilename ) {
+ GoOnTheRecord ( ) ;
+ LoadExtension ( "downloads_split" ) ;
+ AddFilenameDeterminer ( ) ;
+ ASSERT_TRUE ( StartEmbeddedTestServer ( ) ) ;
+ std : : string download_url = embedded_test_server ( ) -> GetURL ( "/slow?0" ) . spec ( ) ;
+ std : : unique_ptr < base : : Value > result ( RunFunctionAndReturnResult ( new DownloadsDownloadFunction ( ) , base : : StringPrintf ( "[{
+\"url\": \"%s\"}
+]" , download_url . c_str ( ) ) ) ) ;
+ ASSERT_TRUE ( result . get ( ) ) ;
+ int result_id = - 1 ;
+ ASSERT_TRUE ( result -> GetAsInteger ( & result_id ) ) ;
+ DownloadItem * item = GetCurrentManager ( ) -> GetDownload ( result_id ) ;
+ ASSERT_TRUE ( item ) ;
+ ScopedCancellingItem canceller ( item ) ;
+ ASSERT_EQ ( download_url , item -> GetOriginalUrl ( ) . spec ( ) ) ;
+ ASSERT_TRUE ( WaitFor ( downloads : : OnCreated : : kEventName , base : : StringPrintf ( "[{
+\"danger\": \"safe\"," " \"incognito\": false," " \"id\": %d," " \"mime\": \"text/plain\"," " \"paused\": false," " \"url\": \"%s\"}
+]" , result_id , download_url . c_str ( ) ) ) ) ;
+ ASSERT_TRUE ( WaitFor ( downloads : : OnDeterminingFilename : : kEventName , base : : StringPrintf ( "[{
+\"id\": %d," " \"filename\":\"slow.txt\"}
+]" , result_id ) ) ) ;
+ ASSERT_TRUE ( item -> GetTargetFilePath ( ) . empty ( ) ) ;
+ ASSERT_EQ ( DownloadItem : : IN_PROGRESS , item -> GetState ( ) ) ;
+ std : : string error ;
+ ASSERT_FALSE ( ExtensionDownloadsEventRouter : : DetermineFilename ( browser ( ) -> profile ( ) , false , GetExtensionId ( ) , result_id , base : : FilePath ( FILE_PATH_LITERAL ( "<" ) ) , downloads : : FILENAME_CONFLICT_ACTION_UNIQUIFY , & error ) ) ;
+ EXPECT_STREQ ( errors : : kInvalidFilename , error . c_str ( ) ) ;
+ ASSERT_TRUE ( WaitFor ( downloads : : OnChanged : : kEventName , base : : StringPrintf ( "[{
+\"id\": %d," " \"filename\": {
+" " \"previous\": \"\"," " \"current\": \"%s\"}
+}
+]" , result_id , GetFilename ( "slow.txt" ) . c_str ( ) ) ) ) ;
+ ASSERT_TRUE ( WaitFor ( downloads : : OnChanged : : kEventName , base : : StringPrintf ( "[{
+\"id\": %d," " \"state\": {
+" " \"previous\": \"in_progress\"," " \"current\": \"complete\"}
+}
+]" , result_id ) ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ GoOnTheRecord ( ) ;
+ LoadExtension ( "downloads_split" ) ;
+ AddFilenameDeterminer ( ) ;
+ ASSERT_TRUE ( StartEmbeddedTestServer ( ) ) ;
+ std : : string download_url = embedded_test_server ( ) -> GetURL ( "/slow?0" ) . spec ( ) ;
+ std : : unique_ptr < base : : Value > result ( RunFunctionAndReturnResult ( new DownloadsDownloadFunction ( ) , base : : StringPrintf ( "[{
+\"url\": \"%s\"}
+]" , download_url . c_str ( ) ) ) ) ;
+ ASSERT_TRUE ( result . get ( ) ) ;
+ int result_id = - 1 ;
+ ASSERT_TRUE ( result -> GetAsInteger ( & result_id ) ) ;
+ DownloadItem * item = GetCurrentManager ( ) -> GetDownload ( result_id ) ;
+ ASSERT_TRUE ( item ) ;
+ ScopedCancellingItem canceller ( item ) ;
+ ASSERT_EQ ( download_url , item -> GetOriginalUrl ( ) . spec ( ) ) ;
+ ASSERT_TRUE ( WaitFor ( downloads : : OnCreated : : kEventName , base : : StringPrintf ( "[{
+\"danger\": \"safe\"," " \"incognito\": false," " \"id\": %d," " \"mime\": \"text/plain\"," " \"paused\": false," " \"url\": \"%s\"}
+]" , result_i...
+      
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | GoOnTheRecord ( )
+30064771073 | CALL | LoadExtension ( "downloads_split" )
+30064771074 | CALL | AddFilenameDeterminer ( )
+30064771075 | CALL | ASSERT_TRUE ( StartEmbeddedTestServer ( ) )
+30064771076 | CALL | StartEmbeddedTestServer ( )
+30064771077 | CALL | result_id = - 1
+30064771078 | CALL | - 1
+30064771079 | CALL | ASSERT_TRUE ( result -> GetAsInteger ( & result_id ) )
+30064771080 | CALL | result -> GetAsInteger ( & result_id )
+30064771081 | CALL | result -> GetAsInteger
+30064771082 | CALL | & result_id
+30064771083 | CALL | item = GetCurrentManager ( ) -> GetDownload ( result_id )
+30064771084 | CALL | GetCurrentManager ( ) -> GetDownload ( result_id )
+30064771085 | CALL | GetCurrentManager ( ) -> GetDownload
+30064771086 | CALL | GetCurrentManager ( )
+30064771087 | CALL | ASSERT_TRUE ( item )
+30064771088 | CALL | ASSERT_EQ ( download_url , item -> GetOriginalUrl ( ) . spec ( ) )
+30064771089 | CALL | item -> GetOriginalUrl ( ) . spec ( )
+30064771090 | CALL | item -> GetOriginalUrl ( ) . spec
+30064771091 | CALL | item -> GetOriginalUrl ( )
+30064771092 | CALL | item -> GetOriginalUrl
+55834574848 | FIELD_IDENTIFIER | GetAsInteger
+55834574849 | FIELD_IDENTIFIER | GetDownload
+55834574850 | FIELD_IDENTIFIER | GetOriginalUrl
+55834574851 | FIELD_IDENTIFIER | spec
+68719476736 | IDENTIFIER | result_id
+68719476737 | IDENTIFIER | <unknown> result
+68719476738 | IDENTIFIER | result_id
+68719476739 | IDENTIFIER | item
+68719476740 | IDENTIFIER | result_id
+68719476741 | IDENTIFIER | item
+68719476742 | IDENTIFIER | <unknown> download_url
+68719476743 | IDENTIFIER | item
+90194313216 | LITERAL | "downloads_split"
+90194313217 | LITERAL | 1
+94489280512 | LOCAL | int result_id
+94489280513 | LOCAL | DownloadItem * item
+94489280514 | LOCAL | <unknown> download_url
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 94489280514 [AST]
+30064771072 -> 90194313216 [CFG]
+30064771072 -> 90194313216 [DOMINATE]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 30064771074 [CFG]
+30064771073 -> 30064771074 [DOMINATE]
+30064771073 -> 90194313216 [POST_DOMINATE]
+30064771074 -> 30064771076 [CFG]
+30064771074 -> 30064771076 [DOMINATE]
+30064771074 -> 30064771073 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476736 [CFG]
+30064771075 -> 68719476736 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771074 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476736 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476736 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476737 [CFG]
+30064771077 -> 68719476737 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 90194313217 [ARGUMENT]
+30064771078 -> 90194313217 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 90194313217 [POST_DOMINATE]
+30064771078 -> 68719476736 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 68719476739 [CFG]
+30064771079 -> 68719476739 [DOMINATE]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771082 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771081 [RECEIVER]
+30064771081 -> 68719476737 [ARGUMENT]
+30064771081 -> 55834574848 [ARGUMENT]
+30064771081 -> 68719476737 [AST]
+30064771081 -> 55834574848 [AST]
+30064771081 -> 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

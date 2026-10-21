@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int rawv6_init_sk ( struct sock * sk ) {
+ struct raw6_sock * rp = raw6_sk ( sk ) ;
+ switch ( inet_sk ( sk ) -> inet_num ) {
+ case IPPROTO_ICMPV6 : rp -> checksum = 1 ;
+ rp -> offset = 2 ;
+ break ;
+ case IPPROTO_MH : rp -> checksum = 1 ;
+ rp -> offset = 4 ;
+ break ;
+ default : break ;
+ }
+ return ( 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct raw6_sock * rp = raw6_sk ( sk ) ;
+ switch ( inet_sk ( sk ) -> inet_num ) {
+ case IPPROTO_ICMPV6 : rp -> checksum = 1 ;
+ rp -> offset = 2 ;
+ break ;
+ case IPPROTO_MH : rp -> checksum = 1 ;
+ rp -> offset = 4 ;
+ break ;
+ default : break ;
+ }
+ return ( 0 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ case IPPROTO_ICMPV6 : rp -> checksum = 1 ;
+ rp -> offset = 2 ;
+ break ;
+ case IPPROTO_MH : rp -> checksum = 1 ;
+ rp -> offset = 4 ;
+ break ;
+ default : break ;
+ }
+      
+30064771072 | CALL | rp = raw6_sk ( sk )
+30064771073 | CALL | raw6_sk ( sk )
+30064771074 | CALL | inet_sk ( sk ) -> inet_num
+30064771075 | CALL | inet_sk ( sk )
+30064771076 | CALL | rp -> checksum = 1
+30064771077 | CALL | rp -> checksum
+30064771078 | CALL | rp -> offset = 2
+30064771079 | CALL | rp -> offset
+30064771080 | CALL | rp -> checksum = 1
+30064771081 | CALL | rp -> checksum
+30064771082 | CALL | rp -> offset = 4
+30064771083 | CALL | rp -> offset
+47244640256 | CONTROL_STRUCTURE | 
+        switch ( inet_sk ( sk ) -> inet_num ) {
+ case IPPROTO_ICMPV6 : rp -> checksum = 1 ;
+ rp -> offset = 2 ;
+ break ;
+ case IPPROTO_MH : rp -> checksum = 1 ;
+ rp -> offset = 4 ;
+ break ;
+ default : break ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | break ;
+47244640258 | CONTROL_STRUCTURE | break ;
+47244640259 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | inet_num
+55834574849 | FIELD_IDENTIFIER | checksum
+55834574850 | FIELD_IDENTIFIER | offset
+55834574851 | FIELD_IDENTIFIER | checksum
+55834574852 | FIELD_IDENTIFIER | offset
+68719476736 | IDENTIFIER | rp
+68719476737 | IDENTIFIER | sk
+68719476738 | IDENTIFIER | sk
+68719476739 | IDENTIFIER | <unknown> IPPROTO_ICMPV6
+68719476740 | IDENTIFIER | rp
+68719476741 | IDENTIFIER | rp
+68719476742 | IDENTIFIER | <unknown> IPPROTO_MH
+68719476743 | IDENTIFIER | rp
+68719476744 | IDENTIFIER | rp
+81604378624 | JUMP_TARGET | case IPPROTO_ICMPV6 :
+81604378625 | JUMP_TARGET | case IPPROTO_MH :
+81604378626 | JUMP_TARGET | default :
+90194313216 | LITERAL | 1
+90194313217 | LITERAL | 2
+90194313218 | LITERAL | 1
+90194313219 | LITERAL | 4
+90194313220 | LITERAL | 0
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 81604378624 [AST]
+25769803777 -> 68719476739 [AST]
+25769803777 -> 30064771076 [AST]
+25769803777 -> 30064771078 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 81604378625 [AST]
+25769803777 -> 68719476742 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 47244640258 [AST]
+25769803777 -> 81604378626 [AST]
+25769803777 -> 47244640259 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771080 [CDG]
+30064771074 -> 30064771079 [CDG]
+30064771074 -> 30064771078 [CDG]
+30064771074 -> 30064771077 [CDG]
+30064771074 -> 30064771076 [CDG]
+30064771074 -> 30064771083 [CDG]
+30064771074 -> 30064771082 [CDG]
+30064771074 -> 30064771081 [CDG]
+30064771074 -> 68719476744 [CDG]
+30064771074 -> 68719476743 [CDG]
+30064771074 -> 68719476742 [CDG]
+30064771074 -> 68719476741 [CDG]
+30064771074 -> 68719476740 [CDG]
+30064771074 -> 68719476739 [CDG]
+30064771074 -> 81604378626 [CDG]
+30064771074 -> 90194313219 [CDG]
+30064771074 -> 81604378625 [CDG]
+30064771074 -> 90194313218 [CDG]
+30064771074 -> 81604378624 [CDG]
+30064771074 -> 90194313217 [CDG]
+30064771074 -> 90194313216 [CDG]
+30064771074 -> 47244640259 [CDG]
+30064771074 -> 55834574852 [CDG]
+30064771074 -> 47244640258 [CDG]
+30064771074 -> 55834574851 [CDG]
+30064771074 -> 47244640257 [CDG]
+30064771074 -> 55834574850 [CDG]
+30064771074 -> 55834574849 [CDG]
+30064771074 -> 81604378624 [CFG]
+30064771074 -> 81604378625 [CFG]
+30064771074 -> 81604378626 [CFG]
+30064771074 -> 90194313220 [DOMINATE]
+30064771074 -> 81604378624 [DOMINATE]
+30064771074 -> 81604378625 [DOMINATE]
+30064771074 -> 81604378626 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 68719476738 [ARGUMENT]
+30064771075 -> 68719476738 [AST]
+30064771075 -> 55834574848 [CFG]
+30064771075 -> 55834574848 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313216 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 90194313216 [AST]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 90194313216 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int do_rawv6_setsockopt ( struct sock * sk , int level , int optname , char __user * optval , unsigned int optlen ) {
+ struct raw6_sock * rp = raw6_sk ( sk ) ;
+ int val ;
+ if ( get_user ( val , ( int __user * ) optval ) ) return - EFAULT ;
+ switch ( optname ) {
+ case IPV6_CHECKSUM : if ( inet_sk ( sk ) -> inet_num == IPPROTO_ICMPV6 && level == IPPROTO_IPV6 ) {
+ return - EINVAL ;
+ }
+ if ( val > 0 && ( val & 1 ) ) return ( - EINVAL ) ;
+ if ( val < 0 ) {
+ rp -> checksum = 0 ;
+ }
+ else {
+ rp -> checksum = 1 ;
+ rp -> offset = val ;
+ }
+ return 0 ;
+ break ;
+ default : return ( - ENOPROTOOPT ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

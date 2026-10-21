@@ -1,0 +1,202 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+rfbBool rfbSendCopyRegion ( rfbClientPtr cl , sraRegionPtr reg , int dx , int dy ) {
+ int x , y , w , h ;
+ rfbFramebufferUpdateRectHeader rect ;
+ rfbCopyRect cr ;
+ sraRectangleIterator * i ;
+ sraRect rect1 ;
+ i = sraRgnGetReverseIterator ( reg , dx > 0 , dy > 0 ) ;
+ dx = ScaleX ( cl -> screen , cl -> scaledScreen , dx ) ;
+ dy = ScaleX ( cl -> screen , cl -> scaledScreen , dy ) ;
+ while ( sraRgnIteratorNext ( i , & rect1 ) ) {
+ x = rect1 . x1 ;
+ y = rect1 . y1 ;
+ w = rect1 . x2 - x ;
+ h = rect1 . y2 - y ;
+ rfbScaledCorrection ( cl -> screen , cl -> scaledScreen , & x , & y , & w , & h , "copyrect" ) ;
+ rect . r . x = Swap16IfLE ( x ) ;
+ rect . r . y = Swap16IfLE ( y ) ;
+ rect . r . w = Swap16IfLE ( w ) ;
+ rect . r . h = Swap16IfLE ( h ) ;
+ rect . encoding = Swap32IfLE ( rfbEncodingCopyRect ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ( char * ) & rect , sz_rfbFramebufferUpdateRectHeader ) ;
+ cl -> ublen += sz_rfbFramebufferUpdateRectHeader ;
+ cr . srcX = Swap16IfLE ( x - dx ) ;
+ cr . srcY = Swap16IfLE ( y - dy ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ( char * ) & cr , sz_rfbCopyRect ) ;
+ cl -> ublen += sz_rfbCopyRect ;
+ rfbStatRecordEncodingSent ( cl , rfbEncodingCopyRect , sz_rfbFramebufferUpdateRectHeader + sz_rfbCopyRect , w * h * ( cl -> scaledScreen -> bitsPerPixel / 8 ) ) ;
+ }
+ sraRgnReleaseIterator ( i ) ;
+ return TRUE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y , w , h ;
+ rfbFramebufferUpdateRectHeader rect ;
+ rfbCopyRect cr ;
+ sraRectangleIterator * i ;
+ sraRect rect1 ;
+ i = sraRgnGetReverseIterator ( reg , dx > 0 , dy > 0 ) ;
+ dx = ScaleX ( cl -> screen , cl -> scaledScreen , dx ) ;
+ dy = ScaleX ( cl -> screen , cl -> scaledScreen , dy ) ;
+ while ( sraRgnIteratorNext ( i , & rect1 ) ) {
+ x = rect1 . x1 ;
+ y = rect1 . y1 ;
+ w = rect1 . x2 - x ;
+ h = rect1 . y2 - y ;
+ rfbScaledCorrection ( cl -> screen , cl -> scaledScreen , & x , & y , & w , & h , "copyrect" ) ;
+ rect . r . x = Swap16IfLE ( x ) ;
+ rect . r . y = Swap16IfLE ( y ) ;
+ rect . r . w = Swap16IfLE ( w ) ;
+ rect . r . h = Swap16IfLE ( h ) ;
+ rect . encoding = Swap32IfLE ( rfbEncodingCopyRect ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ( char * ) & rect , sz_rfbFramebufferUpdateRectHeader ) ;
+ cl -> ublen += sz_rfbFramebufferUpdateRectHeader ;
+ cr . srcX = Swap16IfLE ( x - dx ) ;
+ cr . srcY = Swap16IfLE ( y - dy ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ...
+      
+25769803777 | BLOCK | 
+        {
+ x = rect1 . x1 ;
+ y = rect1 . y1 ;
+ w = rect1 . x2 - x ;
+ h = rect1 . y2 - y ;
+ rfbScaledCorrection ( cl -> screen , cl -> scaledScreen , & x , & y , & w , & h , "copyrect" ) ;
+ rect . r . x = Swap16IfLE ( x ) ;
+ rect . r . y = Swap16IfLE ( y ) ;
+ rect . r . w = Swap16IfLE ( w ) ;
+ rect . r . h = Swap16IfLE ( h ) ;
+ rect . encoding = Swap32IfLE ( rfbEncodingCopyRect ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ( char * ) & rect , sz_rfbFramebufferUpdateRectHeader ) ;
+ cl -> ublen += sz_rfbFramebufferUpdateRectHeader ;
+ cr . srcX = Swap16IfLE ( x - dx ) ;
+ cr . srcY = Swap16IfLE ( y - dy ) ;
+ memcpy ( & cl -> updateBuf [ cl -> ublen ] , ( char * ) & cr , sz_rfbCopyRect ) ;
+ cl -> ublen += sz_rfbCopyRect ;
+ rfbStatRecordEncodingSent ( cl , rfbEncodingCopyRect , sz_rfbFramebufferUpdateRectHeader + sz_rfbCopyRect , w * h * ( cl -> scaledScreen -> bitsPerPixel / 8 ) ) ;
+ }
+      
+30064771072 | CALL | i = sraRgnGetReverseIterator ( reg , dx > 0 , dy > 0 )
+30064771073 | CALL | sraRgnGetReverseIterator ( reg , dx > 0 , dy > 0 )
+30064771074 | CALL | dx > 0
+30064771075 | CALL | dy > 0
+30064771076 | CALL | dx = ScaleX ( cl -> screen , cl -> scaledScreen , dx )
+30064771077 | CALL | ScaleX ( cl -> screen , cl -> scaledScreen , dx )
+30064771078 | CALL | cl -> screen
+30064771079 | CALL | cl -> scaledScreen
+30064771080 | CALL | dy = ScaleX ( cl -> screen , cl -> scaledScreen , dy )
+30064771081 | CALL | ScaleX ( cl -> screen , cl -> scaledScreen , dy )
+30064771082 | CALL | cl -> screen
+30064771083 | CALL | cl -> scaledScreen
+30064771084 | CALL | sraRgnIteratorNext ( i , & rect1 )
+30064771085 | CALL | & rect1
+30064771086 | CALL | x = rect1 . x1
+30064771087 | CALL | rect1 . x1
+30064771088 | CALL | y = rect1 . y1
+30064771089 | CALL | rect1 . y1
+30064771090 | CALL | w = rect1 . x2 - x
+30064771091 | CALL | rect1 . x2 - x
+30064771092 | CALL | rect1 . x2
+30064771093 | CALL | h = rect1 . y2 - y
+30064771094 | CALL | rect1 . y2 - y
+30064771095 | CALL | rect1 . y2
+30064771096 | CALL | 
+        rfbScaledCorrection ( cl -> screen , cl -> scaledScreen , & x , & y , & w , & h , "copyrect" )
+      
+30064771097 | CALL | cl -> screen
+30064771098 | CALL | cl -> scaledScreen
+30064771099 | CALL | & x
+30064771100 | CALL | & y
+30064771101 | CALL | & w
+30064771102 | CALL | & h
+30064771103 | CALL | rect . r . x = Swap16IfLE ( x )
+30064771104 | CALL | rect . r . x
+30064771105 | CALL | rect . r
+30064771106 | CALL | Swap16IfLE ( x )
+30064771107 | CALL | rect . r . y = Swap16IfLE ( y )
+30064771108 | CALL | rect . r . y
+30064771109 | CALL | rect . r
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771093 [AST]
+25769803777 -> 30064771096 [AST]
+25769803777 -> 30064771103 [AST]
+25769803777 -> 30064771107 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771082 [REACHING_DEF]
+30064771078 -> 30064771079 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771097 [REACHING_DEF]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771098 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771108 [CDG]
+30064771084 -> 30064771109 [CDG]
+30064771084 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

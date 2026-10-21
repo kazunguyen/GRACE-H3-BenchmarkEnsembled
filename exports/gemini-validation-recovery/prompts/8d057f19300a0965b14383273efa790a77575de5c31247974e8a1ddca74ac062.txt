@@ -1,0 +1,275 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static ssize_t colo_rewriter_receive_iov(NetFilterState *nf,
+
+                                         NetClientState *sender,
+
+                                         unsigned flags,
+
+                                         const struct iovec *iov,
+
+                                         int iovcnt,
+
+                                         NetPacketSent *sent_cb)
+
+{
+
+    RewriterState *s = FILTER_COLO_REWRITER(nf);
+
+    Connection *conn;
+
+    ConnectionKey key;
+
+    Packet *pkt;
+
+    ssize_t size = iov_size(iov, iovcnt);
+
+    char *buf = g_malloc0(size);
+
+
+
+    iov_to_buf(iov, iovcnt, 0, buf, size);
+
+    pkt = packet_new(buf, size);
+
+
+
+    /*
+
+     * if we get tcp packet
+
+     * we will rewrite it to make secondary guest's
+
+     * connection established successfully
+
+     */
+
+    if (pkt && is_tcp_packet(pkt)) {
+
+
+
+        fill_connection_key(pkt, &key);
+
+
+
+        if (sender == nf->netdev) {
+
+            /*
+
+             * We need make tcp TX and RX packet
+
+             * into one connection.
+
+             */
+
+            reverse_connection_key(&key);
+
+        }
+
+        conn = connection_get(s->connection_track_table,
+
+                              &key,
+
+                              NULL);
+
+
+
+        if (sender == nf->netdev) {
+
+            /* NET_FILTER_DIRECTION_TX */
+
+            /* handle_primary_tcp_pkt */
+
+        } else {
+
+            /* NET_FILTER_DIRECTION_RX */
+
+            /* handle_secondary_tcp_pkt */
+
+        }
+
+    }
+
+
+
+    packet_destroy(pkt, NULL);
+
+    pkt = NULL;
+
+    return 0;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+38 -> 41 [IS_AST_PARENT]
+35 -> 38 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+49 -> 52 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+44 -> 47 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+4 -> 43 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+59 -> 62 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+59 -> 64 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+59 -> 66 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+59 -> 68 [IS_AST_PARENT]
+56 -> 59 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+4 -> 55 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+76 -> 79 [IS_AST_PARENT]
+73 -> 76 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+4 -> 70 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void colo_compare_connection(void *opaque, void *user_data)
+
+{
+
+    CompareState *s = user_data;
+
+    Connection *conn = opaque;
+
+    Packet *pkt = NULL;
+
+    GList *result = NULL;
+
+    int ret;
+
+
+
+    while (!g_queue_is_empty(&conn->primary_list) &&
+
+           !g_queue_is_empty(&conn->secondary_list)) {
+
+        qemu_mutex_lock(&s->timer_check_lock);
+
+        pkt = g_queue_pop_tail(&conn->primary_list);
+
+        qemu_mutex_unlock(&s->timer_check_lock);
+
+        result = g_queue_find_custom(&conn->secondary_list,
+
+                              pkt, (GCompareFunc)colo_packet_compare_all);
+
+
+
+        if (result) {
+
+            ret = compare_chr_send(s->chr_out, pkt->data, pkt->size);
+
+            if (ret < 0) {
+
+                error_report("colo_send_primary_packet failed");
+
+            }
+
+            trace_colo_compare_main("packet same and release packet");
+
+            g_queue_remove(&conn->secondary_list, result->data);
+
+            packet_destroy(pkt, NULL);
+
+        } else {
+
+            /*
+
+             * If one packet arrive late, the secondary_list or
+
+             * primary_list will be empty, so we can't compare it
+
+             * until next comparison.
+
+             */
+
+            trace_colo_compare_main("packet different");
+
+            qemu_mutex_lock(&s->timer_check_lock);
+
+            g_queue_push_tail(&conn->primary_list, pkt);
+
+            qemu_mutex_unlock(&s->timer_check_lock);
+
+            /* TODO: colo_notify_checkpoint();*/
+
+            break;
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,151 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( ScoredHistoryMatchTest , Scoring ) {
+ base : : Time now = base : : Time : : NowFromSystemTime ( ) ;
+ history : : URLRow row_a ( MakeURLRow ( "http://fedcba" , "abcd bcd" , 3 , 30 , 1 ) ) ;
+ RowWordStarts word_starts_a ;
+ PopulateWordStarts ( row_a , & word_starts_a ) ;
+ WordStarts one_word_no_offset ( 1 , 0u ) ;
+ VisitInfoVector visits_a = CreateVisitInfoVector ( 3 , 30 , now ) ;
+ visits_a [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_a ( row_a , visits_a , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_a , false , nullptr , now ) ;
+ history : : URLRow row_b ( MakeURLRow ( "http://abcdef" , "abcd bcd" , 10 , 30 , 1 ) ) ;
+ RowWordStarts word_starts_b ;
+ PopulateWordStarts ( row_b , & word_starts_b ) ;
+ VisitInfoVector visits_b = CreateVisitInfoVector ( 10 , 30 , now ) ;
+ visits_b [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_b ( row_b , visits_b , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_b , false , nullptr , now ) ;
+ EXPECT_GT ( scored_b . raw_score , scored_a . raw_score ) ;
+ history : : URLRow row_c ( MakeURLRow ( "http://abcdef" , "abcd bcd" , 3 , 10 , 1 ) ) ;
+ RowWordStarts word_starts_c ;
+ PopulateWordStarts ( row_c , & word_starts_c ) ;
+ VisitInfoVector visits_c = CreateVisitInfoVector ( 3 , 10 , now ) ;
+ visits_c [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_c ( row_c , visits_c , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_c , false , nullptr , now ) ;
+ EXPECT_GT ( scored_c . raw_score , scored_a . raw_score ) ;
+ history : : URLRow row_d ( MakeURLRow ( "http://abcdef" , "abcd bcd" , 3 , 30 , 3 ) ) ;
+ RowWordStarts word_starts_d ;
+ PopulateWordStarts ( row_d , & word_starts_d ) ;
+ VisitInfoVector visits_d = CreateVisitInfoVector ( 3 , 30 , now ) ;
+ visits_d [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ visits_d [ 1 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ visits_d [ 2 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_d ( row_d , visits_d , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_d , false , nullptr , now ) ;
+ EXPECT_GT ( scored_d . raw_score , scored_a . raw_score ) ;
+ history : : URLRow row_e ( MakeURLRow ( "http://csi.csi.csi/csi_csi" , "CSI Guide to CSI Las Vegas, CSI New York, CSI Provo" , 3 , 30 , 3 ) ) ;
+ RowWordStarts word_starts_e ;
+ PopulateWordStarts ( row_e , & word_starts_e ) ;
+ const VisitInfoVector visits_e = visits_d ;
+ ScoredHistoryMatch scored_e ( row_e , visits_e , ASCIIToUTF16 ( "csi" ) , Make1Term ( "csi" ) , one_word_no_offset , word_starts_e , false , nullptr , now ) ;
+ EXPECT_LT ( scored_e . raw_score , 1400 ) ;
+ ScoredHistoryMatch scored_f ( row_a , visits_a , ASCIIToUTF16 ( "cd" ) , Make1Term ( "cd" ) , one_word_no_offset , word_starts_a , false , nullptr , now ) ;
+ EXPECT_EQ ( scored_f . raw_score , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ base : : Time now = base : : Time : : NowFromSystemTime ( ) ;
+ history : : URLRow row_a ( MakeURLRow ( "http://fedcba" , "abcd bcd" , 3 , 30 , 1 ) ) ;
+ RowWordStarts word_starts_a ;
+ PopulateWordStarts ( row_a , & word_starts_a ) ;
+ WordStarts one_word_no_offset ( 1 , 0u ) ;
+ VisitInfoVector visits_a = CreateVisitInfoVector ( 3 , 30 , now ) ;
+ visits_a [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_a ( row_a , visits_a , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_a , false , nullptr , now ) ;
+ history : : URLRow row_b ( MakeURLRow ( "http://abcdef" , "abcd bcd" , 10 , 30 , 1 ) ) ;
+ RowWordStarts word_starts_b ;
+ PopulateWordStarts ( row_b , & word_starts_b ) ;
+ VisitInfoVector visits_b = CreateVisitInfoVector ( 10 , 30 , now ) ;
+ visits_b [ 0 ] . second = ui : : PAGE_TRANSITION_TYPED ;
+ ScoredHistoryMatch scored_b ( row_b , visits_b , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_b ...
+      
+30064771072 | CALL | PopulateWordStarts ( row_a , & word_starts_a )
+30064771073 | CALL | & word_starts_a
+30064771074 | CALL | one_word_no_offset ( 1 , 0u )
+30064771075 | CALL | visits_a = CreateVisitInfoVector ( 3 , 30 , now )
+30064771076 | CALL | CreateVisitInfoVector ( 3 , 30 , now )
+30064771077 | CALL | visits_a [ 0 ] . second = ui
+30064771078 | CALL | visits_a [ 0 ] . second
+30064771079 | CALL | visits_a [ 0 ]
+30064771080 | CALL | 
+        scored_a ( row_a , visits_a , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_a , false , nullptr , now )
+      
+30064771081 | CALL | ASCIIToUTF16 ( "abc" )
+30064771082 | CALL | Make1Term ( "abc" )
+30064771083 | CALL | PopulateWordStarts ( row_b , & word_starts_b )
+30064771084 | CALL | & word_starts_b
+30064771085 | CALL | visits_b = CreateVisitInfoVector ( 10 , 30 , now )
+30064771086 | CALL | CreateVisitInfoVector ( 10 , 30 , now )
+30064771087 | CALL | visits_b [ 0 ] . second = ui
+30064771088 | CALL | visits_b [ 0 ] . second
+30064771089 | CALL | visits_b [ 0 ]
+30064771090 | CALL | 
+        scored_b ( row_b , visits_b , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_b , false , nullptr , now )
+      
+30064771091 | CALL | ASCIIToUTF16 ( "abc" )
+30064771092 | CALL | Make1Term ( "abc" )
+30064771093 | CALL | EXPECT_GT ( scored_b . raw_score , scored_a . raw_score )
+30064771094 | CALL | scored_b . raw_score
+30064771095 | CALL | scored_a . raw_score
+30064771096 | CALL | PopulateWordStarts ( row_c , & word_starts_c )
+30064771097 | CALL | & word_starts_c
+30064771098 | CALL | visits_c = CreateVisitInfoVector ( 3 , 10 , now )
+30064771099 | CALL | CreateVisitInfoVector ( 3 , 10 , now )
+30064771100 | CALL | visits_c [ 0 ] . second = ui
+30064771101 | CALL | visits_c [ 0 ] . second
+30064771102 | CALL | visits_c [ 0 ]
+30064771103 | CALL | 
+        scored_c ( row_c , visits_c , ASCIIToUTF16 ( "abc" ) , Make1Term ( "abc" ) , one_word_no_offset , word_starts_c , false , nullptr , now )
+      
+30064771104 | CALL | ASCIIToUTF16 ( "abc" )
+30064771105 | CALL | Make1Term ( "abc" )
+30064771106 | CALL | EXPECT_GT ( scored_c . raw_score , scored_a . raw_score )
+30064771107 | CALL | scored_c . raw_score
+30064771108 | CALL | scored_a . raw_score
+30064771109 | CALL | PopulateWordStarts ( row_d , & word_starts_d )
+30064771110 | CALL | & word_starts_d
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771087 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771103 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771109 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUM
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,276 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int main ( int argc , char * * argv ) {
+ gpg_error_t err ;
+ if ( argc ) {
+ argc -- ;
+ argv ++ ;
+ }
+ if ( argc ) {
+ unsigned char * buffer ;
+ size_t n , buflen ;
+ for ( ;
+ argc ;
+ argc -- , argv ++ ) {
+ err = ksba_oid_from_str ( * argv , & buffer , & buflen ) ;
+ if ( err ) {
+ fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) ) ;
+ return 1 ;
+ }
+ printf ( "%s ->" , * argv ) ;
+ for ( n = 0 ;
+ n < buflen ;
+ n ++ ) printf ( " %02X" , buffer [ n ] ) ;
+ putchar ( '\n' ) ;
+ free ( buffer ) ;
+ }
+ }
+ else {
+ char * buffer ;
+ size_t buflen ;
+ char * result ;
+ buffer = read_into_buffer ( stdin , & buflen ) ;
+ result = ksba_oid_to_str ( buffer , buflen ) ;
+ free ( buffer ) ;
+ printf ( "%s\n" , result ? result : "[malloc failed]" ) ;
+ free ( result ) ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gpg_error_t err ;
+ if ( argc ) {
+ argc -- ;
+ argv ++ ;
+ }
+ if ( argc ) {
+ unsigned char * buffer ;
+ size_t n , buflen ;
+ for ( ;
+ argc ;
+ argc -- , argv ++ ) {
+ err = ksba_oid_from_str ( * argv , & buffer , & buflen ) ;
+ if ( err ) {
+ fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) ) ;
+ return 1 ;
+ }
+ printf ( "%s ->" , * argv ) ;
+ for ( n = 0 ;
+ n < buflen ;
+ n ++ ) printf ( " %02X" , buffer [ n ] ) ;
+ putchar ( '\n' ) ;
+ free ( buffer ) ;
+ }
+ }
+ else {
+ char * buffer ;
+ size_t buflen ;
+ char * result ;
+ buffer = read_into_buffer ( stdin , & buflen ) ;
+ result = ksba_oid_to_str ( buffer , buflen ) ;
+ free ( buffer ) ;
+ printf ( "%s\n" , result ? result : "[malloc failed]" ) ;
+ free ( result ) ;
+ }
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | { argc -- ; argv ++ ; }
+25769803778 | BLOCK | 
+        {
+ unsigned char * buffer ;
+ size_t n , buflen ;
+ for ( ;
+ argc ;
+ argc -- , argv ++ ) {
+ err = ksba_oid_from_str ( * argv , & buffer , & buflen ) ;
+ if ( err ) {
+ fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) ) ;
+ return 1 ;
+ }
+ printf ( "%s ->" , * argv ) ;
+ for ( n = 0 ;
+ n < buflen ;
+ n ++ ) printf ( " %02X" , buffer [ n ] ) ;
+ putchar ( '\n' ) ;
+ free ( buffer ) ;
+ }
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ err = ksba_oid_from_str ( * argv , & buffer , & buflen ) ;
+ if ( err ) {
+ fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) ) ;
+ return 1 ;
+ }
+ printf ( "%s ->" , * argv ) ;
+ for ( n = 0 ;
+ n < buflen ;
+ n ++ ) printf ( " %02X" , buffer [ n ] ) ;
+ putchar ( '\n' ) ;
+ free ( buffer ) ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) ) ;
+ return 1 ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ char * buffer ;
+ size_t buflen ;
+ char * result ;
+ buffer = read_into_buffer ( stdin , & buflen ) ;
+ result = ksba_oid_to_str ( buffer , buflen ) ;
+ free ( buffer ) ;
+ printf ( "%s\n" , result ? result : "[malloc failed]" ) ;
+ free ( result ) ;
+ }
+      
+30064771072 | CALL | argc != 0
+30064771073 | CALL | argc --
+30064771074 | CALL | argv ++
+30064771075 | CALL | argc != 0
+30064771076 | CALL | argc != 0
+30064771077 | CALL | argc --
+30064771078 | CALL | argv ++
+30064771079 | CALL | err = ksba_oid_from_str ( * argv , & buffer , & buflen )
+30064771080 | CALL | ksba_oid_from_str ( * argv , & buffer , & buflen )
+30064771081 | CALL | * argv
+30064771082 | CALL | & buffer
+30064771083 | CALL | & buflen
+30064771084 | CALL | err != 0
+30064771085 | CALL | 
+        fprintf ( stderr , "can't convert `%s': %s\n" , * argv , gpg_strerror ( err ) )
+      
+30064771086 | CALL | * argv
+30064771087 | CALL | gpg_strerror ( err )
+30064771088 | CALL | printf ( "%s ->" , * argv )
+30064771089 | CALL | * argv
+30064771090 | CALL | n = 0
+30064771091 | CALL | n < buflen
+30064771092 | CALL | n ++
+30064771093 | CALL | printf ( " %02X" , buffer [ n ] )
+30064771094 | CALL | buffer [ n ]
+30064771095 | CALL | putchar ( '\n' )
+30064771096 | CALL | free ( buffer )
+30064771097 | CALL | buffer = read_into_buffer ( stdin , & buflen )
+30064771098 | CALL | read_into_buffer ( stdin , & buflen )
+30064771099 | CALL | & buflen
+30064771100 | CALL | result = ksba_oid_to_str ( buffer , buflen )
+30064771101 | CALL | ksba_oid_to_str ( buffer , buflen )
+30064771102 | CALL | free ( buffer )
+30064771103 | CALL | printf ( "%s\n" , result ? result : "[malloc failed]" )
+EDGES:
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771074 [AST]
+25769803780 -> 30064771077 [AST]
+25769803780 -> 30064771078 [AST]
+25769803781 -> 30064771079 [AST]
+25769803781 -> 30064771088 [AST]
+25769803781 -> 30064771095 [AST]
+25769803781 -> 30064771096 [AST]
+25769803782 -> 30064771085 [AST]
+25769803783 -> 30064771097 [AST]
+25769803783 -> 30064771100 [AST]
+25769803783 -> 30064771102 [AST]
+25769803783 -> 30064771103 [AST]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771097 [CDG]
+30064771075 -> 30064771100 [CDG]
+30064771075 -> 30064771101 [CDG]
+30064771075 -> 30064771098 [CDG]
+30064771075 -> 30064771099 [CDG]
+30064771075 -> 30064771102 [CDG]
+30064771075 -> 30064771103 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771083 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771086 [REACHING_DEF]
+30064771081 -> 30064771089 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771083 [REACHING_DEF]
+30064771082 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771076 [CDG]
+30064771084 -> 30064771077 [CDG]
+30064771084 -> 30064771078 [CDG]
+30064771084 -> 30064771085 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771090 [CDG]
+30064771084 -> 30064771091 [CDG]
+30064771084 -> 30064771096 [CDG]
+30064771084 -> 30064771095 [CDG]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771087 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771087 [AST]
+30064771085 -> 30064771087 [POST_DOMINATE]
+30064771086 -> 30064771087 [REACHING_DEF]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771085 [CFG]
+30064771087 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771087 -> 30064771085 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int main ( int argc , char * * argv ) {
+ gpg_error_t err ;
+ if ( argc ) {
+ argc -- ;
+ argv ++ ;
+ }
+ if ( ! argc ) {
+ test_oid_to_str ( ) ;
+ }
+ else if ( ! strcmp ( * argv , "--from-str" ) ) {
+ unsigned 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

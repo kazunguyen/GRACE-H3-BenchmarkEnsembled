@@ -1,0 +1,241 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+hb_tag_t hb_ot_tag_from_language ( hb_language_t language ) {
+ const char * lang_str , * s ;
+ if ( language == HB_LANGUAGE_INVALID ) return HB_OT_TAG_DEFAULT_LANGUAGE ;
+ lang_str = hb_language_to_string ( language ) ;
+ s = strstr ( lang_str , "x-hbot" ) ;
+ if ( s ) {
+ char tag [ 4 ] ;
+ int i ;
+ s += 6 ;
+ for ( i = 0 ;
+ i < 4 && ISALPHA ( s [ i ] ) ;
+ i ++ ) tag [ i ] = TOUPPER ( s [ i ] ) ;
+ if ( i ) {
+ for ( ;
+ i < 4 ;
+ i ++ ) tag [ i ] = ' ' ;
+ return HB_TAG_CHAR4 ( tag ) ;
+ }
+ }
+ {
+ const LangTag * lang_tag ;
+ lang_tag = ( LangTag * ) bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component ) ;
+ if ( lang_tag ) return lang_tag -> tag ;
+ }
+ if ( 0 == lang_compare_first_component ( lang_str , "zh" ) ) {
+ unsigned int i ;
+ for ( i = 0 ;
+ i < ARRAY_LENGTH ( ot_languages_zh ) ;
+ i ++ ) {
+ const LangTagLong * lang_tag ;
+ lang_tag = & ot_languages_zh [ i ] ;
+ if ( lang_matches ( lang_str , lang_tag -> language ) ) return lang_tag -> tag ;
+ }
+ return HB_TAG ( 'Z' , 'H' , 'S' , ' ' ) ;
+ }
+ s = strchr ( lang_str , '-' ) ;
+ if ( ! s ) s = lang_str + strlen ( lang_str ) ;
+ if ( s - lang_str == 3 ) {
+ return hb_tag_from_string ( lang_str , s - lang_str ) & ~ 0x20202000u ;
+ }
+ return HB_OT_TAG_DEFAULT_LANGUAGE ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const char * lang_str , * s ;
+ if ( language == HB_LANGUAGE_INVALID ) return HB_OT_TAG_DEFAULT_LANGUAGE ;
+ lang_str = hb_language_to_string ( language ) ;
+ s = strstr ( lang_str , "x-hbot" ) ;
+ if ( s ) {
+ char tag [ 4 ] ;
+ int i ;
+ s += 6 ;
+ for ( i = 0 ;
+ i < 4 && ISALPHA ( s [ i ] ) ;
+ i ++ ) tag [ i ] = TOUPPER ( s [ i ] ) ;
+ if ( i ) {
+ for ( ;
+ i < 4 ;
+ i ++ ) tag [ i ] = ' ' ;
+ return HB_TAG_CHAR4 ( tag ) ;
+ }
+ }
+ {
+ const LangTag * lang_tag ;
+ lang_tag = ( LangTag * ) bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component ) ;
+ if ( lang_tag ) return lang_tag -> tag ;
+ }
+ if ( 0 == lang_compare_first_component ( lang_str , "zh" ) ) {
+ unsigned int i ;
+ for ( i = 0 ;
+ i < ARRAY_LENGTH ( ot_languages_zh ) ;
+ i ++ ) {
+ const LangTagLong * lang_tag ;
+ lang_tag = & ot_languages_zh [ i ] ;
+ if ( lang_matches ( lang_str , lang_tag -> language ) ) return lang_tag -> tag ;
+ }
+ return HB_TAG ( 'Z' ,...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ char tag [ 4 ] ;
+ int i ;
+ s += 6 ;
+ for ( i = 0 ;
+ i < 4 && ISALPHA ( s [ i ] ) ;
+ i ++ ) tag [ i ] = TOUPPER ( s [ i ] ) ;
+ if ( i ) {
+ for ( ;
+ i < 4 ;
+ i ++ ) tag [ i ] = ' ' ;
+ return HB_TAG_CHAR4 ( tag ) ;
+ }
+ }
+      
+25769803779 | BLOCK | { for ( ; i < 4 ; i ++ ) tag [ i ] = ' ' ; return HB_TAG_CHAR4 ( tag ) ; }
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ const LangTag * lang_tag ;
+ lang_tag = ( LangTag * ) bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component ) ;
+ if ( lang_tag ) return lang_tag -> tag ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ unsigned int i ;
+ for ( i = 0 ;
+ i < ARRAY_LENGTH ( ot_languages_zh ) ;
+ i ++ ) {
+ const LangTagLong * lang_tag ;
+ lang_tag = & ot_languages_zh [ i ] ;
+ if ( lang_matches ( lang_str , lang_tag -> language ) ) return lang_tag -> tag ;
+ }
+ return HB_TAG ( 'Z' , 'H' , 'S' , ' ' ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ const LangTagLong * lang_tag ;
+ lang_tag = & ot_languages_zh [ i ] ;
+ if ( lang_matches ( lang_str , lang_tag -> language ) ) return lang_tag -> tag ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | { return hb_tag_from_string ( lang_str , s - lang_str ) & ~ 0x20202000u ; }
+30064771072 | CALL | language == HB_LANGUAGE_INVALID
+30064771073 | CALL | lang_str = hb_language_to_string ( language )
+30064771074 | CALL | hb_language_to_string ( language )
+30064771075 | CALL | s = strstr ( lang_str , "x-hbot" )
+30064771076 | CALL | strstr ( lang_str , "x-hbot" )
+30064771077 | CALL | s != NULL
+30064771078 | CALL | tag [ 4 ]
+30064771079 | CALL | tag [ 4 ]
+30064771080 | CALL | s += 6
+30064771081 | CALL | i = 0
+30064771082 | CALL | i < 4 && ISALPHA ( s [ i ] )
+30064771083 | CALL | i < 4
+30064771084 | CALL | ISALPHA ( s [ i ] )
+30064771085 | CALL | s [ i ]
+30064771086 | CALL | i ++
+30064771087 | CALL | tag [ i ] = TOUPPER ( s [ i ] )
+30064771088 | CALL | tag [ i ]
+30064771089 | CALL | TOUPPER ( s [ i ] )
+30064771090 | CALL | s [ i ]
+30064771091 | CALL | i != 0
+30064771092 | CALL | i < 4
+30064771093 | CALL | i ++
+30064771094 | CALL | tag [ i ] = ' '
+30064771095 | CALL | tag [ i ]
+30064771096 | CALL | HB_TAG_CHAR4 ( tag )
+30064771097 | CALL | 
+        lang_tag = ( LangTag * ) bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component )
+      
+30064771098 | CALL | 
+        ( LangTag * ) bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component )
+      
+30064771099 | CALL | 
+        bsearch ( lang_str , ot_languages , ARRAY_LENGTH ( ot_languages ) , sizeof ( LangTag ) , ( hb_compare_func_t ) lang_compare_first_component )
+      
+EDGES:
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 25769803781 [AST]
+25769803778 -> 30064771078 [AST]
+25769803778 -> 30064771080 [AST]
+25769803781 -> 30064771097 [AST]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771091 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771099 [CDG]
+30064771077 -> 30064771097 [CDG]
+30064771077 -> 30064771098 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771089 [CDG]
+30064771082 -> 30064771090 [CDG]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771088 [CDG]
+30064771082 -> 30064771086 [CDG]
+30064771082 -> 30064771083 [CDG]
+30064771082 -> 30064771082 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771084 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 30064771082 [DOMINATE]
+30064771083 -> 30064771084 [REACHING_DEF]
+30064771083 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [ARGUMENT]
+300647
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,367 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int mpeg_decode_frame(AVCodecContext *avctx,
+
+                             void *data, int *data_size,
+
+                             uint8_t *buf, int buf_size)
+
+{
+
+    Mpeg1Context *s = avctx->priv_data;
+
+    const uint8_t *buf_end;
+
+    const uint8_t *buf_ptr;
+
+    uint32_t start_code;
+
+    int ret, input_size;
+
+    AVFrame *picture = data;
+
+    MpegEncContext *s2 = &s->mpeg_enc_ctx;
+
+    dprintf(avctx, "fill_buffer\n");
+
+
+
+    if (buf_size == 0 || (buf_size == 4 && AV_RB32(buf) == SEQ_END_CODE)) {
+
+        /* special case for last picture */
+
+        if (s2->low_delay==0 && s2->next_picture_ptr) {
+
+            *picture= *(AVFrame*)s2->next_picture_ptr;
+
+            s2->next_picture_ptr= NULL;
+
+
+
+            *data_size = sizeof(AVFrame);
+
+        }
+
+        return 0;
+
+    }
+
+
+
+    if(s2->flags&CODEC_FLAG_TRUNCATED){
+
+        int next= ff_mpeg1_find_frame_end(&s2->parse_context, buf, buf_size);
+
+
+
+        if( ff_combine_frame(&s2->parse_context, next, (const uint8_t **)&buf, &buf_size) < 0 )
+
+            return buf_size;
+
+    }
+
+
+
+    buf_ptr = buf;
+
+    buf_end = buf + buf_size;
+
+
+
+#if 0
+
+    if (s->repeat_field % 2 == 1) {
+
+        s->repeat_field++;
+
+        //fprintf(stderr,"\nRepeating last frame: %d -> %d! pict: %d %d", avctx->frame_number-1, avctx->frame_number,
+
+        //        s2->picture_number, s->repeat_field);
+
+        if (avctx->flags & CODEC_FLAG_REPEAT_FIELD) {
+
+            *data_size = sizeof(AVPicture);
+
+            goto the_end;
+
+        }
+
+    }
+
+#endif
+
+
+
+    if(s->mpeg_enc_ctx_allocated==0 && avctx->codec_tag == ff_get_fourcc("VCR2"))
+
+        vcr2_init_sequence(avctx);
+
+
+
+    s->slice_count= 0;
+
+
+
+    for(;;) {
+
+        /* find start next code */
+
+        start_code = -1;
+
+        buf_ptr = ff_find_start_code(buf_ptr,buf_end, &start_code);
+
+        if (start_code > 0x1ff){
+
+            if(s2->pict_type != B_TYPE || avctx->skip_frame <= AVDISCARD_DEFAULT){
+
+                if(avctx->thread_count > 1){
+
+                    int i;
+
+
+
+                    avctx->execute(avctx, slice_decode_thread,  (void**)&(s2->thread_context[0]), NULL, s->slice_count);
+
+                    for(i=0; i<s->slice_count; i++)
+
+                        s2->error_count += s2->thread_context[i]->error_count;
+
+                }
+
+                if (slice_end(avctx, picture)) {
+
+                    if(s2->last_picture_ptr || s2->low_delay) //FIXME merge with the stuff in mpeg_decode_slice
+
+                        *data_size = sizeof(AVPicture);
+
+                }
+
+            }
+
+            return FFMAX(0, buf_ptr - buf - s2->parse_context.last_index);
+
+        }
+
+
+
+        input_size = buf_end - buf_ptr;
+
+
+
+        if(avctx->debug & FF_DEBUG_STARTCODE){
+
+            av_log(avctx, AV_LOG_DEBUG, "%3X at %zd left %d\n", start_code, buf_ptr-buf, input_size);
+
+        }
+
+
+
+        /* prepare data for next start code */
+
+        switch(start_code) {
+
+        case SEQ_START_CODE:
+
+            mpeg1_decode_sequence(avctx, buf_ptr,
+
+                   
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+34 -> 37 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+4 -> 33 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+44 -> 46 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 77 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+62 -> 66 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+87 -> 89 [IS_AST_PARENT]
+81 -> 87 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int mpeg_decode_frame(AVCodecContext *avctx, 
+
+                             void *data, int *data_size,
+
+                             uint8_t *buf, int buf_size)
+
+{
+
+    Mpeg1Context *s = avctx->priv_data;
+
+    uint8_t *buf_end, *buf_ptr;
+
+    int ret, start_code, input_size;
+
+    AVFrame *picture = data;
+
+    MpegEncContext *s2 = &s->mpeg_enc_ctx;
+
+    dprintf("fill_buffer\n");
+
+
+
+    *data_size = 0;
+
+
+
+    /* special case for last picture */
+
+    if (buf_size == 0) {
+
+        if (s2->picture_number > 0) {
+
+            *picture= *(AVFrame*)&s2->next_picture;
+
+
+
+            *data_size = sizeof(AVFrame);
+
+        }
+
+        return 0;
+
+    }
+
+
+
+    if(s2->flags&CODEC_FLAG_TRUNCATED){
+
+        int next;
+
+        
+
+        next= mpeg1_find_frame_end(s2, buf, buf_size);
+
+        
+
+        if( ff_combine_frame(s2, next, &buf, &buf_size) < 0 )
+
+            return buf_size;
+
+    }    
+
+    
+
+    buf_ptr = buf;
+
+    buf_end = buf + buf_size;
+
+
+
+#if 0    
+
+    if (s->repeat_field % 2 == 1) { 
+
+        s->repeat_field++;
+
+        //fprintf(stderr,"\nRepeating last frame: %d -> %d! pict: %d %d", avctx->frame_number-1, avctx->frame_number,
+
+        //        s2->picture_number, s->repeat_field);
+
+        if (avctx->flags & CODEC_FLAG_REPEAT_FIELD) {
+
+            *data_size = sizeof(AVPicture);
+
+            goto the_end;
+
+        }
+
+    }
+
+#endif
+
+    for(;;) {
+
+        /* find start next code */
+
+        start_code = find_start_code(&buf_ptr, buf_end);
+
+        if (start_code < 0){
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

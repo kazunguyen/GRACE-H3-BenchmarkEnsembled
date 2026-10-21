@@ -1,0 +1,159 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static bool cpu_thread_is_idle(CPUState *cpu)
+
+{
+
+    if (cpu->stop || cpu->queued_work_first) {
+
+        return false;
+
+    }
+
+    if (cpu->stopped || !runstate_is_running()) {
+
+        return true;
+
+    }
+
+    if (!cpu->halted || qemu_cpu_has_work(cpu) ||
+
+        kvm_async_interrupts_enabled()) {
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | PtrMemberAccess
+AST 3 | OrExpression
+AST 4 | Condition
+AST 5 | IfStatement
+AST 6 | CompoundStatement
+AST 7 | FunctionDef
+EDGES (original Joern endpoint IDs):
+8 -> 9 [IS_AST_PARENT]
+8 -> 10 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+7 -> 11 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+5 -> 14 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+19 -> 23 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+17 -> 29 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+41 -> 44 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+40 -> 47 [IS_AST_PARENT]
+34 -> 40 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+32 -> 51 [IS_AST_PARENT]
+4 -> 32 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+4 -> 54 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 56 [IS_AST_PARENT]
+3 -> 57 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+3 -> 58 [IS_AST_PARENT]
+62 -> 59 [FLOWS_TO]
+59 -> 6 [FLOWS_TO]
+6 -> 15 [FLOWS_TO]
+6 -> 18 [FLOWS_TO]
+15 -> 63 [FLOWS_TO]
+18 -> 30 [FLOWS_TO]
+18 -> 33 [FLOWS_TO]
+30 -> 63 [FLOWS_TO]
+33 -> 52 [FLOWS_TO]
+33 -> 54 [FLOWS_TO]
+52 -> 63 [FLOWS_TO]
+54 -> 63 [FLOWS_TO]
+6 -> 64 [USE]
+18 -> 65 [USE]
+33 -> 66 [USE]
+6 -> 67 [USE]
+15 -> 68 [USE]
+52 -> 68 [USE]
+30 -> 69 [USE]
+54 -> 69 [USE]
+59 -> 70 [DEF]
+6 -> 70 [USE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+bool migration_is_blocked(Error **errp)
+
+{
+
+    if (qemu_savevm_state_blocked(errp)) {
+
+        return true;
+
+    }
+
+
+
+    if (migration_blockers) {
+
+        *errp = error_copy(migration_blockers->data);
+
+        return true;
+
+    }
+
+
+
+    return false;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

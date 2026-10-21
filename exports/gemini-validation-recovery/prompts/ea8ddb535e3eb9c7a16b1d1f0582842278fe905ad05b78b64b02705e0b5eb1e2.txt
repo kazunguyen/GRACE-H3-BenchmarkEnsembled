@@ -1,0 +1,126 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int isup_calls_packet ( void * ptr _U_ , packet_info * pinfo , epan_dissect_t * edt _U_ , const void * isup_info _U_ ) {
+ voip_calls_tapinfo_t * tapinfo = & the_tapinfo_struct ;
+ voip_calls_info_t * tmp_listinfo ;
+ voip_calls_info_t * callsinfo = NULL ;
+ isup_calls_info_t * tmp_isupinfo ;
+ gboolean found = FALSE ;
+ gboolean forward = FALSE ;
+ gboolean right_pair ;
+ GList * list ;
+ gchar * frame_label = NULL ;
+ gchar * comment = NULL ;
+ const isup_tap_rec_t * pi = ( const isup_tap_rec_t * ) isup_info ;
+ if ( mtp3_frame_num != pinfo -> fd -> num ) return 0 ;
+ list = g_list_first ( tapinfo -> callsinfo_list ) ;
+ while ( list ) {
+ right_pair = TRUE ;
+ tmp_listinfo = ( voip_calls_info_t * ) list -> data ;
+ if ( ( tmp_listinfo -> protocol == VOIP_ISUP ) && ( tmp_listinfo -> call_active_state == VOIP_ACTIVE ) ) {
+ tmp_isupinfo = ( isup_calls_info_t * ) tmp_listinfo -> prot_info ;
+ if ( ( tmp_isupinfo -> cic == pinfo -> circuit_id ) && ( tmp_isupinfo -> ni == mtp3_ni ) ) {
+ if ( ( tmp_isupinfo -> opc == mtp3_opc ) && ( tmp_isupinfo -> dpc == mtp3_dpc ) ) {
+ forward = TRUE ;
+ }
+ else if ( ( tmp_isupinfo -> dpc == mtp3_opc ) && ( tmp_isupinfo -> opc == mtp3_dpc ) ) {
+ forward = FALSE ;
+ }
+ else {
+ right_pair = FALSE ;
+ }
+ if ( right_pair ) {
+ if ( tmp_listinfo -> call_state == VOIP_CALL_SETUP ) {
+ found = TRUE ;
+ }
+ else if ( pi -> message_type != 1 ) {
+ found = TRUE ;
+ }
+ else {
+ tmp_listinfo -> call_active_state = VOIP_INACTIVE ;
+ }
+ }
+ if ( found ) {
+ callsinfo = ( voip_calls_info_t * ) ( list -> data ) ;
+ break ;
+ }
+ }
+ }
+ list = g_list_next ( list ) ;
+ }
+ if ( ( callsinfo == NULL ) && ( pi -> message_type == 1 ) ) {
+ callsinfo = ( voip_calls_info_t * ) g_malloc0 ( sizeof ( voip_calls_info_t ) ) ;
+ callsinfo -> call_active_state = VOIP_ACTIVE ;
+ callsinfo -> call_state = VOIP_UNKNOWN ;
+ COPY_ADDRESS ( & ( callsinfo -> initial_speaker ) , & ( pinfo -> src ) ) ;
+ callsinfo -> selected = FALSE ;
+ callsinfo -> start_fd = pinfo -> fd ;
+ callsinfo -> start_rel_ts = pinfo -> rel_ts ;
+ callsinfo -> protocol = VOIP_ISUP ;
+ if ( pi -> calling_number != NULL ) {
+ callsinfo -> from_identity = g_strdup ( pi -> calling_number ) ;
+ }
+ if ( pi -> called_number != NULL ) {
+ callsinfo -> to_identity = g_strdup ( pi -> called_number ) ;
+ }
+ callsinfo -> prot_info = g_malloc ( sizeof ( isup_calls_info_t ) ) ;
+ callsinfo -> free_prot_info = g_free ;
+ tmp_isupinfo = ( isup_calls_info_t * ) callsinfo -> prot_info ;
+ tmp_isupinfo -> opc = mtp3_opc ;
+ tmp_isupinfo -> dpc = mtp3_dpc ;
+ tmp_isupinfo -> ni = mtp3_ni ;
+ tmp_isupinfo -> cic = pinfo -> circuit_id ;
+ callsinfo -> npackets = 0 ;
+ callsinfo -> call_num = tapinfo -> ncalls ++ ;
+ tapinfo -> callsinfo_list = g_list_prepend ( tapinfo -> callsinfo_list , callsinfo ) ;
+ }
+ if ( callsinfo != NULL ) {
+ callsinfo -> stop_fd = pinfo -> fd ;
+ callsinfo -> stop_rel_ts = pinfo -> rel_ts ;
+ ++ ( callsinfo -> npackets ) ;
+ frame_label = g_strdup ( val_to_str_ext_const ( pi -> message_type , & isup_message_type_value_acro_ext ,
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int VoIPcalls_packet ( void * ptr _U_ , packet_info * pinfo , epan_dissect_t * edt _U_ , const void * VoIPinfo ) {
+ voip_calls_tapinfo_t * tapinfo = & the_tapinfo_struct ;
+ voip_calls_info_t * callsinfo = NULL ;
+ voip_calls_info_t * tmp_listinfo ;
+ GList * list = NULL ;
+ const voip_packet_info_t * pi = ( const voip_packet_info_t * ) VoIPinfo ;
+ if ( pi -> call_id ) list = g_list_first ( tapinfo -> callsinfo_list ) ;
+ while ( list ) {
+ tmp_listinfo = ( voip_calls_info_t * ) list -> data ;
+ if ( tmp_listinfo -> protocol == VOIP_COMMON ) {
+ if ( ! strcmp ( pi -> call_id , tmp_listinfo -> call_id ) ) {
+ callsinfo = ( voip_calls_info_t * ) ( list -> data ) ;
+ break ;
+ }
+ }
+ list = g_list_next ( list ) ;
+ }
+ if ( callsinfo == NULL ) {
+ callsinfo = ( voip_calls_info_t * ) g_malloc0 ( sizeof ( voip_calls_info_t ) ) ;
+ callsinfo -> call_active_state = pi -> call_active_state ;
+ callsinfo -> call_state = pi -> call_state ;
+ callsinfo -> call_id = g_strdup ( ( pi -> call_id ) ? pi -> call_id : "" ) ;
+ callsinfo -> from_identity = g_strdup ( ( pi -> from_identity ) ? pi -> from_identity : "" ) ;
+ callsinfo -> to_identity = g_strdup ( ( pi -> to_identity ) ? pi -> to_identity : "" ) ;
+ COPY_ADDRESS ( & ( callsinfo -> initial_speaker ) , & ( pinfo -> src ) ) ;
+ callsinfo -> selected = FALSE ;
+ callsinfo -> start_fd = pinfo -> fd ;
+ callsinfo -> start_rel_ts = pinfo -> rel_ts ;
+ callsinfo -> protocol = VOIP_COMMON ;
+ callsinfo -> protocol_name = g_strdup ( ( pi -> protocol_name ) ? p
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

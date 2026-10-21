@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int fill_filter_caches ( H264Context * h , int mb_type ) {
+ const int mb_xy = h -> mb_xy ;
+ int top_xy , left_xy [ LEFT_MBS ] ;
+ int top_type , left_type [ LEFT_MBS ] ;
+ uint8_t * nnz ;
+ uint8_t * nnz_cache ;
+ top_xy = mb_xy - ( h -> mb_stride << MB_FIELD ( h ) ) ;
+ left_xy [ LBOT ] = left_xy [ LTOP ] = mb_xy - 1 ;
+ if ( FRAME_MBAFF ( h ) ) {
+ const int left_mb_field_flag = IS_INTERLACED ( h -> cur_pic . mb_type [ mb_xy - 1 ] ) ;
+ const int curr_mb_field_flag = IS_INTERLACED ( mb_type ) ;
+ if ( h -> mb_y & 1 ) {
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LTOP ] -= h -> mb_stride ;
+ }
+ else {
+ if ( curr_mb_field_flag ) top_xy += h -> mb_stride & ( ( ( h -> cur_pic . mb_type [ top_xy ] >> 7 ) & 1 ) - 1 ) ;
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LBOT ] += h -> mb_stride ;
+ }
+ }
+ h -> top_mb_xy = top_xy ;
+ h -> left_mb_xy [ LTOP ] = left_xy [ LTOP ] ;
+ h -> left_mb_xy [ LBOT ] = left_xy [ LBOT ] ;
+ {
+ int qp_thresh = h -> qp_thresh ;
+ int qp = h -> cur_pic . qscale_table [ mb_xy ] ;
+ if ( qp <= qp_thresh && ( left_xy [ LTOP ] < 0 || ( ( qp + h -> cur_pic . qscale_table [ left_xy [ LTOP ] ] + 1 ) >> 1 ) <= qp_thresh ) && ( top_xy < 0 || ( ( qp + h -> cur_pic . qscale_table [ top_xy ] + 1 ) >> 1 ) <= qp_thresh ) ) {
+ if ( ! FRAME_MBAFF ( h ) ) return 1 ;
+ if ( ( left_xy [ LTOP ] < 0 || ( ( qp + h -> cur_pic . qscale_table [ left_xy [ LBOT ] ] + 1 ) >> 1 ) <= qp_thresh ) && ( top_xy < h -> mb_stride || ( ( qp + h -> cur_pic . qscale_table [ top_xy - h -> mb_stride ] + 1 ) >> 1 ) <= qp_thresh ) ) return 1 ;
+ }
+ }
+ top_type = h -> cur_pic . mb_type [ top_xy ] ;
+ left_type [ LTOP ] = h -> cur_pic . mb_type [ left_xy [ LTOP ] ] ;
+ left_type [ LBOT ] = h -> cur_pic . mb_type [ left_xy [ LBOT ] ] ;
+ if ( h -> deblocking_filter == 2 ) {
+ if ( h -> slice_table [ top_xy ] != h -> slice_num ) top_type = 0 ;
+ if ( h -> slice_table [ left_xy [ LBOT ] ] != h -> slice_num ) left_type [ LTOP ] = left_type [ LBOT ] = 0 ;
+ }
+ else {
+ if ( h -> slice_table [ top_xy ] == 0xFFFF ) top_type = 0 ;
+ if ( h -> slice_table [ left_xy [ LBOT ] ] == 0xFFFF ) left_type [ LTOP ] = left_type [ LBOT ] = 0 ;
+ }
+ h -> top_type = top_type ;
+ h -> left_type [ LTOP ] = left_type [ LTOP ] ;
+ h -> left_type [ LBOT ] = left_type [ LBOT ] ;
+ if ( IS_INTRA ( mb_type ) ) return 0 ;
+ fill_filter_caches_inter ( h , mb_type , top_xy , left_xy , top_type , left_type , mb_xy , 0 ) ;
+ if ( h -> list_count == 2 ) fill_filter_caches_inter ( h , mb_type , top_xy , left_xy , top_type , left_type , mb_xy , 1 ) ;
+ nnz = h -> non_zero_count [ mb_xy ] ;
+ nnz_cache = h -> non_zero_count_cache ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 1 ] , & nnz [ 0 ] ) ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 2 ] , & nnz [ 4 ] ) ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 3 ] , & nnz [ 8 ] ) ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 4 ] , & nnz [ 12 ] ) ;
+ h -> cbp = h -> cbp_table [ mb_xy ] ;
+ if ( top_type ) {
+ nnz = h -> non_zero_count [ top_xy ] ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 0 ] , & nnz [ 3 * 
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int mb_xy = h -> mb_xy ;
+ int top_xy , left_xy [ LEFT_MBS ] ;
+ int top_type , left_type [ LEFT_MBS ] ;
+ uint8_t * nnz ;
+ uint8_t * nnz_cache ;
+ top_xy = mb_xy - ( h -> mb_stride << MB_FIELD ( h ) ) ;
+ left_xy [ LBOT ] = left_xy [ LTOP ] = mb_xy - 1 ;
+ if ( FRAME_MBAFF ( h ) ) {
+ const int left_mb_field_flag = IS_INTERLACED ( h -> cur_pic . mb_type [ mb_xy - 1 ] ) ;
+ const int curr_mb_field_flag = IS_INTERLACED ( mb_type ) ;
+ if ( h -> mb_y & 1 ) {
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LTOP ] -= h -> mb_stride ;
+ }
+ else {
+ if ( curr_mb_field_flag ) top_xy += h -> mb_stride & ( ( ( h -> cur_pic . mb_type [ top_xy ] >> 7 ) & 1 ) - 1 ) ;
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LBOT ] += h -> mb_stride ;
+ }
+ }
+ h -> top_mb_xy = top_xy ;
+ h -> left_mb_xy [ LTOP ] = left_xy [ LTOP ] ;
+ h -> left_mb_xy [ LBOT ] = left_xy [ LBOT ] ;
+ {
+ int qp_thresh = h -> qp_thresh ;
+ int qp = h -> cur_pic . qscale_table [ mb_xy ] ;
+ if ( qp <= qp_thresh &&...
+      
+25769803777 | BLOCK | 
+        {
+ const int left_mb_field_flag = IS_INTERLACED ( h -> cur_pic . mb_type [ mb_xy - 1 ] ) ;
+ const int curr_mb_field_flag = IS_INTERLACED ( mb_type ) ;
+ if ( h -> mb_y & 1 ) {
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LTOP ] -= h -> mb_stride ;
+ }
+ else {
+ if ( curr_mb_field_flag ) top_xy += h -> mb_stride & ( ( ( h -> cur_pic . mb_type [ top_xy ] >> 7 ) & 1 ) - 1 ) ;
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LBOT ] += h -> mb_stride ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LTOP ] -= h -> mb_stride ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ if ( curr_mb_field_flag ) top_xy += h -> mb_stride & ( ( ( h -> cur_pic . mb_type [ top_xy ] >> 7 ) & 1 ) - 1 ) ;
+ if ( left_mb_field_flag != curr_mb_field_flag ) left_xy [ LBOT ] += h -> mb_stride ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ int qp_thresh = h -> qp_thresh ;
+ int qp = h -> cur_pic . qscale_table [ mb_xy ] ;
+ if ( qp <= qp_thresh && ( left_xy [ LTOP ] < 0 || ( ( qp + h -> cur_pic . qscale_table [ left_xy [ LTOP ] ] + 1 ) >> 1 ) <= qp_thresh ) && ( top_xy < 0 || ( ( qp + h -> cur_pic . qscale_table [ top_xy ] + 1 ) >> 1 ) <= qp_thresh ) ) {
+ if ( ! FRAME_MBAFF ( h ) ) return 1 ;
+ if ( ( left_xy [ LTOP ] < 0 || ( ( qp + h -> cur_pic . qscale_table [ left_xy [ LBOT ] ] + 1 ) >> 1 ) <= qp_thresh ) && ( top_xy < h -> mb_stride || ( ( qp + h -> cur_pic . qscale_table [ top_xy - h -> mb_stride ] + 1 ) >> 1 ) <= qp_thresh ) ) return 1 ;
+ }
+ }
+      
+25769803784 | BLOCK | 
+        {
+ if ( ! FRAME_MBAFF ( h ) ) return 1 ;
+ if ( ( left_xy [ LTOP ] < 0 || ( ( qp + h -> cur_pic . qscale_table [ left_xy [ LBOT ] ] + 1 ) >> 1 ) <= qp_thresh ) && ( top_xy < h -> mb_stride || ( ( qp + h -> cur_pic . qscale_table [ top_xy - h -> mb_stride ] + 1 ) >> 1 ) <= qp_thresh ) ) return 1 ;
+ }
+      
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ if ( h -> slice_table [ top_xy ] != h -> slice_num ) top_type = 0 ;
+ if ( h -> slice_table [ left_xy [ LBOT ] ] != h -> slice_num ) left_type [ LTOP ] = left_type [ LBOT ] = 0 ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( h -> slice_table [ top_xy ] == 0xFFFF ) top_type = 0 ;
+ if ( h -> slice_table [ left_xy [ LBOT ] ] == 0xFFFF ) left_type [ LTOP ] = left_type [ LBOT ] = 0 ;
+ }
+      
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | <empty>
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | <empty>
+25769803795 | BLOCK | 
+        {
+ nnz = h -> non_zero_count [ top_xy ] ;
+ AV_COPY32 ( & nnz_cache [ 4 + 8 * 0 ] , & nnz [ 3 * 4 ] ) ;
+ }
+      
+25769803796 | BLOCK | 
+        {
+ nnz = h -> non_zero_count [ left_xy [ LTOP ] ] ;
+ nnz_cache [ 3 + 8 * 1 ] = nnz [ 3 + 0 * 4 ] ;
+ nnz_cache [ 3 + 8 * 2 ] = nnz [ 3 + 1 * 4 ] ;
+ nnz_cache [ 3 + 8 * 3 ] = nnz [ 3 + 2 * 4 ] ;
+ nnz_cache [ 3 + 8 * 4 ] = nnz [ 3 + 3 * 4 ] ;
+ }
+      
+25769803797 | BLOCK | 
+        {
+ if ( IS_8x8DCT ( top_type ) ) {
+ nnz_cache [ 4 + 8 * 0 ] = nnz_cache [ 5 + 8 * 0 ] = ( h -> cbp_table [ top_xy ] & 0x4000 ) >> 12 ;
+ nnz_cache [ 6 + 8 * 0 ] = nnz_cache [ 7 + 8 * 0 ] = ( h -> cbp_table [ top_xy ] & 0x8000 ) >> 12 ;
+ }
+ if ( 
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

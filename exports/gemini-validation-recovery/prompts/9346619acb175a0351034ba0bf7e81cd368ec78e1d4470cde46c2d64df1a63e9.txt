@@ -1,0 +1,242 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_udvm_reference_operand_memory ( guint8 * buff , guint operand_address , guint16 * value , guint * result_dest ) {
+ guint bytecode ;
+ guint16 operand ;
+ guint offset = operand_address ;
+ guint test_bits ;
+ guint8 temp_data ;
+ guint16 temp_data16 ;
+ bytecode = buff [ operand_address ] ;
+ test_bits = bytecode >> 7 ;
+ if ( test_bits == 1 ) {
+ test_bits = bytecode >> 6 ;
+ if ( test_bits == 2 ) {
+ temp_data = buff [ operand_address ] & 0x3f ;
+ operand = temp_data << 8 ;
+ temp_data = buff [ ( operand_address + 1 ) & 0xffff ] ;
+ operand = operand | temp_data ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 2 ;
+ }
+ else {
+ operand_address ++ ;
+ operand = buff [ operand_address ] << 8 ;
+ operand = operand | buff [ ( operand_address + 1 ) & 0xffff ] ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 3 ;
+ }
+ }
+ else {
+ operand = ( bytecode & 0x7f ) ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset ++ ;
+ }
+ if ( offset >= UDVM_MEMORY_SIZE || * result_dest >= UDVM_MEMORY_SIZE - 1 ) return 0 ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint bytecode ;
+ guint16 operand ;
+ guint offset = operand_address ;
+ guint test_bits ;
+ guint8 temp_data ;
+ guint16 temp_data16 ;
+ bytecode = buff [ operand_address ] ;
+ test_bits = bytecode >> 7 ;
+ if ( test_bits == 1 ) {
+ test_bits = bytecode >> 6 ;
+ if ( test_bits == 2 ) {
+ temp_data = buff [ operand_address ] & 0x3f ;
+ operand = temp_data << 8 ;
+ temp_data = buff [ ( operand_address + 1 ) & 0xffff ] ;
+ operand = operand | temp_data ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 2 ;
+ }
+ else {
+ operand_address ++ ;
+ operand = buff [ operand_address ] << 8 ;
+ operand = operand | buff [ ( operand_address + 1 ) & 0xffff ] ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 3 ;
+ }
+ }
+ else {
+ operand...
+      
+25769803777 | BLOCK | 
+        {
+ test_bits = bytecode >> 6 ;
+ if ( test_bits == 2 ) {
+ temp_data = buff [ operand_address ] & 0x3f ;
+ operand = temp_data << 8 ;
+ temp_data = buff [ ( operand_address + 1 ) & 0xffff ] ;
+ operand = operand | temp_data ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 2 ;
+ }
+ else {
+ operand_address ++ ;
+ operand = buff [ operand_address ] << 8 ;
+ operand = operand | buff [ ( operand_address + 1 ) & 0xffff ] ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 3 ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ temp_data = buff [ operand_address ] & 0x3f ;
+ operand = temp_data << 8 ;
+ temp_data = buff [ ( operand_address + 1 ) & 0xffff ] ;
+ operand = operand | temp_data ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 2 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ operand_address ++ ;
+ operand = buff [ operand_address ] << 8 ;
+ operand = operand | buff [ ( operand_address + 1 ) & 0xffff ] ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset = offset + 3 ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ operand = ( bytecode & 0x7f ) ;
+ operand = ( operand * 2 ) ;
+ * result_dest = operand ;
+ temp_data16 = buff [ operand ] << 8 ;
+ temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ] ;
+ * value = temp_data16 ;
+ offset ++ ;
+ }
+      
+25769803781 | BLOCK | <empty>
+30064771072 | CALL | offset = operand_address
+30064771073 | CALL | bytecode = buff [ operand_address ]
+30064771074 | CALL | buff [ operand_address ]
+30064771075 | CALL | test_bits = bytecode >> 7
+30064771076 | CALL | bytecode >> 7
+30064771077 | CALL | test_bits == 1
+30064771078 | CALL | test_bits = bytecode >> 6
+30064771079 | CALL | bytecode >> 6
+30064771080 | CALL | test_bits == 2
+30064771081 | CALL | temp_data = buff [ operand_address ] & 0x3f
+30064771082 | CALL | buff [ operand_address ] & 0x3f
+30064771083 | CALL | buff [ operand_address ]
+30064771084 | CALL | operand = temp_data << 8
+30064771085 | CALL | temp_data << 8
+30064771086 | CALL | temp_data = buff [ ( operand_address + 1 ) & 0xffff ]
+30064771087 | CALL | buff [ ( operand_address + 1 ) & 0xffff ]
+30064771088 | CALL | ( operand_address + 1 ) & 0xffff
+30064771089 | CALL | operand_address + 1
+30064771090 | CALL | operand = operand | temp_data
+30064771091 | CALL | operand | temp_data
+30064771092 | CALL | operand = ( operand * 2 )
+30064771093 | CALL | operand * 2
+30064771094 | CALL | * result_dest = operand
+30064771095 | CALL | * result_dest
+30064771096 | CALL | temp_data16 = buff [ operand ] << 8
+30064771097 | CALL | buff [ operand ] << 8
+30064771098 | CALL | buff [ operand ]
+30064771099 | CALL | temp_data16 = temp_data16 | buff [ ( operand + 1 ) & 0xffff ]
+30064771100 | CALL | temp_data16 | buff [ ( operand + 1 ) & 0xffff ]
+30064771101 | CALL | buff [ ( operand + 1 ) & 0xffff ]
+30064771102 | CALL | ( operand + 1 ) & 0xffff
+30064771103 | CALL | operand + 1
+30064771104 | CALL | * value = temp_data16
+30064771105 | CALL | * value
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771092 [AST]
+25769803778 -> 30064771094 [AST]
+25769803778 -> 30064771096 [AST]
+25769803778 -> 30064771099 [AST]
+25769803778 -> 30064771104 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 3
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

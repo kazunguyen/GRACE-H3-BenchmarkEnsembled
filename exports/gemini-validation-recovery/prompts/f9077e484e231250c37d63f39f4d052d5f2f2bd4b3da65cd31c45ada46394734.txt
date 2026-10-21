@@ -1,0 +1,258 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int nntp_check_new_groups ( struct NntpServer * nserv ) {
+ struct NntpData nntp_data ;
+ time_t now ;
+ struct tm * tm = NULL ;
+ char buf [ LONG_STRING ] ;
+ char * msg = _ ( "Checking for new newsgroups..." ) ;
+ unsigned int i ;
+ int rc , update_active = false ;
+ if ( ! nserv || ! nserv -> newgroups_time ) return - 1 ;
+ if ( ShowNewNews ) {
+ mutt_message ( _ ( "Checking for new messages..." ) ) ;
+ for ( i = 0 ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( data && data -> subscribed ) {
+ rc = nntp_group_poll ( data , 1 ) ;
+ if ( rc < 0 ) return - 1 ;
+ if ( rc > 0 ) update_active = true ;
+ }
+ }
+ if ( Context && Context -> magic == MUTT_NNTP ) {
+ buf [ 0 ] = '\0' ;
+ if ( nntp_query ( ( struct NntpData * ) Context -> data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ }
+ }
+ else if ( nserv -> newgroups_time ) return 0 ;
+ mutt_message ( msg ) ;
+ if ( nntp_date ( nserv , & now ) < 0 ) return - 1 ;
+ nntp_data . nserv = nserv ;
+ if ( Context && Context -> magic == MUTT_NNTP ) nntp_data . group = ( ( struct NntpData * ) Context -> data ) -> group ;
+ else nntp_data . group = NULL ;
+ i = nserv -> groups_num ;
+ tm = gmtime ( & nserv -> newgroups_time ) ;
+ snprintf ( buf , sizeof ( buf ) , "NEWGROUPS %02d%02d%02d %02d%02d%02d GMT\r\n" , tm -> tm_year % 100 , tm -> tm_mon + 1 , tm -> tm_mday , tm -> tm_hour , tm -> tm_min , tm -> tm_sec ) ;
+ rc = nntp_fetch_lines ( & nntp_data , buf , sizeof ( buf ) , msg , nntp_add_group , nserv ) ;
+ if ( rc ) {
+ if ( rc > 0 ) {
+ mutt_error ( "NEWGROUPS: %s" , buf ) ;
+ }
+ return - 1 ;
+ }
+ rc = 0 ;
+ if ( nserv -> groups_num != i ) {
+ int groups_num = i ;
+ nserv -> newgroups_time = now ;
+ for ( ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ data -> new = true ;
+ }
+ if ( NntpLoadDescription ) {
+ unsigned int count = 0 ;
+ struct Progress progress ;
+ mutt_progress_init ( & progress , _ ( "Loading descriptions..." ) , MUTT_PROGRESS_MSG , ReadInc , nserv -> groups_num - i ) ;
+ for ( i = groups_num ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( get_description ( data , NULL , NULL ) < 0 ) return - 1 ;
+ mutt_progress_update ( & progress , ++ count , - 1 ) ;
+ }
+ }
+ update_active = true ;
+ rc = 1 ;
+ }
+ if ( update_active ) nntp_active_save_cache ( nserv ) ;
+ mutt_clear_error ( ) ;
+ return rc ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct NntpData nntp_data ;
+ time_t now ;
+ struct tm * tm = NULL ;
+ char buf [ LONG_STRING ] ;
+ char * msg = _ ( "Checking for new newsgroups..." ) ;
+ unsigned int i ;
+ int rc , update_active = false ;
+ if ( ! nserv || ! nserv -> newgroups_time ) return - 1 ;
+ if ( ShowNewNews ) {
+ mutt_message ( _ ( "Checking for new messages..." ) ) ;
+ for ( i = 0 ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( data && data -> subscribed ) {
+ rc = nntp_group_poll ( data , 1 ) ;
+ if ( rc < 0 ) return - 1 ;
+ if ( rc > 0 ) update_active = true ;
+ }
+ }
+ if ( Context && Context -> magic == MUTT_NNTP ) {
+ buf [ 0 ] = '\0' ;
+ if ( nntp_query ( ( struct NntpData * ) Context -> data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ }
+ }
+ else if ( nserv -> newgroups_time ) return 0 ;
+ mutt_message ( msg ) ;
+ if ( nntp_date ( nserv , & now ) < 0 ) return - 1 ;
+ nntp_data . nserv = nserv ;
+ if ( Context && Context -> magic == MUTT_NNTP ) nntp_data . group = (...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ mutt_message ( _ ( "Checking for new messages..." ) ) ;
+ for ( i = 0 ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( data && data -> subscribed ) {
+ rc = nntp_group_poll ( data , 1 ) ;
+ if ( rc < 0 ) return - 1 ;
+ if ( rc > 0 ) update_active = true ;
+ }
+ }
+ if ( Context && Context -> magic == MUTT_NNTP ) {
+ buf [ 0 ] = '\0' ;
+ if ( nntp_query ( ( struct NntpData * ) Context -> data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ }
+ }
+      
+25769803779 | BLOCK | 
+        {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( data && data -> subscribed ) {
+ rc = nntp_group_poll ( data , 1 ) ;
+ if ( rc < 0 ) return - 1 ;
+ if ( rc > 0 ) update_active = true ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ rc = nntp_group_poll ( data , 1 ) ;
+ if ( rc < 0 ) return - 1 ;
+ if ( rc > 0 ) update_active = true ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | 
+        {
+ buf [ 0 ] = '\0' ;
+ if ( nntp_query ( ( struct NntpData * ) Context -> data , buf , sizeof ( buf ) ) < 0 ) return - 1 ;
+ }
+      
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | <empty>
+25769803790 | BLOCK | 
+        {
+ if ( rc > 0 ) {
+ mutt_error ( "NEWGROUPS: %s" , buf ) ;
+ }
+ return - 1 ;
+ }
+      
+25769803791 | BLOCK | { mutt_error ( "NEWGROUPS: %s" , buf ) ; }
+25769803792 | BLOCK | 
+        {
+ int groups_num = i ;
+ nserv -> newgroups_time = now ;
+ for ( ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ data -> new = true ;
+ }
+ if ( NntpLoadDescription ) {
+ unsigned int count = 0 ;
+ struct Progress progress ;
+ mutt_progress_init ( & progress , _ ( "Loading descriptions..." ) , MUTT_PROGRESS_MSG , ReadInc , nserv -> groups_num - i ) ;
+ for ( i = groups_num ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( get_description ( data , NULL , NULL ) < 0 ) return - 1 ;
+ mutt_progress_update ( & progress , ++ count , - 1 ) ;
+ }
+ }
+ update_active = true ;
+ rc = 1 ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ data -> new = true ;
+ }
+      
+25769803795 | BLOCK | 
+        {
+ unsigned int count = 0 ;
+ struct Progress progress ;
+ mutt_progress_init ( & progress , _ ( "Loading descriptions..." ) , MUTT_PROGRESS_MSG , ReadInc , nserv -> groups_num - i ) ;
+ for ( i = groups_num ;
+ i < nserv -> groups_num ;
+ i ++ ) {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( get_description ( data , NULL , NULL ) < 0 ) return - 1 ;
+ mutt_progress_update ( & progress , ++ count , - 1 ) ;
+ }
+ }
+      
+25769803796 | BLOCK | 
+        {
+ struct NntpData * data = nserv -> groups_list [ i ] ;
+ if ( get_description ( data , NULL , NULL ) < 0 ) return - 1 ;
+ mutt_progress_update ( & progress , ++ count , - 1 ) ;
+ }
+      
+25769803797 | BLOCK | <empty>
+25769803798 | BLOCK | <empty>
+30064771072 | CALL | tm = NULL
+30064771073 | CALL | buf [ LONG_STRING ]
+30064771074 | CALL | buf [ LONG_STRING ]
+30064771075 | CALL | msg = _ ( "Checking for new newsgroups..." )
+30064771076 | CALL | _ ( "Checking for new newsgroups..." )
+30064771077 | CALL | update_active = false
+30064771078 | CALL | ! nserv || ! nserv -> newgroups_time
+30064771079 | CALL | ! nserv
+30064771080 | CALL | ! nserv -> newgroups_time
+30064771081 | CALL | nserv -> newgroups_time
+30064771082 | CALL | - 1
+30064771083 | CALL | ShowNewNews != 0
+30064771084 | CALL | mutt_message ( _ ( "Checking for new messages..." ) )
+30064771085 | CALL | _ ( "Checking for new messages..." )
+30064771086 | CALL | i = 0
+30064771087 | CALL | i < nserv -> groups_num
+30064771088 | CALL | nserv -> groups_num
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

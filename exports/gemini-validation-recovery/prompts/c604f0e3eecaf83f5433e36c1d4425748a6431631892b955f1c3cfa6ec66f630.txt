@@ -1,0 +1,145 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static always_inline int find_pte (CPUState *env, mmu_ctx_t *ctx,
+
+                                   int h, int rw)
+
+{
+
+#if defined(TARGET_PPC64)
+
+    if (env->mmu_model == POWERPC_MMU_64B)
+
+        return find_pte64(ctx, h, rw);
+
+#endif
+
+
+
+    return find_pte32(ctx, h, rw);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | Identifier
+AST 2 | PtrMemberAccess
+AST 3 | EqualityExpression
+AST 4 | Condition
+AST 5 | IfStatement
+AST 6 | CompoundStatement
+AST 7 | FunctionDef
+EDGES (original Joern endpoint IDs):
+8 -> 9 [IS_AST_PARENT]
+8 -> 10 [IS_AST_PARENT]
+7 -> 8 [IS_AST_PARENT]
+7 -> 11 [IS_AST_PARENT]
+6 -> 7 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+16 -> 19 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+16 -> 21 [IS_AST_PARENT]
+13 -> 16 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+27 -> 30 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+27 -> 32 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 34 [IS_AST_PARENT]
+3 -> 35 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+36 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+36 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+36 -> 46 [IS_AST_PARENT]
+3 -> 36 [IS_AST_PARENT]
+49 -> 37 [FLOWS_TO]
+37 -> 40 [FLOWS_TO]
+40 -> 43 [FLOWS_TO]
+43 -> 46 [FLOWS_TO]
+46 -> 6 [FLOWS_TO]
+6 -> 12 [FLOWS_TO]
+6 -> 23 [FLOWS_TO]
+12 -> 50 [FLOWS_TO]
+23 -> 50 [FLOWS_TO]
+6 -> 51 [USE]
+46 -> 52 [DEF]
+12 -> 52 [USE]
+21 -> 52 [USE]
+23 -> 52 [USE]
+32 -> 52 [USE]
+40 -> 53 [DEF]
+12 -> 53 [USE]
+17 -> 53 [USE]
+23 -> 53 [USE]
+28 -> 53 [USE]
+43 -> 54 [DEF]
+12 -> 54 [USE]
+19 -> 54 [USE]
+23 -> 54 [USE]
+30 -> 54 [USE]
+6 -> 55 [USE]
+12 -> 56 [USE]
+6 -> 57 [USE]
+23 -> 58 [USE]
+37 -> 59 [DEF]
+6 -> 59 [USE]
+8 -> 59 [USE]
+46 -> 12 [REACHES]
+46 -> 23 [REACHES]
+40 -> 12 [REACHES]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static inline int find_pte (CPUState *env, mmu_ctx_t *ctx, int h, int rw)
+
+{
+
+#if defined(TARGET_PPC64)
+
+    if (env->mmu_model == POWERPC_MMU_64B ||
+
+        env->mmu_model == POWERPC_MMU_64BRIDGE)
+
+        return find_pte64(ctx, h, rw);
+
+#endif
+
+
+
+    return find_pte32(ctx, h, rw);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

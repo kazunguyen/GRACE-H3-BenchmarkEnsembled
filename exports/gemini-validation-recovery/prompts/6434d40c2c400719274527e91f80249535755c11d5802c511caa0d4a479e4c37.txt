@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int decode_subframe ( FLACContext * s , int channel ) {
+ int32_t * decoded = s -> decoded [ channel ] ;
+ int type , wasted = 0 ;
+ int bps = s -> bps ;
+ int i , tmp ;
+ if ( channel == 0 ) {
+ if ( s -> ch_mode == FLAC_CHMODE_RIGHT_SIDE ) bps ++ ;
+ }
+ else {
+ if ( s -> ch_mode == FLAC_CHMODE_LEFT_SIDE || s -> ch_mode == FLAC_CHMODE_MID_SIDE ) bps ++ ;
+ }
+ if ( get_bits1 ( & s -> gb ) ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid subframe padding\n" ) ;
+ return - 1 ;
+ }
+ type = get_bits ( & s -> gb , 6 ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int left = get_bits_left ( & s -> gb ) ;
+ wasted = 1 ;
+ if ( left < 0 || ( left < bps && ! show_bits_long ( & s -> gb , left ) ) || ! show_bits_long ( & s -> gb , bps ) ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "Invalid number of wasted bits > available bits (%d) - left=%d\n" , bps , left ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ while ( ! get_bits1 ( & s -> gb ) ) wasted ++ ;
+ bps -= wasted ;
+ }
+ if ( bps > 32 ) {
+ av_log_missing_feature ( s -> avctx , "Decorrelated bit depth > 32" , 0 ) ;
+ return AVERROR_PATCHWELCOME ;
+ }
+ if ( type == 0 ) {
+ tmp = get_sbits_long ( & s -> gb , bps ) ;
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] = tmp ;
+ }
+ else if ( type == 1 ) {
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] = get_sbits_long ( & s -> gb , bps ) ;
+ }
+ else if ( ( type >= 8 ) && ( type <= 12 ) ) {
+ if ( decode_subframe_fixed ( s , decoded , type & ~ 0x8 , bps ) < 0 ) return - 1 ;
+ }
+ else if ( type >= 32 ) {
+ if ( decode_subframe_lpc ( s , decoded , ( type & ~ 0x20 ) + 1 , bps ) < 0 ) return - 1 ;
+ }
+ else {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid coding type\n" ) ;
+ return - 1 ;
+ }
+ if ( wasted ) {
+ int i ;
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] <<= wasted ;
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int32_t * decoded = s -> decoded [ channel ] ;
+ int type , wasted = 0 ;
+ int bps = s -> bps ;
+ int i , tmp ;
+ if ( channel == 0 ) {
+ if ( s -> ch_mode == FLAC_CHMODE_RIGHT_SIDE ) bps ++ ;
+ }
+ else {
+ if ( s -> ch_mode == FLAC_CHMODE_LEFT_SIDE || s -> ch_mode == FLAC_CHMODE_MID_SIDE ) bps ++ ;
+ }
+ if ( get_bits1 ( & s -> gb ) ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid subframe padding\n" ) ;
+ return - 1 ;
+ }
+ type = get_bits ( & s -> gb , 6 ) ;
+ if ( get_bits1 ( & s -> gb ) ) {
+ int left = get_bits_left ( & s -> gb ) ;
+ wasted = 1 ;
+ if ( left < 0 || ( left < bps && ! show_bits_long ( & s -> gb , left ) ) || ! show_bits_long ( & s -> gb , bps ) ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "Invalid number of wasted bits > available bits (%d) - left=%d\n" , bps , left ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ while ( ! get_bits1 ( & s -> gb ) ) wasted ++ ;
+ bps -= wasted ;
+ }
+ if ( bps > 32 ) {
+ av_log_missing_feature ( s -> avctx , "Decorrelated bit depth > 32" , 0 ) ;
+ return AVE...
+      
+25769803777 | BLOCK | { if ( s -> ch_mode == FLAC_CHMODE_RIGHT_SIDE ) bps ++ ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ if ( s -> ch_mode == FLAC_CHMODE_LEFT_SIDE || s -> ch_mode == FLAC_CHMODE_MID_SIDE ) bps ++ ;
+ }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid subframe padding\n" ) ;
+ return - 1 ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ int left = get_bits_left ( & s -> gb ) ;
+ wasted = 1 ;
+ if ( left < 0 || ( left < bps && ! show_bits_long ( & s -> gb , left ) ) || ! show_bits_long ( & s -> gb , bps ) ) {
+ av_log ( s -> avctx , AV_LOG_ERROR , "Invalid number of wasted bits > available bits (%d) - left=%d\n" , bps , left ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ while ( ! get_bits1 ( & s -> gb ) ) wasted ++ ;
+ bps -= wasted ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "Invalid number of wasted bits > available bits (%d) - left=%d\n" , bps , left ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ av_log_missing_feature ( s -> avctx , "Decorrelated bit depth > 32" , 0 ) ;
+ return AVERROR_PATCHWELCOME ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ tmp = get_sbits_long ( & s -> gb , bps ) ;
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] = tmp ;
+ }
+      
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] = get_sbits_long ( & s -> gb , bps ) ;
+ }
+      
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ if ( decode_subframe_fixed ( s , decoded , type & ~ 0x8 , bps ) < 0 ) return - 1 ;
+ }
+      
+25769803790 | BLOCK | <empty>
+25769803791 | BLOCK | <empty>
+25769803792 | BLOCK | 
+        {
+ if ( decode_subframe_lpc ( s , decoded , ( type & ~ 0x20 ) + 1 , bps ) < 0 ) return - 1 ;
+ }
+      
+25769803793 | BLOCK | <empty>
+25769803794 | BLOCK | 
+        {
+ av_log ( s -> avctx , AV_LOG_ERROR , "invalid coding type\n" ) ;
+ return - 1 ;
+ }
+      
+25769803795 | BLOCK | 
+        {
+ int i ;
+ for ( i = 0 ;
+ i < s -> blocksize ;
+ i ++ ) decoded [ i ] <<= wasted ;
+ }
+      
+30064771072 | CALL | decoded = s -> decoded [ channel ]
+30064771073 | CALL | s -> decoded [ channel ]
+30064771074 | CALL | s -> decoded
+30064771075 | CALL | wasted = 0
+30064771076 | CALL | bps = s -> bps
+30064771077 | CALL | s -> bps
+30064771078 | CALL | channel == 0
+30064771079 | CALL | s -> ch_mode == FLAC_CHMODE_RIGHT_SIDE
+30064771080 | CALL | s -> ch_mode
+30064771081 | CALL | bps ++
+30064771082 | CALL | s -> ch_mode == FLAC_CHMODE_LEFT_SIDE || s -> ch_mode == FLAC_CHMODE_MID_SIDE
+30064771083 | CALL | s -> ch_mode == FLAC_CHMODE_LEFT_SIDE
+30064771084 | CALL | s -> ch_mode
+30064771085 | CALL | s -> ch_mode == FLAC_CHMODE_MID_SIDE
+30064771086 | CALL | s -> ch_mode
+30064771087 | CALL | bps ++
+30064771088 | CALL | get_bits1 ( & s -> gb )
+30064771089 | CALL | & s -> gb
+30064771090 | CALL | s -> gb
+30064771091 | CALL | av_log ( s -> avctx , AV_LOG_ERROR , "invalid subframe padding\n" )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803778 -> 30064771081 [AST]
+25769803780 -> 30064771087 [AST]
+25769803781 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771080 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771079 [CDG]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771085 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771085 [AST]
+30064771082 -> 30064771087 [CDG]
+30064771082 -> 30064771083 [POST_DOMINATE]
+30064771082 -> 30064771085 [POST_DOMINATE]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [CDG]
+30064771083 -> 30064771086 [CDG]
+30064771083 -> 30064771082 [CFG]
+30064771083 -> 3006477108
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

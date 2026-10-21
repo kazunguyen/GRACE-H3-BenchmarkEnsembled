@@ -1,0 +1,283 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint32_t virtio_ioport_read(VirtIOPCIProxy *proxy, uint32_t addr)
+
+{
+
+    VirtIODevice *vdev = proxy->vdev;
+
+    uint32_t ret = 0xFFFFFFFF;
+
+
+
+    switch (addr) {
+
+    case VIRTIO_PCI_HOST_FEATURES:
+
+        ret = vdev->get_features(vdev);
+
+        ret |= (1 << VIRTIO_F_NOTIFY_ON_EMPTY);
+
+        ret |= (1 << VIRTIO_RING_F_INDIRECT_DESC);
+
+        ret |= (1 << VIRTIO_F_BAD_FEATURE);
+
+        break;
+
+    case VIRTIO_PCI_GUEST_FEATURES:
+
+        ret = vdev->features;
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_PFN:
+
+        ret = virtio_queue_get_addr(vdev, vdev->queue_sel)
+
+              >> VIRTIO_PCI_QUEUE_ADDR_SHIFT;
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_NUM:
+
+        ret = virtio_queue_get_num(vdev, vdev->queue_sel);
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_SEL:
+
+        ret = vdev->queue_sel;
+
+        break;
+
+    case VIRTIO_PCI_STATUS:
+
+        ret = vdev->status;
+
+        break;
+
+    case VIRTIO_PCI_ISR:
+
+        /* reading from the ISR also clears it. */
+
+        ret = vdev->isr;
+
+        vdev->isr = 0;
+
+        qemu_set_irq(proxy->pci_dev.irq[0], 0);
+
+        break;
+
+    case VIRTIO_MSI_CONFIG_VECTOR:
+
+        ret = vdev->config_vector;
+
+        break;
+
+    case VIRTIO_MSI_QUEUE_VECTOR:
+
+        ret = virtio_queue_vector(vdev, vdev->queue_sel);
+
+        break;
+
+    default:
+
+        break;
+
+    }
+
+
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+24 -> 38 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+47 -> 49 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+24 -> 44 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+53 -> 55 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+24 -> 50 [IS_AST_PARENT]
+24 -> 56 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+24 -> 57 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+24 -> 59 [IS_AST_PARENT]
+24 -> 65 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+24 -> 66 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+79 -> 81 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+75 -> 78 [IS_AST_PARENT]
+72 -> 75 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 82 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+24 -> 68 [IS_AST_PARENT]
+24 -> 83 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+24 -> 84 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static uint32_t virtio_ioport_read(VirtIOPCIProxy *proxy, uint32_t addr)
+
+{
+
+    VirtIODevice *vdev = proxy->vdev;
+
+    uint32_t ret = 0xFFFFFFFF;
+
+
+
+    switch (addr) {
+
+    case VIRTIO_PCI_HOST_FEATURES:
+
+        ret = vdev->get_features(vdev);
+
+        ret |= vdev->binding->get_features(proxy);
+
+        break;
+
+    case VIRTIO_PCI_GUEST_FEATURES:
+
+        ret = vdev->guest_features;
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_PFN:
+
+        ret = virtio_queue_get_addr(vdev, vdev->queue_sel)
+
+              >> VIRTIO_PCI_QUEUE_ADDR_SHIFT;
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_NUM:
+
+        ret = virtio_queue_get_num(vdev, vdev->queue_sel);
+
+        break;
+
+    case VIRTIO_PCI_QUEUE_SEL:
+
+        ret = vdev->queue_sel;
+
+        break;
+
+    case VIRTIO_PCI_STATUS:
+
+        ret = vdev->status;
+
+        break;
+
+    case VIRTIO_PCI_ISR:
+
+        /* reading from the ISR also clears it. */
+
+        ret = vdev->isr;
+
+        vdev->isr = 0;
+
+        qemu_set_irq(proxy->pci_dev.irq[0], 0);
+
+        break;
+
+    case VIRTIO_MSI_CONFIG_VECTOR:
+
+        ret = vdev->config_vector;
+
+        break;
+
+    case VIRTIO_MSI_QUEUE_VECTOR:
+
+        ret = virtio_queue_vector(vdev, vdev->queue_sel);
+
+        break;
+
+    default:
+
+        break;
+
+    }
+
+
+
+    return ret;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

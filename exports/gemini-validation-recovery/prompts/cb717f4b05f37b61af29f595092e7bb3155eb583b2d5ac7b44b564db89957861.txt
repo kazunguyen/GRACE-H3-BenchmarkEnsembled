@@ -1,0 +1,66 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void # ifdef M_DEBUG mpi_debug_free_limb_space ( mpi_ptr_t a , const char * info ) # else mpi_free_limb_space ( mpi_ptr_t a ) # endif {
+ if ( ! a ) return ;
+ if ( DBG_MEMORY ) log_debug ( "mpi_free_limb_space of size %lu\n" , ( ulong ) m_size ( a ) * 8 ) ;
+ # if 0 if ( ! m_is_secure ( a ) ) {
+ size_t nlimbs = m_size ( a ) / 4 ;
+ void * p = a ;
+ if ( nlimbs == 5 ) {
+ * a = unused_limbs_5 ;
+ unused_limbs_5 = a ;
+ return ;
+ }
+ else if ( nlimbs == 32 ) {
+ * a = unused_limbs_32 ;
+ unused_limbs_32 = a ;
+ return ;
+ }
+ else if ( nlimbs == 64 ) {
+ * a = unused_limbs_64 ;
+ unused_limbs_64 = a ;
+ return ;
+ }
+ }
+ # endif xfree ( a ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+mpi_ptr_t # ifdef M_DEBUG mpi_debug_alloc_limb_space ( unsigned nlimbs , int secure , const char * info ) # else mpi_alloc_limb_space ( unsigned nlimbs , int secure ) # endif {
+ size_t len = nlimbs * sizeof ( mpi_limb_t ) ;
+ mpi_ptr_t p ;
+ if ( DBG_MEMORY ) log_debug ( "mpi_alloc_limb_space(%u)\n" , ( unsigned ) len * 8 ) ;
+ # if 0 if ( ! secure ) {
+ if ( nlimbs == 5 && unused_limbs_5 ) {
+ p = unused_limbs_5 ;
+ unused_limbs_5 = * p ;
+ return p ;
+ }
+ else if ( nlimbs == 32 && unused_limbs_32 ) {
+ p = unused_limbs_32 ;
+ unused_limbs_32 = * p ;
+ return p ;
+ }
+ else if ( nlimbs == 64 && unused_limbs_64 ) {
+ p = unused_limbs_64 ;
+ unused_limbs_64 = * p ;
+ return p ;
+ }
+ }
+ # endif # ifdef M_DEBUG p = secure ? m_debug_alloc_secure ( len , info ) : m_debug_alloc ( len , info ) ;
+ # else p = secure ? xmalloc_secure ( len ) : xmalloc ( len ) ;
+ # endif return p ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

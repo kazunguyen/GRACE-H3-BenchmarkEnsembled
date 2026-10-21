@@ -1,0 +1,124 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_ ## type ## _predictor_ ## size ## x ## size ## _c ( uint8_t * dst , ptrdiff_t stride , const uint8_t * above , const uint8_t * left ) {
+ type ## _predictor ( dst , stride , size , above , left ) ;
+ }
+ # define intra_pred_allsizes ( type ) intra_pred_sized ( type , 4 ) intra_pred_sized ( type , 8 ) intra_pred_sized ( type , 16 ) intra_pred_sized ( type , 32 ) static INLINE void d207_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ ( void ) above ;
+ for ( r = 0 ;
+ r < bs - 1 ;
+ ++ r ) dst [ r * stride ] = ROUND_POWER_OF_TWO ( left [ r ] + left [ r + 1 ] , 1 ) ;
+ dst [ ( bs - 1 ) * stride ] = left [ bs - 1 ] ;
+ dst ++ ;
+ for ( r = 0 ;
+ r < bs - 2 ;
+ ++ r ) dst [ r * stride ] = ROUND_POWER_OF_TWO ( left [ r ] + left [ r + 1 ] * 2 + left [ r + 2 ] , 2 ) ;
+ dst [ ( bs - 2 ) * stride ] = ROUND_POWER_OF_TWO ( left [ bs - 2 ] + left [ bs - 1 ] * 3 , 2 ) ;
+ dst [ ( bs - 1 ) * stride ] = left [ bs - 1 ] ;
+ dst ++ ;
+ for ( c = 0 ;
+ c < bs - 2 ;
+ ++ c ) dst [ ( bs - 1 ) * stride + c ] = left [ bs - 1 ] ;
+ for ( r = bs - 2 ;
+ r >= 0 ;
+ -- r ) for ( c = 0 ;
+ c < bs - 2 ;
+ ++ c ) dst [ r * stride + c ] = dst [ ( r + 1 ) * stride + c - 2 ] ;
+ }
+ intra_pred_allsizes ( d207 ) static INLINE void d63_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ ( void ) left ;
+ for ( r = 0 ;
+ r < bs ;
+ ++ r ) {
+ for ( c = 0 ;
+ c < bs ;
+ ++ c ) dst [ c ] = r & 1 ? ROUND_POWER_OF_TWO ( above [ r / 2 + c ] + above [ r / 2 + c + 1 ] * 2 + above [ r / 2 + c + 2 ] , 2 ) : ROUND_POWER_OF_TWO ( above [ r / 2 + c ] + above [ r / 2 + c + 1 ] , 1 ) ;
+ dst += stride ;
+ }
+ }
+ intra_pred_allsizes ( d63 ) static INLINE void d45_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ ( void ) left ;
+ for ( r = 0 ;
+ r < bs ;
+ ++ r ) {
+ for ( c = 0 ;
+ c < bs ;
+ ++ c ) dst [ c ] = r + c + 2 < bs * 2 ? ROUND_POWER_OF_TWO ( above [ r + c ] + above [ r + c + 1 ] * 2 + above [ r + c + 2 ] , 2 ) : above [ bs * 2 - 1 ] ;
+ dst += stride ;
+ }
+ }
+ intra_pred_allsizes ( d45 ) static INLINE void d117_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ for ( c = 0 ;
+ c < bs ;
+ c ++ ) dst [ c ] = ROUND_POWER_OF_TWO ( above [ c - 1 ] + above [ c ] , 1 ) ;
+ dst += stride ;
+ dst [ 0 ] = ROUND_POWER_OF_TWO ( left [ 0 ] + above [ - 1 ] * 2 + above [ 0 ] , 2 ) ;
+ for ( c = 1 ;
+ c < bs ;
+ c ++ ) dst [ c ] = ROUND_POWER_OF_TWO ( above [ c - 2 ] + above [ c - 1 ] * 2 + above [ c ] , 2 ) ;
+ dst += stride ;
+ dst [ 0 ] = ROUND_POWER_OF_TWO ( above [ - 1 ] + left [ 0 ] * 2 + left [ 1 ] , 2 ) ;
+ for ( r = 3 ;
+ r < bs ;
+ ++ r ) dst [ ( r - 2 ) * stride ] = ROUND_POWER_OF_TWO ( left [ r - 3 ] + left [ r - 2 ] * 2 + left [ r - 1 ] , 2 ) ;
+ for ( r = 2 ;
+ r < bs ;
+ ++ r ) {
+ for ( c = 1 ;
+ c < bs ;
+ c ++ ) dst [ c ] = dst [ - 2 * stride + c - 1 ] ;
+ dst 
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+void vp9_ ## type ## _predictor_ ## size ## x ## size ## _c ( uint8_t * dst , ptrdiff_t stride , const uint8_t * above , const uint8_t * left ) {
+ type ## _predictor ( dst , stride , size , above , left ) ;
+ }
+ # define intra_pred_allsizes ( type ) intra_pred_sized ( type , 4 ) intra_pred_sized ( type , 8 ) intra_pred_sized ( type , 16 ) intra_pred_sized ( type , 32 ) static INLINE void d207_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ ( void ) above ;
+ for ( r = 0 ;
+ r < bs - 1 ;
+ ++ r ) dst [ r * stride ] = ROUND_POWER_OF_TWO ( left [ r ] + left [ r + 1 ] , 1 ) ;
+ dst [ ( bs - 1 ) * stride ] = left [ bs - 1 ] ;
+ dst ++ ;
+ for ( r = 0 ;
+ r < bs - 2 ;
+ ++ r ) dst [ r * stride ] = ROUND_POWER_OF_TWO ( left [ r ] + left [ r + 1 ] * 2 + left [ r + 2 ] , 2 ) ;
+ dst [ ( bs - 2 ) * stride ] = ROUND_POWER_OF_TWO ( left [ bs - 2 ] + left [ bs - 1 ] * 3 , 2 ) ;
+ dst [ ( bs - 1 ) * stride ] = left [ bs - 1 ] ;
+ dst ++ ;
+ for ( c = 0 ;
+ c < bs - 2 ;
+ ++ c ) dst [ ( bs - 1 ) * stride + c ] = left [ bs - 1 ] ;
+ for ( r = bs - 2 ;
+ r >= 0 ;
+ -- r ) for ( c = 0 ;
+ c < bs - 2 ;
+ ++ c ) dst [ r * stride + c ] = dst [ ( r + 1 ) * stride + c - 2 ] ;
+ }
+ intra_pred_allsizes ( d207 ) static INLINE void d63_predictor ( uint8_t * dst , ptrdiff_t stride , int bs , const uint8_t * above , const uint8_t * left ) {
+ int r , c ;
+ ( void ) left ;
+ for ( r = 0 ;
+ r < bs ;
+ ++ r ) {
+ for ( c = 0 ;
+ c < bs ;
+ ++ c ) dst [ c ] = r & 1 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,184 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void mc_dir_part ( AVSContext * h , AVFrame * pic , int chroma_height , int delta , int list , uint8_t * dest_y , uint8_t * dest_cb , uint8_t * dest_cr , int src_x_offset , int src_y_offset , qpel_mc_func * qpix_op , h264_chroma_mc_func chroma_op , cavs_vector * mv ) {
+ const int mx = mv -> x + src_x_offset * 8 ;
+ const int my = mv -> y + src_y_offset * 8 ;
+ const int luma_xy = ( mx & 3 ) + ( ( my & 3 ) << 2 ) ;
+ uint8_t * src_y = pic -> data [ 0 ] + ( mx >> 2 ) + ( my >> 2 ) * h -> l_stride ;
+ uint8_t * src_cb = pic -> data [ 1 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride ;
+ uint8_t * src_cr = pic -> data [ 2 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride ;
+ int extra_width = 0 ;
+ int extra_height = extra_width ;
+ int emu = 0 ;
+ const int full_mx = mx >> 2 ;
+ const int full_my = my >> 2 ;
+ const int pic_width = 16 * h -> mb_width ;
+ const int pic_height = 16 * h -> mb_height ;
+ if ( ! pic -> data [ 0 ] ) return ;
+ if ( mx & 7 ) extra_width -= 3 ;
+ if ( my & 7 ) extra_height -= 3 ;
+ if ( full_mx < 0 - extra_width || full_my < 0 - extra_height || full_mx + 16 > pic_width + extra_width || full_my + 16 > pic_height + extra_height ) {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_y - 2 - 2 * h -> l_stride , h -> l_stride , 16 + 5 , 16 + 5 , full_mx - 2 , full_my - 2 , pic_width , pic_height ) ;
+ src_y = h -> edge_emu_buffer + 2 + 2 * h -> l_stride ;
+ emu = 1 ;
+ }
+ qpix_op [ luma_xy ] ( dest_y , src_y , h -> l_stride ) ;
+ if ( emu ) {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_cb , h -> c_stride , 9 , 9 , ( mx >> 3 ) , ( my >> 3 ) , pic_width >> 1 , pic_height >> 1 ) ;
+ src_cb = h -> edge_emu_buffer ;
+ }
+ chroma_op ( dest_cb , src_cb , h -> c_stride , chroma_height , mx & 7 , my & 7 ) ;
+ if ( emu ) {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_cr , h -> c_stride , 9 , 9 , ( mx >> 3 ) , ( my >> 3 ) , pic_width >> 1 , pic_height >> 1 ) ;
+ src_cr = h -> edge_emu_buffer ;
+ }
+ chroma_op ( dest_cr , src_cr , h -> c_stride , chroma_height , mx & 7 , my & 7 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int mx = mv -> x + src_x_offset * 8 ;
+ const int my = mv -> y + src_y_offset * 8 ;
+ const int luma_xy = ( mx & 3 ) + ( ( my & 3 ) << 2 ) ;
+ uint8_t * src_y = pic -> data [ 0 ] + ( mx >> 2 ) + ( my >> 2 ) * h -> l_stride ;
+ uint8_t * src_cb = pic -> data [ 1 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride ;
+ uint8_t * src_cr = pic -> data [ 2 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride ;
+ int extra_width = 0 ;
+ int extra_height = extra_width ;
+ int emu = 0 ;
+ const int full_mx = mx >> 2 ;
+ const int full_my = my >> 2 ;
+ const int pic_width = 16 * h -> mb_width ;
+ const int pic_height = 16 * h -> mb_height ;
+ if ( ! pic -> data [ 0 ] ) return ;
+ if ( mx & 7 ) extra_width -= 3 ;
+ if ( my & 7 ) extra_height -= 3 ;
+ if ( full_mx < 0 - extra_width || full_my < 0 - extra_height || full_mx + 16 > pic_width + extra_width || full_my + 16 > pic_height + extra_height ) {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_y - 2 - 2 * h -> l_stride , h -> l_stride , 16 + 5 , 16 +...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_y - 2 - 2 * h -> l_stride , h -> l_stride , 16 + 5 , 16 + 5 , full_mx - 2 , full_my - 2 , pic_width , pic_height ) ;
+ src_y = h -> edge_emu_buffer + 2 + 2 * h -> l_stride ;
+ emu = 1 ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_cb , h -> c_stride , 9 , 9 , ( mx >> 3 ) , ( my >> 3 ) , pic_width >> 1 , pic_height >> 1 ) ;
+ src_cb = h -> edge_emu_buffer ;
+ }
+      
+25769803782 | BLOCK | 
+        {
+ h -> vdsp . emulated_edge_mc ( h -> edge_emu_buffer , src_cr , h -> c_stride , 9 , 9 , ( mx >> 3 ) , ( my >> 3 ) , pic_width >> 1 , pic_height >> 1 ) ;
+ src_cr = h -> edge_emu_buffer ;
+ }
+      
+30064771072 | CALL | mx = mv -> x + src_x_offset * 8
+30064771073 | CALL | mv -> x + src_x_offset * 8
+30064771074 | CALL | mv -> x
+30064771075 | CALL | src_x_offset * 8
+30064771076 | CALL | my = mv -> y + src_y_offset * 8
+30064771077 | CALL | mv -> y + src_y_offset * 8
+30064771078 | CALL | mv -> y
+30064771079 | CALL | src_y_offset * 8
+30064771080 | CALL | luma_xy = ( mx & 3 ) + ( ( my & 3 ) << 2 )
+30064771081 | CALL | ( mx & 3 ) + ( ( my & 3 ) << 2 )
+30064771082 | CALL | mx & 3
+30064771083 | CALL | ( my & 3 ) << 2
+30064771084 | CALL | my & 3
+30064771085 | CALL | 
+        src_y = pic -> data [ 0 ] + ( mx >> 2 ) + ( my >> 2 ) * h -> l_stride
+      
+30064771086 | CALL | pic -> data [ 0 ] + ( mx >> 2 ) + ( my >> 2 ) * h -> l_stride
+30064771087 | CALL | pic -> data [ 0 ] + ( mx >> 2 )
+30064771088 | CALL | pic -> data [ 0 ]
+30064771089 | CALL | pic -> data
+30064771090 | CALL | mx >> 2
+30064771091 | CALL | ( my >> 2 ) * h -> l_stride
+30064771092 | CALL | my >> 2
+30064771093 | CALL | h -> l_stride
+30064771094 | CALL | 
+        src_cb = pic -> data [ 1 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride
+      
+30064771095 | CALL | pic -> data [ 1 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride
+30064771096 | CALL | pic -> data [ 1 ] + ( mx >> 3 )
+30064771097 | CALL | pic -> data [ 1 ]
+30064771098 | CALL | pic -> data
+30064771099 | CALL | mx >> 3
+30064771100 | CALL | ( my >> 3 ) * h -> c_stride
+30064771101 | CALL | my >> 3
+30064771102 | CALL | h -> c_stride
+30064771103 | CALL | 
+        src_cr = pic -> data [ 2 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride
+      
+30064771104 | CALL | pic -> data [ 2 ] + ( mx >> 3 ) + ( my >> 3 ) * h -> c_stride
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771085 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771103 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771077 [CFG]
+30064771079 -> 30064771077 [DOMINATE]
+30064771079 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771083 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771083 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

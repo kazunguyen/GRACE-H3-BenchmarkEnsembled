@@ -1,0 +1,243 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void init_quant_matrix ( VC2EncContext * s ) {
+ int level , orientation ;
+ if ( s -> wavelet_depth <= 4 && s -> quant_matrix == VC2_QM_DEF ) {
+ s -> custom_quant_matrix = 0 ;
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ s -> quant [ level ] [ 0 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ] ;
+ s -> quant [ level ] [ 1 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ] ;
+ s -> quant [ level ] [ 2 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 2 ] ;
+ s -> quant [ level ] [ 3 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 3 ] ;
+ }
+ return ;
+ }
+ s -> custom_quant_matrix = 1 ;
+ if ( s -> quant_matrix == VC2_QM_DEF ) {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ if ( level <= 3 ) s -> quant [ level ] [ orientation ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ orientation ] ;
+ else s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+ else if ( s -> quant_matrix == VC2_QM_COL ) {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+ else {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_flat_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int level , orientation ;
+ if ( s -> wavelet_depth <= 4 && s -> quant_matrix == VC2_QM_DEF ) {
+ s -> custom_quant_matrix = 0 ;
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ s -> quant [ level ] [ 0 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ] ;
+ s -> quant [ level ] [ 1 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ] ;
+ s -> quant [ level ] [ 2 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 2 ] ;
+ s -> quant [ level ] [ 3 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 3 ] ;
+ }
+ return ;
+ }
+ s -> custom_quant_matrix = 1 ;
+ if ( s -> quant_matrix == VC2_QM_DEF ) {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ if ( level <= 3 ) s -> quant [ level ] [ orientation ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ orientation ] ;
+ else s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+...
+      
+25769803777 | BLOCK | 
+        {
+ s -> custom_quant_matrix = 0 ;
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ s -> quant [ level ] [ 0 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ] ;
+ s -> quant [ level ] [ 1 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ] ;
+ s -> quant [ level ] [ 2 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 2 ] ;
+ s -> quant [ level ] [ 3 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 3 ] ;
+ }
+ return ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ s -> quant [ level ] [ 0 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ] ;
+ s -> quant [ level ] [ 1 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ] ;
+ s -> quant [ level ] [ 2 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 2 ] ;
+ s -> quant [ level ] [ 3 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 3 ] ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ if ( level <= 3 ) s -> quant [ level ] [ orientation ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ orientation ] ;
+ else s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ if ( level <= 3 ) s -> quant [ level ] [ orientation ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ orientation ] ;
+ else s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( level <= 3 ) s -> quant [ level ] [ orientation ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ orientation ] ;
+ else s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+      
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | 
+        {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+      
+25769803786 | BLOCK | 
+        {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+ }
+      
+25769803787 | BLOCK | 
+        {
+ s -> quant [ level ] [ orientation ] = vc2_qm_col_tab [ level ] [ orientation ] ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ for ( level = 0 ;
+ level < s -> wavelet_depth ;
+ level ++ ) {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_flat_tab [ level ] [ orientation ] ;
+ }
+ }
+ }
+      
+25769803789 | BLOCK | 
+        {
+ for ( orientation = 0 ;
+ orientation < 4 ;
+ orientation ++ ) {
+ s -> quant [ level ] [ orientation ] = vc2_qm_flat_tab [ level ] [ orientation ] ;
+ }
+ }
+      
+25769803790 | BLOCK | 
+        {
+ s -> quant [ level ] [ orientation ] = vc2_qm_flat_tab [ level ] [ orientation ] ;
+ }
+      
+30064771072 | CALL | s -> wavelet_depth <= 4 && s -> quant_matrix == VC2_QM_DEF
+30064771073 | CALL | s -> wavelet_depth <= 4
+30064771074 | CALL | s -> wavelet_depth
+30064771075 | CALL | s -> quant_matrix == VC2_QM_DEF
+30064771076 | CALL | s -> quant_matrix
+30064771077 | CALL | s -> custom_quant_matrix = 0
+30064771078 | CALL | s -> custom_quant_matrix
+30064771079 | CALL | level = 0
+30064771080 | CALL | level < s -> wavelet_depth
+30064771081 | CALL | s -> wavelet_depth
+30064771082 | CALL | level ++
+30064771083 | CALL | 
+        s -> quant [ level ] [ 0 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ]
+      
+30064771084 | CALL | s -> quant [ level ] [ 0 ]
+30064771085 | CALL | s -> quant [ level ]
+30064771086 | CALL | s -> quant
+30064771087 | CALL | ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 0 ]
+30064771088 | CALL | ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ]
+30064771089 | CALL | ff_dirac_default_qmat [ s -> wavelet_idx ]
+30064771090 | CALL | s -> wavelet_idx
+30064771091 | CALL | 
+        s -> quant [ level ] [ 1 ] = ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ]
+      
+30064771092 | CALL | s -> quant [ level ] [ 1 ]
+30064771093 | CALL | s -> quant [ level ]
+30064771094 | CALL | s -> quant
+30064771095 | CALL | ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ] [ 1 ]
+30064771096 | CALL | ff_dirac_default_qmat [ s -> wavelet_idx ] [ level ]
+EDGES:
+25769803777 -> 30064771077 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771091 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771075 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

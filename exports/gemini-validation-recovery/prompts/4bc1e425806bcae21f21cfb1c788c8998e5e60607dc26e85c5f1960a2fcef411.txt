@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static uint32_t qvirtio_pci_config_readl(QVirtioDevice *d, uint64_t off)
+
+{
+
+    QVirtioPCIDevice *dev = (QVirtioPCIDevice *)d;
+
+    uint32_t value;
+
+
+
+    value = qpci_io_readl(dev->pdev, CONFIG_BASE(dev) + off);
+
+    if (qvirtio_is_big_endian(d)) {
+
+        value = bswap32(value);
+
+    }
+
+    return value;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    QVirtioPCIDevice *dev = (QVirtioPCIDevice *)d;
+
+    uint32_t value;
+
+
+
+    value = qpci_io_readl(dev->pdev, CONFIG_BASE(dev) + off);
+
+    if (qvirtio_is_big_endian(d)) {
+
+        value = bswap32(value);
+
+    }
+
+    return value;
+
+}
+      
+25769803777 | BLOCK | { value = bswap32(value); }
+30064771072 | CALL | dev = (QVirtioPCIDevice *)d
+30064771073 | CALL | (QVirtioPCIDevice *)d
+30064771074 | CALL | value = qpci_io_readl(dev->pdev, CONFIG_BASE(dev) + off)
+30064771075 | CALL | qpci_io_readl(dev->pdev, CONFIG_BASE(dev) + off)
+30064771076 | CALL | dev->pdev
+30064771077 | CALL | CONFIG_BASE(dev) + off
+30064771078 | CALL | CONFIG_BASE(dev)
+30064771079 | CALL | qvirtio_is_big_endian(d)
+30064771080 | CALL | value = bswap32(value)
+30064771081 | CALL | bswap32(value)
+47244640256 | CONTROL_STRUCTURE | if (qvirtio_is_big_endian(d)) { value = bswap32(value); }
+55834574848 | FIELD_IDENTIFIER | pdev
+68719476736 | IDENTIFIER | dev
+68719476737 | IDENTIFIER | d
+68719476738 | IDENTIFIER | value
+68719476739 | IDENTIFIER | dev
+68719476740 | IDENTIFIER | dev
+68719476741 | IDENTIFIER | off
+68719476742 | IDENTIFIER | d
+68719476743 | IDENTIFIER | value
+68719476744 | IDENTIFIER | value
+68719476745 | IDENTIFIER | value
+94489280512 | LOCAL | QVirtioPCIDevice *dev
+94489280513 | LOCAL | uint32_t value
+107374182400 | METHOD | 
+        static uint32_t qvirtio_pci_config_readl(QVirtioDevice *d, uint64_t off)
+
+{
+
+    QVirtioPCIDevice *dev = (QVirtioPCIDevice *)d;
+
+    uint32_t value;
+
+
+
+    value = qpci_io_readl(dev->pdev, CONFIG_BASE(dev) + off);
+
+    if (qvirtio_is_big_endian(d)) {
+
+        value = bswap32(value);
+
+    }
+
+    return value;
+
+}
+      
+111669149696 | METHOD_PARAMETER_IN | QVirtioDevice *d
+111669149697 | METHOD_PARAMETER_IN | uint64_t off
+115964116992 | METHOD_PARAMETER_OUT | QVirtioDevice *d
+115964116993 | METHOD_PARAMETER_OUT | uint64_t off
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return value;
+176093659136 | TYPE_REF | QVirtioPCIDevice *
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 30064771072 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 141733920768 [AST]
+25769803777 -> 30064771080 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 176093659136 [ARGUMENT]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 176093659136 [AST]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476742 [CFG]
+30064771074 -> 68719476742 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771077 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771077 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771077 [POST_DOMINATE]
+30064771075 -> 68719476738 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 30064771077 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 30064771075 [CFG]
+30064771077 -> 30064771075 [DOMINATE]
+30064771077 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771077 -> 30064771075 [REACHING_DEF]
+30064771077 -> 124554051584 [REACHING_DEF]
+30064771078 -> 68719476740 [ARGUMENT]
+30064771078 -> 68719476740 [AST]
+30064771078 -> 68719476741 [CFG]
+30064771078 -> 68719476741 [DOMINATE]
+30064771078 -> 68719476740 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771078 -> 124554051584 [REACHING_DEF]
+30064771079 -> 68719476742 [ARGUMENT]
+30064771079 -> 68719476742 [AST]
+30064771079 -> 30064771081 [CDG]
+30064771079 -> 30064771080 [CDG]
+30064771079 -> 68719476744 [CDG]
+30064771079 -> 68719476743 [CDG]
+30064771079 -> 68719476743 [CFG]
+30064771079 -> 68719476745 [CFG]
+30064771079 -> 68719476745 [DOMINATE]
+30064771079 -> 68719476743 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static uint16_t qvirtio_pci_config_readw(QVirtioDevice *d, uint64_t off)
+
+{
+
+    QVirtioPCIDevice *dev = (QVirtioPCIDevice *)d;
+
+    uint16_t value;
+
+
+
+    value = qpci_io_readw(dev->pdev, CONFIG_BASE(dev) + off);
+
+    if (qvirtio_is_big_endian(d)) {
+
+        value = bswap16(value);
+
+    }
+
+    return value;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

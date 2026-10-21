@@ -1,0 +1,201 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int bink_decode_plane ( BinkContext * c , AVFrame * frame , GetBitContext * gb , int plane_idx , int is_chroma ) {
+ int blk , ret ;
+ int i , j , bx , by ;
+ uint8_t * dst , * prev , * ref , * ref_start , * ref_end ;
+ int v , col [ 2 ] ;
+ const uint8_t * scan ;
+ int xoff , yoff ;
+ LOCAL_ALIGNED_16 ( int16_t , block , [ 64 ] ) ;
+ LOCAL_ALIGNED_16 ( uint8_t , ublock , [ 64 ] ) ;
+ LOCAL_ALIGNED_16 ( int32_t , dctblock , [ 64 ] ) ;
+ int coordmap [ 64 ] ;
+ const int stride = frame -> linesize [ plane_idx ] ;
+ int bw = is_chroma ? ( c -> avctx -> width + 15 ) >> 4 : ( c -> avctx -> width + 7 ) >> 3 ;
+ int bh = is_chroma ? ( c -> avctx -> height + 15 ) >> 4 : ( c -> avctx -> height + 7 ) >> 3 ;
+ int width = c -> avctx -> width >> is_chroma ;
+ init_lengths ( c , FFMAX ( width , 8 ) , bw ) ;
+ for ( i = 0 ;
+ i < BINK_NB_SRC ;
+ i ++ ) read_bundle ( gb , c , i ) ;
+ ref_start = c -> last -> data [ plane_idx ] ? c -> last -> data [ plane_idx ] : frame -> data [ plane_idx ] ;
+ ref_end = ref_start + ( bw - 1 + c -> last -> linesize [ plane_idx ] * ( bh - 1 ) ) * 8 ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) coordmap [ i ] = ( i & 7 ) + ( i >> 3 ) * stride ;
+ for ( by = 0 ;
+ by < bh ;
+ by ++ ) {
+ if ( ( ret = read_block_types ( c -> avctx , gb , & c -> bundle [ BINK_SRC_BLOCK_TYPES ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_block_types ( c -> avctx , gb , & c -> bundle [ BINK_SRC_SUB_BLOCK_TYPES ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_colors ( gb , & c -> bundle [ BINK_SRC_COLORS ] , c ) ) < 0 ) return ret ;
+ if ( ( ret = read_patterns ( c -> avctx , gb , & c -> bundle [ BINK_SRC_PATTERN ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_motion_values ( c -> avctx , gb , & c -> bundle [ BINK_SRC_X_OFF ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_motion_values ( c -> avctx , gb , & c -> bundle [ BINK_SRC_Y_OFF ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_dcs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_INTRA_DC ] , DC_START_BITS , 0 ) ) < 0 ) return ret ;
+ if ( ( ret = read_dcs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_INTER_DC ] , DC_START_BITS , 1 ) ) < 0 ) return ret ;
+ if ( ( ret = read_runs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_RUN ] ) ) < 0 ) return ret ;
+ if ( by == bh ) break ;
+ dst = frame -> data [ plane_idx ] + 8 * by * stride ;
+ prev = ( c -> last -> data [ plane_idx ] ? c -> last -> data [ plane_idx ] : frame -> data [ plane_idx ] ) + 8 * by * stride ;
+ for ( bx = 0 ;
+ bx < bw ;
+ bx ++ , dst += 8 , prev += 8 ) {
+ blk = get_value ( c , BINK_SRC_BLOCK_TYPES ) ;
+ if ( ( by & 1 ) && blk == SCALED_BLOCK ) {
+ bx ++ ;
+ dst += 8 ;
+ prev += 8 ;
+ continue ;
+ }
+ switch ( blk ) {
+ case SKIP_BLOCK : c -> dsp . put_pixels_tab [ 1 ] [ 0 ] ( dst , prev , stride , 8 ) ;
+ break ;
+ case SCALED_BLOCK : blk = get_value ( c , BINK_SRC_SUB_BLOCK_TYPES ) ;
+ switch ( blk ) {
+ case RUN_BLOCK : scan = bink_patterns [ get_bits ( gb , 4 ) ] ;
+ i = 0 ;
+ do {
+ int run = get_value ( c , BINK_SRC_RUN ) + 1 ;
+ i += run ;
+ if ( i > 64 ) {
+ av_log ( c -> avctx , AV_LOG_ERROR , "Run we
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int blk , ret ;
+ int i , j , bx , by ;
+ uint8_t * dst , * prev , * ref , * ref_start , * ref_end ;
+ int v , col [ 2 ] ;
+ const uint8_t * scan ;
+ int xoff , yoff ;
+ LOCAL_ALIGNED_16 ( int16_t , block , [ 64 ] ) ;
+ LOCAL_ALIGNED_16 ( uint8_t , ublock , [ 64 ] ) ;
+ LOCAL_ALIGNED_16 ( int32_t , dctblock , [ 64 ] ) ;
+ int coordmap [ 64 ] ;
+ const int stride = frame -> linesize [ plane_idx ] ;
+ int bw = is_chroma ? ( c -> avctx -> width + 15 ) >> 4 : ( c -> avctx -> width + 7 ) >> 3 ;
+ int bh = is_chroma ? ( c -> avctx -> height + 15 ) >> 4 : ( c -> avctx -> height + 7 ) >> 3 ;
+ int width = c -> avctx -> width >> is_chroma ;
+ init_lengths ( c , FFMAX ( width , 8 ) , bw ) ;
+ for ( i = 0 ;
+ i < BINK_NB_SRC ;
+ i ++ ) read_bundle ( gb , c , i ) ;
+ ref_start = c -> last -> data [ plane_idx ] ? c -> last -> data [ plane_idx ] : frame -> data [ plane_idx ] ;
+ ref_end = ref_start + ( bw - 1 + c -> last -> linesize [ plane_idx ] * ( bh - 1 ) ) * 8 ;
+ for ( i = 0 ;
+ i < 64 ;
+ i ++ ) coordmap [ i...
+      
+25769803777 | BLOCK | 
+        {
+ if ( ( ret = read_block_types ( c -> avctx , gb , & c -> bundle [ BINK_SRC_BLOCK_TYPES ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_block_types ( c -> avctx , gb , & c -> bundle [ BINK_SRC_SUB_BLOCK_TYPES ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_colors ( gb , & c -> bundle [ BINK_SRC_COLORS ] , c ) ) < 0 ) return ret ;
+ if ( ( ret = read_patterns ( c -> avctx , gb , & c -> bundle [ BINK_SRC_PATTERN ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_motion_values ( c -> avctx , gb , & c -> bundle [ BINK_SRC_X_OFF ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_motion_values ( c -> avctx , gb , & c -> bundle [ BINK_SRC_Y_OFF ] ) ) < 0 ) return ret ;
+ if ( ( ret = read_dcs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_INTRA_DC ] , DC_START_BITS , 0 ) ) < 0 ) return ret ;
+ if ( ( ret = read_dcs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_INTER_DC ] , DC_START_BITS , 1 ) ) < 0 ) return ret ;
+ if ( ( ret = read_runs ( c -> avctx , gb , & c -> bundle [ BINK_SRC_RUN ] ) ) < 0 ) return ret ;
+ if (...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | <empty>
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | <empty>
+25769803785 | BLOCK | <empty>
+25769803786 | BLOCK | <empty>
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ blk = get_value ( c , BINK_SRC_BLOCK_TYPES ) ;
+ if ( ( by & 1 ) && blk == SCALED_BLOCK ) {
+ bx ++ ;
+ dst += 8 ;
+ prev += 8 ;
+ continue ;
+ }
+ switch ( blk ) {
+ case SKIP_BLOCK : c -> dsp . put_pixels_tab [ 1 ] [ 0 ] ( dst , prev , stride , 8 ) ;
+ break ;
+ case SCALED_BLOCK : blk = get_value ( c , BINK_SRC_SUB_BLOCK_TYPES ) ;
+ switch ( blk ) {
+ case RUN_BLOCK : scan = bink_patterns [ get_bits ( gb , 4 ) ] ;
+ i = 0 ;
+ do {
+ int run = get_value ( c , BINK_SRC_RUN ) + 1 ;
+ i += run ;
+ if ( i > 64 ) {
+ av_log ( c -> avctx , AV_LOG_ERROR , "Run went out of bounds\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( get_bits1 ( gb ) ) {
+ v = get_value ( c , BINK_SRC_COLORS ) ;
+ for ( j = 0 ;
+ j < run ;
+ j ++ ) ublock [ * scan ++ ] = v ;
+ }
+ else {
+ for ( j = 0 ;
+ j < run ;
+ j ++ ) ublock [ * scan ++ ] = get_value ( c , BINK_SRC_COLORS ) ;
+ }
+ }
+ while ( i < 63 ) ;
+ if ( i == 63 ) ublock [ * scan ++ ] = get_value ( c , BINK_SRC_COLORS ) ;
+ break ;
+ case INTRA_BLOCK : memset ( dctblock , 0 , size...
+      
+25769803790 | BLOCK | { bx ++ ; dst += 8 ; prev += 8 ; continue ; }
+25769803791 | BLOCK | 
+        {
+ case SKIP_BLOCK : c -> dsp . put_pixels_tab [ 1 ] [ 0 ] ( dst , prev , stride , 8 ) ;
+ break ;
+ case SCALED_BLOCK : blk = get_value ( c , BINK_SRC_SUB_BLOCK_TYPES ) ;
+ switch ( blk ) {
+ case RUN_BLOCK : scan = bink_patterns [ get_bits ( gb , 4 ) ] ;
+ i = 0 ;
+ do {
+ int run = get_value ( c , BINK_SRC_RUN ) + 1 ;
+ i += run ;
+ if ( i > 64 ) {
+ av_log ( c -> avctx , AV_LOG_ERROR , "Run went out of bounds\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ if ( get_bits1 ( gb ) ) {
+ v = get_value ( c , BINK_SRC_COLORS ) ;
+ for ( j = 0 ;
+ j < run ;
+ j ++ ) ublock [ * scan ++ ] = v ;
+ }
+ else {
+ for ( j = 0 ;
+ j < run ;
+ j ++ ) ublock [ * scan ++ ] = get_value ( c , BINK_SRC_COLORS ) ;
+ }
+ }
+ while ( i < 63 ) ;
+ if ( i == 63 ) ublock [ * scan ++ ] = get_value ( c , BINK_SRC_COLORS ) ;
+ break ;
+ case INTRA_BLOCK : memset ( dctblock , 0 , si
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

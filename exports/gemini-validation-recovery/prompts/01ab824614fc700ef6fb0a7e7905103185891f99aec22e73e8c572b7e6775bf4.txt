@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline int padr_match ( PCNetState * s , const uint8_t * buf , int size ) {
+ struct qemu_ether_header * hdr = ( void * ) buf ;
+ uint8_t padr [ 6 ] = {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+ ;
+ int result = ( ! CSR_DRCVPA ( s ) ) && ! memcmp ( hdr -> ether_dhost , padr , 6 ) ;
+ # ifdef PCNET_DEBUG_MATCH printf ( "packet dhost=%02x:%02x:%02x:%02x:%02x:%02x, " "padr=%02x:%02x:%02x:%02x:%02x:%02x\n" , hdr -> ether_dhost [ 0 ] , hdr -> ether_dhost [ 1 ] , hdr -> ether_dhost [ 2 ] , hdr -> ether_dhost [ 3 ] , hdr -> ether_dhost [ 4 ] , hdr -> ether_dhost [ 5 ] , padr [ 0 ] , padr [ 1 ] , padr [ 2 ] , padr [ 3 ] , padr [ 4 ] , padr [ 5 ] ) ;
+ printf ( "padr_match result=%d\n" , result ) ;
+ # endif return result ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct qemu_ether_header * hdr = ( void * ) buf ;
+ uint8_t padr [ 6 ] = {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+ ;
+ int result = ( ! CSR_DRCVPA ( s ) ) && ! memcmp ( hdr -> ether_dhost , padr , 6 ) ;
+ # ifdef PCNET_DEBUG_MATCH printf ( "packet dhost=%02x:%02x:%02x:%02x:%02x:%02x, " "padr=%02x:%02x:%02x:%02x:%02x:%02x\n" , hdr -> ether_dhost [ 0 ] , hdr -> ether_dhost [ 1 ] , hdr -> ether_dhost [ 2 ] , hdr -> ether_dhost [ 3 ] , hdr -> ether_dhost [ 4 ] , hdr -> ether_dhost [ 5 ] , padr [ 0 ] , padr [ 1 ] , padr [ 2 ] , padr [ 3 ] , padr [ 4 ] , padr [ 5 ] ) ;
+ printf ( "padr_match result=%d\n" , result ) ;
+ # endif return result ;
+ }
+      
+30064771072 | CALL | hdr = ( void * ) buf
+30064771073 | CALL | ( void * ) buf
+30064771074 | CALL | 
+        padr [ 6 ] = {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+      
+30064771075 | CALL | 
+        padr [ 6 ] = {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+      
+30064771076 | CALL | 
+        padr [ 6 ] = {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+      
+30064771077 | CALL | 
+        {
+ s -> csr [ 12 ] & 0xff , s -> csr [ 12 ] >> 8 , s -> csr [ 13 ] & 0xff , s -> csr [ 13 ] >> 8 , s -> csr [ 14 ] & 0xff , s -> csr [ 14 ] >> 8 }
+      
+30064771078 | CALL | s -> csr [ 12 ] & 0xff
+30064771079 | CALL | s -> csr [ 12 ]
+30064771080 | CALL | s -> csr
+30064771081 | CALL | s -> csr [ 12 ] >> 8
+30064771082 | CALL | s -> csr [ 12 ]
+30064771083 | CALL | s -> csr
+30064771084 | CALL | s -> csr [ 13 ] & 0xff
+30064771085 | CALL | s -> csr [ 13 ]
+30064771086 | CALL | s -> csr
+30064771087 | CALL | s -> csr [ 13 ] >> 8
+30064771088 | CALL | s -> csr [ 13 ]
+30064771089 | CALL | s -> csr
+30064771090 | CALL | s -> csr [ 14 ] & 0xff
+30064771091 | CALL | s -> csr [ 14 ]
+30064771092 | CALL | s -> csr
+30064771093 | CALL | s -> csr [ 14 ] >> 8
+30064771094 | CALL | s -> csr [ 14 ]
+30064771095 | CALL | s -> csr
+30064771096 | CALL | 
+        result = ( ! CSR_DRCVPA ( s ) ) && ! memcmp ( hdr -> ether_dhost , padr , 6 )
+      
+30064771097 | CALL | ( ! CSR_DRCVPA ( s ) ) && ! memcmp ( hdr -> ether_dhost , padr , 6 )
+30064771098 | CALL | ! CSR_DRCVPA ( s )
+30064771099 | CALL | CSR_DRCVPA ( s )
+30064771100 | CALL | ! memcmp ( hdr -> ether_dhost , padr , 6 )
+30064771101 | CALL | memcmp ( hdr -> ether_dhost , padr , 6 )
+30064771102 | CALL | hdr -> ether_dhost
+55834574848 | FIELD_IDENTIFIER | csr
+55834574849 | FIELD_IDENTIFIER | csr
+55834574850 | FIELD_IDENTIFIER | csr
+55834574851 | FIELD_IDENTIFIER | csr
+55834574852 | FIELD_IDENTIFIER | csr
+55834574853 | FIELD_IDENTIFIER | csr
+55834574854 | FIELD_IDENTIFIER | ether_dhost
+68719476736 | IDENTIFIER | hdr
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771096 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771084 [ARGUMENT]
+30064771077 -> 30064771087 [ARGUMENT]
+30064771077 -> 30064771090 [ARGUMENT]
+30064771077 -> 30064771093 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771084 [AST]
+30064771077 -> 30064771087 [AST]
+30064771077 -> 30064771090 [AST]
+30064771077 -> 30064771093 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771093 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771083 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 55834574848 [ARGUMENT]
+30064771080 -> 55834574848 [AST]
+30064771080 -> 55834574848 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771077 [REACHING_DEF]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771089 [REACHING_DEF]
+30064771082 -> 30064771086 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771092 [REACHING_DEF]
+30064771082 -> 30064771095 [REACHING_DEF]
+30064771083 -> 55834574849 [ARGUMENT]
+30064771083 -> 55834574849 [AST]
+30064771083 -> 55834574849 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771077 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771089 [REACHING_DEF]
+30064771085 -> 30064771088 [REACHING_DEF]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 55834574850 [ARGUMENT]
+30064771086 -> 55834574850 [AST]
+30064771086 -> 55834574850 [POST_DOMINATE]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771077 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771088 -> 30064771092 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline int padr_bcast ( PCNetState * s , const uint8_t * buf , int size ) {
+ static const uint8_t BCAST [ 6 ] = {
+ 0xff , 0xff , 0xff , 0xff , 0xff , 0xff }
+ ;
+ struct qemu_ether_header * hdr = ( void * ) buf ;
+ int result = ! CSR_DRCVBC ( s ) && ! memcmp ( hdr -> ether_dhost , BCAST , 6 ) ;
+ # ifdef PCNET_DEBUG_MATCH printf ( "padr_bcast result=%d\n" , result ) ;
+ # endif return result ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

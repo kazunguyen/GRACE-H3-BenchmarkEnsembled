@@ -1,0 +1,306 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int filter_frame(AVFilterLink *link, AVFrame *frame)
+
+{
+
+    AVFilterContext *ctx = link->dst;
+
+    AudioFIRContext *s = ctx->priv;
+
+    AVFilterLink *outlink = ctx->outputs[0];
+
+    int ret = 0;
+
+
+
+    av_audio_fifo_write(s->fifo[0], (void **)frame->extended_data,
+
+                        frame->nb_samples);
+
+    if (s->pts == AV_NOPTS_VALUE)
+
+        s->pts = frame->pts;
+
+
+
+    av_frame_free(&frame);
+
+
+
+    if (!s->have_coeffs && s->eof_coeffs) {
+
+        ret = convert_coeffs(ctx);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+
+
+    if (s->have_coeffs) {
+
+        while (av_audio_fifo_size(s->fifo[0]) >= s->part_size) {
+
+            ret = fir_frame(s, outlink);
+
+            if (ret < 0)
+
+                break;
+
+        }
+
+    }
+
+    return ret;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    AVFilterContext *ctx = link->dst;
+
+    AudioFIRContext *s = ctx->priv;
+
+    AVFilterLink *outlink = ctx->outputs[0];
+
+    int ret = 0;
+
+
+
+    av_audio_fifo_write(s->fifo[0], (void **)frame->extended_data,
+
+                        frame->nb_samples);
+
+    if (s->pts == AV_NOPTS_VALUE)
+
+        s->pts = frame->pts;
+
+
+
+    av_frame_free(&frame);
+
+
+
+    if (!s->have_coeffs && s->eof_coeffs) {
+
+        ret = convert_coeffs(ctx);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+
+
+    if (s->have_coeffs) {
+
+        while (av_audio_fifo_size(s->fifo[0]) >= s->part_size) {
+
+            ret = fir_frame(s, outlink);
+
+            if (ret < 0)
+
+                break;
+
+        }
+
+    }
+
+    return ret;
+
+}
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { ret = convert_coeffs(ctx); if (ret < 0) return ret; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+
+        while (av_audio_fifo_size(s->fifo[0]) >= s->part_size) {
+
+            ret = fir_frame(s, outlink);
+
+            if (ret < 0)
+
+                break;
+
+        }
+
+    }
+      
+25769803781 | BLOCK | { ret = fir_frame(s, outlink); if (ret < 0) break; }
+25769803782 | BLOCK | <empty>
+30064771072 | CALL | ctx = link->dst
+30064771073 | CALL | link->dst
+30064771074 | CALL | s = ctx->priv
+30064771075 | CALL | ctx->priv
+30064771076 | CALL | outlink = ctx->outputs[0]
+30064771077 | CALL | ctx->outputs[0]
+30064771078 | CALL | ctx->outputs
+30064771079 | CALL | ret = 0
+30064771080 | CALL | 
+        av_audio_fifo_write(s->fifo[0], (void **)frame->extended_data,
+
+                        frame->nb_samples)
+      
+30064771081 | CALL | s->fifo[0]
+30064771082 | CALL | s->fifo
+30064771083 | CALL | (void **)frame->extended_data
+30064771084 | CALL | frame->extended_data
+30064771085 | CALL | frame->nb_samples
+30064771086 | CALL | s->pts == AV_NOPTS_VALUE
+30064771087 | CALL | s->pts
+30064771088 | CALL | s->pts = frame->pts
+30064771089 | CALL | s->pts
+30064771090 | CALL | frame->pts
+30064771091 | CALL | av_frame_free(&frame)
+30064771092 | CALL | &frame
+30064771093 | CALL | !s->have_coeffs && s->eof_coeffs
+30064771094 | CALL | !s->have_coeffs
+30064771095 | CALL | s->have_coeffs
+30064771096 | CALL | s->eof_coeffs
+30064771097 | CALL | ret = convert_coeffs(ctx)
+30064771098 | CALL | convert_coeffs(ctx)
+30064771099 | CALL | ret < 0
+30064771100 | CALL | s->have_coeffs
+30064771101 | CALL | av_audio_fifo_size(s->fifo[0]) >= s->part_size
+30064771102 | CALL | av_audio_fifo_size(s->fifo[0])
+30064771103 | CALL | s->fifo[0]
+30064771104 | CALL | s->fifo
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771091 [AST]
+25769803777 -> 30064771088 [AST]
+25769803778 -> 30064771097 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771085 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771085 [AST]
+30064771080 -> 30064771085 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771103 [REACHING_DEF]
+30064771081 -> 30064771104 [REACHING_DEF]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771085 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771085 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771080 [CFG]
+30064771085 -> 30064771080 [DOMINATE]
+30064771085 -> 30064771081 [REACHING_DEF]
+30064771085 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771080 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771089 [CDG]
+30064771086 -> 30064771088 [CDG]
+30064771086 -> 30064771090 [CDG]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771090 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771090 [AST]
+30064771088 -> 30064771090 [POST_DOMINATE]
+30064771089 -> 30064771088 [REACHING_DEF]
+30064771090 -> 30064771088 [CFG]
+30064771090 -> 30064771088 [DOMINATE]
+30064771090 -> 30064771089 [REACHING_DEF]
+30064771090 -> 30064771088 [REACHING_DEF]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771092 [POST_DOMINATE]
+30064771092 -> 30064771091 [CFG]
+30064771092 -> 30064771091 [DOMINATE]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771096 [ARGUMENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int request_frame(AVFilterLink *outlink)
+
+{
+
+    AVFilterContext *ctx = outlink->src;
+
+    TrimContext       *s = ctx->priv;
+
+    int ret;
+
+
+
+    s->got_output = 0;
+
+    while (!s->got_output) {
+
+        if (s->eof)
+
+            return AVERROR_EOF;
+
+
+
+        ret = ff_request_frame(ctx->inputs[0]);
+
+        if (ret < 0)
+
+            return ret;
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

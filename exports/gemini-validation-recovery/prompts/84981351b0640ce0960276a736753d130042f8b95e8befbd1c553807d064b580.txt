@@ -1,0 +1,43 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int proc_reapurb ( struct usb_dev_state * ps , void __user * arg ) {
+ struct async * as = reap_as ( ps ) ;
+ if ( as ) {
+ int retval ;
+ snoop ( & ps -> dev -> dev , "reap %p\n" , as -> userurb ) ;
+ retval = processcompl ( as , ( void __user * __user * ) arg ) ;
+ free_async ( as ) ;
+ return retval ;
+ }
+ if ( signal_pending ( current ) ) return - EINTR ;
+ return - ENODEV ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int proc_reapurbnonblock ( struct usb_dev_state * ps , void __user * arg ) {
+ int retval ;
+ struct async * as ;
+ as = async_getcompleted ( ps ) ;
+ if ( as ) {
+ snoop ( & ps -> dev -> dev , "reap %p\n" , as -> userurb ) ;
+ retval = processcompl ( as , ( void __user * __user * ) arg ) ;
+ free_async ( as ) ;
+ }
+ else {
+ retval = ( connected ( ps ) ? - EAGAIN : - ENODEV ) ;
+ }
+ return retval ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

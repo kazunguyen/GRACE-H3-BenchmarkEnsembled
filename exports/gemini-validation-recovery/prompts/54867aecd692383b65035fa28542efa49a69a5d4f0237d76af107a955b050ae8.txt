@@ -1,0 +1,269 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+exynos4210_combiner_read(void *opaque, target_phys_addr_t offset, unsigned size)
+
+{
+
+    struct Exynos4210CombinerState *s =
+
+            (struct Exynos4210CombinerState *)opaque;
+
+    uint32_t req_quad_base_n;    /* Base of registers quad. Multiply it by 4 and
+
+                                   get a start of corresponding group quad */
+
+    uint32_t grp_quad_base_n;    /* Base of group quad */
+
+    uint32_t reg_n;              /* Register number inside the quad */
+
+    uint32_t val;
+
+
+
+    req_quad_base_n = offset >> 4;
+
+    grp_quad_base_n = req_quad_base_n << 2;
+
+    reg_n = (offset - (req_quad_base_n << 4)) >> 2;
+
+
+
+    if (req_quad_base_n >= IIC_NGRP) {
+
+        /* Read of ICIPSR register */
+
+        return s->icipsr[reg_n];
+
+    }
+
+
+
+    val = 0;
+
+
+
+    switch (reg_n) {
+
+    /* IISTR */
+
+    case 2:
+
+        val |= s->group[grp_quad_base_n].src_pending;
+
+        val |= s->group[grp_quad_base_n + 1].src_pending << 8;
+
+        val |= s->group[grp_quad_base_n + 2].src_pending << 16;
+
+        val |= s->group[grp_quad_base_n + 3].src_pending << 24;
+
+        break;
+
+    /* IIMSR */
+
+    case 3:
+
+        val |= s->group[grp_quad_base_n].src_mask &
+
+        s->group[grp_quad_base_n].src_pending;
+
+        val |= (s->group[grp_quad_base_n + 1].src_mask &
+
+                s->group[grp_quad_base_n + 1].src_pending) << 8;
+
+        val |= (s->group[grp_quad_base_n + 2].src_mask &
+
+                s->group[grp_quad_base_n + 2].src_pending) << 16;
+
+        val |= (s->group[grp_quad_base_n + 3].src_mask &
+
+                s->group[grp_quad_base_n + 3].src_pending) << 24;
+
+        break;
+
+    default:
+
+        if (offset >> 2 >= IIC_REGSET_SIZE) {
+
+            hw_error("exynos4210.combiner: overflow of reg_set by 0x"
+
+                    TARGET_FMT_plx "offset\n", offset);
+
+        }
+
+        val = s->reg_set[offset >> 2];
+
+        return 0;
+
+    }
+
+    return val;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+4 -> 36 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 51 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+60 -> 62 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 63 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+52 -> 57 [IS_AST_PARENT]
+4 -> 52 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+76 -> 82 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+89 -> 91 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+ser_read(void *opaque, target_phys_addr_t addr, unsigned int size)
+
+{
+
+    struct etrax_serial *s = opaque;
+
+    D(CPUCRISState *env = s->env);
+
+    uint32_t r = 0;
+
+
+
+    addr >>= 2;
+
+    switch (addr)
+
+    {
+
+        case R_STAT_DIN:
+
+            r = s->rx_fifo[(s->rx_fifo_pos - s->rx_fifo_len) & 15];
+
+            if (s->rx_fifo_len) {
+
+                r |= 1 << STAT_DAV;
+
+            }
+
+            r |= 1 << STAT_TR_RDY;
+
+            r |= 1 << STAT_TR_IDLE;
+
+            break;
+
+        case RS_STAT_DIN:
+
+            r = s->rx_fifo[(s->rx_fifo_pos - s->rx_fifo_len) & 15];
+
+            if (s->rx_fifo_len) {
+
+                r |= 1 << STAT_DAV;
+
+                s->rx_fifo_len--;
+
+            }
+
+            r |= 1 << STAT_TR_RDY;
+
+            r |= 1 << STAT_TR_IDLE;
+
+            break;
+
+        default:
+
+            r = s->regs[addr];
+
+            D(qemu_log("%s " TARGET_FMT_plx "=%x\n", __func__, addr, r));
+
+            break;
+
+    }
+
+    return r;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

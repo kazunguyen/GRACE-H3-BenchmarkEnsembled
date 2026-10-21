@@ -1,0 +1,353 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int vc1_decode_init(AVCodecContext *avctx)
+
+{
+
+    VC1Context *v = avctx->priv_data;
+
+    MpegEncContext *s = &v->s;
+
+    GetBitContext gb;
+
+
+
+    if (!avctx->extradata_size || !avctx->extradata) return -1;
+
+    if (!(avctx->flags & CODEC_FLAG_GRAY))
+
+        avctx->pix_fmt = PIX_FMT_YUV420P;
+
+    else
+
+        avctx->pix_fmt = PIX_FMT_GRAY8;
+
+    v->s.avctx = avctx;
+
+    avctx->flags |= CODEC_FLAG_EMU_EDGE;
+
+    v->s.flags |= CODEC_FLAG_EMU_EDGE;
+
+
+
+    if(avctx->idct_algo==FF_IDCT_AUTO){
+
+        avctx->idct_algo=FF_IDCT_WMV2;
+
+    }
+
+
+
+    if(ff_h263_decode_init(avctx) < 0)
+
+        return -1;
+
+    if (vc1_init_common(v) < 0) return -1;
+
+
+
+    avctx->coded_width = avctx->width;
+
+    avctx->coded_height = avctx->height;
+
+    if (avctx->codec_id == CODEC_ID_WMV3)
+
+    {
+
+        int count = 0;
+
+
+
+        // looks like WMV3 has a sequence header stored in the extradata
+
+        // advanced sequence header may be before the first frame
+
+        // the last byte of the extradata is a version number, 1 for the
+
+        // samples we can decode
+
+
+
+        init_get_bits(&gb, avctx->extradata, avctx->extradata_size*8);
+
+
+
+        if (decode_sequence_header(avctx, &gb) < 0)
+
+          return -1;
+
+
+
+        count = avctx->extradata_size*8 - get_bits_count(&gb);
+
+        if (count>0)
+
+        {
+
+            av_log(avctx, AV_LOG_INFO, "Extra data: %i bits left, value: %X\n",
+
+                   count, get_bits(&gb, count));
+
+        }
+
+        else if (count < 0)
+
+        {
+
+            av_log(avctx, AV_LOG_INFO, "Read %i bits in overflow\n", -count);
+
+        }
+
+    } else { // VC1/WVC1
+
+        const uint8_t *start = avctx->extradata;
+
+        uint8_t *end = avctx->extradata + avctx->extradata_size;
+
+        const uint8_t *next;
+
+        int size, buf2_size;
+
+        uint8_t *buf2 = NULL;
+
+        int seq_inited = 0, ep_inited = 0;
+
+
+
+        if(avctx->extradata_size < 16) {
+
+            av_log(avctx, AV_LOG_ERROR, "Extradata size too small: %i\n", avctx->extradata_size);
+
+            return -1;
+
+        }
+
+
+
+        buf2 = av_mallocz(avctx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+
+        if(start[0]) start++; // in WVC1 extradata first byte is its size
+
+        next = start;
+
+        for(; next < end; start = next){
+
+            next = find_next_marker(start + 4, end);
+
+            size = next - start - 4;
+
+            if(size <= 0) continue;
+
+            buf2_size = vc1_unescape_buffer(start + 4, size, buf2);
+
+            init_get_bits(&gb, buf2, buf2_size * 8);
+
+            switch(AV_RB32(start)){
+
+            case VC1_CODE_SEQHDR:
+
+                if(decode_sequence_header(avctx, &gb) < 0){
+
+                    av_free(buf2);
+
+                    return -1;
+
+                }
+
+                seq_inited = 1;
+
+                break;
+
+            case VC1_CODE_ENTRYPOINT:
+
+                if(decode_entry_point(avctx, &gb) < 0){
+
+                    av_free(buf2);
+
+                    return -1;
+
+                }
+
+                ep_ini
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+15 -> 18 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+32 -> 34 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+37 -> 39 [IS_AST_PARENT]
+31 -> 37 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+29 -> 42 [IS_AST_PARENT]
+4 -> 29 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 54 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+56 -> 60 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+46 -> 55 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+64 -> 66 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 67 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+46 -> 61 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+71 -> 73 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 74 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 75 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+4 -> 68 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 81 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+4 -> 76 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static av_cold int vc1_decode_init(AVCodecContext *avctx)
+
+{
+
+    VC1Context *v = avctx->priv_data;
+
+    MpegEncContext *s = &v->s;
+
+    GetBitContext gb;
+
+
+
+    /* save the container output size for WMImage */
+
+    v->output_width  = avctx->width;
+
+    v->output_height = avctx->height;
+
+
+
+    if (!avctx->extradata_size || !avctx->extradata)
+
+        return -1;
+
+    if (!(avctx->flags & AV_CODEC_FLAG_GRAY))
+
+        avctx->pix_fmt = ff_get_format(avctx, avctx->codec->pix_fmts);
+
+    else
+
+        avctx->pix_fmt = AV_PIX_FMT_GRAY8;
+
+    v->s.avctx = avctx;
+
+
+
+    if (ff_vc1_init_common(v) < 0)
+
+        return -1;
+
+    ff_blockdsp_init(&s->bdsp, avctx);
+
+    ff_h264chroma_init(&v->h264chroma, 8);
+
+    ff_qpeldsp_init(&s->qdsp);
+
+
+
+    if (avctx->codec_id == AV_CODEC_ID_WMV3 || avctx->codec_id == AV_CODEC_ID_WMV3IMAGE) {
+
+        int count = 0;
+
+
+
+        // looks like WMV3 has a sequence header stored in the extradata
+
+        // advanced sequence header may be before the first frame
+
+        // the last byte of the extradata is a version number, 1 for the
+
+        // samples we can decode
+
+
+
+        init_get_bits(&gb, avctx->extradata, avctx->extradata_size*8);
+
+
+
+        if (ff_vc1_decode_sequence_header(avctx, v, &gb) < 0)
+
+          return -1;
+
+
+
+        count = avctx->extradata_size*8 - get_bits_count(&gb);
+
+        if (count > 0) {
+
+            av_log(avctx, AV_LOG_INFO, "Extra data: %i bits left, value: %X\n",
+
+                   count, get_bits_long(&gb, FFMIN(count, 32
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

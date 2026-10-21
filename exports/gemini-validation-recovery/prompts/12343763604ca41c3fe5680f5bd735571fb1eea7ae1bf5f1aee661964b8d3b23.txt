@@ -1,0 +1,171 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static PyObject * authGSSClientUserName ( PyObject * self , PyObject * args ) {
+ gss_client_state * state ;
+ PyObject * pystate ;
+ if ( ! PyArg_ParseTuple ( args , "O" , & pystate ) ) return NULL ;
+ # if PY_MAJOR_VERSION >= 3 if ( ! PyCapsule_CheckExact ( pystate ) ) {
+ # else if ( ! PyCObject_Check ( pystate ) ) {
+ # endif PyErr_SetString ( PyExc_TypeError , "Expected a context object" ) ;
+ return NULL ;
+ }
+ # if PY_MAJOR_VERSION >= 3 state = PyCapsule_GetPointer ( pystate , NULL ) ;
+ # else state = ( gss_client_state * ) PyCObject_AsVoidPtr ( pystate ) ;
+ # endif if ( state == NULL ) return NULL ;
+ return Py_BuildValue ( "s" , state -> username ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ gss_client_state * state ;
+ PyObject * pystate ;
+ if ( ! PyArg_ParseTuple ( args , "O" , & pystate ) ) return NULL ;
+ # if PY_MAJOR_VERSION >= 3 if ( ! PyCapsule_CheckExact ( pystate ) ) {
+ # else if ( ! PyCObject_Check ( pystate ) ) {
+ # endif PyErr_SetString ( PyExc_TypeError , "Expected a context object" ) ;
+ return NULL ;
+ }
+      
+25769803777 | BLOCK | <empty>
+30064771072 | CALL | ! PyArg_ParseTuple ( args , "O" , & pystate )
+30064771073 | CALL | PyArg_ParseTuple ( args , "O" , & pystate )
+30064771074 | CALL | & pystate
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ! PyArg_ParseTuple ( args , "O" , & pystate ) ) return NULL ;
+      
+68719476736 | IDENTIFIER | args
+68719476737 | IDENTIFIER | pystate
+68719476738 | IDENTIFIER | <unknown> NULL
+68719476739 | IDENTIFIER | <unknown> NULL
+90194313216 | LITERAL | "O"
+94489280512 | LOCAL | gss_client_state * state
+94489280513 | LOCAL | PyObject * pystate
+94489280514 | LOCAL | <unknown> NULL
+107374182400 | METHOD | 
+        static PyObject * authGSSClientUserName ( PyObject * self , PyObject * args ) {
+ gss_client_state * state ;
+ PyObject * pystate ;
+ if ( ! PyArg_ParseTuple ( args , "O" , & pystate ) ) return NULL ;
+ # if PY_MAJOR_VERSION >= 3 if ( ! PyCapsule_CheckExact ( pystate ) ) {
+ # else if ( ! PyCObject_Check ( pystate ) ) {
+ # endif PyErr_SetString ( PyExc_TypeError , "Expected a context object" ) ;
+ return NULL ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | PyObject * self
+111669149697 | METHOD_PARAMETER_IN | PyObject * args
+115964116992 | METHOD_PARAMETER_OUT | PyObject * self
+115964116993 | METHOD_PARAMETER_OUT | PyObject * args
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+141733920768 | RETURN | return NULL ;
+141733920769 | RETURN | return NULL ;
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 141733920769 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 141733920768 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 141733920769 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 141733920768 [CDG]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 90194313216 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 90194313216 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476737 [POST_DOMINATE]
+30064771074 -> 68719476736 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+47244640256 -> 30064771072 [AST]
+47244640256 -> 25769803777 [AST]
+47244640256 -> 30064771072 [CONDITION]
+47244640256 -> 25769803777 [TRUE_BODY]
+68719476736 -> 90194313216 [CFG]
+68719476736 -> 90194313216 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 115964116993 [REACHING_DEF]
+68719476736 -> 30064771074 [REACHING_DEF]
+68719476736 -> 30064771073 [REACHING_DEF]
+68719476736 -> 124554051584 [REACHING_DEF]
+68719476736 -> 111669149697 [REF]
+68719476737 -> 30064771074 [CFG]
+68719476737 -> 30064771074 [DOMINATE]
+68719476737 -> 90194313216 [POST_DOMINATE]
+68719476737 -> 30064771074 [REACHING_DEF]
+68719476737 -> 124554051584 [REACHING_DEF]
+68719476737 -> 94489280513 [REF]
+68719476738 -> 141733920768 [CFG]
+68719476738 -> 141733920768 [DOMINATE]
+68719476738 -> 141733920768 [REACHING_DEF]
+68719476738 -> 94489280514 [REF]
+68719476739 -> 141733920769 [CFG]
+68719476739 -> 141733920769 [DOMINATE]
+68719476739 -> 141733920769 [REACHING_DEF]
+68719476739 -> 94489280514 [REF]
+90194313216 -> 68719476737 [CFG]
+90194313216 -> 68719476737 [DOMINATE]
+90194313216 -> 68719476736 [POST_DOMINATE]
+90194313216 -> 68719476736 [REACHING_DEF]
+90194313216 -> 30064771074 [REACHING_DEF]
+90194313216 -> 30064771073 [REACHING_DEF]
+107374182400 -> 111669149696 [AST]
+107374182400 -> 111669149697 [AST]
+107374182400 -> 25769803776 [AST]
+107374182400 -> 128849018880 [AST]
+107374182400 -> 124554051584 [AST]
+107374182400 -> 115964116992 [AST]
+107374182400 -> 115964116993 [AST]
+107374182400 -> 68719476736 [CFG]
+107374182400 -> 25769803776 [CONTAINS]
+107374182400 -> 47244640256 [CONTAINS]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+static PyObject * authGSSServerUserName ( PyObject * self , PyObject * args ) {
+ gss_server_state * state ;
+ PyObject * pystate ;
+ if ( ! PyArg_ParseTuple ( args , "O" , & pystate ) ) return NULL ;
+ # if PY_MAJOR_VERSION >= 3 if ( ! PyCapsule_CheckExact ( pystate ) ) {
+ # else if ( ! PyCObject_Check ( pystate ) ) {
+ # endif PyErr_SetString ( PyExc_TypeError , "Expected a context object" ) ;
+ return NULL ;
+ }
+ # if PY_MAJOR_VERSION >= 3 state = PyCapsule_GetPointer ( pystate , NULL ) ;
+ # else state = ( gss_client_state * ) PyCObject_AsVoidPtr ( pystate ) ;
+ # endif if ( state == NULL ) return NULL ;
+ return Py_BuildValue ( "s" , state -> username ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

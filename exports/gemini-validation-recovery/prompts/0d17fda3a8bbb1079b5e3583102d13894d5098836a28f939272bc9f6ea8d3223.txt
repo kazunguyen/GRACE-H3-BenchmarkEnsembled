@@ -1,0 +1,144 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void xmlInitializeGlobalState ( xmlGlobalStatePtr gs ) {
+ # ifdef DEBUG_GLOBALS fprintf ( stderr , "Initializing globals at %lu for thread %d\n" , ( unsigned long ) gs , xmlGetThreadId ( ) ) ;
+ # endif if ( xmlThrDefMutex == NULL ) xmlInitGlobals ( ) ;
+ xmlMutexLock ( xmlThrDefMutex ) ;
+ # if defined ( LIBXML_DOCB_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) && defined ( LIBXML_SAX1_ENABLED ) initdocbDefaultSAXHandler ( & gs -> docbDefaultSAXHandler ) ;
+ # endif # if defined ( LIBXML_HTML_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) inithtmlDefaultSAXHandler ( & gs -> htmlDefaultSAXHandler ) ;
+ # endif gs -> oldXMLWDcompatibility = 0 ;
+ gs -> xmlBufferAllocScheme = xmlBufferAllocSchemeThrDef ;
+ gs -> xmlDefaultBufferSize = xmlDefaultBufferSizeThrDef ;
+ # if defined ( LIBXML_SAX1_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) initxmlDefaultSAXHandler ( & gs -> xmlDefaultSAXHandler , 1 ) ;
+ # endif gs -> xmlDefaultSAXLocator . getPublicId = xmlSAX2GetPublicId ;
+ gs -> xmlDefaultSAXLocator . getSystemId = xmlSAX2GetSystemId ;
+ gs -> xmlDefaultSAXLocator . getLineNumber = xmlSAX2GetLineNumber ;
+ gs -> xmlDefaultSAXLocator . getColumnNumber = xmlSAX2GetColumnNumber ;
+ gs -> xmlDoValidityCheckingDefaultValue = xmlDoValidityCheckingDefaultValueThrDef ;
+ # if defined ( DEBUG_MEMORY_LOCATION ) | defined ( DEBUG_MEMORY ) gs -> xmlFree = ( xmlFreeFunc ) xmlMemFree ;
+ gs -> xmlMalloc = ( xmlMallocFunc ) xmlMemMalloc ;
+ gs -> xmlMallocAtomic = ( xmlMallocFunc ) xmlMemMalloc ;
+ gs -> xmlRealloc = ( xmlReallocFunc ) xmlMemRealloc ;
+ gs -> xmlMemStrdup = ( xmlStrdupFunc ) xmlMemoryStrdup ;
+ # else gs -> xmlFree = ( xmlFreeFunc ) free ;
+ gs -> xmlMalloc = ( xmlMallocFunc ) malloc ;
+ gs -> xmlMallocAtomic = ( xmlMallocFunc ) malloc ;
+ gs -> xmlRealloc = ( xmlReallocFunc ) realloc ;
+ gs -> xmlMemStrdup = ( xmlStrdupFunc ) xmlStrdup ;
+ # endif gs -> xmlGetWarningsDefaultValue = xmlGetWarningsDefaultValueThrDef ;
+ gs -> xmlIndentTreeOutput = xmlIndentTreeOutputThrDef ;
+ gs -> xmlTreeIndentString = xmlTreeIndentStringThrDef ;
+ gs -> xmlKeepBlanksDefaultValue = xmlKeepBlanksDefaultValueThrDef ;
+ gs -> xmlLineNumbersDefaultValue = xmlLineNumbersDefaultValueThrDef ;
+ gs -> xmlLoadExtDtdDefaultValue = xmlLoadExtDtdDefaultValueThrDef ;
+ gs -> xmlParserDebugEntities = xmlParserDebugEntitiesThrDef ;
+ gs -> xmlParserVersion = LIBXML_VERSION_STRING ;
+ gs -> xmlPedanticParserDefaultValue = xmlPedanticParserDefaultValueThrDef ;
+ gs -> xmlSaveNoEmptyTags = xmlSaveNoEmptyTagsThrDef ;
+ gs -> xmlSubstituteEntitiesDefaultValue = xmlSubstituteEntitiesDefaultValueThrDef ;
+ gs -> xmlGenericError = xmlGenericErrorThrDef ;
+ gs -> xmlStructuredError = xmlStructuredErrorThrDef ;
+ gs -> xmlGenericErrorContext = xmlGenericErrorContextThrDef ;
+ gs -> xmlStructuredErrorContext = xmlStructuredErrorContextThrDef ;
+ gs -> xmlRegisterNodeDefaultValue = xmlRegisterNodeDefaultValueThrDef ;
+ gs -> xmlDeregisterNodeDefaultValue = xmlDeregisterNodeDefaultValueThrDef ;
+ gs -> xmlParserInputBufferCrea
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # ifdef DEBUG_GLOBALS fprintf ( stderr , "Initializing globals at %lu for thread %d\n" , ( unsigned long ) gs , xmlGetThreadId ( ) ) ;
+ # endif if ( xmlThrDefMutex == NULL ) xmlInitGlobals ( ) ;
+ xmlMutexLock ( xmlThrDefMutex ) ;
+ # if defined ( LIBXML_DOCB_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) && defined ( LIBXML_SAX1_ENABLED ) initdocbDefaultSAXHandler ( & gs -> docbDefaultSAXHandler ) ;
+ # endif # if defined ( LIBXML_HTML_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) inithtmlDefaultSAXHandler ( & gs -> htmlDefaultSAXHandler ) ;
+ # endif gs -> oldXMLWDcompatibility = 0 ;
+ gs -> xmlBufferAllocScheme = xmlBufferAllocSchemeThrDef ;
+ gs -> xmlDefaultBufferSize = xmlDefaultBufferSizeThrDef ;
+ # if defined ( LIBXML_SAX1_ENABLED ) && defined ( LIBXML_LEGACY_ENABLED ) initxmlDefaultSAXHandler ( & gs -> xmlDefaultSAXHandler , 1 ) ;
+ # endif gs -> xmlDefaultSAXLocator . getPublicId = xmlSAX2GetPublicId ;
+ gs -> xmlDefaultSAXLocator . getSystemId = xmlSAX2GetSystemId ;
+ gs -> xm...
+      
+30064771072 | CALL | xmlMutexLock ( xmlThrDefMutex )
+30064771073 | CALL | gs -> xmlBufferAllocScheme = xmlBufferAllocSchemeThrDef
+30064771074 | CALL | gs -> xmlBufferAllocScheme
+30064771075 | CALL | gs -> xmlDefaultBufferSize = xmlDefaultBufferSizeThrDef
+30064771076 | CALL | gs -> xmlDefaultBufferSize
+30064771077 | CALL | gs -> xmlDefaultSAXLocator . getSystemId = xmlSAX2GetSystemId
+30064771078 | CALL | gs -> xmlDefaultSAXLocator . getSystemId
+30064771079 | CALL | gs -> xmlDefaultSAXLocator
+30064771080 | CALL | gs -> xmlDefaultSAXLocator . getLineNumber = xmlSAX2GetLineNumber
+30064771081 | CALL | gs -> xmlDefaultSAXLocator . getLineNumber
+30064771082 | CALL | gs -> xmlDefaultSAXLocator
+30064771083 | CALL | gs -> xmlDefaultSAXLocator . getColumnNumber = xmlSAX2GetColumnNumber
+30064771084 | CALL | gs -> xmlDefaultSAXLocator . getColumnNumber
+30064771085 | CALL | gs -> xmlDefaultSAXLocator
+30064771086 | CALL | 
+        gs -> xmlDoValidityCheckingDefaultValue = xmlDoValidityCheckingDefaultValueThrDef
+      
+30064771087 | CALL | gs -> xmlDoValidityCheckingDefaultValue
+30064771088 | CALL | gs -> xmlMalloc = ( xmlMallocFunc ) malloc
+30064771089 | CALL | gs -> xmlMalloc
+30064771090 | CALL | ( xmlMallocFunc ) malloc
+30064771091 | CALL | gs -> xmlMallocAtomic = ( xmlMallocFunc ) malloc
+30064771092 | CALL | gs -> xmlMallocAtomic
+30064771093 | CALL | ( xmlMallocFunc ) malloc
+30064771094 | CALL | gs -> xmlRealloc = ( xmlReallocFunc ) realloc
+30064771095 | CALL | gs -> xmlRealloc
+30064771096 | CALL | ( xmlReallocFunc ) realloc
+30064771097 | CALL | gs -> xmlMemStrdup = ( xmlStrdupFunc ) xmlStrdup
+30064771098 | CALL | gs -> xmlMemStrdup
+30064771099 | CALL | ( xmlStrdupFunc ) xmlStrdup
+30064771100 | CALL | gs -> xmlIndentTreeOutput = xmlIndentTreeOutputThrDef
+30064771101 | CALL | gs -> xmlIndentTreeOutput
+30064771102 | CALL | gs -> xmlTreeIndentString = xmlTreeIndentStringThrDef
+30064771103 | CALL | gs -> xmlTreeIndentString
+30064771104 | CALL | gs -> xmlKeepBlanksDefaultValue = xmlKeepBlanksDefaultValueThrDef
+30064771105 | CALL | gs -> xmlKeepBlanksDefaultValue
+30064771106 | CALL | gs -> xmlLineNumbersDefaultValue = xmlLineNumbersDefaultValueThrDef
+30064771107 | CALL | gs -> xmlLineNumbersDefaultValue
+30064771108 | CALL | gs -> xmlLoadExtDtdDefaultValue = xmlLoadExtDtdDefaultValueThrDef
+30064771109 | CALL | gs -> xmlLoadExtDtdDefaultValue
+30064771110 | CALL | gs -> xmlParserDebugEntities = xmlParserDebugEntitiesThrDef
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771091 [AST]
+25769803776 -> 30064771094 [AST]
+25769803776 -> 30064771097 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771102 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771106 [AST]
+25769803776 -> 30064771108 [AST]
+25769803776 -> 30064771110 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771078 -> 30064771079 [ARGU
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

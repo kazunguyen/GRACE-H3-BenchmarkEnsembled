@@ -1,0 +1,320 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool address_space_rw(AddressSpace *as, hwaddr addr, uint8_t *buf,
+
+                      int len, bool is_write)
+
+{
+
+    hwaddr l;
+
+    uint8_t *ptr;
+
+    uint64_t val;
+
+    hwaddr addr1;
+
+    MemoryRegion *mr;
+
+    bool error = false;
+
+
+
+    while (len > 0) {
+
+        l = len;
+
+        mr = address_space_translate(as, addr, &addr1, &l, is_write);
+
+
+
+        if (is_write) {
+
+            if (!memory_access_is_direct(mr, is_write)) {
+
+                l = memory_access_size(mr, l, addr1);
+
+                /* XXX: could force current_cpu to NULL to avoid
+
+                   potential bugs */
+
+                if (l == 4) {
+
+                    /* 32 bit write access */
+
+                    val = ldl_p(buf);
+
+                    error |= io_mem_write(mr, addr1, val, 4);
+
+                } else if (l == 2) {
+
+                    /* 16 bit write access */
+
+                    val = lduw_p(buf);
+
+                    error |= io_mem_write(mr, addr1, val, 2);
+
+                } else {
+
+                    /* 8 bit write access */
+
+                    val = ldub_p(buf);
+
+                    error |= io_mem_write(mr, addr1, val, 1);
+
+                }
+
+            } else {
+
+                addr1 += memory_region_get_ram_addr(mr);
+
+                /* RAM case */
+
+                ptr = qemu_get_ram_ptr(addr1);
+
+                memcpy(ptr, buf, l);
+
+                invalidate_and_set_dirty(addr1, l);
+
+            }
+
+        } else {
+
+            if (!memory_access_is_direct(mr, is_write)) {
+
+                /* I/O case */
+
+                l = memory_access_size(mr, l, addr1);
+
+                if (l == 4) {
+
+                    /* 32 bit read access */
+
+                    error |= io_mem_read(mr, addr1, &val, 4);
+
+                    stl_p(buf, val);
+
+                } else if (l == 2) {
+
+                    /* 16 bit read access */
+
+                    error |= io_mem_read(mr, addr1, &val, 2);
+
+                    stw_p(buf, val);
+
+                } else {
+
+                    /* 8 bit read access */
+
+                    error |= io_mem_read(mr, addr1, &val, 1);
+
+                    stb_p(buf, val);
+
+                }
+
+            } else {
+
+                /* RAM case */
+
+                ptr = qemu_get_ram_ptr(mr->ram_addr + addr1);
+
+                memcpy(buf, ptr, l);
+
+            }
+
+        }
+
+        len -= l;
+
+        buf += l;
+
+        addr += l;
+
+    }
+
+
+
+    return error;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+22 -> 24 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+4 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+26 -> 28 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+29 -> 31 [IS_AST_PARENT]
+26 -> 29 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+4 -> 25 [IS_AST_PARENT]
+34 -> 35 [IS_AST_PARENT]
+34 -> 36 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+32 -> 33 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+48 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+48 -> 53 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+48 -> 57 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+48 -> 61 [IS_AST_PARENT]
+45 -> 48 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+37 -> 42 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+74 -> 77 [IS_AST_PARENT]
+71 -> 74 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+87 -> 88 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+86 -> 89 [IS_AST_PARENT]
+91 -> 92 [IS_AST_PARENT]
+86 -> 91 [IS_AST_PARENT]
+83 -> 86 [IS_AST_PARENT]
+81 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void address_space_rw(AddressSpace *as, hwaddr addr, uint8_t *buf,
+
+                      int len, bool is_write)
+
+{
+
+    AddressSpaceDispatch *d = as->dispatch;
+
+    int l;
+
+    uint8_t *ptr;
+
+    uint32_t val;
+
+    hwaddr page;
+
+    MemoryRegionSection *section;
+
+
+
+    while (len > 0) {
+
+        page = addr & TARGET_PAGE_MASK;
+
+        l = (page + TARGET_PAGE_SIZE) - addr;
+
+        if (l > len)
+
+            l = len;
+
+        section = phys_page_find(d, page >> TARGET_PAGE_BITS);
+
+
+
+        if (is_write) {
+
+            if (!memory_region_is_ram(section->mr)) {
+
+                hwaddr addr1;
+
+                addr1 = memory_region_section_addr(section, addr);
+
+                /* XXX: could force cpu_single_env to NULL to avoid
+
+                   potential bugs */
+
+                if (l >= 4 && ((addr1 & 3) == 0)) {
+
+                    /* 32 bit write access */
+
+                    val = ldl_p(buf);
+
+                    io_mem_write(section->mr, addr1, val, 4);
+
+                    l = 4;
+
+                } else if (l >= 2 && ((addr1 & 1) == 0)) {
+
+                    /* 16 bit write access */
+
+                    val = lduw_p(buf);
+
+                    io_mem_write(section->mr, addr1, val, 2);
+
+                    l = 2;
+
+                } else {
+
+                    /* 8 bit write access */
+
+                    val = ldub_p(buf);
+
+                    io_mem_write(section->mr, addr1, val, 1);
+
+                    l = 1;
+
+                }
+
+            } else if (!section->re
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

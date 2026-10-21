@@ -1,0 +1,381 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int gdb_handle_packet(GDBState *s, const char *line_buf)
+
+{
+
+    CPUArchState *env;
+
+    const char *p;
+
+    uint32_t thread;
+
+    int ch, reg_size, type, res;
+
+    char buf[MAX_PACKET_LENGTH];
+
+    uint8_t mem_buf[MAX_PACKET_LENGTH];
+
+    uint8_t *registers;
+
+    target_ulong addr, len;
+
+
+
+#ifdef DEBUG_GDB
+
+    printf("command='%s'\n", line_buf);
+
+#endif
+
+    p = line_buf;
+
+    ch = *p++;
+
+    switch(ch) {
+
+    case '?':
+
+        /* TODO: Make this return the correct value for user-mode.  */
+
+        snprintf(buf, sizeof(buf), "T%02xthread:%02x;", GDB_SIGNAL_TRAP,
+
+                 cpu_index(ENV_GET_CPU(s->c_cpu)));
+
+        put_packet(s, buf);
+
+        /* Remove all the breakpoints when this query is issued,
+
+         * because gdb is doing and initial connect and the state
+
+         * should be cleaned up.
+
+         */
+
+        gdb_breakpoint_remove_all();
+
+        break;
+
+    case 'c':
+
+        if (*p != '\0') {
+
+            addr = strtoull(p, (char **)&p, 16);
+
+            gdb_set_cpu_pc(s, addr);
+
+        }
+
+        s->signal = 0;
+
+        gdb_continue(s);
+
+	return RS_IDLE;
+
+    case 'C':
+
+        s->signal = gdb_signal_to_target (strtoul(p, (char **)&p, 16));
+
+        if (s->signal == -1)
+
+            s->signal = 0;
+
+        gdb_continue(s);
+
+        return RS_IDLE;
+
+    case 'v':
+
+        if (strncmp(p, "Cont", 4) == 0) {
+
+            int res_signal, res_thread;
+
+
+
+            p += 4;
+
+            if (*p == '?') {
+
+                put_packet(s, "vCont;c;C;s;S");
+
+                break;
+
+            }
+
+            res = 0;
+
+            res_signal = 0;
+
+            res_thread = 0;
+
+            while (*p) {
+
+                int action, signal;
+
+
+
+                if (*p++ != ';') {
+
+                    res = 0;
+
+                    break;
+
+                }
+
+                action = *p++;
+
+                signal = 0;
+
+                if (action == 'C' || action == 'S') {
+
+                    signal = strtoul(p, (char **)&p, 16);
+
+                } else if (action != 'c' && action != 's') {
+
+                    res = 0;
+
+                    break;
+
+                }
+
+                thread = 0;
+
+                if (*p == ':') {
+
+                    thread = strtoull(p+1, (char **)&p, 16);
+
+                }
+
+                action = tolower(action);
+
+                if (res == 0 || (res == 'c' && action == 's')) {
+
+                    res = action;
+
+                    res_signal = signal;
+
+                    res_thread = thread;
+
+                }
+
+            }
+
+            if (res) {
+
+                if (res_thread != -1 && res_thread != 0) {
+
+                    env = find_cpu(res_thread);
+
+                    if (env == NULL) {
+
+                        put_packet(s, "E22");
+
+                        break;
+
+                    }
+
+                    s->c_cpu = env;
+
+                }
+
+                if (res == 's') {
+
+                    cpu_single_step(s->c_cpu, sstep_flags);
+
+                }
+
+                s->signal = res_si
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+4 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+21 -> 23 [IS_AST_PARENT]
+17 -> 21 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+17 -> 24 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+17 -> 27 [IS_AST_PARENT]
+4 -> 17 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+36 -> 39 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 43 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+4 -> 40 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+4 -> 44 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+52 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+55 -> 58 [IS_AST_PARENT]
+52 -> 55 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+4 -> 51 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+4 -> 60 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+69 -> 71 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+4 -> 64 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+79 -> 80 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+85 -> 86 [IS_AST_PARENT]
+85 -> 87 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+81 -> 84 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+81 -> 88 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int gdb_handle_packet(GDBState *s, const char *line_buf)
+
+{
+
+    CPUState *env;
+
+    const char *p;
+
+    int ch, reg_size, type, res, thread;
+
+    char buf[MAX_PACKET_LENGTH];
+
+    uint8_t mem_buf[MAX_PACKET_LENGTH];
+
+    uint8_t *registers;
+
+    target_ulong addr, len;
+
+
+
+#ifdef DEBUG_GDB
+
+    printf("command='%s'\n", line_buf);
+
+#endif
+
+    p = line_buf;
+
+    ch = *p++;
+
+    switch(ch) {
+
+    case '?':
+
+        /* TODO: Make this return the correct value for user-mode.  */
+
+        snprintf(buf, sizeof(buf), "T%02xthread:%02x;", GDB_SIGNAL_TRAP,
+
+                 s->c_cpu->cpu_index+1);
+
+        put_packet(s, buf);
+
+        /* Remove all the breakpoints when this query is issued,
+
+         * because gdb is doing and initial connect and the state
+
+         * should be cleaned up.
+
+         */
+
+        gdb_breakpoint_remove_all();
+
+        break;
+
+    case 'c':
+
+        if (*p != '\0') {
+
+            addr = strtoull(p, (char **)&p, 16);
+
+#if defined(TARGET_I386)
+
+            s->c_cpu->eip = addr;
+
+#elif defined (TARGET_PPC)
+
+            s->c_cpu->nip = addr;
+
+#elif defined (TARGET_SPARC)
+
+            s->c_cpu->pc = addr;
+
+            s->c_cpu->npc = addr + 4;
+
+#elif defined (TARGET_ARM)
+
+            s->c_cpu->regs[15] = addr;
+
+#elif defined (TARGET_SH4)
+
+            s->c_cpu->pc = addr;
+
+#elif defined (TARGET_MIPS)
+
+            s->c_cpu->active_tc.PC = addr;
+
+#elif defined (TARGET_CRIS)
+
+            s->c_cpu->pc = addr;
+
+#elif defined (TARGET_ALPHA)
+
+            s->c_c
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

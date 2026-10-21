@@ -1,0 +1,178 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void e1000e_rx_fix_l4_csum ( E1000ECore * core , struct NetRxPkt * pkt ) {
+ if ( net_rx_pkt_has_virt_hdr ( pkt ) ) {
+ struct virtio_net_hdr * vhdr = net_rx_pkt_get_vhdr ( pkt ) ;
+ if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( net_rx_pkt_has_virt_hdr ( pkt ) ) {
+ struct virtio_net_hdr * vhdr = net_rx_pkt_get_vhdr ( pkt ) ;
+ if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ struct virtio_net_hdr * vhdr = net_rx_pkt_get_vhdr ( pkt ) ;
+ if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+ }
+      
+25769803778 | BLOCK | { net_rx_pkt_fix_l4_csum ( pkt ) ; }
+30064771072 | CALL | net_rx_pkt_has_virt_hdr ( pkt )
+30064771073 | CALL | vhdr = net_rx_pkt_get_vhdr ( pkt )
+30064771074 | CALL | net_rx_pkt_get_vhdr ( pkt )
+30064771075 | CALL | vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM
+30064771076 | CALL | vhdr -> flags
+30064771077 | CALL | net_rx_pkt_fix_l4_csum ( pkt )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( net_rx_pkt_has_virt_hdr ( pkt ) ) {
+ struct virtio_net_hdr * vhdr = net_rx_pkt_get_vhdr ( pkt ) ;
+ if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | flags
+68719476736 | IDENTIFIER | pkt
+68719476737 | IDENTIFIER | vhdr
+68719476738 | IDENTIFIER | pkt
+68719476739 | IDENTIFIER | vhdr
+68719476740 | IDENTIFIER | <unknown> VIRTIO_NET_HDR_F_NEEDS_CSUM
+68719476741 | IDENTIFIER | pkt
+94489280512 | LOCAL | struct virtio_net_hdr * vhdr
+94489280513 | LOCAL | <unknown> VIRTIO_NET_HDR_F_NEEDS_CSUM
+107374182400 | METHOD | 
+        static inline void e1000e_rx_fix_l4_csum ( E1000ECore * core , struct NetRxPkt * pkt ) {
+ if ( net_rx_pkt_has_virt_hdr ( pkt ) ) {
+ struct virtio_net_hdr * vhdr = net_rx_pkt_get_vhdr ( pkt ) ;
+ if ( vhdr -> flags & VIRTIO_NET_HDR_F_NEEDS_CSUM ) {
+ net_rx_pkt_fix_l4_csum ( pkt ) ;
+ }
+ }
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | E1000ECore * core
+111669149697 | METHOD_PARAMETER_IN | struct NetRxPkt * pkt
+115964116992 | METHOD_PARAMETER_OUT | E1000ECore * core
+115964116993 | METHOD_PARAMETER_OUT | struct NetRxPkt * pkt
+124554051584 | METHOD_RETURN | RET
+128849018880 | MODIFIER | <empty>
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 94489280513 [AST]
+25769803777 -> 94489280512 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771077 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 55834574848 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 124554051584 [CFG]
+30064771072 -> 124554051584 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 68719476736 [POST_DOMINATE]
+30064771072 -> 124554051584 [REACHING_DEF]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 124554051584 [REACHING_DEF]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 124554051584 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 124554051584 [CFG]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771075 -> 124554051584 [REACHING_DEF]
+30064771076 -> 68719476739 [ARGUMENT]
+30064771076 -> 55834574848 [ARGUMENT]
+30064771076 -> 68719476739 [AST]
+30064771076 -> 55834574848 [AST]
+30064771076 -> 68719476740 [CFG]
+30064771076 -> 68719476740 [DOMINATE]
+30064771076 -> 55834574848 [POST_DOMINATE]
+30064771076 -> 68719476740 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 124554051584 [REACHING_DEF]
+30064771077 -> 68719476741 [ARGUMENT]
+30064771077 -> 68719476741 [AST]
+30064771077 -> 124554051584 [CFG]
+30064771077 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 124554051584 [REACHING_DEF]
+47244640256 -> 30064771072 [AST]
+47244640256 -> 25769803777 [AST]
+47244640256 -> 30064771072 [CONDITION]
+47244640256 -> 25769803777 [TRUE_BODY]
+47244640257 -> 30064771075 [AST]
+47244640257 -> 25769803778 [AST]
+47244640257 -> 30064771075 [CONDITION]
+47244640257 -> 25769803778 [TRUE_BODY]
+55834574848 -> 30064771076 [CFG]
+55834574848 -> 30064771076 [DOMINATE]
+55834574848 -> 68719476739 [POST_DOMINATE]
+68719476736 -> 30064771072 [CFG]
+68719476736 -> 30064771072 [DOMINATE]
+68719476736 -> 107374182400 [POST_DOMINATE]
+68719476736 -> 30064771072 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline bool e1000e_is_tcp_ack ( E1000ECore * core , struct NetRxPkt * rx_pkt ) {
+ if ( ! net_rx_pkt_is_tcp_ack ( rx_pkt ) ) {
+ return false ;
+ }
+ if ( core -> mac [ RFCTL ] & E1000_RFCTL_ACK_DATA_DIS ) {
+ return ! net_rx_pkt_has_tcp_data ( rx_pkt ) ;
+ }
+ return true ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

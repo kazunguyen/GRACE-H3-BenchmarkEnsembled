@@ -1,0 +1,60 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_CPMRatioFinished ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * parent_tree , gboolean in , void * data _U_ ) {
+ gint offset = 16 ;
+ proto_item * item ;
+ proto_tree * tree ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , "RatioFinished" ) ;
+ item = proto_tree_add_item ( parent_tree , hf_mswsp_msg , tvb , offset , - 1 , ENC_NA ) ;
+ tree = proto_item_add_subtree ( item , ett_mswsp_msg ) ;
+ proto_item_set_text ( item , "RationFinised%s" , in ? "In" : "Out" ) ;
+ if ( in ) {
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_hcursor , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_fquick , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ }
+ else {
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_ulnumerator , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_uldenominator , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_crows , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmratiofinished_fnewrows , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ }
+ return tvb_reported_length ( tvb ) ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_CPMGetScopeStatistics ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * parent_tree , gboolean in , void * data _U_ ) {
+ gint offset = 16 ;
+ proto_item * item ;
+ proto_tree * tree ;
+ item = proto_tree_add_item ( parent_tree , hf_mswsp_msg , tvb , offset , in ? 0 : - 1 , ENC_NA ) ;
+ tree = proto_item_add_subtree ( item , ett_mswsp_msg ) ;
+ proto_item_set_text ( item , "GetScopeStatistics%s" , in ? "In" : "Out" ) ;
+ col_append_str ( pinfo -> cinfo , COL_INFO , "GetScopeStatistics" ) ;
+ if ( in ) {
+ }
+ else {
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmsetscopestatisics_dwindexitems , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmsetscopestatisics_dwoutstandingadds , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ offset += 4 ;
+ proto_tree_add_item ( tree , hf_mswsp_msg_cpmsetscopestatisics_dwoutstandingmodifies , tvb , offset , 4 , ENC_LITTLE_ENDIAN ) ;
+ }
+ return tvb_reported_length ( tvb ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

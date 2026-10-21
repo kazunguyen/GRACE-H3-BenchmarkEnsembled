@@ -1,0 +1,257 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void bamboo_init ( ram_addr_t ram_size , const char * boot_device , const char * kernel_filename , const char * kernel_cmdline , const char * initrd_filename , const char * cpu_model ) {
+ unsigned int pci_irq_nrs [ 4 ] = {
+ 28 , 27 , 26 , 25 }
+ ;
+ PCIBus * pcibus ;
+ CPUState * env ;
+ uint64_t elf_entry ;
+ uint64_t elf_lowaddr ;
+ target_phys_addr_t entry = 0 ;
+ target_phys_addr_t loadaddr = 0 ;
+ target_long kernel_size = 0 ;
+ target_ulong initrd_base = 0 ;
+ target_long initrd_size = 0 ;
+ target_ulong dt_base = 0 ;
+ void * fdt ;
+ int i ;
+ env = ppc440ep_init ( & ram_size , & pcibus , pci_irq_nrs , 1 , cpu_model ) ;
+ if ( pcibus ) {
+ for ( i = 0 ;
+ i < MAX_VIRTIO_CONSOLES ;
+ i ++ ) {
+ if ( virtcon_hds [ i ] ) {
+ pci_create_simple ( pcibus , - 1 , "virtio-console-pci" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < nb_nics ;
+ i ++ ) {
+ pci_nic_init_nofail ( & nd_table [ i ] , "e1000" , NULL ) ;
+ }
+ }
+ if ( kernel_filename ) {
+ kernel_size = load_uimage ( kernel_filename , & entry , & loadaddr , NULL ) ;
+ if ( kernel_size < 0 ) {
+ kernel_size = load_elf ( kernel_filename , 0 , & elf_entry , & elf_lowaddr , NULL , 1 , ELF_MACHINE , 0 ) ;
+ entry = elf_entry ;
+ loadaddr = elf_lowaddr ;
+ }
+ if ( kernel_size < 0 ) {
+ fprintf ( stderr , "qemu: could not load kernel '%s'\n" , kernel_filename ) ;
+ exit ( 1 ) ;
+ }
+ }
+ if ( initrd_filename ) {
+ initrd_base = kernel_size + loadaddr ;
+ initrd_size = load_image_targphys ( initrd_filename , initrd_base , ram_size - initrd_base ) ;
+ if ( initrd_size < 0 ) {
+ fprintf ( stderr , "qemu: could not load initial ram disk '%s'\n" , initrd_filename ) ;
+ exit ( 1 ) ;
+ }
+ }
+ if ( kernel_filename ) {
+ if ( initrd_base ) dt_base = initrd_base + initrd_size ;
+ else dt_base = kernel_size + loadaddr ;
+ fdt = bamboo_load_device_tree ( dt_base , ram_size , initrd_base , initrd_size , kernel_cmdline ) ;
+ if ( fdt == NULL ) {
+ fprintf ( stderr , "couldn't load device tree\n" ) ;
+ exit ( 1 ) ;
+ }
+ env -> gpr [ 1 ] = ( 16 << 20 ) - 8 ;
+ env -> gpr [ 3 ] = dt_base ;
+ env -> nip = entry ;
+ }
+ if ( kvm_enabled ( ) ) kvmppc_init ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ unsigned int pci_irq_nrs [ 4 ] = {
+ 28 , 27 , 26 , 25 }
+ ;
+ PCIBus * pcibus ;
+ CPUState * env ;
+ uint64_t elf_entry ;
+ uint64_t elf_lowaddr ;
+ target_phys_addr_t entry = 0 ;
+ target_phys_addr_t loadaddr = 0 ;
+ target_long kernel_size = 0 ;
+ target_ulong initrd_base = 0 ;
+ target_long initrd_size = 0 ;
+ target_ulong dt_base = 0 ;
+ void * fdt ;
+ int i ;
+ env = ppc440ep_init ( & ram_size , & pcibus , pci_irq_nrs , 1 , cpu_model ) ;
+ if ( pcibus ) {
+ for ( i = 0 ;
+ i < MAX_VIRTIO_CONSOLES ;
+ i ++ ) {
+ if ( virtcon_hds [ i ] ) {
+ pci_create_simple ( pcibus , - 1 , "virtio-console-pci" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < nb_nics ;
+ i ++ ) {
+ pci_nic_init_nofail ( & nd_table [ i ] , "e1000" , NULL ) ;
+ }
+ }
+ if ( kernel_filename ) {
+ kernel_size = load_uimage ( kernel_filename , & entry , & loadaddr , NULL ) ;
+ if ( kernel_size < 0 ) {
+ kernel_size = load_elf ( kernel_filename , 0 , & elf_entry , & elf_lowaddr , NULL , 1 , ELF_MACHINE , 0 ) ;
+ entry = elf_entry ;
+ loadaddr = elf_lowaddr ;
+ }
+...
+      
+25769803777 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < MAX_VIRTIO_CONSOLES ;
+ i ++ ) {
+ if ( virtcon_hds [ i ] ) {
+ pci_create_simple ( pcibus , - 1 , "virtio-console-pci" ) ;
+ }
+ }
+ for ( i = 0 ;
+ i < nb_nics ;
+ i ++ ) {
+ pci_nic_init_nofail ( & nd_table [ i ] , "e1000" , NULL ) ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ if ( virtcon_hds [ i ] ) {
+ pci_create_simple ( pcibus , - 1 , "virtio-console-pci" ) ;
+ }
+ }
+      
+25769803779 | BLOCK | { pci_create_simple ( pcibus , - 1 , "virtio-console-pci" ) ; }
+25769803780 | BLOCK | { pci_nic_init_nofail ( & nd_table [ i ] , "e1000" , NULL ) ; }
+25769803781 | BLOCK | 
+        {
+ kernel_size = load_uimage ( kernel_filename , & entry , & loadaddr , NULL ) ;
+ if ( kernel_size < 0 ) {
+ kernel_size = load_elf ( kernel_filename , 0 , & elf_entry , & elf_lowaddr , NULL , 1 , ELF_MACHINE , 0 ) ;
+ entry = elf_entry ;
+ loadaddr = elf_lowaddr ;
+ }
+ if ( kernel_size < 0 ) {
+ fprintf ( stderr , "qemu: could not load kernel '%s'\n" , kernel_filename ) ;
+ exit ( 1 ) ;
+ }
+ }
+      
+25769803782 | BLOCK | 
+        {
+ kernel_size = load_elf ( kernel_filename , 0 , & elf_entry , & elf_lowaddr , NULL , 1 , ELF_MACHINE , 0 ) ;
+ entry = elf_entry ;
+ loadaddr = elf_lowaddr ;
+ }
+      
+25769803783 | BLOCK | 
+        {
+ fprintf ( stderr , "qemu: could not load kernel '%s'\n" , kernel_filename ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ initrd_base = kernel_size + loadaddr ;
+ initrd_size = load_image_targphys ( initrd_filename , initrd_base , ram_size - initrd_base ) ;
+ if ( initrd_size < 0 ) {
+ fprintf ( stderr , "qemu: could not load initial ram disk '%s'\n" , initrd_filename ) ;
+ exit ( 1 ) ;
+ }
+ }
+      
+25769803785 | BLOCK | 
+        {
+ fprintf ( stderr , "qemu: could not load initial ram disk '%s'\n" , initrd_filename ) ;
+ exit ( 1 ) ;
+ }
+      
+25769803786 | BLOCK | 
+        {
+ if ( initrd_base ) dt_base = initrd_base + initrd_size ;
+ else dt_base = kernel_size + loadaddr ;
+ fdt = bamboo_load_device_tree ( dt_base , ram_size , initrd_base , initrd_size , kernel_cmdline ) ;
+ if ( fdt == NULL ) {
+ fprintf ( stderr , "couldn't load device tree\n" ) ;
+ exit ( 1 ) ;
+ }
+ env -> gpr [ 1 ] = ( 16 << 20 ) - 8 ;
+ env -> gpr [ 3 ] = dt_base ;
+ env -> nip = entry ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | { fprintf ( stderr , "couldn't load device tree\n" ) ; exit ( 1 ) ; }
+25769803790 | BLOCK | <empty>
+30064771072 | CALL | pci_irq_nrs [ 4 ] = { 28 , 27 , 26 , 25 }
+30064771073 | CALL | pci_irq_nrs [ 4 ] = { 28 , 27 , 26 , 25 }
+30064771074 | CALL | pci_irq_nrs [ 4 ] = { 28 , 27 , 26 , 25 }
+30064771075 | CALL | { 28 , 27 , 26 , 25 }
+30064771076 | CALL | entry = 0
+30064771077 | CALL | loadaddr = 0
+30064771078 | CALL | kernel_size = 0
+30064771079 | CALL | initrd_base = 0
+30064771080 | CALL | initrd_size = 0
+30064771081 | CALL | dt_base = 0
+30064771082 | CALL | env = ppc440ep_init ( & ram_size , & pcibus , pci_irq_nrs , 1 , cpu_model )
+30064771083 | CALL | ppc440ep_init ( & ram_size , & pcibus , pci_irq_nrs , 1 , cpu_model )
+30064771084 | CALL | & ram_size
+30064771085 | CALL | & pcibus
+30064771086 | CALL | pcibus != NULL
+30064771087 | CALL | i = 0
+30064771088 | CALL | i < MAX_VIRTIO_CONSOLES
+30064771089 | CALL | i ++
+30064771090 | CALL | virtcon_hds [ i ]
+30064771091 | CALL | pci_create_simple ( pcibus , - 1 , "virtio-console-pci" )
+30064771092 | CALL | - 1
+30064771093 | CALL | i = 0
+30064771094 | CALL | i < nb_nics
+30064771095 | CALL | i ++
+30064771096 | CALL | pci_nic_init_nofail ( & nd_table [ i ] , "e1000" , NULL )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803779 -> 30064771091 [AST]
+25769803780 -> 30064771096 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

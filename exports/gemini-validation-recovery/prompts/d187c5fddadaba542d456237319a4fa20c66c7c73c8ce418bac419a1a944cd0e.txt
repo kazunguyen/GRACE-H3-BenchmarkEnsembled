@@ -1,0 +1,330 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int inet_connect_opts(QemuOpts *opts)
+
+{
+
+    struct addrinfo ai,*res,*e;
+
+    const char *addr;
+
+    const char *port;
+
+    char uaddr[INET6_ADDRSTRLEN+1];
+
+    char uport[33];
+
+    int sock,rc;
+
+
+
+    memset(&ai,0, sizeof(ai));
+
+    ai.ai_flags = AI_CANONNAME | AI_ADDRCONFIG;
+
+    ai.ai_family = PF_UNSPEC;
+
+    ai.ai_socktype = SOCK_STREAM;
+
+
+
+    addr = qemu_opt_get(opts, "host");
+
+    port = qemu_opt_get(opts, "port");
+
+    if (addr == NULL || port == NULL) {
+
+        fprintf(stderr, "inet_connect: host and/or port not specified\n");
+
+        return -1;
+
+    }
+
+
+
+    if (qemu_opt_get_bool(opts, "ipv4", 0))
+
+        ai.ai_family = PF_INET;
+
+    if (qemu_opt_get_bool(opts, "ipv6", 0))
+
+        ai.ai_family = PF_INET6;
+
+
+
+    /* lookup */
+
+    if (0 != (rc = getaddrinfo(addr, port, &ai, &res))) {
+
+        fprintf(stderr,"getaddrinfo(%s,%s): %s\n", addr, port,
+
+                gai_strerror(rc));
+
+	return -1;
+
+    }
+
+    if (sockets_debug)
+
+        inet_print_addrinfo(__FUNCTION__, res);
+
+
+
+    for (e = res; e != NULL; e = e->ai_next) {
+
+        if (getnameinfo((struct sockaddr*)e->ai_addr,e->ai_addrlen,
+
+                            uaddr,INET6_ADDRSTRLEN,uport,32,
+
+                            NI_NUMERICHOST | NI_NUMERICSERV) != 0) {
+
+            fprintf(stderr,"%s: getnameinfo: oops\n", __FUNCTION__);
+
+            continue;
+
+        }
+
+        sock = socket(e->ai_family, e->ai_socktype, e->ai_protocol);
+
+        if (sock < 0) {
+
+            fprintf(stderr,"%s: socket(%s): %s\n", __FUNCTION__,
+
+            inet_strfamily(e->ai_family), strerror(errno));
+
+            continue;
+
+        }
+
+        setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,(void*)&on,sizeof(on));
+
+
+
+        /* connect to peer */
+
+        if (connect(sock,e->ai_addr,e->ai_addrlen) < 0) {
+
+            if (sockets_debug || NULL == e->ai_next)
+
+                fprintf(stderr, "%s: connect(%s,%s,%s,%s): %s\n", __FUNCTION__,
+
+                        inet_strfamily(e->ai_family),
+
+                        e->ai_canonname, uaddr, uport, strerror(errno));
+
+            closesocket(sock);
+
+            continue;
+
+        }
+
+        if (sockets_debug)
+
+            fprintf(stderr, "%s: connect(%s,%s,%s,%s): OK\n", __FUNCTION__,
+
+                    inet_strfamily(e->ai_family),
+
+                    e->ai_canonname, uaddr, uport);
+
+        freeaddrinfo(res);
+
+        return sock;
+
+    }
+
+    freeaddrinfo(res);
+
+    return -1;
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+4 -> 15 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+24 -> 27 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+4 -> 23 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+31 -> 34 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+4 -> 30 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+4 -> 35 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+48 -> 50 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+46 -> 51 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+54 -> 56 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+46 -> 53 [IS_AST_PARENT]
+43 -> 46 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+59 -> 60 [IS_AST_PARENT]
+59 -> 61 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+62 -> 64 [IS_AST_PARENT]
+58 -> 62 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+4 -> 57 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+66 -> 70 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+4 -> 65 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+73 -> 75 [IS_AST_PARENT]
+72 -> 73 [IS_AST_PARENT]
+72 -> 76 [IS_AST_PARENT]
+71 -> 72 [IS_AST_PARENT]
+4 -> 71 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+84 -> 85 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+83 -> 86 [IS_AST_PARENT]
+80 -> 83 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+int inet_connect_opts(QemuOpts *opts, Error **errp)
+
+{
+
+    struct addrinfo ai,*res,*e;
+
+    const char *addr;
+
+    const char *port;
+
+    char uaddr[INET6_ADDRSTRLEN+1];
+
+    char uport[33];
+
+    int sock,rc;
+
+    bool block;
+
+
+
+    memset(&ai,0, sizeof(ai));
+
+    ai.ai_flags = AI_CANONNAME | AI_ADDRCONFIG;
+
+    ai.ai_family = PF_UNSPEC;
+
+    ai.ai_socktype = SOCK_STREAM;
+
+
+
+    addr = qemu_opt_get(opts, "host");
+
+    port = qemu_opt_get(opts, "port");
+
+    block = qemu_opt_get_bool(opts, "block", 0);
+
+    if (addr == NULL || port == NULL) {
+
+        fprintf(stderr, "inet_connect: host and/or port not specified\n");
+
+        error_set(errp, QERR_SOCKET_CREATE_FAILED);
+
+        return -1;
+
+    }
+
+
+
+    if (qemu_opt_get_bool(opts, "ipv4", 0))
+
+        ai.ai_family = PF_INET;
+
+    if (qemu_opt_get_bool(opts, "ipv6", 0))
+
+        ai.ai_family = PF_INET6;
+
+
+
+    /* lookup */
+
+    if (0 != (rc = getaddrinfo(addr, port, &ai, &res))) {
+
+        fprintf(stderr,"getaddrinfo(%s,%s): %s\n", addr, port,
+
+                gai_strerror(rc));
+
+        error_set(errp, QERR_SOCKET_CREATE_FAILED);
+
+	return -1;
+
+    }
+
+
+
+    for (e = res; e != NULL; e = e->ai_next) {
+
+        if (getnameinfo((struct sockaddr*)e->ai_addr,e->ai_addrlen,
+
+                            uaddr,INET6_ADDRSTRLEN,uport,32,
+
+                            NI_NUMERICHOST | NI_NUMERICSERV) != 0) {
+
+            fprintf(stderr,"%s: getnameinfo: oops\n", __FUNCTION__);
+
+            continue;
+
+        }
+
+        sock = qemu_socket(e
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

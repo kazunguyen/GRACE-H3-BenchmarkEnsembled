@@ -1,0 +1,219 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void enumerate_children_callback ( GObject * source_object , GAsyncResult * res , gpointer user_data ) {
+ DirectoryLoadState * state ;
+ GFileEnumerator * enumerator ;
+ GError * error ;
+ state = user_data ;
+ if ( state -> directory == NULL ) {
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+ error = NULL ;
+ enumerator = g_file_enumerate_children_finish ( G_FILE ( source_object ) , res , & error ) ;
+ if ( enumerator == NULL ) {
+ directory_load_done ( state -> directory , error ) ;
+ g_error_free ( error ) ;
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+ else {
+ state -> enumerator = enumerator ;
+ g_file_enumerator_next_files_async ( state -> enumerator , DIRECTORY_LOAD_ITEMS_PER_CALLBACK , G_PRIORITY_DEFAULT , state -> cancellable , more_files_callback , state ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ DirectoryLoadState * state ;
+ GFileEnumerator * enumerator ;
+ GError * error ;
+ state = user_data ;
+ if ( state -> directory == NULL ) {
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+ error = NULL ;
+ enumerator = g_file_enumerate_children_finish ( G_FILE ( source_object ) , res , & error ) ;
+ if ( enumerator == NULL ) {
+ directory_load_done ( state -> directory , error ) ;
+ g_error_free ( error ) ;
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+ else {
+ state -> enumerator = enumerator ;
+ g_file_enumerator_next_files_async ( state -> enumerator , DIRECTORY_LOAD_ITEMS_PER_CALLBACK , G_PRIORITY_DEFAULT , state -> cancellable , more_files_callback , state ) ;
+ }
+ }
+      
+25769803777 | BLOCK | { directory_load_state_free ( state ) ; return ; }
+25769803778 | BLOCK | 
+        {
+ directory_load_done ( state -> directory , error ) ;
+ g_error_free ( error ) ;
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ state -> enumerator = enumerator ;
+ g_file_enumerator_next_files_async ( state -> enumerator , DIRECTORY_LOAD_ITEMS_PER_CALLBACK , G_PRIORITY_DEFAULT , state -> cancellable , more_files_callback , state ) ;
+ }
+      
+30064771072 | CALL | state = user_data
+30064771073 | CALL | state -> directory == NULL
+30064771074 | CALL | state -> directory
+30064771075 | CALL | directory_load_state_free ( state )
+30064771076 | CALL | error = NULL
+30064771077 | CALL | 
+        enumerator = g_file_enumerate_children_finish ( G_FILE ( source_object ) , res , & error )
+      
+30064771078 | CALL | g_file_enumerate_children_finish ( G_FILE ( source_object ) , res , & error )
+30064771079 | CALL | G_FILE ( source_object )
+30064771080 | CALL | & error
+30064771081 | CALL | enumerator == NULL
+30064771082 | CALL | directory_load_done ( state -> directory , error )
+30064771083 | CALL | state -> directory
+30064771084 | CALL | g_error_free ( error )
+30064771085 | CALL | directory_load_state_free ( state )
+30064771086 | CALL | state -> enumerator = enumerator
+30064771087 | CALL | state -> enumerator
+30064771088 | CALL | 
+        g_file_enumerator_next_files_async ( state -> enumerator , DIRECTORY_LOAD_ITEMS_PER_CALLBACK , G_PRIORITY_DEFAULT , state -> cancellable , more_files_callback , state )
+      
+30064771089 | CALL | state -> enumerator
+30064771090 | CALL | state -> cancellable
+47244640256 | CONTROL_STRUCTURE | 
+        if ( state -> directory == NULL ) {
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( enumerator == NULL ) {
+ directory_load_done ( state -> directory , error ) ;
+ g_error_free ( error ) ;
+ directory_load_state_free ( state ) ;
+ return ;
+ }
+ else {
+ state -> enumerator = enumerator ;
+ g_file_enumerator_next_files_async ( state -> enumerator , DIRECTORY_LOAD_ITEMS_PER_CALLBACK , G_PRIORITY_DEFAULT , state -> cancellable , more_files_callback , state ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | directory
+55834574849 | FIELD_IDENTIFIER | directory
+55834574850 | FIELD_IDENTIFIER | enumerator
+55834574851 | FIELD_IDENTIFIER | enumerator
+55834574852 | FIELD_IDENTIFIER | cancellable
+68719476736 | IDENTIFIER | state
+68719476737 | IDENTIFIER | user_data
+68719476738 | IDENTIFIER | state
+68719476739 | IDENTIFIER | <unknown> NULL
+68719476740 | IDENTIFIER | state
+68719476741 | IDENTIFIER | error
+68719476742 | IDENTIFIER | <unknown> NULL
+68719476743 | IDENTIFIER | enumerator
+68719476744 | IDENTIFIER | source_object
+68719476745 | IDENTIFIER | res
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 47244640257 [AST]
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771084 [AST]
+25769803778 -> 30064771085 [AST]
+25769803779 -> 30064771086 [AST]
+25769803779 -> 30064771088 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476739 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [AST]
+30064771073 -> 68719476745 [CDG]
+30064771073 -> 68719476743 [CDG]
+30064771073 -> 68719476744 [CDG]
+30064771073 -> 68719476741 [CDG]
+30064771073 -> 68719476742 [CDG]
+30064771073 -> 68719476740 [CDG]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771075 [CDG]
+30064771073 -> 30064771080 [CDG]
+30064771073 -> 30064771081 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 68719476740 [CFG]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476740 [DOMINATE]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 68719476739 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476739 [CFG]
+30064771074 -> 68719476739 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 68719476740 [REACHING_DEF]
+30064771074 -> 30064771083 [REACHING_DEF]
+30064771074 -> 68719476739 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476740 [ARGUMENT]
+30064771075 -> 68719476740 [AST]
+30064771075 -> 68719476740 [POST_DOMINATE]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 68719476743 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476743 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 68719476745 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 68719476745 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771078 -> 68719476743 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476744 [ARGUMENT]
+30064771079 -> 68719476744 [AST]
+30064771079 -> 68719476745 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void count_children_callback ( GObject * source_object , GAsyncResult * res , gpointer user_data ) {
+ DirectoryCountState * state ;
+ GFileEnumerator * enumerator ;
+ NautilusDirector
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

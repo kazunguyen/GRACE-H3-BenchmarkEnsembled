@@ -1,0 +1,206 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int check_pack_inflate ( struct packed_git * p , struct pack_window * * w_curs , off_t offset , off_t len , unsigned long expect ) {
+ git_zstream stream ;
+ unsigned char fakebuf [ 4096 ] , * in ;
+ int st ;
+ memset ( & stream , 0 , sizeof ( stream ) ) ;
+ git_inflate_init ( & stream ) ;
+ do {
+ in = use_pack ( p , w_curs , offset , & stream . avail_in ) ;
+ stream . next_in = in ;
+ stream . next_out = fakebuf ;
+ stream . avail_out = sizeof ( fakebuf ) ;
+ st = git_inflate ( & stream , Z_FINISH ) ;
+ offset += stream . next_in - in ;
+ }
+ while ( st == Z_OK || st == Z_BUF_ERROR ) ;
+ git_inflate_end ( & stream ) ;
+ return ( st == Z_STREAM_END && stream . total_out == expect && stream . total_in == len ) ? 0 : - 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ git_zstream stream ;
+ unsigned char fakebuf [ 4096 ] , * in ;
+ int st ;
+ memset ( & stream , 0 , sizeof ( stream ) ) ;
+ git_inflate_init ( & stream ) ;
+ do {
+ in = use_pack ( p , w_curs , offset , & stream . avail_in ) ;
+ stream . next_in = in ;
+ stream . next_out = fakebuf ;
+ stream . avail_out = sizeof ( fakebuf ) ;
+ st = git_inflate ( & stream , Z_FINISH ) ;
+ offset += stream . next_in - in ;
+ }
+ while ( st == Z_OK || st == Z_BUF_ERROR ) ;
+ git_inflate_end ( & stream ) ;
+ return ( st == Z_STREAM_END && stream . total_out == expect && stream . total_in == len ) ? 0 : - 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ in = use_pack ( p , w_curs , offset , & stream . avail_in ) ;
+ stream . next_in = in ;
+ stream . next_out = fakebuf ;
+ stream . avail_out = sizeof ( fakebuf ) ;
+ st = git_inflate ( & stream , Z_FINISH ) ;
+ offset += stream . next_in - in ;
+ }
+      
+30064771072 | CALL | fakebuf [ 4096 ]
+30064771073 | CALL | fakebuf [ 4096 ]
+30064771074 | CALL | memset ( & stream , 0 , sizeof ( stream ) )
+30064771075 | CALL | & stream
+30064771076 | CALL | sizeof ( stream )
+30064771077 | CALL | git_inflate_init ( & stream )
+30064771078 | CALL | & stream
+30064771079 | CALL | in = use_pack ( p , w_curs , offset , & stream . avail_in )
+30064771080 | CALL | use_pack ( p , w_curs , offset , & stream . avail_in )
+30064771081 | CALL | & stream . avail_in
+30064771082 | CALL | stream . avail_in
+30064771083 | CALL | stream . next_in = in
+30064771084 | CALL | stream . next_in
+30064771085 | CALL | stream . next_out = fakebuf
+30064771086 | CALL | stream . next_out
+30064771087 | CALL | stream . avail_out = sizeof ( fakebuf )
+30064771088 | CALL | stream . avail_out
+30064771089 | CALL | sizeof ( fakebuf )
+30064771090 | CALL | st = git_inflate ( & stream , Z_FINISH )
+30064771091 | CALL | git_inflate ( & stream , Z_FINISH )
+30064771092 | CALL | & stream
+30064771093 | CALL | offset += stream . next_in - in
+30064771094 | CALL | stream . next_in - in
+30064771095 | CALL | stream . next_in
+30064771096 | CALL | st == Z_OK || st == Z_BUF_ERROR
+30064771097 | CALL | st == Z_OK
+30064771098 | CALL | st == Z_BUF_ERROR
+30064771099 | CALL | git_inflate_end ( & stream )
+30064771100 | CALL | & stream
+30064771101 | CALL | 
+        ( st == Z_STREAM_END && stream . total_out == expect && stream . total_in == len ) ? 0 : - 1
+      
+30064771102 | CALL | 
+        st == Z_STREAM_END && stream . total_out == expect && stream . total_in == len
+      
+30064771103 | CALL | st == Z_STREAM_END && stream . total_out == expect
+30064771104 | CALL | st == Z_STREAM_END
+30064771105 | CALL | stream . total_out == expect
+30064771106 | CALL | stream . total_out
+30064771107 | CALL | stream . total_in == len
+30064771108 | CALL | stream . total_in
+30064771109 | CALL | - 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771099 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771083 [AST]
+25769803777 -> 30064771085 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771090 [AST]
+25769803777 -> 30064771093 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771078 [REACHING_DEF]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771092 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771081 [POST_DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771080 [CFG]
+30064771081 -> 30064771080 [DOMINATE]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771082 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771095 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771086 -> 30064771085 [REACHING_DEF]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771089 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771089 [AST]
+30064771087 -> 30064771089 [POST_DOMINATE]
+30064771088 -> 30064771087 [REACHING_DEF]
+30064771089 -> 30064771087 [CFG]
+30064771089 -> 30064771087 [DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771090 -> 30064771091 [POST_DOMINATE]
+30064771091 -> 30064771092 [ARGUMENT]
+30064771091 -> 30064771092 [AST]
+30064771091 -> 30064771090 [CFG]
+30064771091 -> 30064771090 [DOMINATE]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771091 [REACHING_DEF]
+30064771092 -> 30064771100 [REACHING_DEF]
+30064771093 -> 30064771094 [ARGUMENT]
+30064771093 -> 30064771094 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static unsigned long do_compress ( void * * pptr , unsigned long size ) {
+ git_zstream stream ;
+ void * in , * out ;
+ unsigned long maxsize ;
+ git_deflate_init ( & stream , pack_compression_level ) ;
+ maxsize = git_deflate_bound ( & stream , size ) ;
+ in = * pptr ;
+ out = xmalloc ( maxsize ) ;
+ * pptr = out ;
+ stream . next_in = in ;
+ stream . avail_in = size ;
+ stream . next_out = out ;
+ stream . avail_out = maxsize ;
+ while ( git_deflate ( & stream , Z_FINISH ) == Z_OK ) ;
+ git_deflate_end ( & stream ) ;
+ free ( in ) ;
+ return stream . total_out ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

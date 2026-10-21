@@ -1,0 +1,180 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+bool change_password ( THD * thd , const char * host , const char * user , char * new_password ) {
+ TABLE_LIST tables ;
+ TABLE * table ;
+ char buff [ 512 ] ;
+ ulong query_length ;
+ bool save_binlog_row_based ;
+ uint new_password_len = ( uint ) strlen ( new_password ) ;
+ bool result = 1 ;
+ DBUG_ENTER ( "change_password" ) ;
+ DBUG_PRINT ( "enter" , ( "host: '%s' user: '%s' new_password: '%s'" , host , user , new_password ) ) ;
+ DBUG_ASSERT ( host != 0 ) ;
+ if ( check_change_password ( thd , host , user , new_password , new_password_len ) ) DBUG_RETURN ( 1 ) ;
+ bzero ( ( char * ) & tables , sizeof ( tables ) ) ;
+ tables . alias = tables . table_name = ( char * ) "user" ;
+ tables . db = ( char * ) "mysql" ;
+ # ifdef HAVE_REPLICATION if ( thd -> slave_thread && rpl_filter -> is_on ( ) ) {
+ tables . updating = 1 ;
+ if ( ! ( thd -> spcont || rpl_filter -> tables_ok ( 0 , & tables ) ) ) DBUG_RETURN ( 0 ) ;
+ }
+ # endif if ( ! ( table = open_ltable ( thd , & tables , TL_WRITE , 0 ) ) ) DBUG_RETURN ( 1 ) ;
+ if ( ( save_binlog_row_based = thd -> current_stmt_binlog_row_based ) ) thd -> clear_current_stmt_binlog_row_based ( ) ;
+ VOID ( pthread_mutex_lock ( & acl_cache -> lock ) ) ;
+ ACL_USER * acl_user ;
+ if ( ! ( acl_user = find_acl_user ( host , user , TRUE ) ) ) {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ my_message ( ER_PASSWORD_NO_MATCH , ER ( ER_PASSWORD_NO_MATCH ) , MYF ( 0 ) ) ;
+ goto end ;
+ }
+ set_user_salt ( acl_user , new_password , new_password_len ) ;
+ if ( update_user_table ( thd , table , acl_user -> host . hostname ? acl_user -> host . hostname : "" , acl_user -> user ? acl_user -> user : "" , new_password , new_password_len ) ) {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ goto end ;
+ }
+ acl_cache -> clear ( 1 ) ;
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ result = 0 ;
+ if ( mysql_bin_log . is_open ( ) ) {
+ query_length = sprintf ( buff , "SET PASSWORD FOR '%-.120s'@'%-.120s'='%-.120s'" , acl_user -> user ? acl_user -> user : "" , acl_user -> host . hostname ? acl_user -> host . hostname : "" , new_password ) ;
+ thd -> clear_error ( ) ;
+ result = thd -> binlog_query ( THD : : MYSQL_QUERY_TYPE , buff , query_length , FALSE , FALSE , 0 ) ;
+ }
+ end : close_thread_tables ( thd ) ;
+ DBUG_ASSERT ( ! thd -> current_stmt_binlog_row_based ) ;
+ if ( save_binlog_row_based ) thd -> set_current_stmt_binlog_row_based ( ) ;
+ DBUG_RETURN ( result ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ TABLE_LIST tables ;
+ TABLE * table ;
+ char buff [ 512 ] ;
+ ulong query_length ;
+ bool save_binlog_row_based ;
+ uint new_password_len = ( uint ) strlen ( new_password ) ;
+ bool result = 1 ;
+ DBUG_ENTER ( "change_password" ) ;
+ DBUG_PRINT ( "enter" , ( "host: '%s' user: '%s' new_password: '%s'" , host , user , new_password ) ) ;
+ DBUG_ASSERT ( host != 0 ) ;
+ if ( check_change_password ( thd , host , user , new_password , new_password_len ) ) DBUG_RETURN ( 1 ) ;
+ bzero ( ( char * ) & tables , sizeof ( tables ) ) ;
+ tables . alias = tables . table_name = ( char * ) "user" ;
+ tables . db = ( char * ) "mysql" ;
+ # ifdef HAVE_REPLICATION if ( thd -> slave_thread && rpl_filter -> is_on ( ) ) {
+ tables . updating = 1 ;
+ if ( ! ( thd -> spcont || rpl_filter -> tables_ok ( 0 , & tables ) ) ) DBUG_RETURN ( 0 ) ;
+ }
+ # endif if ( ! ( table = open_ltable ( thd , & tables , TL_WRITE , 0 ) ) ) DBUG_RETURN ( 1 ) ;
+ if ( ( save_binlog_row_based = thd -> current_stmt_binlog_row_based ) ) thd -> cle...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | 
+        {
+ VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ;
+ my_message ( ER_PASSWORD_NO_MATCH , ER ( ER_PASSWORD_NO_MATCH ) , MYF ( 0 ) ) ;
+ goto end ;
+ }
+      
+25769803781 | BLOCK | { VOID ( pthread_mutex_unlock ( & acl_cache -> lock ) ) ; goto end ; }
+25769803782 | BLOCK | 
+        {
+ query_length = sprintf ( buff , "SET PASSWORD FOR '%-.120s'@'%-.120s'='%-.120s'" , acl_user -> user ? acl_user -> user : "" , acl_user -> host . hostname ? acl_user -> host . hostname : "" , new_password ) ;
+ thd -> clear_error ( ) ;
+ result = thd -> binlog_query ( THD : : MYSQL_QUERY_TYPE , buff , query_length , FALSE , FALSE , 0 ) ;
+ }
+      
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | buff [ 512 ]
+30064771073 | CALL | buff [ 512 ]
+30064771074 | CALL | new_password_len = ( uint ) strlen ( new_password )
+30064771075 | CALL | ( uint ) strlen ( new_password )
+30064771076 | CALL | strlen ( new_password )
+30064771077 | CALL | result = 1
+30064771078 | CALL | DBUG_ENTER ( "change_password" )
+30064771079 | CALL | 
+        DBUG_PRINT ( "enter" , ( "host: '%s' user: '%s' new_password: '%s'" , host , user , new_password ) )
+      
+30064771080 | CALL | DBUG_ASSERT ( host != 0 )
+30064771081 | CALL | host != 0
+30064771082 | CALL | check_change_password ( thd , host , user , new_password , new_password_len )
+30064771083 | CALL | DBUG_RETURN ( 1 )
+30064771084 | CALL | bzero ( ( char * ) & tables , sizeof ( tables ) )
+30064771085 | CALL | ( char * ) & tables
+30064771086 | CALL | & tables
+30064771087 | CALL | sizeof ( tables )
+30064771088 | CALL | tables . alias = tables . table_name = ( char * ) "user"
+30064771089 | CALL | tables . alias
+30064771090 | CALL | tables . table_name = ( char * ) "user"
+30064771091 | CALL | tables . table_name
+30064771092 | CALL | ( char * ) "user"
+30064771093 | CALL | tables . db = ( char * ) "mysql"
+30064771094 | CALL | tables . db
+30064771095 | CALL | ( char * ) "mysql"
+30064771096 | CALL | save_binlog_row_based = thd -> current_stmt_binlog_row_based
+30064771097 | CALL | thd -> current_stmt_binlog_row_based
+30064771098 | CALL | thd -> clear_current_stmt_binlog_row_based ( )
+30064771099 | CALL | thd -> clear_current_stmt_binlog_row_based
+30064771100 | CALL | VOID ( pthread_mutex_lock ( & acl_cache -> lock ) )
+30064771101 | CALL | pthread_mutex_lock ( & acl_cache -> lock )
+30064771102 | CALL | & acl_cache -> lock
+30064771103 | CALL | acl_cache -> lock
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771084 [AST]
+25769803776 -> 30064771088 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771079 [CFG]
+25769803777 -> 30064771079 [DOMINATE]
+25769803777 -> 30064771079 [REACHING_DEF]
+25769803777 -> 30064771079 [REACHING_DEF]
+25769803778 -> 30064771083 [AST]
+25769803779 -> 30064771098 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771079 -> 25769803777 [ARGUMENT]
+30064771079 -> 25769803777 [AST]
+30064771079 -> 25769803777 [POST_DOMINATE]
+30064771080 -> 30064771081 [ARGUMENT]
+30064
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

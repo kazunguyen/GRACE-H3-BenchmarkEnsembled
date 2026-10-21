@@ -1,0 +1,153 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void vp9_idct4x4_16_add_sse2 ( const int16_t * input , uint8_t * dest , int stride ) {
+ const __m128i zero = _mm_setzero_si128 ( ) ;
+ const __m128i eight = _mm_set1_epi16 ( 8 ) ;
+ const __m128i cst = _mm_setr_epi16 ( ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) - cospi_16_64 , ( int16_t ) cospi_24_64 , ( int16_t ) - cospi_8_64 , ( int16_t ) cospi_8_64 , ( int16_t ) cospi_24_64 ) ;
+ const __m128i rounding = _mm_set1_epi32 ( DCT_CONST_ROUNDING ) ;
+ __m128i input0 , input1 , input2 , input3 ;
+ input0 = _mm_load_si128 ( ( const __m128i * ) input ) ;
+ input2 = _mm_load_si128 ( ( const __m128i * ) ( input + 8 ) ) ;
+ input0 = _mm_shufflelo_epi16 ( input0 , 0xd8 ) ;
+ input0 = _mm_shufflehi_epi16 ( input0 , 0xd8 ) ;
+ input2 = _mm_shufflelo_epi16 ( input2 , 0xd8 ) ;
+ input2 = _mm_shufflehi_epi16 ( input2 , 0xd8 ) ;
+ input1 = _mm_unpackhi_epi32 ( input0 , input0 ) ;
+ input0 = _mm_unpacklo_epi32 ( input0 , input0 ) ;
+ input3 = _mm_unpackhi_epi32 ( input2 , input2 ) ;
+ input2 = _mm_unpacklo_epi32 ( input2 , input2 ) ;
+ input0 = _mm_madd_epi16 ( input0 , cst ) ;
+ input1 = _mm_madd_epi16 ( input1 , cst ) ;
+ input2 = _mm_madd_epi16 ( input2 , cst ) ;
+ input3 = _mm_madd_epi16 ( input3 , cst ) ;
+ input0 = _mm_add_epi32 ( input0 , rounding ) ;
+ input1 = _mm_add_epi32 ( input1 , rounding ) ;
+ input2 = _mm_add_epi32 ( input2 , rounding ) ;
+ input3 = _mm_add_epi32 ( input3 , rounding ) ;
+ input0 = _mm_srai_epi32 ( input0 , DCT_CONST_BITS ) ;
+ input1 = _mm_srai_epi32 ( input1 , DCT_CONST_BITS ) ;
+ input2 = _mm_srai_epi32 ( input2 , DCT_CONST_BITS ) ;
+ input3 = _mm_srai_epi32 ( input3 , DCT_CONST_BITS ) ;
+ input0 = _mm_packs_epi32 ( input0 , input1 ) ;
+ input1 = _mm_packs_epi32 ( input2 , input3 ) ;
+ input2 = _mm_unpacklo_epi16 ( input0 , input1 ) ;
+ input3 = _mm_unpackhi_epi16 ( input0 , input1 ) ;
+ input0 = _mm_unpacklo_epi32 ( input2 , input3 ) ;
+ input1 = _mm_unpackhi_epi32 ( input2 , input3 ) ;
+ input1 = _mm_shuffle_epi32 ( input1 , 0x4e ) ;
+ input2 = _mm_add_epi16 ( input0 , input1 ) ;
+ input3 = _mm_sub_epi16 ( input0 , input1 ) ;
+ input0 = _mm_unpacklo_epi32 ( input2 , input2 ) ;
+ input1 = _mm_unpackhi_epi32 ( input2 , input2 ) ;
+ input2 = _mm_unpackhi_epi32 ( input3 , input3 ) ;
+ input3 = _mm_unpacklo_epi32 ( input3 , input3 ) ;
+ input0 = _mm_madd_epi16 ( input0 , cst ) ;
+ input1 = _mm_madd_epi16 ( input1 , cst ) ;
+ input2 = _mm_madd_epi16 ( input2 , cst ) ;
+ input3 = _mm_madd_epi16 ( input3 , cst ) ;
+ input0 = _mm_add_epi32 ( input0 , rounding ) ;
+ input1 = _mm_add_epi32 ( input1 , rounding ) ;
+ input2 = _mm_add_epi32 ( input2 , rounding ) ;
+ input3 = _mm_add_epi32 ( input3 , rounding ) ;
+ input0 = _mm_srai_epi32 ( input0 , DCT_CONST_BITS ) ;
+ input1 = _mm_srai_epi32 ( input1 , DCT_CONST_BITS ) ;
+ input2 = _mm_srai_epi32 ( input2 , DCT_CONST_BITS ) ;
+ input3 = _mm_srai_epi32 ( input3 , DCT_CONST_BITS ) ;
+ input0 = _mm_packs_epi32 ( input0 , input2 ) ;
+ input1 = _mm_packs_epi32 ( input1 , input3 ) ;
+ input2 = _mm_unpa
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const __m128i zero = _mm_setzero_si128 ( ) ;
+ const __m128i eight = _mm_set1_epi16 ( 8 ) ;
+ const __m128i cst = _mm_setr_epi16 ( ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) - cospi_16_64 , ( int16_t ) cospi_24_64 , ( int16_t ) - cospi_8_64 , ( int16_t ) cospi_8_64 , ( int16_t ) cospi_24_64 ) ;
+ const __m128i rounding = _mm_set1_epi32 ( DCT_CONST_ROUNDING ) ;
+ __m128i input0 , input1 , input2 , input3 ;
+ input0 = _mm_load_si128 ( ( const __m128i * ) input ) ;
+ input2 = _mm_load_si128 ( ( const __m128i * ) ( input + 8 ) ) ;
+ input0 = _mm_shufflelo_epi16 ( input0 , 0xd8 ) ;
+ input0 = _mm_shufflehi_epi16 ( input0 , 0xd8 ) ;
+ input2 = _mm_shufflelo_epi16 ( input2 , 0xd8 ) ;
+ input2 = _mm_shufflehi_epi16 ( input2 , 0xd8 ) ;
+ input1 = _mm_unpackhi_epi32 ( input0 , input0 ) ;
+ input0 = _mm_unpacklo_epi32 ( input0 , input0 ) ;
+ input3 = _mm_unpackhi_epi32 ( input2 , input2 ) ;
+ input2 = _mm_unpacklo_epi32 ( input2 , input2 ) ;
+ input0 = _mm_ma...
+      
+25769803777 | BLOCK | 
+        {
+ __m128i d0 = _mm_cvtsi32_si128 ( * ( const int * ) ( dest ) ) ;
+ __m128i d2 = _mm_cvtsi32_si128 ( * ( const int * ) ( dest + stride * 2 ) ) ;
+ d0 = _mm_unpacklo_epi32 ( d0 , _mm_cvtsi32_si128 ( * ( const int * ) ( dest + stride ) ) ) ;
+ d2 = _mm_unpacklo_epi32 ( _mm_cvtsi32_si128 ( * ( const int * ) ( dest + stride * 3 ) ) , d2 ) ;
+ d0 = _mm_unpacklo_epi8 ( d0 , zero ) ;
+ d2 = _mm_unpacklo_epi8 ( d2 , zero ) ;
+ d0 = _mm_add_epi16 ( d0 , input2 ) ;
+ d2 = _mm_add_epi16 ( d2 , input3 ) ;
+ d0 = _mm_packus_epi16 ( d0 , d2 ) ;
+ * ( int * ) dest = _mm_cvtsi128_si32 ( d0 ) ;
+ d0 = _mm_srli_si128 ( d0 , 4 ) ;
+ * ( int * ) ( dest + stride ) = _mm_cvtsi128_si32 ( d0 ) ;
+ d0 = _mm_srli_si128 ( d0 , 4 ) ;
+ * ( int * ) ( dest + stride * 3 ) = _mm_cvtsi128_si32 ( d0 ) ;
+ d0 = _mm_srli_si128 ( d0 , 4 ) ;
+ * ( int * ) ( dest + stride * 2 ) = _mm_cvtsi128_si32 ( d0 ) ;
+ }
+      
+30064771072 | CALL | zero = _mm_setzero_si128 ( )
+30064771073 | CALL | _mm_setzero_si128 ( )
+30064771074 | CALL | eight = _mm_set1_epi16 ( 8 )
+30064771075 | CALL | _mm_set1_epi16 ( 8 )
+30064771076 | CALL | 
+        cst = _mm_setr_epi16 ( ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) - cospi_16_64 , ( int16_t ) cospi_24_64 , ( int16_t ) - cospi_8_64 , ( int16_t ) cospi_8_64 , ( int16_t ) cospi_24_64 )
+      
+30064771077 | CALL | 
+        _mm_setr_epi16 ( ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) cospi_16_64 , ( int16_t ) - cospi_16_64 , ( int16_t ) cospi_24_64 , ( int16_t ) - cospi_8_64 , ( int16_t ) cospi_8_64 , ( int16_t ) cospi_24_64 )
+      
+30064771078 | CALL | ( int16_t ) cospi_16_64
+30064771079 | CALL | ( int16_t ) cospi_16_64
+30064771080 | CALL | ( int16_t ) cospi_16_64
+30064771081 | CALL | ( int16_t ) - cospi_16_64
+30064771082 | CALL | ( int16_t ) cospi_24_64
+30064771083 | CALL | ( int16_t ) - cospi_8_64
+30064771084 | CALL | ( int16_t ) cospi_8_64
+30064771085 | CALL | ( int16_t ) cospi_24_64
+30064771086 | CALL | rounding = _mm_set1_epi32 ( DCT_CONST_ROUNDING )
+30064771087 | CALL | _mm_set1_epi32 ( DCT_CONST_ROUNDING )
+30064771088 | CALL | input0 = _mm_load_si128 ( ( const __m128i * ) input )
+30064771089 | CALL | _mm_load_si128 ( ( const __m128i * ) input )
+30064771090 | CALL | ( const __m128i * ) input
+30064771091 | CALL | input2 = _mm_load_si128 ( ( const __m128i * ) ( input + 8 ) )
+30064771092 | CALL | _mm_load_si128 ( ( const __m128i * ) ( input + 8 ) )
+30064771093 | CALL | ( const __m128i * ) ( input + 8 )
+30064771094 | CALL | input + 8
+30064771095 | CALL | input0 = _mm_shufflelo_epi16 ( input0 , 0xd8 )
+30064771096 | CALL | _mm_shufflelo_epi16 ( input0 , 0xd8 )
+30064771097 | CALL | input0 = _mm_shufflehi_epi16 ( input0 , 0xd8 )
+30064771098 | CALL | _mm_shufflehi_epi16 ( input0 , 0xd8 )
+30064771099 | CALL | input2 = _mm_shufflelo_epi16 ( input2 , 0xd8 )
+30064771100 | CALL | _mm_shufflelo_epi16 ( input2 , 0xd8 )
+30064771101 | CALL | input2 = _mm_shufflehi_epi16 ( input2 , 0xd8 )
+30064771102 | CALL | _mm_shufflehi_epi16 ( input2 , 0xd8 )
+30064771103 | CALL | input1 = _mm_unpackhi_epi32 ( input0 , input0 )
+30064771104 | CALL | _mm_unpackhi_epi32 ( input0 , input0 )
+30064771105 | CALL | input0 = _mm_unpacklo_epi32 ( input0 , input0 )
+30064771106 | CALL | _mm_unpacklo_epi32 ( input0 , input0 )
+30064771107 | CALL | input3 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

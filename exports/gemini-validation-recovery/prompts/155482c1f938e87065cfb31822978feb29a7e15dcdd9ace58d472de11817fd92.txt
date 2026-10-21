@@ -1,0 +1,162 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+TEST_F ( PrintPreviewUIUnitTest , PrintPreviewData ) {
+ WebContents * initiator = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ ASSERT_TRUE ( initiator ) ;
+ EXPECT_FALSE ( IsShowingWebContentsModalDialog ( initiator ) ) ;
+ printing : : PrintPreviewDialogController * controller = printing : : PrintPreviewDialogController : : GetInstance ( ) ;
+ ASSERT_TRUE ( controller ) ;
+ printing : : PrintViewManager * print_view_manager = printing : : PrintViewManager : : FromWebContents ( initiator ) ;
+ print_view_manager -> PrintPreviewNow ( initiator -> GetMainFrame ( ) , false ) ;
+ WebContents * preview_dialog = controller -> GetOrCreatePreviewDialog ( initiator ) ;
+ EXPECT_NE ( initiator , preview_dialog ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ EXPECT_TRUE ( IsShowingWebContentsModalDialog ( initiator ) ) ;
+ PrintPreviewUI * preview_ui = static_cast < PrintPreviewUI * > ( preview_dialog -> GetWebUI ( ) -> GetController ( ) ) ;
+ ASSERT_TRUE ( preview_ui != NULL ) ;
+ scoped_refptr < base : : RefCountedBytes > data ;
+ preview_ui -> GetPrintPreviewDataForIndex ( printing : : COMPLETE_PREVIEW_DOCUMENT_INDEX , & data ) ;
+ EXPECT_EQ ( NULL , data . get ( ) ) ;
+ scoped_refptr < base : : RefCountedBytes > dummy_data = CreateTestData ( ) ;
+ preview_ui -> SetPrintPreviewDataForIndex ( printing : : COMPLETE_PREVIEW_DOCUMENT_INDEX , dummy_data . get ( ) ) ;
+ preview_ui -> GetPrintPreviewDataForIndex ( printing : : COMPLETE_PREVIEW_DOCUMENT_INDEX , & data ) ;
+ EXPECT_EQ ( dummy_data -> size ( ) , data -> size ( ) ) ;
+ EXPECT_EQ ( dummy_data . get ( ) , data . get ( ) ) ;
+ dummy_data = new base : : RefCountedBytes ( ) ;
+ preview_ui -> SetPrintPreviewDataForIndex ( printing : : FIRST_PAGE_INDEX , dummy_data . get ( ) ) ;
+ preview_ui -> ClearAllPreviewData ( ) ;
+ preview_ui -> GetPrintPreviewDataForIndex ( printing : : COMPLETE_PREVIEW_DOCUMENT_INDEX , & data ) ;
+ EXPECT_EQ ( NULL , data . get ( ) ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ WebContents * initiator = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( ) ;
+ ASSERT_TRUE ( initiator ) ;
+ EXPECT_FALSE ( IsShowingWebContentsModalDialog ( initiator ) ) ;
+ printing : : PrintPreviewDialogController * controller = printing : : PrintPreviewDialogController : : GetInstance ( ) ;
+ ASSERT_TRUE ( controller ) ;
+ printing : : PrintViewManager * print_view_manager = printing : : PrintViewManager : : FromWebContents ( initiator ) ;
+ print_view_manager -> PrintPreviewNow ( initiator -> GetMainFrame ( ) , false ) ;
+ WebContents * preview_dialog = controller -> GetOrCreatePreviewDialog ( initiator ) ;
+ EXPECT_NE ( initiator , preview_dialog ) ;
+ EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) ) ;
+ EXPECT_TRUE ( IsShowingWebContentsModalDialog ( initiator ) ) ;
+ PrintPreviewUI * preview_ui = static_cast < PrintPreviewUI * > ( preview_dialog -> GetWebUI ( ) -> GetController ( ) ) ;
+ ASSERT_TRUE ( preview_ui != NULL ) ;
+ scoped_refptr < base : : Re...
+      
+30064771072 | CALL | initiator = browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( )
+30064771073 | CALL | browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents ( )
+30064771074 | CALL | browser ( ) -> tab_strip_model ( ) -> GetActiveWebContents
+30064771075 | CALL | browser ( ) -> tab_strip_model ( )
+30064771076 | CALL | browser ( ) -> tab_strip_model
+30064771077 | CALL | browser ( )
+30064771078 | CALL | ASSERT_TRUE ( initiator )
+30064771079 | CALL | EXPECT_FALSE ( IsShowingWebContentsModalDialog ( initiator ) )
+30064771080 | CALL | IsShowingWebContentsModalDialog ( initiator )
+30064771081 | CALL | ASSERT_TRUE ( controller )
+30064771082 | CALL | 
+        print_view_manager -> PrintPreviewNow ( initiator -> GetMainFrame ( ) , false )
+      
+30064771083 | CALL | print_view_manager -> PrintPreviewNow
+30064771084 | CALL | initiator -> GetMainFrame ( )
+30064771085 | CALL | initiator -> GetMainFrame
+30064771086 | CALL | preview_dialog = controller -> GetOrCreatePreviewDialog ( initiator )
+30064771087 | CALL | controller -> GetOrCreatePreviewDialog ( initiator )
+30064771088 | CALL | controller -> GetOrCreatePreviewDialog
+30064771089 | CALL | EXPECT_NE ( initiator , preview_dialog )
+30064771090 | CALL | EXPECT_EQ ( 1 , browser ( ) -> tab_strip_model ( ) -> count ( ) )
+30064771091 | CALL | browser ( ) -> tab_strip_model ( ) -> count ( )
+30064771092 | CALL | browser ( ) -> tab_strip_model ( ) -> count
+30064771093 | CALL | browser ( ) -> tab_strip_model ( )
+30064771094 | CALL | browser ( ) -> tab_strip_model
+30064771095 | CALL | browser ( )
+30064771096 | CALL | EXPECT_TRUE ( IsShowingWebContentsModalDialog ( initiator ) )
+30064771097 | CALL | IsShowingWebContentsModalDialog ( initiator )
+30064771098 | CALL | ASSERT_TRUE ( preview_ui != NULL )
+30064771099 | CALL | preview_ui != NULL
+30064771100 | CALL | scoped_refptr < base
+30064771101 | CALL | EXPECT_EQ ( NULL , data . get ( ) )
+30064771102 | CALL | data . get ( )
+30064771103 | CALL | data . get
+30064771104 | CALL | scoped_refptr < base
+30064771105 | CALL | EXPECT_EQ ( dummy_data -> size ( ) , data -> size ( ) )
+30064771106 | CALL | dummy_data -> size ( )
+30064771107 | CALL | dummy_data -> size
+30064771108 | CALL | data -> size ( )
+30064771109 | CALL | data -> size
+30064771110 | CALL | EXPECT_EQ ( dummy_data . get ( ) , data . get ( ) )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 30064771089 [AST]
+25769803776 -> 30064771090 [AST]
+25769803776 -> 30064771096 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803776 -> 30064771101 [AST]
+25769803776 -> 30064771104 [AST]
+25769803776 -> 30064771105 [AST]
+25769803776 -> 30064771110 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771074 [RECEIVER]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771076 [RECEIVER]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771080 [POST_DOMINATE]
+30064771080 -> 30064771079 [CFG]
+30064771080 -> 30064771079 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771082 -> 30064771084 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771084 [AST]
+30064771082 -> 30064771083 [RECEIVER]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771082 [REACHING_DEF]
+30064771084 -> 30064771085 [RECEIVER]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMI
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

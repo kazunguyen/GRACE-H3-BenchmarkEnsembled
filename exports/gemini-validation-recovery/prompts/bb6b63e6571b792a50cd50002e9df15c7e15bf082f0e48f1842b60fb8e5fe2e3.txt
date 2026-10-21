@@ -1,0 +1,189 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void mdb_rtxn_snap ( Operation * op , ww_ctx * ww ) {
+ if ( ww -> mcd ) {
+ MDB_val key , data ;
+ mdb_cursor_get ( ww -> mcd , & key , & data , MDB_GET_CURRENT ) ;
+ memcpy ( & ww -> key , key . mv_data , sizeof ( ID ) ) ;
+ ww -> data . mv_size = data . mv_size ;
+ ww -> data . mv_data = op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx ) ;
+ memcpy ( ww -> data . mv_data , data . mv_data , data . mv_size ) ;
+ }
+ mdb_txn_reset ( ww -> txn ) ;
+ ww -> flag = 1 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ if ( ww -> mcd ) {
+ MDB_val key , data ;
+ mdb_cursor_get ( ww -> mcd , & key , & data , MDB_GET_CURRENT ) ;
+ memcpy ( & ww -> key , key . mv_data , sizeof ( ID ) ) ;
+ ww -> data . mv_size = data . mv_size ;
+ ww -> data . mv_data = op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx ) ;
+ memcpy ( ww -> data . mv_data , data . mv_data , data . mv_size ) ;
+ }
+ mdb_txn_reset ( ww -> txn ) ;
+ ww -> flag = 1 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ MDB_val key , data ;
+ mdb_cursor_get ( ww -> mcd , & key , & data , MDB_GET_CURRENT ) ;
+ memcpy ( & ww -> key , key . mv_data , sizeof ( ID ) ) ;
+ ww -> data . mv_size = data . mv_size ;
+ ww -> data . mv_data = op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx ) ;
+ memcpy ( ww -> data . mv_data , data . mv_data , data . mv_size ) ;
+ }
+      
+30064771072 | CALL | ww -> mcd
+30064771073 | CALL | mdb_cursor_get ( ww -> mcd , & key , & data , MDB_GET_CURRENT )
+30064771074 | CALL | ww -> mcd
+30064771075 | CALL | & key
+30064771076 | CALL | & data
+30064771077 | CALL | memcpy ( & ww -> key , key . mv_data , sizeof ( ID ) )
+30064771078 | CALL | & ww -> key
+30064771079 | CALL | ww -> key
+30064771080 | CALL | key . mv_data
+30064771081 | CALL | sizeof ( ID )
+30064771082 | CALL | ww -> data . mv_size = data . mv_size
+30064771083 | CALL | ww -> data . mv_size
+30064771084 | CALL | ww -> data
+30064771085 | CALL | data . mv_size
+30064771086 | CALL | 
+        ww -> data . mv_data = op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx )
+      
+30064771087 | CALL | ww -> data . mv_data
+30064771088 | CALL | ww -> data
+30064771089 | CALL | op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx )
+30064771090 | CALL | op -> o_tmpalloc
+30064771091 | CALL | data . mv_size
+30064771092 | CALL | op -> o_tmpmemctx
+30064771093 | CALL | memcpy ( ww -> data . mv_data , data . mv_data , data . mv_size )
+30064771094 | CALL | ww -> data . mv_data
+30064771095 | CALL | ww -> data
+30064771096 | CALL | data . mv_data
+30064771097 | CALL | data . mv_size
+30064771098 | CALL | mdb_txn_reset ( ww -> txn )
+30064771099 | CALL | ww -> txn
+30064771100 | CALL | ww -> flag = 1
+30064771101 | CALL | ww -> flag
+47244640256 | CONTROL_STRUCTURE | 
+        if ( ww -> mcd ) {
+ MDB_val key , data ;
+ mdb_cursor_get ( ww -> mcd , & key , & data , MDB_GET_CURRENT ) ;
+ memcpy ( & ww -> key , key . mv_data , sizeof ( ID ) ) ;
+ ww -> data . mv_size = data . mv_size ;
+ ww -> data . mv_data = op -> o_tmpalloc ( data . mv_size , op -> o_tmpmemctx ) ;
+ memcpy ( ww -> data . mv_data , data . mv_data , data . mv_size ) ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | mcd
+55834574849 | FIELD_IDENTIFIER | mcd
+55834574850 | FIELD_IDENTIFIER | key
+55834574851 | FIELD_IDENTIFIER | mv_data
+55834574852 | FIELD_IDENTIFIER | data
+55834574853 | FIELD_IDENTIFIER | mv_size
+55834574854 | FIELD_IDENTIFIER | mv_size
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771098 [AST]
+25769803776 -> 30064771100 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 30064771077 [AST]
+25769803777 -> 30064771082 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771093 [AST]
+30064771072 -> 55834574848 [ARGUMENT]
+30064771072 -> 55834574848 [AST]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771081 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771093 [CDG]
+30064771072 -> 30064771092 [CDG]
+30064771072 -> 30064771091 [CDG]
+30064771072 -> 30064771090 [CDG]
+30064771072 -> 30064771097 [CDG]
+30064771072 -> 30064771096 [CDG]
+30064771072 -> 30064771095 [CDG]
+30064771072 -> 30064771094 [CDG]
+30064771072 -> 30064771085 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771082 [CDG]
+30064771072 -> 30064771089 [CDG]
+30064771072 -> 30064771088 [CDG]
+30064771072 -> 30064771087 [CDG]
+30064771072 -> 30064771086 [CDG]
+30064771072 -> 55834574851 [CDG]
+30064771072 -> 55834574850 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 55834574854 [CDG]
+30064771072 -> 55834574853 [CDG]
+30064771072 -> 55834574852 [CDG]
+30064771072 -> 55834574848 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771076 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771076 [AST]
+30064771074 -> 55834574849 [ARGUMENT]
+30064771074 -> 55834574849 [AST]
+30064771074 -> 55834574849 [POST_DOMINATE]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771076 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771076 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771080 [ARGUMENT]
+30064771077 -> 30064771081 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [AST]
+30064771077 -> 30064771081 [AST]
+30064771077 -> 30064771081 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771080 [REACHING_DEF]
+30064771078 -> 30064771081 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 55834574850 [ARGUMENT]
+30064771079 -> 55834574850 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 55834574850 [POST_DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void mdb_writewait ( Operation * op , slap_callback * sc ) {
+ ww_ctx * ww = sc -> sc_private ;
+ if ( ! ww -> flag ) {
+ mdb_rtxn_snap ( op , ww ) ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

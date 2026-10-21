@@ -1,0 +1,188 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void test_multiplesignal ( void ) {
+ struct event ev_one , ev_two ;
+ struct itimerval itv ;
+ setup_test ( "Multiple signal: " ) ;
+ signal_set ( & ev_one , SIGALRM , signal_cb , & ev_one ) ;
+ signal_add ( & ev_one , NULL ) ;
+ signal_set ( & ev_two , SIGALRM , signal_cb , & ev_two ) ;
+ signal_add ( & ev_two , NULL ) ;
+ memset ( & itv , 0 , sizeof ( itv ) ) ;
+ itv . it_value . tv_sec = 1 ;
+ if ( setitimer ( ITIMER_REAL , & itv , NULL ) == - 1 ) goto skip_simplesignal ;
+ event_dispatch ( ) ;
+ skip_simplesignal : if ( signal_del ( & ev_one ) == - 1 ) test_ok = 0 ;
+ if ( signal_del ( & ev_two ) == - 1 ) test_ok = 0 ;
+ cleanup_test ( ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct event ev_one , ev_two ;
+ struct itimerval itv ;
+ setup_test ( "Multiple signal: " ) ;
+ signal_set ( & ev_one , SIGALRM , signal_cb , & ev_one ) ;
+ signal_add ( & ev_one , NULL ) ;
+ signal_set ( & ev_two , SIGALRM , signal_cb , & ev_two ) ;
+ signal_add ( & ev_two , NULL ) ;
+ memset ( & itv , 0 , sizeof ( itv ) ) ;
+ itv . it_value . tv_sec = 1 ;
+ if ( setitimer ( ITIMER_REAL , & itv , NULL ) == - 1 ) goto skip_simplesignal ;
+ event_dispatch ( ) ;
+ skip_simplesignal : if ( signal_del ( & ev_one ) == - 1 ) test_ok = 0 ;
+ if ( signal_del ( & ev_two ) == - 1 ) test_ok = 0 ;
+ cleanup_test ( ) ;
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | <empty>
+30064771072 | CALL | setup_test ( "Multiple signal: " )
+30064771073 | CALL | signal_set ( & ev_one , SIGALRM , signal_cb , & ev_one )
+30064771074 | CALL | & ev_one
+30064771075 | CALL | & ev_one
+30064771076 | CALL | signal_add ( & ev_one , NULL )
+30064771077 | CALL | & ev_one
+30064771078 | CALL | signal_set ( & ev_two , SIGALRM , signal_cb , & ev_two )
+30064771079 | CALL | & ev_two
+30064771080 | CALL | & ev_two
+30064771081 | CALL | signal_add ( & ev_two , NULL )
+30064771082 | CALL | & ev_two
+30064771083 | CALL | memset ( & itv , 0 , sizeof ( itv ) )
+30064771084 | CALL | & itv
+30064771085 | CALL | sizeof ( itv )
+30064771086 | CALL | itv . it_value . tv_sec = 1
+30064771087 | CALL | itv . it_value . tv_sec
+30064771088 | CALL | itv . it_value
+30064771089 | CALL | setitimer ( ITIMER_REAL , & itv , NULL ) == - 1
+30064771090 | CALL | setitimer ( ITIMER_REAL , & itv , NULL )
+30064771091 | CALL | & itv
+30064771092 | CALL | - 1
+30064771093 | CALL | event_dispatch ( )
+30064771094 | CALL | signal_del ( & ev_one ) == - 1
+30064771095 | CALL | signal_del ( & ev_one )
+30064771096 | CALL | & ev_one
+30064771097 | CALL | - 1
+30064771098 | CALL | test_ok = 0
+30064771099 | CALL | signal_del ( & ev_two ) == - 1
+30064771100 | CALL | signal_del ( & ev_two )
+30064771101 | CALL | & ev_two
+30064771102 | CALL | - 1
+30064771103 | CALL | test_ok = 0
+30064771104 | CALL | cleanup_test ( )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( setitimer ( ITIMER_REAL , & itv , NULL ) == - 1 ) goto skip_simplesignal ;
+      
+47244640257 | CONTROL_STRUCTURE | goto skip_simplesignal;
+47244640258 | CONTROL_STRUCTURE | if ( signal_del ( & ev_one ) == - 1 ) test_ok = 0 ;
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771086 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771093 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771104 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771098 [AST]
+25769803779 -> 30064771103 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771075 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771075 [AST]
+30064771073 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771077 [REACHING_DEF]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771075 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771073 [CFG]
+30064771075 -> 30064771073 [DOMINATE]
+30064771075 -> 30064771077 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771075 -> 30064771073 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771077 -> 30064771096 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771080 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771080 [AST]
+30064771078 -> 30064771080 [POST_DOMINATE]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771080 [REACHING_DEF]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771079 -> 30064771082 [REACHING_DEF]
+30064771080 -> 30064771078 [CFG]
+30064771080 -> 30064771078 [DOMINATE]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771080 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771082 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771101 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771085 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771085 [AST]
+30064771083 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771091 [REACHING_DEF]
+30064771085 -> 30064771083 [CFG]
+30064771085 -> 30064771083 [DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771087 -> 30064771088 [ARGUMENT]
+30064771087 -> 30064771088 [AST]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771092 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771092 [AST]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 47244640257 [CDG]
+30064771089 -> 47244640257 [CFG]
+30064771089 -> 30064771093 [CFG]
+30064771089 -> 47244640257 [DOMINATE]
+30064771089 -> 30064771093 [DOMINATE]
+30064771089 -> 30064771092 [POST_DOMINATE]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void test_simplesignal ( void ) {
+ struct event ev ;
+ struct itimerval itv ;
+ setup_test ( "Simple signal: " ) ;
+ signal_set ( & ev , SIGALRM , signal_cb , & ev ) ;
+ signal_add ( & ev , NULL ) ;
+ signal_del ( & ev ) ;
+ signal_add ( & ev , NULL ) ;
+ memset ( & itv , 0 , sizeof ( itv ) ) ;
+ itv . it_value . tv_sec = 1 ;
+ if ( setitimer ( ITIMER_REAL , & itv , NULL ) == - 1 ) goto skip_simplesignal ;
+ event_dispatch ( ) ;
+ skip_simplesignal : if ( signal_del ( & ev ) == - 1 ) test_ok = 0 ;
+ cleanup_test ( ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,133 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int local_statfs(FsContext *s, V9fsPath *fs_path, struct statfs *stbuf)
+
+{
+
+    char buffer[PATH_MAX];
+
+    char *path = fs_path->data;
+
+
+
+    return statfs(rpath(s, path, buffer), stbuf);
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+11 -> 14 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+4 -> 10 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+25 -> 26 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+28 -> 33 [IS_AST_PARENT]
+25 -> 28 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+23 -> 35 [IS_AST_PARENT]
+20 -> 23 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+4 -> 19 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 37 [IS_AST_PARENT]
+3 -> 38 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+40 -> 42 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+39 -> 43 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+46 -> 48 [IS_AST_PARENT]
+39 -> 46 [IS_AST_PARENT]
+3 -> 39 [IS_AST_PARENT]
+49 -> 40 [FLOWS_TO]
+40 -> 43 [FLOWS_TO]
+43 -> 46 [FLOWS_TO]
+46 -> 5 [FLOWS_TO]
+5 -> 10 [FLOWS_TO]
+10 -> 19 [FLOWS_TO]
+19 -> 50 [FLOWS_TO]
+10 -> 51 [DEF]
+14 -> 51 [DEF]
+11 -> 51 [DEF]
+19 -> 51 [USE]
+31 -> 51 [USE]
+40 -> 52 [DEF]
+19 -> 52 [USE]
+29 -> 52 [USE]
+10 -> 53 [USE]
+14 -> 53 [USE]
+46 -> 54 [DEF]
+19 -> 54 [USE]
+35 -> 54 [USE]
+5 -> 55 [DEF]
+6 -> 55 [DEF]
+19 -> 55 [USE]
+33 -> 55 [USE]
+19 -> 56 [USE]
+19 -> 57 [USE]
+24 -> 57 [USE]
+10 -> 58 [USE]
+14 -> 58 [USE]
+43 -> 59 [DEF]
+10 -> 59 [USE]
+16 -> 59 [USE]
+10 -> 19 [REACHES]
+40 -> 19 [REACHES]
+46 -> 19 [REACHES]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int local_utimensat(FsContext *s, V9fsPath *fs_path,
+
+                           const struct timespec *buf)
+
+{
+
+    char buffer[PATH_MAX];
+
+    char *path = fs_path->data;
+
+
+
+    return qemu_utimens(rpath(s, path, buffer), buf);
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

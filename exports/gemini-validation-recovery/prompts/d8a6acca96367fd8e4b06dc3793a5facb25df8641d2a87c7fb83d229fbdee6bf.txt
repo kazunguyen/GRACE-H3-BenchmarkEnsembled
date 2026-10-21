@@ -1,0 +1,40 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int SpoolssRFFPCNEX_q ( tvbuff_t * tvb , int offset , packet_info * pinfo , proto_tree * tree , dcerpc_info * di , guint8 * drep _U_ ) {
+ guint32 flags ;
+ static const int * hf_flags [ ] = {
+ & hf_rffpcnex_flags_timeout , & hf_rffpcnex_flags_delete_driver , & hf_rffpcnex_flags_set_driver , & hf_rffpcnex_flags_add_driver , & hf_rffpcnex_flags_delete_print_processor , & hf_rffpcnex_flags_add_print_processor , & hf_rffpcnex_flags_delete_port , & hf_rffpcnex_flags_configure_port , & hf_rffpcnex_flags_add_port , & hf_rffpcnex_flags_delete_form , & hf_rffpcnex_flags_set_form , & hf_rffpcnex_flags_add_form , & hf_rffpcnex_flags_write_job , & hf_rffpcnex_flags_delete_job , & hf_rffpcnex_flags_set_job , & hf_rffpcnex_flags_add_job , & hf_rffpcnex_flags_failed_printer_connection , & hf_rffpcnex_flags_delete_printer , & hf_rffpcnex_flags_set_printer , & hf_rffpcnex_flags_add_printer , NULL }
+ ;
+ offset = dissect_nt_policy_hnd ( tvb , offset , pinfo , tree , di , drep , hf_hnd , NULL , NULL , FALSE , FALSE ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , - 1 , & flags ) ;
+ proto_tree_add_bitmask_value ( tree , tvb , offset - 4 , hf_rffpcnex_flags , ett_rffpcnex_flags , hf_flags , flags ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_rffpcnex_options , NULL ) ;
+ offset = dissect_ndr_str_pointer_item ( tvb , offset , pinfo , tree , di , drep , NDR_POINTER_UNIQUE , "Server" , hf_servername , 0 ) ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , tree , di , drep , hf_printerlocal , NULL ) ;
+ offset = dissect_ndr_pointer ( tvb , offset , pinfo , tree , di , drep , dissect_NOTIFY_OPTIONS_ARRAY_CTR , NDR_POINTER_UNIQUE , "Notify Options Container" , - 1 ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_notify_options_flags ( tvbuff_t * tvb , int offset , packet_info * pinfo , proto_tree * tree , dcerpc_info * di , guint8 * drep ) {
+ guint32 flags ;
+ static const int * hf_flags [ ] = {
+ & hf_notify_options_flags_refresh , NULL }
+ ;
+ offset = dissect_ndr_uint32 ( tvb , offset , pinfo , NULL , di , drep , - 1 , & flags ) ;
+ proto_tree_add_bitmask_value_with_flags ( tree , tvb , offset - 4 , hf_notify_options_flags , ett_notify_options_flags , hf_flags , flags , BMT_NO_APPEND ) ;
+ return offset ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

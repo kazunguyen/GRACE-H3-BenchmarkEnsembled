@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static krb5_error_code kadm5_copy_principal ( krb5_context context , krb5_const_principal inprinc , krb5_principal * outprinc ) {
+ register krb5_principal tempprinc ;
+ register int i , nelems ;
+ tempprinc = ( krb5_principal ) krb5_db_alloc ( context , NULL , sizeof ( krb5_principal_data ) ) ;
+ if ( tempprinc == 0 ) return ENOMEM ;
+ VALGRIND_CHECK_DEFINED ( * inprinc ) ;
+ * tempprinc = * inprinc ;
+ nelems = ( int ) krb5_princ_size ( context , inprinc ) ;
+ tempprinc -> data = krb5_db_alloc ( context , NULL , nelems * sizeof ( krb5_data ) ) ;
+ if ( tempprinc -> data == 0 ) {
+ krb5_db_free ( context , ( char * ) tempprinc ) ;
+ return ENOMEM ;
+ }
+ for ( i = 0 ;
+ i < nelems ;
+ i ++ ) {
+ unsigned int len = krb5_princ_component ( context , inprinc , i ) -> length ;
+ krb5_princ_component ( context , tempprinc , i ) -> length = len ;
+ if ( ( ( krb5_princ_component ( context , tempprinc , i ) -> data = krb5_db_alloc ( context , NULL , len ) ) == 0 ) && len ) {
+ while ( -- i >= 0 ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_db_free ( context , tempprinc ) ;
+ return ENOMEM ;
+ }
+ if ( len ) memcpy ( krb5_princ_component ( context , tempprinc , i ) -> data , krb5_princ_component ( context , inprinc , i ) -> data , len ) ;
+ krb5_princ_component ( context , tempprinc , i ) -> magic = KV5M_DATA ;
+ }
+ tempprinc -> realm . data = krb5_db_alloc ( context , NULL , tempprinc -> realm . length = inprinc -> realm . length ) ;
+ if ( ! tempprinc -> realm . data && tempprinc -> realm . length ) {
+ for ( i = 0 ;
+ i < nelems ;
+ i ++ ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_db_free ( context , tempprinc ) ;
+ return ENOMEM ;
+ }
+ if ( tempprinc -> realm . length ) memcpy ( tempprinc -> realm . data , inprinc -> realm . data , inprinc -> realm . length ) ;
+ * outprinc = tempprinc ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ register krb5_principal tempprinc ;
+ register int i , nelems ;
+ tempprinc = ( krb5_principal ) krb5_db_alloc ( context , NULL , sizeof ( krb5_principal_data ) ) ;
+ if ( tempprinc == 0 ) return ENOMEM ;
+ VALGRIND_CHECK_DEFINED ( * inprinc ) ;
+ * tempprinc = * inprinc ;
+ nelems = ( int ) krb5_princ_size ( context , inprinc ) ;
+ tempprinc -> data = krb5_db_alloc ( context , NULL , nelems * sizeof ( krb5_data ) ) ;
+ if ( tempprinc -> data == 0 ) {
+ krb5_db_free ( context , ( char * ) tempprinc ) ;
+ return ENOMEM ;
+ }
+ for ( i = 0 ;
+ i < nelems ;
+ i ++ ) {
+ unsigned int len = krb5_princ_component ( context , inprinc , i ) -> length ;
+ krb5_princ_component ( context , tempprinc , i ) -> length = len ;
+ if ( ( ( krb5_princ_component ( context , tempprinc , i ) -> data = krb5_db_alloc ( context , NULL , len ) ) == 0 ) && len ) {
+ while ( -- i >= 0 ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { krb5_db_free ( context , ( char * ) tempprinc ) ; return ENOMEM ; }
+25769803779 | BLOCK | 
+        {
+ unsigned int len = krb5_princ_component ( context , inprinc , i ) -> length ;
+ krb5_princ_component ( context , tempprinc , i ) -> length = len ;
+ if ( ( ( krb5_princ_component ( context , tempprinc , i ) -> data = krb5_db_alloc ( context , NULL , len ) ) == 0 ) && len ) {
+ while ( -- i >= 0 ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_db_free ( context , tempprinc ) ;
+ return ENOMEM ;
+ }
+ if ( len ) memcpy ( krb5_princ_component ( context , tempprinc , i ) -> data , krb5_princ_component ( context , inprinc , i ) -> data , len ) ;
+ krb5_princ_component ( context , tempprinc , i ) -> magic = KV5M_DATA ;
+ }
+      
+25769803780 | BLOCK | 
+        {
+ while ( -- i >= 0 ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_db_free ( context , tempprinc ) ;
+ return ENOMEM ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ for ( i = 0 ;
+ i < nelems ;
+ i ++ ) krb5_db_free ( context , krb5_princ_component ( context , tempprinc , i ) -> data ) ;
+ krb5_db_free ( context , tempprinc -> data ) ;
+ krb5_db_free ( context , tempprinc ) ;
+ return ENOMEM ;
+ }
+      
+25769803783 | BLOCK | <empty>
+30064771072 | CALL | 
+        tempprinc = ( krb5_principal ) krb5_db_alloc ( context , NULL , sizeof ( krb5_principal_data ) )
+      
+30064771073 | CALL | 
+        ( krb5_principal ) krb5_db_alloc ( context , NULL , sizeof ( krb5_principal_data ) )
+      
+30064771074 | CALL | krb5_db_alloc ( context , NULL , sizeof ( krb5_principal_data ) )
+30064771075 | CALL | sizeof ( krb5_principal_data )
+30064771076 | CALL | tempprinc == 0
+30064771077 | CALL | VALGRIND_CHECK_DEFINED ( * inprinc )
+30064771078 | CALL | * inprinc
+30064771079 | CALL | * tempprinc = * inprinc
+30064771080 | CALL | * tempprinc
+30064771081 | CALL | * inprinc
+30064771082 | CALL | nelems = ( int ) krb5_princ_size ( context , inprinc )
+30064771083 | CALL | ( int ) krb5_princ_size ( context , inprinc )
+30064771084 | CALL | krb5_princ_size ( context , inprinc )
+30064771085 | CALL | 
+        tempprinc -> data = krb5_db_alloc ( context , NULL , nelems * sizeof ( krb5_data ) )
+      
+30064771086 | CALL | tempprinc -> data
+30064771087 | CALL | krb5_db_alloc ( context , NULL , nelems * sizeof ( krb5_data ) )
+30064771088 | CALL | nelems * sizeof ( krb5_data )
+30064771089 | CALL | sizeof ( krb5_data )
+30064771090 | CALL | tempprinc -> data == 0
+30064771091 | CALL | tempprinc -> data
+30064771092 | CALL | krb5_db_free ( context , ( char * ) tempprinc )
+30064771093 | CALL | ( char * ) tempprinc
+30064771094 | CALL | i = 0
+30064771095 | CALL | i < nelems
+30064771096 | CALL | i ++
+30064771097 | CALL | len = krb5_princ_component ( context , inprinc , i ) -> length
+30064771098 | CALL | krb5_princ_component ( context , inprinc , i ) -> length
+30064771099 | CALL | krb5_princ_component ( context , inprinc , i )
+30064771100 | CALL | krb5_princ_component ( context , tempprinc , i ) -> length = len
+30064771101 | CALL | krb5_princ_component ( context , tempprinc , i ) -> length
+30064771102 | CALL | krb5_princ_component ( context , tempprinc , i )
+30064771103 | CALL | 
+        ( ( krb5_princ_component ( context , tempprinc , i ) -> data = krb5_db_alloc ( context , NULL , len ) ) == 0 ) && len
+      
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771082 [AST]
+25769803776 -> 30064771085 [AST]
+25769803778 -> 30064771092 [AST]
+25769803779 -> 30064771097 [AST]
+25769803779 -> 30064771100 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771074 -> 30064771073 [R
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,151 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+uint64_t qpci_io_readq(QPCIDevice *dev, void *data)
+
+{
+
+    uintptr_t addr = (uintptr_t)data;
+
+
+
+    if (addr < QPCI_PIO_LIMIT) {
+
+        return dev->bus->pio_readq(dev->bus, addr);
+
+    } else {
+
+        uint64_t val;
+
+        dev->bus->memread(dev->bus, addr, &val, sizeof(val));
+
+        return le64_to_cpu(val);
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+11 -> 12 [IS_AST_PARENT]
+11 -> 13 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+6 -> 9 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+16 -> 17 [IS_AST_PARENT]
+16 -> 18 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 27 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+21 -> 22 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+29 -> 30 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+28 -> 33 [IS_AST_PARENT]
+21 -> 28 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+14 -> 19 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+38 -> 40 [IS_AST_PARENT]
+37 -> 38 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+45 -> 46 [IS_AST_PARENT]
+45 -> 47 [IS_AST_PARENT]
+44 -> 45 [IS_AST_PARENT]
+44 -> 48 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+54 -> 55 [IS_AST_PARENT]
+49 -> 54 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+57 -> 59 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+49 -> 56 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+61 -> 63 [IS_AST_PARENT]
+60 -> 61 [IS_AST_PARENT]
+49 -> 60 [IS_AST_PARENT]
+42 -> 49 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+36 -> 41 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+69 -> 70 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+65 -> 68 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+36 -> 64 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+14 -> 35 [IS_AST_PARENT]
+4 -> 14 [IS_AST_PARENT]
+3 -> 4 [IS_AST_PARENT]
+3 -> 71 [IS_AST_PARENT]
+3 -> 72 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+74 -> 76 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+73 -> 77 [IS_AST_PARENT]
+3 -> 73 [IS_AST_PARENT]
+80 -> 74 [FLOWS_TO]
+74 -> 77 [FLOWS_TO]
+77 -> 5 [FLOWS_TO]
+5 -> 15 [FLOWS_TO]
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+uint32_t qpci_io_readl(QPCIDevice *dev, void *data)
+
+{
+
+    uintptr_t addr = (uintptr_t)data;
+
+
+
+    if (addr < QPCI_PIO_LIMIT) {
+
+        return dev->bus->pio_readl(dev->bus, addr);
+
+    } else {
+
+        uint32_t val;
+
+        dev->bus->memread(dev->bus, addr, &val, sizeof(val));
+
+        return le32_to_cpu(val);
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

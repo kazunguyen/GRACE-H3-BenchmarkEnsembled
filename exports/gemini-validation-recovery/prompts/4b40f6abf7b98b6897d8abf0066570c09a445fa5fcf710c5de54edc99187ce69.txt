@@ -1,0 +1,200 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int jbig2_decode_generic_template3_TPGDON ( Jbig2Ctx * ctx , Jbig2Segment * segment , const Jbig2GenericRegionParams * params , Jbig2ArithState * as , Jbig2Image * image , Jbig2ArithCx * GB_stats ) {
+ const int GBW = image -> width ;
+ const int GBH = image -> height ;
+ uint32_t CONTEXT ;
+ int x , y ;
+ bool bit ;
+ int LTP = 0 ;
+ for ( y = 0 ;
+ y < GBH ;
+ y ++ ) {
+ bit = jbig2_arith_decode ( as , & GB_stats [ 0x0195 ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ LTP ^= bit ;
+ if ( ! LTP ) {
+ for ( x = 0 ;
+ x < GBW ;
+ x ++ ) {
+ CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y ) ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + params -> gbat [ 0 ] , y + params -> gbat [ 1 ] ) << 4 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + 1 , y - 1 ) << 5 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x , y - 1 ) << 6 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 1 , y - 1 ) << 7 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y - 1 ) << 8 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y - 1 ) << 9 ;
+ bit = jbig2_arith_decode ( as , & GB_stats [ CONTEXT ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ jbig2_image_set_pixel ( image , x , y , bit ) ;
+ }
+ }
+ else {
+ copy_prev_row ( image , y ) ;
+ }
+ }
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ const int GBW = image -> width ;
+ const int GBH = image -> height ;
+ uint32_t CONTEXT ;
+ int x , y ;
+ bool bit ;
+ int LTP = 0 ;
+ for ( y = 0 ;
+ y < GBH ;
+ y ++ ) {
+ bit = jbig2_arith_decode ( as , & GB_stats [ 0x0195 ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ LTP ^= bit ;
+ if ( ! LTP ) {
+ for ( x = 0 ;
+ x < GBW ;
+ x ++ ) {
+ CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y ) ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + params -> gbat [ 0 ] , y + params -> gbat [ 1 ] ) << 4 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + 1 , y - 1 ) << 5 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x , y - 1 ) << 6 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 1 , y - 1 ) << 7 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y - 1 ) << 8 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y - 1 ) <...
+      
+25769803777 | BLOCK | 
+        {
+ bit = jbig2_arith_decode ( as , & GB_stats [ 0x0195 ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ LTP ^= bit ;
+ if ( ! LTP ) {
+ for ( x = 0 ;
+ x < GBW ;
+ x ++ ) {
+ CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y ) ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + params -> gbat [ 0 ] , y + params -> gbat [ 1 ] ) << 4 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + 1 , y - 1 ) << 5 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x , y - 1 ) << 6 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 1 , y - 1 ) << 7 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y - 1 ) << 8 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y - 1 ) << 9 ;
+ bit = jbig2_arith_decode ( as , & GB_stats [ CONTEXT ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ jbig2_image_set_pixel ( image , x , y , bit ) ;
+ }
+ }
+ else {
+ copy_p...
+      
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < GBW ;
+ x ++ ) {
+ CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y ) ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + params -> gbat [ 0 ] , y + params -> gbat [ 1 ] ) << 4 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + 1 , y - 1 ) << 5 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x , y - 1 ) << 6 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 1 , y - 1 ) << 7 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y - 1 ) << 8 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y - 1 ) << 9 ;
+ bit = jbig2_arith_decode ( as , & GB_stats [ CONTEXT ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ jbig2_image_set_pixel ( image , x , y , bit ) ;
+ }
+ }
+      
+25769803780 | BLOCK | 
+        {
+ CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y ) ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + params -> gbat [ 0 ] , y + params -> gbat [ 1 ] ) << 4 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x + 1 , y - 1 ) << 5 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x , y - 1 ) << 6 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 1 , y - 1 ) << 7 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y - 1 ) << 8 ;
+ CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y - 1 ) << 9 ;
+ bit = jbig2_arith_decode ( as , & GB_stats [ CONTEXT ] ) ;
+ if ( bit < 0 ) return - 1 ;
+ jbig2_image_set_pixel ( image , x , y , bit ) ;
+ }
+      
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | { copy_prev_row ( image , y ) ; }
+30064771072 | CALL | GBW = image -> width
+30064771073 | CALL | image -> width
+30064771074 | CALL | GBH = image -> height
+30064771075 | CALL | image -> height
+30064771076 | CALL | LTP = 0
+30064771077 | CALL | y = 0
+30064771078 | CALL | y < GBH
+30064771079 | CALL | y ++
+30064771080 | CALL | bit = jbig2_arith_decode ( as , & GB_stats [ 0x0195 ] )
+30064771081 | CALL | jbig2_arith_decode ( as , & GB_stats [ 0x0195 ] )
+30064771082 | CALL | & GB_stats [ 0x0195 ]
+30064771083 | CALL | GB_stats [ 0x0195 ]
+30064771084 | CALL | bit < 0
+30064771085 | CALL | - 1
+30064771086 | CALL | LTP ^= bit
+30064771087 | CALL | ! LTP
+30064771088 | CALL | x = 0
+30064771089 | CALL | x < GBW
+30064771090 | CALL | x ++
+30064771091 | CALL | CONTEXT = jbig2_image_get_pixel ( image , x - 1 , y )
+30064771092 | CALL | jbig2_image_get_pixel ( image , x - 1 , y )
+30064771093 | CALL | x - 1
+30064771094 | CALL | CONTEXT |= jbig2_image_get_pixel ( image , x - 2 , y ) << 1
+30064771095 | CALL | jbig2_image_get_pixel ( image , x - 2 , y ) << 1
+30064771096 | CALL | jbig2_image_get_pixel ( image , x - 2 , y )
+30064771097 | CALL | x - 2
+30064771098 | CALL | CONTEXT |= jbig2_image_get_pixel ( image , x - 3 , y ) << 2
+30064771099 | CALL | jbig2_image_get_pixel ( image , x - 3 , y ) << 2
+30064771100 | CALL | jbig2_image_get_pixel ( image , x - 3 , y )
+30064771101 | CALL | x - 3
+30064771102 | CALL | CONTEXT |= jbig2_image_get_pixel ( image , x - 4 , y ) << 3
+30064771103 | CALL | jbig2_image_get_pixel ( image , x - 4 , y ) << 3
+30064771104 | CALL | jbig2_image_get_pixel ( image , x - 4 , y )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803777 -> 30064771080 [AST]
+25769803777 -> 30064771086 [AST]
+25769803780 -> 30064771091 [AST]
+25769803780 -> 30064771094 [AST]
+25769803780 -> 30064771098 [AST]
+25769803780 -> 30064771102 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [C
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

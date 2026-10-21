@@ -1,0 +1,229 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static ssize_t qio_channel_websock_write_wire ( QIOChannelWebsock * ioc , Error * * errp ) {
+ ssize_t ret ;
+ ssize_t done = 0 ;
+ if ( ! ioc -> ping_reply . offset ) {
+ qio_channel_websock_encode ( ioc ) ;
+ }
+ else if ( ! ioc -> encoutput . offset ) {
+ buffer_move_empty ( & ioc -> encoutput , & ioc -> ping_reply ) ;
+ }
+ while ( ioc -> encoutput . offset > 0 ) {
+ ret = qio_channel_write ( ioc -> master , ( char * ) ioc -> encoutput . buffer , ioc -> encoutput . offset , errp ) ;
+ if ( ret < 0 ) {
+ if ( ret == QIO_CHANNEL_ERR_BLOCK && done > 0 ) {
+ return done ;
+ }
+ else {
+ return ret ;
+ }
+ }
+ buffer_advance ( & ioc -> encoutput , ret ) ;
+ done += ret ;
+ }
+ return done ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ ssize_t ret ;
+ ssize_t done = 0 ;
+ if ( ! ioc -> ping_reply . offset ) {
+ qio_channel_websock_encode ( ioc ) ;
+ }
+ else if ( ! ioc -> encoutput . offset ) {
+ buffer_move_empty ( & ioc -> encoutput , & ioc -> ping_reply ) ;
+ }
+ while ( ioc -> encoutput . offset > 0 ) {
+ ret = qio_channel_write ( ioc -> master , ( char * ) ioc -> encoutput . buffer , ioc -> encoutput . offset , errp ) ;
+ if ( ret < 0 ) {
+ if ( ret == QIO_CHANNEL_ERR_BLOCK && done > 0 ) {
+ return done ;
+ }
+ else {
+ return ret ;
+ }
+ }
+ buffer_advance ( & ioc -> encoutput , ret ) ;
+ done += ret ;
+ }
+ return done ;
+ }
+      
+25769803777 | BLOCK | { qio_channel_websock_encode ( ioc ) ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { buffer_move_empty ( & ioc -> encoutput , & ioc -> ping_reply ) ; }
+25769803780 | BLOCK | 
+        {
+ ret = qio_channel_write ( ioc -> master , ( char * ) ioc -> encoutput . buffer , ioc -> encoutput . offset , errp ) ;
+ if ( ret < 0 ) {
+ if ( ret == QIO_CHANNEL_ERR_BLOCK && done > 0 ) {
+ return done ;
+ }
+ else {
+ return ret ;
+ }
+ }
+ buffer_advance ( & ioc -> encoutput , ret ) ;
+ done += ret ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ if ( ret == QIO_CHANNEL_ERR_BLOCK && done > 0 ) {
+ return done ;
+ }
+ else {
+ return ret ;
+ }
+ }
+      
+25769803782 | BLOCK | { return done ; }
+25769803783 | BLOCK | { return ret ; }
+30064771072 | CALL | done = 0
+30064771073 | CALL | ! ioc -> ping_reply . offset
+30064771074 | CALL | ioc -> ping_reply . offset
+30064771075 | CALL | ioc -> ping_reply
+30064771076 | CALL | qio_channel_websock_encode ( ioc )
+30064771077 | CALL | ! ioc -> encoutput . offset
+30064771078 | CALL | ioc -> encoutput . offset
+30064771079 | CALL | ioc -> encoutput
+30064771080 | CALL | buffer_move_empty ( & ioc -> encoutput , & ioc -> ping_reply )
+30064771081 | CALL | & ioc -> encoutput
+30064771082 | CALL | ioc -> encoutput
+30064771083 | CALL | & ioc -> ping_reply
+30064771084 | CALL | ioc -> ping_reply
+30064771085 | CALL | ioc -> encoutput . offset > 0
+30064771086 | CALL | ioc -> encoutput . offset
+30064771087 | CALL | ioc -> encoutput
+30064771088 | CALL | 
+        ret = qio_channel_write ( ioc -> master , ( char * ) ioc -> encoutput . buffer , ioc -> encoutput . offset , errp )
+      
+30064771089 | CALL | 
+        qio_channel_write ( ioc -> master , ( char * ) ioc -> encoutput . buffer , ioc -> encoutput . offset , errp )
+      
+30064771090 | CALL | ioc -> master
+30064771091 | CALL | ( char * ) ioc -> encoutput . buffer
+30064771092 | CALL | ioc -> encoutput . buffer
+30064771093 | CALL | ioc -> encoutput
+30064771094 | CALL | ioc -> encoutput . offset
+30064771095 | CALL | ioc -> encoutput
+30064771096 | CALL | ret < 0
+30064771097 | CALL | ret == QIO_CHANNEL_ERR_BLOCK && done > 0
+30064771098 | CALL | ret == QIO_CHANNEL_ERR_BLOCK
+30064771099 | CALL | done > 0
+30064771100 | CALL | buffer_advance ( & ioc -> encoutput , ret )
+30064771101 | CALL | & ioc -> encoutput
+30064771102 | CALL | ioc -> encoutput
+30064771103 | CALL | done += ret
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803777 -> 30064771076 [AST]
+25769803779 -> 30064771080 [AST]
+25769803780 -> 30064771088 [AST]
+25769803780 -> 30064771100 [AST]
+25769803780 -> 30064771103 [AST]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771076 [CDG]
+30064771073 -> 30064771079 [CDG]
+30064771073 -> 30064771078 [CDG]
+30064771073 -> 30064771077 [CDG]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771084 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771084 [CDG]
+30064771077 -> 30064771083 [CDG]
+30064771077 -> 30064771082 [CDG]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771086 [REACHING_DEF]
+30064771078 -> 30064771087 [REACHING_DEF]
+30064771078 -> 30064771082 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771083 [ARGUMENT]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771083 [AST]
+30064771080 -> 30064771083 [POST_DOMINATE]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771081 -> 30064771095 [REACHING_DEF]
+30064771081 -> 30064771102 [REACHING_DEF]
+30064771081 -> 30064771087 [REACHING_DEF]
+30064771081 -> 30064771093 [REACHING_DEF]
+30064771081 -> 30064771083 [REACHING_DEF]
+30064771081 -> 30064771080 [REACHING_DEF]
+30064771081 -> 30064771101 [REACHING_DEF]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771095 [REACHING_DEF]
+30064771082 -> 30064771102 [REACHING_DEF]
+30064771082 -> 30064771087 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771093 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771101 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771080 [CFG]
+30064771083 -> 30064771080 [DOMINATE]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771083 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771080 [REACHING_DEF]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771092 [CDG]
+30064771085 -> 30064771091 [CDG]
+30064771085 -> 30064771090 [CDG]
+30064771085 -> 30064771089 [CDG]
+30064771085 -> 30064771096 [CDG]
+30064771085 -> 30064771095 [CDG]
+30064771085 -> 30064771094 [CDG]
+30064771085 -> 30064771093 [CDG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int qio_channel_websock_handshake_read ( QIOChannelWebsock * ioc , Error * * errp ) {
+ char * handshake_end ;
+ ssize_t ret ;
+ size_t want = 4096 - ioc -> encinput . offset ;
+ buffer_reserve ( & ioc -> encinput , want ) ;
+ ret = qio_channel_read ( ioc -> master , ( char * ) buffer_end ( & ioc -> encinput ) , want , errp ) ;
+ if ( ret < 0 ) {
+ return - 1 ;
+ }
+ ioc -> encinput . offset += ret ;
+ handshake_end = g_strstr_len ( ( char * ) ioc -> encinput . buffer , ioc -> encinput . offset , QIO_CHANNEL_WEBSOCK_HANDSHAKE_END ) ;
+ if ( ! handshake_end ) {
+ if ( ioc -> encinput . offset >= 4096 ) {
+ qio_channel_websock_handshake_send_res_err ( ioc , QIO_CHANNEL_WEBSOCK_HANDSHAKE_RES_TOO_LARGE ) ;
+ err
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

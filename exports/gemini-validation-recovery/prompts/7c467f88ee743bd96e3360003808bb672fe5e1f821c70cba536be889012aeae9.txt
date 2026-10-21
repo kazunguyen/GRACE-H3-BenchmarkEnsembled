@@ -1,0 +1,182 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void virtio_net_set_features ( VirtIODevice * vdev , uint32_t features ) {
+ VirtIONet * n = to_virtio_net ( vdev ) ;
+ n -> mergeable_rx_bufs = ! ! ( features & ( 1 << VIRTIO_NET_F_MRG_RXBUF ) ) ;
+ if ( n -> has_vnet_hdr ) {
+ tap_set_offload ( n -> nic -> nc . peer , ( features >> VIRTIO_NET_F_GUEST_CSUM ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO4 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO6 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_ECN ) & 1 , ( features >> VIRTIO_NET_F_GUEST_UFO ) & 1 ) ;
+ }
+ if ( ! n -> nic -> nc . peer || n -> nic -> nc . peer -> info -> type != NET_CLIENT_TYPE_TAP ) {
+ return ;
+ }
+ if ( ! tap_get_vhost_net ( n -> nic -> nc . peer ) ) {
+ return ;
+ }
+ vhost_net_ack_features ( tap_get_vhost_net ( n -> nic -> nc . peer ) , features ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ VirtIONet * n = to_virtio_net ( vdev ) ;
+ n -> mergeable_rx_bufs = ! ! ( features & ( 1 << VIRTIO_NET_F_MRG_RXBUF ) ) ;
+ if ( n -> has_vnet_hdr ) {
+ tap_set_offload ( n -> nic -> nc . peer , ( features >> VIRTIO_NET_F_GUEST_CSUM ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO4 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO6 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_ECN ) & 1 , ( features >> VIRTIO_NET_F_GUEST_UFO ) & 1 ) ;
+ }
+ if ( ! n -> nic -> nc . peer || n -> nic -> nc . peer -> info -> type != NET_CLIENT_TYPE_TAP ) {
+ return ;
+ }
+ if ( ! tap_get_vhost_net ( n -> nic -> nc . peer ) ) {
+ return ;
+ }
+ vhost_net_ack_features ( tap_get_vhost_net ( n -> nic -> nc . peer ) , features ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ tap_set_offload ( n -> nic -> nc . peer , ( features >> VIRTIO_NET_F_GUEST_CSUM ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO4 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO6 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_ECN ) & 1 , ( features >> VIRTIO_NET_F_GUEST_UFO ) & 1 ) ;
+ }
+      
+25769803778 | BLOCK | { return ; }
+25769803779 | BLOCK | { return ; }
+30064771072 | CALL | n = to_virtio_net ( vdev )
+30064771073 | CALL | to_virtio_net ( vdev )
+30064771074 | CALL | 
+        n -> mergeable_rx_bufs = ! ! ( features & ( 1 << VIRTIO_NET_F_MRG_RXBUF ) )
+      
+30064771075 | CALL | n -> mergeable_rx_bufs
+30064771076 | CALL | ! ! ( features & ( 1 << VIRTIO_NET_F_MRG_RXBUF ) )
+30064771077 | CALL | ! ( features & ( 1 << VIRTIO_NET_F_MRG_RXBUF ) )
+30064771078 | CALL | features & ( 1 << VIRTIO_NET_F_MRG_RXBUF )
+30064771079 | CALL | 1 << VIRTIO_NET_F_MRG_RXBUF
+30064771080 | CALL | n -> has_vnet_hdr
+30064771081 | CALL | 
+        tap_set_offload ( n -> nic -> nc . peer , ( features >> VIRTIO_NET_F_GUEST_CSUM ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO4 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_TSO6 ) & 1 , ( features >> VIRTIO_NET_F_GUEST_ECN ) & 1 , ( features >> VIRTIO_NET_F_GUEST_UFO ) & 1 )
+      
+30064771082 | CALL | n -> nic -> nc . peer
+30064771083 | CALL | n -> nic -> nc
+30064771084 | CALL | n -> nic
+30064771085 | CALL | ( features >> VIRTIO_NET_F_GUEST_CSUM ) & 1
+30064771086 | CALL | features >> VIRTIO_NET_F_GUEST_CSUM
+30064771087 | CALL | ( features >> VIRTIO_NET_F_GUEST_TSO4 ) & 1
+30064771088 | CALL | features >> VIRTIO_NET_F_GUEST_TSO4
+30064771089 | CALL | ( features >> VIRTIO_NET_F_GUEST_TSO6 ) & 1
+30064771090 | CALL | features >> VIRTIO_NET_F_GUEST_TSO6
+30064771091 | CALL | ( features >> VIRTIO_NET_F_GUEST_ECN ) & 1
+30064771092 | CALL | features >> VIRTIO_NET_F_GUEST_ECN
+30064771093 | CALL | ( features >> VIRTIO_NET_F_GUEST_UFO ) & 1
+30064771094 | CALL | features >> VIRTIO_NET_F_GUEST_UFO
+30064771095 | CALL | 
+        ! n -> nic -> nc . peer || n -> nic -> nc . peer -> info -> type != NET_CLIENT_TYPE_TAP
+      
+30064771096 | CALL | ! n -> nic -> nc . peer
+30064771097 | CALL | n -> nic -> nc . peer
+30064771098 | CALL | n -> nic -> nc
+30064771099 | CALL | n -> nic
+30064771100 | CALL | n -> nic -> nc . peer -> info -> type != NET_CLIENT_TYPE_TAP
+30064771101 | CALL | n -> nic -> nc . peer -> info -> type
+30064771102 | CALL | n -> nic -> nc . peer -> info
+30064771103 | CALL | n -> nic -> nc . peer
+30064771104 | CALL | n -> nic -> nc
+30064771105 | CALL | n -> nic
+30064771106 | CALL | ! tap_get_vhost_net ( n -> nic -> nc . peer )
+30064771107 | CALL | tap_get_vhost_net ( n -> nic -> nc . peer )
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803777 -> 30064771081 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771076 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771076 [AST]
+30064771074 -> 30064771076 [POST_DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771074 [CFG]
+30064771076 -> 30064771074 [DOMINATE]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771076 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771086 [CDG]
+30064771080 -> 30064771087 [CDG]
+30064771080 -> 30064771084 [CDG]
+30064771080 -> 30064771085 [CDG]
+30064771080 -> 30064771082 [CDG]
+30064771080 -> 30064771083 [CDG]
+30064771080 -> 30064771081 [CDG]
+30064771080 -> 30064771094 [CDG]
+30064771080 -> 30064771092 [CDG]
+30064771080 -> 30064771093 [CDG]
+30064771080 -> 30064771090 [CDG]
+30064771080 -> 30064771091 [CDG]
+30064771080 -> 30064771088 [CDG]
+30064771080 -> 30064771089 [CDG]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771085 [ARGUMENT]
+30064771081 -> 30064771087 [ARGUMENT]
+30064771081 -> 30064771089 [ARGUMENT]
+30064771081 -> 30064771091 [ARGUMENT]
+30064771081 -> 30064771093 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771085 [AST]
+30064771081 -> 30064771087 [AST]
+30064771081 -> 30064771089 [AST]
+30064771081 -> 30064771091 [AST]
+30064771081 -> 30064771093 [AST]
+30064771081 -> 30064771093 [POST_DOMINATE]
+30064771082 -> 30064771083 [ARGUMENT]
+30064771082 -> 30064771083 [AST]
+30064771082 -> 30064771097 [REACHING_DEF]
+30064771082 -> 30064771085 [REACHING_DEF]
+30064771082 -> 30064771087 [REACHING_DEF]
+30064771082 -> 30064771089 [REACHING_DEF]
+30064771082 -> 30064771091 [REACHING_DEF]
+30064771082 -> 30064771093 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771082 -> 30064771098 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771082 [REACHING_DEF]
+30064771085 -> 30064771087 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static uint32_t virtio_net_get_features ( VirtIODevice * vdev , uint32_t features ) {
+ VirtIONet * n = to_virtio_net ( vdev ) ;
+ features |= ( 1 << VIRTIO_NET_F_MAC ) ;
+ if ( peer_has_vnet_hdr ( n ) ) {
+ tap_using_vnet_hdr ( n -> nic -> nc . peer , 1 ) 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

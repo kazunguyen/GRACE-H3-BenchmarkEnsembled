@@ -1,0 +1,194 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void timeout_process ( struct event_base * base ) {
+ struct timeval now ;
+ struct event * ev ;
+ if ( min_heap_empty ( & base -> timeheap ) ) return ;
+ gettime ( base , & now ) ;
+ while ( ( ev = min_heap_top ( & base -> timeheap ) ) ) {
+ if ( evutil_timercmp ( & ev -> ev_timeout , & now , > ) ) break ;
+ event_del ( ev ) ;
+ event_debug ( ( "timeout_process: call %p" , ev -> ev_callback ) ) ;
+ event_active ( ev , EV_TIMEOUT , 1 ) ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct timeval now ;
+ struct event * ev ;
+ if ( min_heap_empty ( & base -> timeheap ) ) return ;
+ gettime ( base , & now ) ;
+ while ( ( ev = min_heap_top ( & base -> timeheap ) ) ) {
+ if ( evutil_timercmp ( & ev -> ev_timeout , & now , > ) ) break ;
+ event_del ( ev ) ;
+ event_debug ( ( "timeout_process: call %p" , ev -> ev_callback ) ) ;
+ event_active ( ev , EV_TIMEOUT , 1 ) ;
+ }
+ }
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+ if ( evutil_timercmp ( & ev -> ev_timeout , & now , > ) ) break ;
+ event_del ( ev ) ;
+ event_debug ( ( "timeout_process: call %p" , ev -> ev_callback ) ) ;
+ event_active ( ev , EV_TIMEOUT , 1 ) ;
+ }
+      
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+30064771072 | CALL | min_heap_empty ( & base -> timeheap )
+30064771073 | CALL | & base -> timeheap
+30064771074 | CALL | base -> timeheap
+30064771075 | CALL | gettime ( base , & now )
+30064771076 | CALL | & now
+30064771077 | CALL | ev = min_heap_top ( & base -> timeheap )
+30064771078 | CALL | min_heap_top ( & base -> timeheap )
+30064771079 | CALL | & base -> timeheap
+30064771080 | CALL | base -> timeheap
+30064771081 | CALL | evutil_timercmp ( & ev -> ev_timeout , & now , > ) != 0
+30064771082 | CALL | event_del ( ev )
+30064771083 | CALL | event_debug ( ( "timeout_process: call %p" , ev -> ev_callback ) )
+30064771084 | CALL | ev -> ev_callback
+30064771085 | CALL | event_active ( ev , EV_TIMEOUT , 1 )
+47244640256 | CONTROL_STRUCTURE | if ( min_heap_empty ( & base -> timeheap ) ) return ;
+47244640257 | CONTROL_STRUCTURE | while (( ev = min_heap_top ( & base -> timeheap ) ))
+47244640258 | CONTROL_STRUCTURE | 
+        if ( evutil_timercmp ( & ev -> ev_timeout , & now , > ) ) break ;
+      
+47244640259 | CONTROL_STRUCTURE | break ;
+55834574848 | FIELD_IDENTIFIER | timeheap
+55834574849 | FIELD_IDENTIFIER | timeheap
+55834574850 | FIELD_IDENTIFIER | ev_callback
+68719476736 | IDENTIFIER | base
+68719476737 | IDENTIFIER | base
+68719476738 | IDENTIFIER | now
+68719476739 | IDENTIFIER | ev
+68719476740 | IDENTIFIER | base
+68719476741 | IDENTIFIER | ev
+68719476742 | IDENTIFIER | ev
+68719476743 | IDENTIFIER | ev
+68719476744 | IDENTIFIER | <unknown> EV_TIMEOUT
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | "timeout_process: call %p"
+90194313218 | LITERAL | 1
+94489280512 | LOCAL | struct timeval now
+94489280513 | LOCAL | struct event * ev
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 47244640257 [AST]
+25769803778 -> 47244640258 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771085 [AST]
+25769803779 -> 47244640259 [AST]
+25769803780 -> 90194313217 [AST]
+25769803780 -> 30064771084 [AST]
+25769803780 -> 30064771083 [CFG]
+25769803780 -> 30064771083 [DOMINATE]
+25769803780 -> 30064771084 [POST_DOMINATE]
+25769803780 -> 30064771083 [REACHING_DEF]
+25769803780 -> 30064771083 [REACHING_DEF]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 55834574849 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771080 [REACHING_DEF]
+30064771073 -> 30064771079 [REACHING_DEF]
+30064771074 -> 68719476736 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476736 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771074 -> 68719476740 [REACHING_DEF]
+30064771074 -> 30064771080 [REACHING_DEF]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771079 [REACHING_DEF]
+30064771075 -> 68719476737 [ARGUMENT]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 68719476737 [AST]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 68719476738 [ARGUMENT]
+30064771076 -> 68719476738 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 68719476738 [POST_DOMINATE]
+30064771076 -> 68719476737 [REACHING_DEF]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 90194313216 [CDG]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 30064771079 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void timeout_correct ( struct event_base * base , struct timeval * tv ) {
+ struct event * * pev ;
+ unsigned int size ;
+ struct timeval off ;
+ if ( use_monotonic ) return ;
+ gettime ( base , tv ) ;
+ if ( evutil_timercmp ( tv , & base -> event_tv , >= ) ) {
+ base -> event_tv = * tv ;
+ return ;
+ }
+ event_debug ( ( "%s: time is running backwards, corrected" , __func__ ) ) ;
+ evutil_timersub ( & base -> event_tv , tv , & off ) ;
+ pev = base -> timeheap . p ;
+ size = base -> timeheap . n ;
+ for ( ;
+ size -- > 0 ;
+ ++ pev ) {
+ struct timeval * ev_tv = & ( * * pev ) . ev_timeout ;
+ evutil_timersub ( ev_tv , & off , ev_tv ) ;
+ }
+ base -> event_tv = * tv ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

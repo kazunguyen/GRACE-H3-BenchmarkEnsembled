@@ -1,0 +1,225 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int quit ( ) {
+ kadm5_ret_t retval ;
+ if ( locked ) {
+ retval = kadm5_unlock ( handle ) ;
+ if ( retval ) {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+ locked = 0 ;
+ }
+ kadm5_destroy ( handle ) ;
+ if ( ccache_name != NULL ) {
+ fprintf ( stderr , "\n\a\a\a%s" , _ ( "Administration credentials NOT DESTROYED.\n" ) ) ;
+ }
+ krb5_klog_close ( context ) ;
+ krb5_free_context ( context ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ kadm5_ret_t retval ;
+ if ( locked ) {
+ retval = kadm5_unlock ( handle ) ;
+ if ( retval ) {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+ locked = 0 ;
+ }
+ kadm5_destroy ( handle ) ;
+ if ( ccache_name != NULL ) {
+ fprintf ( stderr , "\n\a\a\a%s" , _ ( "Administration credentials NOT DESTROYED.\n" ) ) ;
+ }
+ krb5_klog_close ( context ) ;
+ krb5_free_context ( context ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ retval = kadm5_unlock ( handle ) ;
+ if ( retval ) {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+ locked = 0 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ fprintf ( stderr , "\n\a\a\a%s" , _ ( "Administration credentials NOT DESTROYED.\n" ) ) ;
+ }
+      
+30064771072 | CALL | locked != 0
+30064771073 | CALL | retval = kadm5_unlock ( handle )
+30064771074 | CALL | kadm5_unlock ( handle )
+30064771075 | CALL | retval != 0
+30064771076 | CALL | 
+        com_err ( "quit" , retval , _ ( "while unlocking locked database" ) )
+      
+30064771077 | CALL | _ ( "while unlocking locked database" )
+30064771078 | CALL | locked = 0
+30064771079 | CALL | kadm5_destroy ( handle )
+30064771080 | CALL | ccache_name != NULL
+30064771081 | CALL | 
+        fprintf ( stderr , "\n\a\a\a%s" , _ ( "Administration credentials NOT DESTROYED.\n" ) )
+      
+30064771082 | CALL | _ ( "Administration credentials NOT DESTROYED.\n" )
+30064771083 | CALL | krb5_klog_close ( context )
+30064771084 | CALL | krb5_free_context ( context )
+47244640256 | CONTROL_STRUCTURE | 
+        if ( locked ) {
+ retval = kadm5_unlock ( handle ) ;
+ if ( retval ) {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+ locked = 0 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( retval ) {
+ com_err ( "quit" , retval , _ ( "while unlocking locked database" ) ) ;
+ return 1 ;
+ }
+      
+47244640258 | CONTROL_STRUCTURE | 
+        if ( ccache_name != NULL ) {
+ fprintf ( stderr , "\n\a\a\a%s" , _ ( "Administration credentials NOT DESTROYED.\n" ) ) ;
+ }
+      
+68719476736 | IDENTIFIER | <unknown> locked
+68719476737 | IDENTIFIER | retval
+68719476738 | IDENTIFIER | <unknown> handle
+68719476739 | IDENTIFIER | retval
+68719476740 | IDENTIFIER | retval
+68719476741 | IDENTIFIER | <unknown> locked
+68719476742 | IDENTIFIER | <unknown> handle
+68719476743 | IDENTIFIER | <unknown> ccache_name
+68719476744 | IDENTIFIER | <unknown> NULL
+68719476745 | IDENTIFIER | <unknown> stderr
+68719476746 | IDENTIFIER | <unknown> context
+68719476747 | IDENTIFIER | <unknown> context
+90194313216 | LITERAL | 0
+90194313217 | LITERAL | 0
+90194313218 | LITERAL | "quit"
+90194313219 | LITERAL | "while unlocking locked database"
+90194313220 | LITERAL | 1
+90194313221 | LITERAL | 0
+90194313222 | LITERAL | "\n\a\a\a%s"
+90194313223 | LITERAL | "Administration credentials NOT DESTROYED.\n"
+EDGES:
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 47244640258 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 30064771084 [AST]
+25769803777 -> 30064771073 [AST]
+25769803777 -> 47244640257 [AST]
+25769803777 -> 30064771078 [AST]
+25769803778 -> 30064771076 [AST]
+25769803779 -> 30064771081 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 30064771083 [CDG]
+30064771072 -> 30064771084 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476743 [CDG]
+30064771072 -> 68719476744 [CDG]
+30064771072 -> 68719476746 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476742 [CDG]
+30064771072 -> 68719476747 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 30064771073 [CDG]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771080 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 68719476742 [CFG]
+30064771072 -> 68719476742 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476737 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476737 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476739 [CFG]
+30064771073 -> 68719476739 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 68719476738 [ARGUMENT]
+30064771074 -> 68719476738 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476738 [POST_DOMINATE]
+30064771074 -> 68719476737 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 90194313217 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 90194313217 [AST]
+30064771075 -> 30064771083 [CDG]
+30064771075 -> 30064771084 [CDG]
+30064771075 -> 68719476743 [CDG]
+30064771075 -> 68719476744 [CDG]
+30064771075 -> 68719476746 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476747 [CDG]
+30064771075 -> 90194313220 [CDG]
+30064771075 -> 90194313221 [CDG]
+30064771075 -> 90194313218 [CDG]
+30064771075 -> 90194313219 [CDG]
+30064771075 -> 30064771078 [CDG]
+30064771075 -> 30064771079 [CDG]
+30064771075 -> 30064771080 [CDG]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 30064771077 [CDG]
+30064771075 -> 90194313218 [CFG]
+30064771075 -> 68719476741 [CFG]
+30064771075 -> 90194313218 [DOMINATE]
+30064771075 -> 68719476741 [DOMINATE]
+30064771075 -> 90194313217 [POST_DOMINATE]
+30064771076 -> 90194313218 [ARGUMENT]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313218 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void kadmin_unlock ( int argc , char * argv [ ] ) {
+ kadm5_ret_t retval ;
+ if ( ! locked ) return ;
+ retval = kadm5_unlock ( handle ) ;
+ if ( retval ) {
+ com_err ( "unlock" , retval , "" ) ;
+ return ;
+ }
+ locked = 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

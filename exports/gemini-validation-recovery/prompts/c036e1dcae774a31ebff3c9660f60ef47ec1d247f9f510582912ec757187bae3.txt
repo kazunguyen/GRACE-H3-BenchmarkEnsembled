@@ -1,0 +1,212 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Picture * remove_long ( H264Context * h , int i , int ref_mask ) {
+ Picture * pic ;
+ pic = h -> long_ref [ i ] ;
+ if ( pic ) {
+ if ( unreference_pic ( h , pic , ref_mask ) ) {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+ }
+ return pic ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ Picture * pic ;
+ pic = h -> long_ref [ i ] ;
+ if ( pic ) {
+ if ( unreference_pic ( h , pic , ref_mask ) ) {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+ }
+ return pic ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ if ( unreference_pic ( h , pic , ref_mask ) ) {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+ }
+      
+25769803778 | BLOCK | 
+        {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+      
+30064771072 | CALL | pic = h -> long_ref [ i ]
+30064771073 | CALL | h -> long_ref [ i ]
+30064771074 | CALL | h -> long_ref
+30064771075 | CALL | pic != NULL
+30064771076 | CALL | unreference_pic ( h , pic , ref_mask )
+30064771077 | CALL | assert ( h -> long_ref [ i ] -> long_ref == 1 )
+30064771078 | CALL | h -> long_ref [ i ] -> long_ref == 1
+30064771079 | CALL | h -> long_ref [ i ] -> long_ref
+30064771080 | CALL | h -> long_ref [ i ]
+30064771081 | CALL | h -> long_ref
+30064771082 | CALL | h -> long_ref [ i ] -> long_ref = 0
+30064771083 | CALL | h -> long_ref [ i ] -> long_ref
+30064771084 | CALL | h -> long_ref [ i ]
+30064771085 | CALL | h -> long_ref
+30064771086 | CALL | h -> long_ref [ i ] = NULL
+30064771087 | CALL | h -> long_ref [ i ]
+30064771088 | CALL | h -> long_ref
+30064771089 | CALL | h -> long_ref_count --
+30064771090 | CALL | h -> long_ref_count
+47244640256 | CONTROL_STRUCTURE | 
+        if ( pic ) {
+ if ( unreference_pic ( h , pic , ref_mask ) ) {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( unreference_pic ( h , pic , ref_mask ) ) {
+ assert ( h -> long_ref [ i ] -> long_ref == 1 ) ;
+ h -> long_ref [ i ] -> long_ref = 0 ;
+ h -> long_ref [ i ] = NULL ;
+ h -> long_ref_count -- ;
+ }
+      
+55834574848 | FIELD_IDENTIFIER | long_ref
+55834574849 | FIELD_IDENTIFIER | long_ref
+55834574850 | FIELD_IDENTIFIER | long_ref
+55834574851 | FIELD_IDENTIFIER | long_ref
+55834574852 | FIELD_IDENTIFIER | long_ref
+55834574853 | FIELD_IDENTIFIER | long_ref
+55834574854 | FIELD_IDENTIFIER | long_ref_count
+68719476736 | IDENTIFIER | pic
+68719476737 | IDENTIFIER | h
+68719476738 | IDENTIFIER | i
+68719476739 | IDENTIFIER | pic
+68719476740 | IDENTIFIER | h
+68719476741 | IDENTIFIER | pic
+68719476742 | IDENTIFIER | ref_mask
+68719476743 | IDENTIFIER | h
+68719476744 | IDENTIFIER | i
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771077 [AST]
+25769803778 -> 30064771082 [AST]
+25769803778 -> 30064771086 [AST]
+25769803778 -> 30064771089 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 68719476739 [CFG]
+30064771072 -> 68719476739 [DOMINATE]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 68719476738 [POST_DOMINATE]
+30064771073 -> 30064771080 [REACHING_DEF]
+30064771073 -> 30064771085 [REACHING_DEF]
+30064771073 -> 30064771081 [REACHING_DEF]
+30064771073 -> 68719476736 [REACHING_DEF]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771073 -> 30064771084 [REACHING_DEF]
+30064771073 -> 30064771088 [REACHING_DEF]
+30064771074 -> 68719476737 [ARGUMENT]
+30064771074 -> 55834574848 [ARGUMENT]
+30064771074 -> 68719476737 [AST]
+30064771074 -> 55834574848 [AST]
+30064771074 -> 68719476738 [CFG]
+30064771074 -> 68719476738 [DOMINATE]
+30064771074 -> 55834574848 [POST_DOMINATE]
+30064771075 -> 68719476739 [ARGUMENT]
+30064771075 -> 68719476739 [AST]
+30064771075 -> 30064771076 [CDG]
+30064771075 -> 68719476740 [CDG]
+30064771075 -> 68719476742 [CDG]
+30064771075 -> 68719476741 [CDG]
+30064771075 -> 68719476740 [CFG]
+30064771075 -> 68719476740 [DOMINATE]
+30064771076 -> 68719476740 [ARGUMENT]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476742 [ARGUMENT]
+30064771076 -> 68719476740 [AST]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [AST]
+30064771076 -> 30064771083 [CDG]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 30064771079 [CDG]
+30064771076 -> 30064771078 [CDG]
+30064771076 -> 30064771077 [CDG]
+30064771076 -> 30064771090 [CDG]
+30064771076 -> 30064771089 [CDG]
+30064771076 -> 30064771088 [CDG]
+30064771076 -> 30064771087 [CDG]
+30064771076 -> 30064771086 [CDG]
+30064771076 -> 30064771085 [CDG]
+30064771076 -> 30064771084 [CDG]
+30064771076 -> 68719476744 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 55834574849 [CDG]
+30064771076 -> 55834574854 [CDG]
+30064771076 -> 55834574853 [CDG]
+30064771076 -> 55834574852 [CDG]
+30064771076 -> 55834574851 [CDG]
+30064771076 -> 55834574850 [CDG]
+30064771076 -> 68719476743 [CFG]
+30064771076 -> 68719476743 [DOMINATE]
+30064771076 -> 68719476742 [POST_DOMINATE]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771077 [CFG]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline int unreference_pic ( H264Context * h , Picture * pic , int refmask ) {
+ int i ;
+ if ( pic -> reference &= refmask ) {
+ return 0 ;
+ }
+ else {
+ for ( i = 0 ;
+ h -> delayed_pic [ i ] ;
+ i ++ ) if ( pic == h -> delayed_pic [ i ] ) {
+ pic -> reference = DELAYED_PIC_REF ;
+ break ;
+ }
+ return 1 ;
+ }
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

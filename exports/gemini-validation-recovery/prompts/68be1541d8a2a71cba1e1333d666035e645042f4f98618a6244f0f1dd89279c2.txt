@@ -1,0 +1,140 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int dissect_opcua_message ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data _U_ ) {
+ FctParse pfctParse = NULL ;
+ enum MessageType msgtype = MSG_INVALID ;
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "OpcUa" ) ;
+ if ( tvb_memeql ( tvb , 0 , "HEL" , 3 ) == 0 ) {
+ msgtype = MSG_HELLO ;
+ pfctParse = parseHello ;
+ }
+ else if ( tvb_memeql ( tvb , 0 , "ACK" , 3 ) == 0 ) {
+ msgtype = MSG_ACKNOWLEDGE ;
+ pfctParse = parseAcknowledge ;
+ }
+ else if ( tvb_memeql ( tvb , 0 , "ERR" , 3 ) == 0 ) {
+ msgtype = MSG_ERROR ;
+ pfctParse = parseError ;
+ }
+ else if ( tvb_memeql ( tvb , 0 , "MSG" , 3 ) == 0 ) {
+ msgtype = MSG_MESSAGE ;
+ pfctParse = parseMessage ;
+ }
+ else if ( tvb_memeql ( tvb , 0 , "OPN" , 3 ) == 0 ) {
+ msgtype = MSG_OPENSECURECHANNEL ;
+ pfctParse = parseOpenSecureChannel ;
+ }
+ else if ( tvb_memeql ( tvb , 0 , "CLO" , 3 ) == 0 ) {
+ msgtype = MSG_CLOSESECURECHANNEL ;
+ pfctParse = parseCloseSecureChannel ;
+ }
+ else {
+ msgtype = MSG_INVALID ;
+ }
+ col_set_str ( pinfo -> cinfo , COL_INFO , g_szMessageTypes [ msgtype ] ) ;
+ if ( pfctParse ) {
+ gint offset = 0 ;
+ int iServiceId = - 1 ;
+ tvbuff_t * next_tvb = tvb ;
+ gboolean bParseService = TRUE ;
+ gboolean bIsLastFragment = FALSE ;
+ proto_item * ti = NULL ;
+ proto_tree * transport_tree = NULL ;
+ ti = proto_tree_add_item ( tree , proto_opcua , tvb , 0 , - 1 , ENC_NA ) ;
+ transport_tree = proto_item_add_subtree ( ti , ett_opcua_transport ) ;
+ if ( msgtype == MSG_MESSAGE ) {
+ guint8 chunkType = 0 ;
+ guint32 opcua_seqid = 0 ;
+ guint32 opcua_num = 0 ;
+ guint32 opcua_seqnum = 0 ;
+ fragment_head * frag_msg = NULL ;
+ offset = 3 ;
+ chunkType = tvb_get_guint8 ( tvb , offset ) ;
+ offset += 1 ;
+ offset += 4 ;
+ offset += 4 ;
+ offset += 4 ;
+ opcua_num = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ opcua_seqid = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ if ( chunkType == 'A' ) {
+ fragment_delete ( & opcua_reassembly_table , pinfo , opcua_seqid , NULL ) ;
+ col_clear_fence ( pinfo -> cinfo , COL_INFO ) ;
+ col_set_str ( pinfo -> cinfo , COL_INFO , "Abort message" ) ;
+ offset = 0 ;
+ ( * pfctParse ) ( transport_tree , tvb , pinfo , & offset ) ;
+ parseAbort ( transport_tree , tvb , pinfo , & offset ) ;
+ return tvb_reported_length ( tvb ) ;
+ }
+ frag_msg = fragment_get ( & opcua_reassembly_table , pinfo , opcua_seqid , NULL ) ;
+ if ( frag_msg == NULL ) {
+ frag_msg = fragment_get_reassembled_id ( & opcua_reassembly_table , pinfo , opcua_seqid ) ;
+ }
+ if ( frag_msg != NULL || chunkType != 'F' ) {
+ gboolean bSaveFragmented = pinfo -> fragmented ;
+ gboolean bMoreFragments = TRUE ;
+ tvbuff_t * new_tvb = NULL ;
+ pinfo -> fragmented = TRUE ;
+ if ( frag_msg == NULL ) {
+ opcua_seqnum = 0 ;
+ }
+ else {
+ while ( frag_msg -> next ) {
+ frag_msg = frag_msg -> next ;
+ }
+ opcua_seqnum = frag_msg -> offset + 1 ;
+ if ( chunkType == 'F' ) {
+ bMoreFragments = FALSE ;
+ }
+ }
+ frag_msg = fragment_add_seq_check ( & opcua_reassembly_table , tvb , offset , pinfo , opcua_seqid , NULL , opcua_seqnum , tvb_captured_l
+
+### GRAPH CONTEXT
+GRAPH UNAVAILABLE: Joern could not extract a function AST/CPG from this exact snippet.
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int dissect_packetbb ( tvbuff_t * tvb , packet_info * pinfo , proto_tree * tree , void * data _U_ ) {
+ proto_item * ti ;
+ proto_tree * packetbb_tree ;
+ guint offset ;
+ guint8 packet_flags ;
+ guint headerLength = 1 ;
+ guint tlvIndex = 0 ;
+ packet_flags = tvb_get_guint8 ( tvb , 0 ) ;
+ if ( ( packet_flags & PACKET_HEADER_HASSEQNR ) != 0 ) {
+ headerLength += 2 ;
+ }
+ if ( ( packet_flags & PACKET_HEADER_HASTLV ) != 0 ) {
+ tlvIndex = headerLength ;
+ headerLength += 2 ;
+ }
+ if ( tvb_reported_length ( tvb ) < headerLength ) {
+ return 0 ;
+ }
+ if ( ( packet_flags & PACKET_HEADER_HASTLV ) != 0 ) {
+ headerLength += tvb_get_ntohs ( tvb , tlvIndex ) ;
+ }
+ if ( tvb_reported_length ( tvb ) < headerLength ) {
+ return 0 ;
+ }
+ col_set_str ( pinfo -> cinfo , COL_PROTOCOL , "packetbb" ) ;
+ col_clear ( pinfo -> cinfo , COL_INFO ) ;
+ ti = proto_tree_add_item ( tree , proto_packetbb , tvb , 0 , - 1 , ENC_NA ) ;
+ packetbb_tree = proto_item_add_subtree ( ti , ett_packetbb ) ;
+ offset = dissect_pbb_header ( tvb , pinfo , packetbb_tree , headerLength , tlvIndex ) ;
+ while ( offset < tvb_reported_length ( tvb ) ) {
+ offset = dissect_pbb_message ( tvb , pinfo , packetbb_tree , offset ) ;
+ }
+ return tvb_captured_length ( tvb ) ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

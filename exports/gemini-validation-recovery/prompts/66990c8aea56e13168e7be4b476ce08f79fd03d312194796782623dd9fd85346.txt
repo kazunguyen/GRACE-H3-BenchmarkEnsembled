@@ -1,0 +1,238 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+int parse_CColumnSet ( tvbuff_t * tvb , int offset , proto_tree * tree , const char * fmt , ... ) {
+ guint32 count , v , i ;
+ proto_item * item ;
+ const char * txt ;
+ va_list ap ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ count = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ proto_tree_add_subtree ( tree , tvb , offset , count * 4 , ett_mswsp_uin32_array , & item , txt ) ;
+ proto_item_append_text ( item , " Count %u [" , count ) ;
+ for ( i = 0 ;
+ i < count ;
+ i ++ ) {
+ v = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ if ( i > 0 ) {
+ proto_item_append_text ( item , ",%u" , v ) ;
+ }
+ else {
+ proto_item_append_text ( item , "%u" , v ) ;
+ }
+ }
+ proto_item_append_text ( item , "]" ) ;
+ return offset ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ guint32 count , v , i ;
+ proto_item * item ;
+ const char * txt ;
+ va_list ap ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ count = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ proto_tree_add_subtree ( tree , tvb , offset , count * 4 , ett_mswsp_uin32_array , & item , txt ) ;
+ proto_item_append_text ( item , " Count %u [" , count ) ;
+ for ( i = 0 ;
+ i < count ;
+ i ++ ) {
+ v = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ if ( i > 0 ) {
+ proto_item_append_text ( item , ",%u" , v ) ;
+ }
+ else {
+ proto_item_append_text ( item , "%u" , v ) ;
+ }
+ }
+ proto_item_append_text ( item , "]" ) ;
+ return offset ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ v = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ if ( i > 0 ) {
+ proto_item_append_text ( item , ",%u" , v ) ;
+ }
+ else {
+ proto_item_append_text ( item , "%u" , v ) ;
+ }
+ }
+      
+25769803778 | BLOCK | { proto_item_append_text ( item , ",%u" , v ) ; }
+25769803779 | BLOCK | { proto_item_append_text ( item , "%u" , v ) ; }
+30064771072 | CALL | va_start ( ap , fmt )
+30064771073 | CALL | txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771074 | CALL | wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap )
+30064771075 | CALL | wmem_packet_scope ( )
+30064771076 | CALL | va_end ( ap )
+30064771077 | CALL | count = tvb_get_letohl ( tvb , offset )
+30064771078 | CALL | tvb_get_letohl ( tvb , offset )
+30064771079 | CALL | offset += 4
+30064771080 | CALL | 
+        proto_tree_add_subtree ( tree , tvb , offset , count * 4 , ett_mswsp_uin32_array , & item , txt )
+      
+30064771081 | CALL | count * 4
+30064771082 | CALL | & item
+30064771083 | CALL | proto_item_append_text ( item , " Count %u [" , count )
+30064771084 | CALL | i = 0
+30064771085 | CALL | i < count
+30064771086 | CALL | i ++
+30064771087 | CALL | v = tvb_get_letohl ( tvb , offset )
+30064771088 | CALL | tvb_get_letohl ( tvb , offset )
+30064771089 | CALL | offset += 4
+30064771090 | CALL | i > 0
+30064771091 | CALL | proto_item_append_text ( item , ",%u" , v )
+30064771092 | CALL | proto_item_append_text ( item , "%u" , v )
+30064771093 | CALL | proto_item_append_text ( item , "]" )
+47244640256 | CONTROL_STRUCTURE | for (i = 0 ;i < count;i ++)
+47244640257 | CONTROL_STRUCTURE | 
+        if ( i > 0 ) {
+ proto_item_append_text ( item , ",%u" , v ) ;
+ }
+ else {
+ proto_item_append_text ( item , "%u" , v ) ;
+ }
+      
+68719476736 | IDENTIFIER | ap
+68719476737 | IDENTIFIER | fmt
+68719476738 | IDENTIFIER | txt
+68719476739 | IDENTIFIER | fmt
+68719476740 | IDENTIFIER | ap
+68719476741 | IDENTIFIER | ap
+68719476742 | IDENTIFIER | count
+68719476743 | IDENTIFIER | tvb
+68719476744 | IDENTIFIER | offset
+68719476745 | IDENTIFIER | offset
+68719476746 | IDENTIFIER | tree
+68719476747 | IDENTIFIER | tvb
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771073 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771077 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771083 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 30064771093 [AST]
+25769803777 -> 30064771087 [AST]
+25769803777 -> 30064771089 [AST]
+25769803777 -> 47244640257 [AST]
+25769803778 -> 30064771091 [AST]
+25769803779 -> 30064771092 [AST]
+30064771072 -> 68719476736 [ARGUMENT]
+30064771072 -> 68719476737 [ARGUMENT]
+30064771072 -> 68719476736 [AST]
+30064771072 -> 68719476737 [AST]
+30064771072 -> 68719476738 [CFG]
+30064771072 -> 68719476738 [DOMINATE]
+30064771072 -> 68719476737 [POST_DOMINATE]
+30064771073 -> 68719476738 [ARGUMENT]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 68719476738 [AST]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 68719476741 [CFG]
+30064771073 -> 68719476741 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 68719476739 [ARGUMENT]
+30064771074 -> 68719476740 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 68719476739 [AST]
+30064771074 -> 68719476740 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 68719476740 [POST_DOMINATE]
+30064771074 -> 68719476738 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 68719476739 [CFG]
+30064771075 -> 68719476739 [DOMINATE]
+30064771075 -> 68719476738 [POST_DOMINATE]
+30064771075 -> 68719476739 [REACHING_DEF]
+30064771075 -> 68719476740 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 68719476741 [ARGUMENT]
+30064771076 -> 68719476741 [AST]
+30064771076 -> 68719476742 [CFG]
+30064771076 -> 68719476742 [DOMINATE]
+30064771076 -> 68719476741 [POST_DOMINATE]
+30064771077 -> 68719476742 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476742 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476745 [CFG]
+30064771077 -> 68719476745 [DOMINATE]
+30064771077 -> 30064771078 [POST_DOMINATE]
+30064771078 -> 68719476743 [ARGUMENT]
+30064771078 -> 68719476744 [ARGUMENT]
+30064771078 -> 68719476743 [AST]
+30064771078 -> 68719476744 [AST]
+30064771078 -> 30064771077 [CFG]
+30064771078 -> 30064771077 [DOMINATE]
+30064771078 -> 68719476744 [POST_DOMINATE]
+30064771078 -> 68719476742 [REACHING_DEF]
+30064771078 -> 30064771077 [REACHING_DEF]
+30064771079 -> 68719476745 [ARGUMENT]
+30064771079 -> 68719476745 [AST]
+30064771079 -> 68719476746 [CFG]
+30064771079 -> 68719476746 [DOMINATE]
+30064771080 -> 68719476746 [ARGUMENT]
+30064771080 -> 68719476747 [ARGUMENT]
+30064771080 -> 30064771081 [ARGUMENT]
+30064771080 -> 30064771082 [ARGUMENT]
+30064771080 -> 68719476746 [AST]
+30064771080 -> 68719476747 [AST]
+30064771080 -> 30064771081 [AST]
+30064771080 -> 30064771082 [AST]
+30064771081 -> 68719476746 [REACHING_DEF]
+30064771081 -> 68719476747 [REACHING_DEF]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int parse_uin32_array ( tvbuff_t * tvb , int offset , proto_tree * tree , guint32 count , const char * fmt , ... ) {
+ guint32 v , i ;
+ proto_item * item ;
+ const char * txt ;
+ va_list ap ;
+ va_start ( ap , fmt ) ;
+ txt = wmem_strdup_vprintf ( wmem_packet_scope ( ) , fmt , ap ) ;
+ va_end ( ap ) ;
+ proto_tree_add_subtree ( tree , tvb , offset , count * 4 , ett_mswsp_uin32_array , & item , txt ) ;
+ proto_item_append_text ( item , " count %u [" , count ) ;
+ for ( i = 0 ;
+ i < count ;
+ i ++ ) {
+ v = tvb_get_letohl ( tvb , offset ) ;
+ offset += 4 ;
+ if ( i > 0 ) {
+ proto_item_append_text ( item , ",%u" , v ) ;
+ }
+ else {
+ proto_item_append_text ( item , "%u" , v ) ;
+ }
+ }
+ proto_item_append_text ( item , "]" ) ;
+ return offset ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

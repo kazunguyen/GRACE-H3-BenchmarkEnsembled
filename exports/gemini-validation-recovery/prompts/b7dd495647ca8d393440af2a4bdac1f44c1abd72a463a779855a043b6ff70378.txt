@@ -1,0 +1,253 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int read_code_table ( CLLCContext * ctx , GetBitContext * gb , VLC * vlc ) {
+ uint8_t symbols [ 256 ] ;
+ uint8_t bits [ 256 ] ;
+ uint16_t codes [ 256 ] ;
+ int num_lens , num_codes , num_codes_sum , prefix ;
+ int i , j , count ;
+ prefix = 0 ;
+ count = 0 ;
+ num_codes_sum = 0 ;
+ num_lens = get_bits ( gb , 5 ) ;
+ for ( i = 0 ;
+ i < num_lens ;
+ i ++ ) {
+ num_codes = get_bits ( gb , 9 ) ;
+ num_codes_sum += num_codes ;
+ if ( num_codes_sum > 256 ) {
+ vlc -> table = NULL ;
+ av_log ( ctx -> avctx , AV_LOG_ERROR , "Too many VLCs (%d) to be read.\n" , num_codes_sum ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( j = 0 ;
+ j < num_codes ;
+ j ++ ) {
+ symbols [ count ] = get_bits ( gb , 8 ) ;
+ bits [ count ] = i + 1 ;
+ codes [ count ] = prefix ++ ;
+ count ++ ;
+ }
+ prefix <<= 1 ;
+ }
+ return ff_init_vlc_sparse ( vlc , 7 , count , bits , 1 , 1 , codes , 2 , 2 , symbols , 1 , 1 , 0 ) ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ uint8_t symbols [ 256 ] ;
+ uint8_t bits [ 256 ] ;
+ uint16_t codes [ 256 ] ;
+ int num_lens , num_codes , num_codes_sum , prefix ;
+ int i , j , count ;
+ prefix = 0 ;
+ count = 0 ;
+ num_codes_sum = 0 ;
+ num_lens = get_bits ( gb , 5 ) ;
+ for ( i = 0 ;
+ i < num_lens ;
+ i ++ ) {
+ num_codes = get_bits ( gb , 9 ) ;
+ num_codes_sum += num_codes ;
+ if ( num_codes_sum > 256 ) {
+ vlc -> table = NULL ;
+ av_log ( ctx -> avctx , AV_LOG_ERROR , "Too many VLCs (%d) to be read.\n" , num_codes_sum ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( j = 0 ;
+ j < num_codes ;
+ j ++ ) {
+ symbols [ count ] = get_bits ( gb , 8 ) ;
+ bits [ count ] = i + 1 ;
+ codes [ count ] = prefix ++ ;
+ count ++ ;
+ }
+ prefix <<= 1 ;
+ }
+ return ff_init_vlc_sparse ( vlc , 7 , count , bits , 1 , 1 , codes , 2 , 2 , symbols , 1 , 1 , 0 ) ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ num_codes = get_bits ( gb , 9 ) ;
+ num_codes_sum += num_codes ;
+ if ( num_codes_sum > 256 ) {
+ vlc -> table = NULL ;
+ av_log ( ctx -> avctx , AV_LOG_ERROR , "Too many VLCs (%d) to be read.\n" , num_codes_sum ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ for ( j = 0 ;
+ j < num_codes ;
+ j ++ ) {
+ symbols [ count ] = get_bits ( gb , 8 ) ;
+ bits [ count ] = i + 1 ;
+ codes [ count ] = prefix ++ ;
+ count ++ ;
+ }
+ prefix <<= 1 ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ vlc -> table = NULL ;
+ av_log ( ctx -> avctx , AV_LOG_ERROR , "Too many VLCs (%d) to be read.\n" , num_codes_sum ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803779 | BLOCK | 
+        {
+ symbols [ count ] = get_bits ( gb , 8 ) ;
+ bits [ count ] = i + 1 ;
+ codes [ count ] = prefix ++ ;
+ count ++ ;
+ }
+      
+30064771072 | CALL | symbols [ 256 ]
+30064771073 | CALL | symbols [ 256 ]
+30064771074 | CALL | bits [ 256 ]
+30064771075 | CALL | bits [ 256 ]
+30064771076 | CALL | codes [ 256 ]
+30064771077 | CALL | codes [ 256 ]
+30064771078 | CALL | prefix = 0
+30064771079 | CALL | count = 0
+30064771080 | CALL | num_codes_sum = 0
+30064771081 | CALL | num_lens = get_bits ( gb , 5 )
+30064771082 | CALL | get_bits ( gb , 5 )
+30064771083 | CALL | i = 0
+30064771084 | CALL | i < num_lens
+30064771085 | CALL | i ++
+30064771086 | CALL | num_codes = get_bits ( gb , 9 )
+30064771087 | CALL | get_bits ( gb , 9 )
+30064771088 | CALL | num_codes_sum += num_codes
+30064771089 | CALL | num_codes_sum > 256
+30064771090 | CALL | vlc -> table = NULL
+30064771091 | CALL | vlc -> table
+30064771092 | CALL | 
+        av_log ( ctx -> avctx , AV_LOG_ERROR , "Too many VLCs (%d) to be read.\n" , num_codes_sum )
+      
+30064771093 | CALL | ctx -> avctx
+30064771094 | CALL | j = 0
+30064771095 | CALL | j < num_codes
+30064771096 | CALL | j ++
+30064771097 | CALL | symbols [ count ] = get_bits ( gb , 8 )
+30064771098 | CALL | symbols [ count ]
+30064771099 | CALL | get_bits ( gb , 8 )
+30064771100 | CALL | bits [ count ] = i + 1
+30064771101 | CALL | bits [ count ]
+30064771102 | CALL | i + 1
+30064771103 | CALL | codes [ count ] = prefix ++
+30064771104 | CALL | codes [ count ]
+30064771105 | CALL | prefix ++
+30064771106 | CALL | count ++
+30064771107 | CALL | prefix <<= 1
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771078 [AST]
+25769803776 -> 30064771079 [AST]
+25769803776 -> 30064771080 [AST]
+25769803776 -> 30064771081 [AST]
+25769803777 -> 30064771086 [AST]
+25769803777 -> 30064771088 [AST]
+25769803777 -> 30064771107 [AST]
+25769803778 -> 30064771090 [AST]
+25769803778 -> 30064771092 [AST]
+25769803779 -> 30064771097 [AST]
+25769803779 -> 30064771100 [AST]
+25769803779 -> 30064771103 [AST]
+25769803779 -> 30064771106 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771075 [POST_DOMINATE]
+30064771075 -> 30064771074 [CFG]
+30064771075 -> 30064771074 [DOMINATE]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771077 [POST_DOMINATE]
+30064771077 -> 30064771076 [CFG]
+30064771077 -> 30064771076 [DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771081 -> 30064771082 [POST_DOMINATE]
+30064771082 -> 30064771081 [CFG]
+30064771082 -> 30064771081 [DOMINATE]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771084 -> 30064771086 [CDG]
+30064771084 -> 30064771087 [CDG]
+30064771084 -> 30064771088 [CDG]
+30064771084 -> 30064771089 [CDG]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771087 [POST_DOMINATE]
+30064771087 -> 30064771086 [CFG]
+30064771087 -> 30064771086 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771089 -> 30064771085 [CDG]
+30064771089 -> 30064771090 [CDG]
+30064771089 -> 30064771091 [CDG]
+30064771089 -> 30064771092 [CDG]
+30064771089 -> 30064771093 [CDG]
+30064771089 -> 30064771094 [CDG]
+30064771089 -> 30064771095 [CDG]
+30064771089 -> 30064771084 [CDG]
+30064771089 -> 30064771107 [CDG]
+30064771090 -> 30064771091 [ARGUMENT]
+30064771090 -> 30064771091 [AST]
+30064771091 -> 30064771090 [REACHING_DEF]
+30064771092 -> 30064771093 [ARGUMENT]
+30064771092 -> 30064771093 [AST]
+30064771093 -> 30064771092 [REACHING_DEF]
+30064771095 -> 30064771095 [CDG]
+30064771095 -> 30064771096 [CDG]
+30064771095 -> 30064771097 [CDG]
+30064771095 -> 30064771098 [CDG]
+30064771095 -> 30064771099 [CDG]
+30064771095 -> 30064771100 [CDG]
+30064771095 -> 30064771101 [CDG]
+30064771095 -> 30064771102 [CDG]
+30064771095 -> 30064771103 [CDG]
+30064771095 -> 30064771104 [CDG]
+30064771095 -> 30064771105 [CDG]
+30064771095 -> 30064771106 [CDG]
+30064771097 -> 30064771098 [ARGUMENT]
+30064771097 -> 30064771099 [ARGUMENT]
+30064771097 -> 30064771098 [AST]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int read_len_table ( uint8_t * dst , GetBitContext * gb ) {
+ int i , val , repeat ;
+ for ( i = 0 ;
+ i < 256 ;
+ ) {
+ repeat = get_bits ( gb , 3 ) ;
+ val = get_bits ( gb , 5 ) ;
+ if ( repeat == 0 ) repeat = get_bits ( gb , 8 ) ;
+ if ( i + repeat > 256 || get_bits_left ( gb ) < 0 ) {
+ av_log ( NULL , AV_LOG_ERROR , "Error reading huffman table\n" ) ;
+ return - 1 ;
+ }
+ while ( repeat -- ) dst [ i ++ ] = val ;
+ }
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

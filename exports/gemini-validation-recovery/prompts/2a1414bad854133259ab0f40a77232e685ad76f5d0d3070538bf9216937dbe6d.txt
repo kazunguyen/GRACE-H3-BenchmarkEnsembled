@@ -1,0 +1,231 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void convolve_vert ( const uint8_t * src , ptrdiff_t src_stride , uint8_t * dst , ptrdiff_t dst_stride , const InterpKernel * y_filters , int y0_q4 , int y_step_q4 , int w , int h ) {
+ int x , y ;
+ src -= src_stride * ( SUBPEL_TAPS / 2 - 1 ) ;
+ for ( x = 0 ;
+ x < w ;
+ ++ x ) {
+ int y_q4 = y0_q4 ;
+ for ( y = 0 ;
+ y < h ;
+ ++ y ) {
+ const unsigned char * src_y = & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ] ;
+ const int16_t * const y_filter = y_filters [ y_q4 & SUBPEL_MASK ] ;
+ int k , sum = 0 ;
+ for ( k = 0 ;
+ k < SUBPEL_TAPS ;
+ ++ k ) sum += src_y [ k * src_stride ] * y_filter [ k ] ;
+ dst [ y * dst_stride ] = clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) ) ;
+ y_q4 += y_step_q4 ;
+ }
+ ++ src ;
+ ++ dst ;
+ }
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , y ;
+ src -= src_stride * ( SUBPEL_TAPS / 2 - 1 ) ;
+ for ( x = 0 ;
+ x < w ;
+ ++ x ) {
+ int y_q4 = y0_q4 ;
+ for ( y = 0 ;
+ y < h ;
+ ++ y ) {
+ const unsigned char * src_y = & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ] ;
+ const int16_t * const y_filter = y_filters [ y_q4 & SUBPEL_MASK ] ;
+ int k , sum = 0 ;
+ for ( k = 0 ;
+ k < SUBPEL_TAPS ;
+ ++ k ) sum += src_y [ k * src_stride ] * y_filter [ k ] ;
+ dst [ y * dst_stride ] = clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) ) ;
+ y_q4 += y_step_q4 ;
+ }
+ ++ src ;
+ ++ dst ;
+ }
+ }
+      
+25769803777 | BLOCK | 
+        {
+ int y_q4 = y0_q4 ;
+ for ( y = 0 ;
+ y < h ;
+ ++ y ) {
+ const unsigned char * src_y = & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ] ;
+ const int16_t * const y_filter = y_filters [ y_q4 & SUBPEL_MASK ] ;
+ int k , sum = 0 ;
+ for ( k = 0 ;
+ k < SUBPEL_TAPS ;
+ ++ k ) sum += src_y [ k * src_stride ] * y_filter [ k ] ;
+ dst [ y * dst_stride ] = clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) ) ;
+ y_q4 += y_step_q4 ;
+ }
+ ++ src ;
+ ++ dst ;
+ }
+      
+25769803778 | BLOCK | 
+        {
+ const unsigned char * src_y = & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ] ;
+ const int16_t * const y_filter = y_filters [ y_q4 & SUBPEL_MASK ] ;
+ int k , sum = 0 ;
+ for ( k = 0 ;
+ k < SUBPEL_TAPS ;
+ ++ k ) sum += src_y [ k * src_stride ] * y_filter [ k ] ;
+ dst [ y * dst_stride ] = clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) ) ;
+ y_q4 += y_step_q4 ;
+ }
+      
+30064771072 | CALL | src -= src_stride * ( SUBPEL_TAPS / 2 - 1 )
+30064771073 | CALL | src_stride * ( SUBPEL_TAPS / 2 - 1 )
+30064771074 | CALL | SUBPEL_TAPS / 2 - 1
+30064771075 | CALL | SUBPEL_TAPS / 2
+30064771076 | CALL | x = 0
+30064771077 | CALL | x < w
+30064771078 | CALL | ++ x
+30064771079 | CALL | y_q4 = y0_q4
+30064771080 | CALL | y = 0
+30064771081 | CALL | y < h
+30064771082 | CALL | ++ y
+30064771083 | CALL | src_y = & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ]
+30064771084 | CALL | & src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ]
+30064771085 | CALL | src [ ( y_q4 >> SUBPEL_BITS ) * src_stride ]
+30064771086 | CALL | ( y_q4 >> SUBPEL_BITS ) * src_stride
+30064771087 | CALL | y_q4 >> SUBPEL_BITS
+30064771088 | CALL | const y_filter = y_filters [ y_q4 & SUBPEL_MASK ]
+30064771089 | CALL | y_filters [ y_q4 & SUBPEL_MASK ]
+30064771090 | CALL | y_q4 & SUBPEL_MASK
+30064771091 | CALL | sum = 0
+30064771092 | CALL | k = 0
+30064771093 | CALL | k < SUBPEL_TAPS
+30064771094 | CALL | ++ k
+30064771095 | CALL | sum += src_y [ k * src_stride ] * y_filter [ k ]
+30064771096 | CALL | src_y [ k * src_stride ] * y_filter [ k ]
+30064771097 | CALL | src_y [ k * src_stride ]
+30064771098 | CALL | k * src_stride
+30064771099 | CALL | y_filter [ k ]
+30064771100 | CALL | dst [ y * dst_stride ] = clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) )
+30064771101 | CALL | dst [ y * dst_stride ]
+30064771102 | CALL | y * dst_stride
+30064771103 | CALL | clip_pixel ( ROUND_POWER_OF_TWO ( sum , FILTER_BITS ) )
+30064771104 | CALL | ROUND_POWER_OF_TWO ( sum , FILTER_BITS )
+30064771105 | CALL | y_q4 += y_step_q4
+30064771106 | CALL | ++ src
+30064771107 | CALL | ++ dst
+47244640256 | CONTROL_STRUCTURE | for (x = 0 ;x < w;++ x)
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 47244640256 [AST]
+25769803777 -> 30064771079 [AST]
+25769803777 -> 30064771106 [AST]
+25769803777 -> 30064771107 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771088 [AST]
+25769803778 -> 30064771091 [AST]
+25769803778 -> 30064771100 [AST]
+25769803778 -> 30064771105 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771074 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771075 [ARGUMENT]
+30064771074 -> 30064771075 [AST]
+30064771074 -> 30064771073 [CFG]
+30064771074 -> 30064771073 [DOMINATE]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771074 [REACHING_DEF]
+30064771077 -> 30064771081 [CDG]
+30064771077 -> 30064771077 [CDG]
+30064771077 -> 30064771078 [CDG]
+30064771077 -> 30064771079 [CDG]
+30064771077 -> 30064771080 [CDG]
+30064771077 -> 30064771106 [CDG]
+30064771077 -> 30064771107 [CDG]
+30064771081 -> 30064771081 [CDG]
+30064771081 -> 30064771082 [CDG]
+30064771081 -> 30064771083 [CDG]
+30064771081 -> 30064771084 [CDG]
+30064771081 -> 30064771089 [CDG]
+30064771081 -> 30064771090 [CDG]
+30064771081 -> 30064771091 [CDG]
+30064771081 -> 30064771092 [CDG]
+30064771081 -> 30064771085 [CDG]
+30064771081 -> 30064771086 [CDG]
+30064771081 -> 30064771087 [CDG]
+30064771081 -> 30064771088 [CDG]
+30064771081 -> 30064771100 [CDG]
+30064771081 -> 30064771093 [CDG]
+30064771081 -> 30064771105 [CDG]
+30064771081 -> 30064771101 [CDG]
+30064771081 -> 30064771102 [CDG]
+30064771081 -> 30064771103 [CDG]
+30064771081 -> 30064771104 [CDG]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771083 -> 30064771084 [POST_DOMINATE]
+30064771084 -> 30064771085 [ARGUMENT]
+30064771084 -> 30064771085 [AST]
+30064771084 -> 30064771083 [CFG]
+30064771084 -> 30064771083 [DOMINATE]
+30064771084 -> 30064771085 [POST_DOMINATE]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771084 -> 30064771085 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771084 [CFG]
+30064771085 -> 30064771084 [DOMINATE]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771085 -> 30064771084 [REACHING_DEF]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 30064771087 [AST]
+30064771086 -> 30064771085 [CFG]
+30064771086 -> 30064771085 [DOMINATE]
+30064771087 -> 30064771086 [REACHING_DEF]
+30064771088 -> 30064771089 [ARGUMENT]
+30064771088 -> 30064771089 [AST]
+30064771088 -> 30064771089 [POST_DOMINATE]
+30064771089 -> 30064771090 [ARGUMENT]
+30064771089 -> 30064771090 [AST]
+30064771089 -> 30064771088 [CFG]
+30064771089 -> 30064771088 [DOMINATE]
+30064771089 -> 30064771090 [POST_DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void convolve_avg_horiz ( const uint8_t * src , ptrdiff_t src_stride , uint8_t * dst , ptrdiff_t dst_stride , const InterpKernel * x_filters , int x0_q4 , int x_step_q4 , int w , int h ) {
+ int x , y ;
+ src -= SUBPEL_TAPS / 2 - 1 ;
+ for ( y = 0 ;
+ y < h ;
+ ++ y ) {
+ int x_q4 = x0_q4 ;
+ for ( x = 0 ;
+ x < w ;
+ ++ x ) {
+ const uint8_t * const src_x = & src [ x_q4 >> SUBPEL_BITS ] ;
+ const int16_t * const x_filter = x_filters [ x_q4 & SUBPEL_MASK ] ;
+ int k , sum = 0 ;
+ for ( k = 0 ;
+ k < SUBPEL_TAPS ;
+ ++ k ) sum += src_x [ k ] * x_filter [ k ] ;
+ dst [ x ] = ROUND_POWER_OF_TWO ( dst [ x ] + 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

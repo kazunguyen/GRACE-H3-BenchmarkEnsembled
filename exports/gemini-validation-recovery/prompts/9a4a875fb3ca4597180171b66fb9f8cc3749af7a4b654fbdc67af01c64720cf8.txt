@@ -1,0 +1,190 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int auth_server_input_cont ( struct auth_server_connection * conn , const char * const * args ) {
+ struct auth_client_request * request ;
+ if ( str_array_length ( args ) < 2 ) {
+ i_error ( "BUG: Authentication server sent broken CONT line" ) ;
+ return - 1 ;
+ }
+ if ( auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request ) < 0 ) return - 1 ;
+ auth_client_request_server_input ( request , AUTH_REQUEST_STATUS_CONTINUE , args + 1 ) ;
+ return 0 ;
+ }
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ struct auth_client_request * request ;
+ if ( str_array_length ( args ) < 2 ) {
+ i_error ( "BUG: Authentication server sent broken CONT line" ) ;
+ return - 1 ;
+ }
+ if ( auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request ) < 0 ) return - 1 ;
+ auth_client_request_server_input ( request , AUTH_REQUEST_STATUS_CONTINUE , args + 1 ) ;
+ return 0 ;
+ }
+      
+25769803777 | BLOCK | 
+        {
+ i_error ( "BUG: Authentication server sent broken CONT line" ) ;
+ return - 1 ;
+ }
+      
+25769803778 | BLOCK | <empty>
+30064771072 | CALL | str_array_length ( args ) < 2
+30064771073 | CALL | str_array_length ( args )
+30064771074 | CALL | i_error ( "BUG: Authentication server sent broken CONT line" )
+30064771075 | CALL | - 1
+30064771076 | CALL | auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request ) < 0
+30064771077 | CALL | auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request )
+30064771078 | CALL | args [ 0 ]
+30064771079 | CALL | & request
+30064771080 | CALL | - 1
+30064771081 | CALL | 
+        auth_client_request_server_input ( request , AUTH_REQUEST_STATUS_CONTINUE , args + 1 )
+      
+30064771082 | CALL | args + 1
+47244640256 | CONTROL_STRUCTURE | 
+        if ( str_array_length ( args ) < 2 ) {
+ i_error ( "BUG: Authentication server sent broken CONT line" ) ;
+ return - 1 ;
+ }
+      
+47244640257 | CONTROL_STRUCTURE | 
+        if ( auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request ) < 0 ) return - 1 ;
+      
+68719476736 | IDENTIFIER | args
+68719476737 | IDENTIFIER | conn
+68719476738 | IDENTIFIER | args
+68719476739 | IDENTIFIER | <unknown> FALSE
+68719476740 | IDENTIFIER | request
+68719476741 | IDENTIFIER | request
+68719476742 | IDENTIFIER | <unknown> AUTH_REQUEST_STATUS_CONTINUE
+68719476743 | IDENTIFIER | args
+90194313216 | LITERAL | 2
+90194313217 | LITERAL | "BUG: Authentication server sent broken CONT line"
+90194313218 | LITERAL | 1
+90194313219 | LITERAL | 0
+90194313220 | LITERAL | 0
+90194313221 | LITERAL | 1
+90194313222 | LITERAL | 1
+90194313223 | LITERAL | 0
+94489280512 | LOCAL | struct auth_client_request * request
+94489280513 | LOCAL | <unknown> AUTH_REQUEST_STATUS_CONTINUE
+94489280514 | LOCAL | <unknown> FALSE
+107374182400 | METHOD | 
+        static int auth_server_input_cont ( struct auth_server_connection * conn , const char * const * args ) {
+ struct auth_client_request * request ;
+ if ( str_array_length ( args ) < 2 ) {
+ i_error ( "BUG: Authentication server sent broken CONT line" ) ;
+ return - 1 ;
+ }
+ if ( auth_server_lookup_request ( conn , args [ 0 ] , FALSE , & request ) < 0 ) return - 1 ;
+ auth_client_request_server_input ( request , AUTH_REQUEST_STATUS_CONTINUE , args + 1 ) ;
+ return 0 ;
+ }
+      
+111669149696 | METHOD_PARAMETER_IN | struct auth_server_connection * conn
+111669149697 | METHOD_PARAMETER_IN | const char * const * args
+115964116992 | METHOD_PARAMETER_OUT | struct auth_server_connection * conn
+115964116993 | METHOD_PARAMETER_OUT | const char * const * args
+EDGES:
+25769803776 -> 94489280512 [AST]
+25769803776 -> 47244640256 [AST]
+25769803776 -> 47244640257 [AST]
+25769803776 -> 30064771081 [AST]
+25769803776 -> 94489280513 [AST]
+25769803776 -> 94489280514 [AST]
+25769803777 -> 30064771074 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 90194313216 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 90194313216 [AST]
+30064771072 -> 30064771079 [CDG]
+30064771072 -> 30064771078 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 68719476740 [CDG]
+30064771072 -> 68719476739 [CDG]
+30064771072 -> 68719476738 [CDG]
+30064771072 -> 68719476737 [CDG]
+30064771072 -> 90194313217 [CDG]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771074 [CDG]
+30064771072 -> 90194313220 [CDG]
+30064771072 -> 90194313219 [CDG]
+30064771072 -> 90194313218 [CDG]
+30064771072 -> 90194313217 [CFG]
+30064771072 -> 68719476737 [CFG]
+30064771072 -> 90194313217 [DOMINATE]
+30064771072 -> 68719476737 [DOMINATE]
+30064771072 -> 90194313216 [POST_DOMINATE]
+30064771073 -> 68719476736 [ARGUMENT]
+30064771073 -> 68719476736 [AST]
+30064771073 -> 90194313216 [CFG]
+30064771073 -> 90194313216 [DOMINATE]
+30064771073 -> 68719476736 [POST_DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 90194313217 [ARGUMENT]
+30064771074 -> 90194313217 [AST]
+30064771074 -> 90194313218 [CFG]
+30064771074 -> 90194313218 [DOMINATE]
+30064771074 -> 90194313217 [POST_DOMINATE]
+30064771075 -> 90194313218 [ARGUMENT]
+30064771075 -> 90194313218 [AST]
+30064771075 -> 90194313218 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 90194313220 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 90194313220 [AST]
+30064771076 -> 30064771082 [CDG]
+30064771076 -> 30064771081 [CDG]
+30064771076 -> 30064771080 [CDG]
+30064771076 -> 68719476743 [CDG]
+30064771076 -> 68719476742 [CDG]
+30064771076 -> 68719476741 [CDG]
+30064771076 -> 90194313221 [CDG]
+30064771076 -> 90194313223 [CDG]
+30064771076 -> 90194313222 [CDG]
+30064771076 -> 90194313221 [CFG]
+30064771076 -> 68719476741 [CFG]
+30064771076 -> 90194313221 [DOMINATE]
+30064771076 -> 68719476741 [DOMINATE]
+30064771076 -> 90194313220 [POST_DOMINATE]
+30064771077 -> 68719476737 [ARGUMENT]
+30064771077 -> 30064771078 [ARGUMENT]
+30064771077 -> 68719476739 [ARGUMENT]
+30064771077 -> 30064771079 [ARGUMENT]
+30064771077 -> 68719476737 [AST]
+30064771077 -> 30064771078 [AST]
+30064771077 -> 68719476739 [AST]
+30064771077 -> 30064771079 [AST]
+30064771077 -> 90194313220 [CFG]
+30064771077 -> 90194313220 [DOMINATE]
+30064771077 -> 30064771079 [POST_DOMINATE]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 68719476738 [ARGUMENT]
+30064771078 -> 90194313219 [ARGUMENT]
+30064771078 -> 68719476738 [AST]
+30064771078 -> 90194313219 [AST]
+30064771078 -> 68719476739 [CFG]
+30064771078 -> 68719476739 [DOMINATE]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static int auth_server_input_fail ( struct auth_server_connection * conn , const char * const * args ) {
+ struct auth_client_request * request ;
+ if ( auth_server_lookup_request ( conn , args [ 0 ] , TRUE , & request ) < 0 ) return - 1 ;
+ auth_client_request_server_input ( request , AUTH_REQUEST_STATUS_FAIL , args + 1 ) ;
+ return 0 ;
+ }
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

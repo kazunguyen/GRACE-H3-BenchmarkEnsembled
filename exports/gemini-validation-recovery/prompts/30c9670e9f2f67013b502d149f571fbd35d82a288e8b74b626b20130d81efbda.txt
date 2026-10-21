@@ -1,0 +1,215 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static int decode_cell ( Indeo3DecodeContext * ctx , AVCodecContext * avctx , Plane * plane , Cell * cell , const uint8_t * data_ptr , const uint8_t * last_ptr ) {
+ int x , mv_x , mv_y , mode , vq_index , prim_indx , second_indx ;
+ int zoom_fac ;
+ int offset , error = 0 , swap_quads [ 2 ] ;
+ uint8_t code , * block , * ref_block = 0 ;
+ const vqEntry * delta [ 2 ] ;
+ const uint8_t * data_start = data_ptr ;
+ code = * data_ptr ++ ;
+ mode = code >> 4 ;
+ vq_index = code & 0xF ;
+ offset = ( cell -> ypos << 2 ) * plane -> pitch + ( cell -> xpos << 2 ) ;
+ block = plane -> pixels [ ctx -> buf_sel ] + offset ;
+ if ( ! cell -> mv_ptr ) {
+ ref_block = block - plane -> pitch ;
+ }
+ else if ( mode >= 10 ) {
+ copy_cell ( ctx , plane , cell ) ;
+ }
+ else {
+ mv_y = cell -> mv_ptr [ 0 ] ;
+ mv_x = cell -> mv_ptr [ 1 ] ;
+ offset += mv_y * plane -> pitch + mv_x ;
+ ref_block = plane -> pixels [ ctx -> buf_sel ^ 1 ] + offset ;
+ }
+ if ( mode == 1 || mode == 4 ) {
+ code = ctx -> alt_quant [ vq_index ] ;
+ prim_indx = ( code >> 4 ) + ctx -> cb_offset ;
+ second_indx = ( code & 0xF ) + ctx -> cb_offset ;
+ }
+ else {
+ vq_index += ctx -> cb_offset ;
+ prim_indx = second_indx = vq_index ;
+ }
+ if ( prim_indx >= 24 || second_indx >= 24 ) {
+ av_log ( avctx , AV_LOG_ERROR , "Invalid VQ table indexes! Primary: %d, secondary: %d!\n" , prim_indx , second_indx ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ delta [ 0 ] = & vq_tab [ second_indx ] ;
+ delta [ 1 ] = & vq_tab [ prim_indx ] ;
+ swap_quads [ 0 ] = second_indx >= 16 ;
+ swap_quads [ 1 ] = prim_indx >= 16 ;
+ if ( vq_index >= 8 && ref_block ) {
+ for ( x = 0 ;
+ x < cell -> width << 2 ;
+ x ++ ) ref_block [ x ] = requant_tab [ vq_index & 7 ] [ ref_block [ x ] ] ;
+ }
+ error = IV3_NOERR ;
+ switch ( mode ) {
+ case 0 : case 1 : case 3 : case 4 : if ( mode >= 3 && cell -> mv_ptr ) {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to apply Mode 3/4 to an INTER cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ zoom_fac = mode >= 3 ;
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , 0 , zoom_fac , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ break ;
+ case 10 : case 11 : if ( mode == 10 && ! cell -> mv_ptr ) {
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , 1 , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+ else {
+ if ( mode == 11 && ! cell -> mv_ptr ) {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to use Mode 11 for an INTRA cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ zoom_fac = mode == 10 ;
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , zoom_fac , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+ break ;
+ default : av_log ( avctx , AV_LOG_ERROR , "Unsupported coding mode: %d\n" , mode ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ switch ( error ) {
+ case IV3_BAD_RLE : av_log ( avctx , AV_LOG_ERROR , "Mode %d: RLE code %X is not allowed at the current line\n" , mode , data_ptr [ - 1 ] ) ;
+ return AVERROR_INVALIDDATA ;
+ case IV3_BAD_DATA : av_log ( a
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ int x , mv_x , mv_y , mode , vq_index , prim_indx , second_indx ;
+ int zoom_fac ;
+ int offset , error = 0 , swap_quads [ 2 ] ;
+ uint8_t code , * block , * ref_block = 0 ;
+ const vqEntry * delta [ 2 ] ;
+ const uint8_t * data_start = data_ptr ;
+ code = * data_ptr ++ ;
+ mode = code >> 4 ;
+ vq_index = code & 0xF ;
+ offset = ( cell -> ypos << 2 ) * plane -> pitch + ( cell -> xpos << 2 ) ;
+ block = plane -> pixels [ ctx -> buf_sel ] + offset ;
+ if ( ! cell -> mv_ptr ) {
+ ref_block = block - plane -> pitch ;
+ }
+ else if ( mode >= 10 ) {
+ copy_cell ( ctx , plane , cell ) ;
+ }
+ else {
+ mv_y = cell -> mv_ptr [ 0 ] ;
+ mv_x = cell -> mv_ptr [ 1 ] ;
+ offset += mv_y * plane -> pitch + mv_x ;
+ ref_block = plane -> pixels [ ctx -> buf_sel ^ 1 ] + offset ;
+ }
+ if ( mode == 1 || mode == 4 ) {
+ code = ctx -> alt_quant [ vq_index ] ;
+ prim_indx = ( code >> 4 ) + ctx -> cb_offset ;
+ second_indx = ( code & 0xF ) + ctx -> cb_offset ;
+ }
+ else {
+ vq_index += ctx -> cb_offset ;
+ prim_indx = second_indx =...
+      
+25769803777 | BLOCK | { ref_block = block - plane -> pitch ; }
+25769803778 | BLOCK | <empty>
+25769803779 | BLOCK | { copy_cell ( ctx , plane , cell ) ; }
+25769803780 | BLOCK | 
+        {
+ mv_y = cell -> mv_ptr [ 0 ] ;
+ mv_x = cell -> mv_ptr [ 1 ] ;
+ offset += mv_y * plane -> pitch + mv_x ;
+ ref_block = plane -> pixels [ ctx -> buf_sel ^ 1 ] + offset ;
+ }
+      
+25769803781 | BLOCK | 
+        {
+ code = ctx -> alt_quant [ vq_index ] ;
+ prim_indx = ( code >> 4 ) + ctx -> cb_offset ;
+ second_indx = ( code & 0xF ) + ctx -> cb_offset ;
+ }
+      
+25769803782 | BLOCK | { vq_index += ctx -> cb_offset ; prim_indx = second_indx = vq_index ; }
+25769803783 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Invalid VQ table indexes! Primary: %d, secondary: %d!\n" , prim_indx , second_indx ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803784 | BLOCK | 
+        {
+ for ( x = 0 ;
+ x < cell -> width << 2 ;
+ x ++ ) ref_block [ x ] = requant_tab [ vq_index & 7 ] [ ref_block [ x ] ] ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ case 0 : case 1 : case 3 : case 4 : if ( mode >= 3 && cell -> mv_ptr ) {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to apply Mode 3/4 to an INTER cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ zoom_fac = mode >= 3 ;
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , 0 , zoom_fac , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ break ;
+ case 10 : case 11 : if ( mode == 10 && ! cell -> mv_ptr ) {
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , 1 , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+ else {
+ if ( mode == 11 && ! cell -> mv_ptr ) {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to use Mode 11 for an INTRA cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ zoom_fac = mode == 10 ;
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , zoom_fac , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+ break ;
+ default : av_log ( avctx , AV_LOG_ERROR , "Unsupported coding mode: %...
+      
+25769803786 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to apply Mode 3/4 to an INTER cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803787 | BLOCK | 
+        {
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , 1 , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+      
+25769803788 | BLOCK | 
+        {
+ if ( mode == 11 && ! cell -> mv_ptr ) {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to use Mode 11 for an INTRA cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+ zoom_fac = mode == 10 ;
+ error = decode_cell_data ( ctx , cell , block , ref_block , plane -> pitch , zoom_fac , 1 , mode , delta , swap_quads , & data_ptr , last_ptr ) ;
+ }
+      
+25769803789 | BLOCK | 
+        {
+ av_log ( avctx , AV_LOG_ERROR , "Attempt to use Mode 11 for an INTRA cell!\n" ) ;
+ return AVERROR_INVALIDDATA ;
+ }
+      
+25769803790 | BLOCK | 
+        {
+ case IV3_BAD_RLE : av_log ( avctx , AV_LOG_ERROR , "Mode %d: RLE code %X is not allowed at the current line\n" , mode , data_ptr [ - 1 ] ) ;
+ return AVERROR_INVALIDDATA ;
+ case IV3_BAD_DATA : av_log ( avctx , AV_LOG_ERROR , "Mode %d: invalid VQ data\n" , mode ) ;
+ return AVERROR_INVALIDDATA ;
+ case IV3_BAD_COUNTER : av_log ( avctx , AV_LOG_ERROR , "Mode %d: RLE-FB invalid counter: %d\n" , mode , code ) 
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

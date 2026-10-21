@@ -1,0 +1,201 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static Image * ReadGIFImage ( const ImageInfo * image_info , ExceptionInfo * exception ) {
+ # define BitSet ( byte , bit ) ( ( ( byte ) & ( bit ) ) == ( bit ) ) # define LSBFirstOrder ( x , y ) ( ( ( y ) << 8 ) | ( x ) ) Image * image , * meta_image ;
+ int number_extensionss = 0 ;
+ MagickBooleanType status ;
+ RectangleInfo page ;
+ register ssize_t i ;
+ register unsigned char * p ;
+ size_t delay , dispose , duration , global_colors , image_count , iterations , one ;
+ ssize_t count , opacity ;
+ unsigned char background , c , flag , * global_colormap , header [ MaxTextExtent ] , magick [ 12 ] ;
+ assert ( image_info != ( const ImageInfo * ) NULL ) ;
+ assert ( image_info -> signature == MagickSignature ) ;
+ if ( image_info -> debug != MagickFalse ) ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename ) ;
+ assert ( exception != ( ExceptionInfo * ) NULL ) ;
+ assert ( exception -> signature == MagickSignature ) ;
+ image = AcquireImage ( image_info ) ;
+ status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception ) ;
+ if ( status == MagickFalse ) {
+ image = DestroyImageList ( image ) ;
+ return ( ( Image * ) NULL ) ;
+ }
+ count = ReadBlob ( image , 6 , magick ) ;
+ if ( ( count != 6 ) || ( ( LocaleNCompare ( ( char * ) magick , "GIF87" , 5 ) != 0 ) && ( LocaleNCompare ( ( char * ) magick , "GIF89" , 5 ) != 0 ) ) ) ThrowReaderException ( CorruptImageError , "ImproperImageHeader" ) ;
+ page . width = ReadBlobLSBShort ( image ) ;
+ page . height = ReadBlobLSBShort ( image ) ;
+ flag = ( unsigned char ) ReadBlobByte ( image ) ;
+ background = ( unsigned char ) ReadBlobByte ( image ) ;
+ c = ( unsigned char ) ReadBlobByte ( image ) ;
+ one = 1 ;
+ global_colors = one << ( ( ( size_t ) flag & 0x07 ) + 1 ) ;
+ global_colormap = ( unsigned char * ) AcquireQuantumMemory ( ( size_t ) MagickMax ( global_colors , 256 ) , 3UL * sizeof ( * global_colormap ) ) ;
+ if ( global_colormap == ( unsigned char * ) NULL ) ThrowReaderException ( ResourceLimitError , "MemoryAllocationFailed" ) ;
+ ( void ) ResetMagickMemory ( global_colormap , 0 , 3 * MagickMax ( global_colors , 256 ) * sizeof ( * global_colormap ) ) ;
+ if ( BitSet ( ( int ) flag , 0x80 ) != 0 ) {
+ count = ReadBlob ( image , ( size_t ) ( 3 * global_colors ) , global_colormap ) ;
+ if ( count != ( ssize_t ) ( 3 * global_colors ) ) {
+ global_colormap = ( unsigned char * ) RelinquishMagickMemory ( global_colormap ) ;
+ ThrowReaderException ( CorruptImageError , "InsufficientImageDataInFile" ) ;
+ }
+ }
+ delay = 0 ;
+ dispose = 0 ;
+ duration = 0 ;
+ iterations = 1 ;
+ opacity = ( - 1 ) ;
+ image_count = 0 ;
+ meta_image = AcquireImage ( image_info ) ;
+ for ( ;
+ ;
+ ) {
+ count = ReadBlob ( image , 1 , & c ) ;
+ if ( count != 1 ) break ;
+ if ( c == ( unsigned char ) ';
+' ) break ;
+ if ( c == ( unsigned char ) '!' ) {
+ count = ReadBlob ( image , 1 , & c ) ;
+ if ( count != 1 ) {
+ global_colormap = ( unsigned char * ) RelinquishMagickMemory ( global_colormap ) ;
+ meta_image = DestroyImage ( meta_i
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+ # define BitSet ( byte , bit ) ( ( ( byte ) & ( bit ) ) == ( bit ) ) # define LSBFirstOrder ( x , y ) ( ( ( y ) << 8 ) | ( x ) ) Image * image , * meta_image ;
+ int number_extensionss = 0 ;
+ MagickBooleanType status ;
+ RectangleInfo page ;
+ register ssize_t i ;
+ register unsigned char * p ;
+ size_t delay , dispose , duration , global_colors , image_count , iterations , one ;
+ ssize_t count , opacity ;
+ unsigned char background , c , flag , * global_colormap , header [ MaxTextExtent ] , magick [ 12 ] ;
+ assert ( image_info != ( const ImageInfo * ) NULL ) ;
+ assert ( image_info -> signature == MagickSignature ) ;
+ if ( image_info -> debug != MagickFalse ) ( void ) LogMagickEvent ( TraceEvent , GetMagickModule ( ) , "%s" , image_info -> filename ) ;
+ assert ( exception != ( ExceptionInfo * ) NULL ) ;
+ assert ( exception -> signature == MagickSignature ) ;
+ image = AcquireImage ( image_info ) ;
+ status = OpenBlob ( image_info , image , ReadBinaryBlobMode , exception ) ;
+ if ( status ...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | { image = DestroyImageList ( image ) ; return ( ( Image * ) NULL ) ; }
+25769803779 | BLOCK | <empty>
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | <empty>
+25769803782 | BLOCK | 
+        {
+ count = ReadBlob ( image , 1 , & c ) ;
+ if ( count != 1 ) break ;
+ if ( c == ( unsigned char ) ';
+' ) break ;
+ if ( c == ( unsigned char ) '!' ) {
+ count = ReadBlob ( image , 1 , & c ) ;
+ if ( count != 1 ) {
+ global_colormap = ( unsigned char * ) RelinquishMagickMemory ( global_colormap ) ;
+ meta_image = DestroyImage ( meta_image ) ;
+ ThrowReaderException ( CorruptImageError , "UnableToReadExtensionBlock" ) ;
+ }
+ switch ( c ) {
+ case 0xf9 : {
+ while ( ReadBlobBlock ( image , header ) != 0 ) ;
+ dispose = ( size_t ) ( header [ 0 ] >> 2 ) ;
+ delay = ( size_t ) ( ( header [ 2 ] << 8 ) | header [ 1 ] ) ;
+ if ( ( ssize_t ) ( header [ 0 ] & 0x01 ) == 0x01 ) opacity = ( ssize_t ) header [ 3 ] ;
+ break ;
+ }
+ case 0xfe : {
+ char * comments ;
+ size_t length ;
+ comments = AcquireString ( ( char * ) NULL ) ;
+ for ( length = 0 ;
+ ;
+ length += count ) {
+ count = ReadBlobBlock ( image , header ) ;
+ if ( count == 0 ) break ;
+ header [ count ] = '\0' ;
+ ( void ) ConcatenateString ( & comments , ( ...
+      
+25769803783 | BLOCK | <empty>
+25769803784 | BLOCK | 
+        {
+ global_colormap = ( unsigned char * ) RelinquishMagickMemory ( global_colormap ) ;
+ meta_image = DestroyImage ( meta_image ) ;
+ ThrowReaderException ( CorruptImageError , "UnableToReadExtensionBlock" ) ;
+ }
+      
+25769803785 | BLOCK | 
+        {
+ case 0xf9 : {
+ while ( ReadBlobBlock ( image , header ) != 0 ) ;
+ dispose = ( size_t ) ( header [ 0 ] >> 2 ) ;
+ delay = ( size_t ) ( ( header [ 2 ] << 8 ) | header [ 1 ] ) ;
+ if ( ( ssize_t ) ( header [ 0 ] & 0x01 ) == 0x01 ) opacity = ( ssize_t ) header [ 3 ] ;
+ break ;
+ }
+ case 0xfe : {
+ char * comments ;
+ size_t length ;
+ comments = AcquireString ( ( char * ) NULL ) ;
+ for ( length = 0 ;
+ ;
+ length += count ) {
+ count = ReadBlobBlock ( image , header ) ;
+ if ( count == 0 ) break ;
+ header [ count ] = '\0' ;
+ ( void ) ConcatenateString ( & comments , ( const char * ) header ) ;
+ }
+ ( void ) SetImageProperty ( meta_image , "comment" , comments ) ;
+ comments = DestroyString ( comments ) ;
+ break ;
+ }
+ case 0xff : {
+ MagickBooleanType loop ;
+ loop = MagickFalse ;
+ if ( ReadBlobBlock ( image , header ) != 0 ) loop = LocaleNCompare ( ( char * ) header , "NETSCAPE2.0" , 11 ) == 0 ? MagickTrue : MagickFalse ;
+ if ( loop != MagickFalse ) {
+ while ( ReadBlobBlock ( image , header ) != 0...
+      
+25769803786 | BLOCK | 
+        {
+ while ( ReadBlobBlock ( image , header ) != 0 ) ;
+ dispose = ( size_t ) ( header [ 0 ] >> 2 ) ;
+ delay = ( size_t ) ( ( header [ 2 ] << 8 ) | header [ 1 ] ) ;
+ if ( ( ssize_t ) ( header [ 0 ] & 0x01 ) == 0x01 ) opacity = ( ssize_t ) header [ 3 ] ;
+ break ;
+ }
+      
+25769803787 | BLOCK | <empty>
+25769803788 | BLOCK | <empty>
+25769803789 | BLOCK | 
+        {
+ char * comments ;
+ size_t length ;
+ comments = AcquireString ( ( char * ) NULL ) ;
+ for ( length = 0 ;
+ ;
+ length += count ) {
+ count = ReadBlobBlock ( image , header ) ;
+ if ( count == 0 ) break ;
+ header [ count ] = '\0' ;
+ ( void ) ConcatenateString ( & comments , ( const char * ) header ) ;
+ }
+ ( void ) SetImageProperty ( meta_image , "comment" , comments ) ;
+ comments = D
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

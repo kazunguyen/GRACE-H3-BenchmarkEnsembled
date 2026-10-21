@@ -1,0 +1,322 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void prepare_grab(void)
+
+{
+
+    int has_video, has_audio, i, j;
+
+    AVFormatContext *oc;
+
+    AVFormatContext *ic;
+
+    AVFormatParameters ap1, *ap = &ap1;
+
+
+
+    /* see if audio/video inputs are needed */
+
+    has_video = 0;
+
+    has_audio = 0;
+
+    memset(ap, 0, sizeof(*ap));
+
+    for(j=0;j<nb_output_files;j++) {
+
+        oc = output_files[j];
+
+        for(i=0;i<oc->nb_streams;i++) {
+
+            AVCodecContext *enc = &oc->streams[i]->codec;
+
+            switch(enc->codec_type) {
+
+            case CODEC_TYPE_AUDIO:
+
+                if (enc->sample_rate > ap->sample_rate)
+
+                    ap->sample_rate = enc->sample_rate;
+
+                if (enc->channels > ap->channels)
+
+                    ap->channels = enc->channels;
+
+                has_audio = 1;
+
+                break;
+
+            case CODEC_TYPE_VIDEO:
+
+                if (enc->width > ap->width)
+
+                    ap->width = enc->width;
+
+                if (enc->height > ap->height)
+
+                    ap->height = enc->height;
+
+                if (enc->frame_rate > ap->frame_rate)
+
+                    ap->frame_rate = enc->frame_rate;
+
+                has_video = 1;
+
+                break;
+
+            default:
+
+                abort();
+
+            }
+
+        }
+
+    }
+
+    
+
+    if (has_video == 0 && has_audio == 0) {
+
+        fprintf(stderr, "Output file must have at least one audio or video stream\n");
+
+        exit(1);
+
+    }
+
+    
+
+    if (has_video) {
+
+        AVInputFormat *fmt1;
+
+        fmt1 = av_find_input_format("video_grab_device");
+
+        if (av_open_input_file(&ic, "", fmt1, 0, ap) < 0) {
+
+            fprintf(stderr, "Could not find video grab device\n");
+
+            exit(1);
+
+        }
+
+        /* by now video grab has one stream */
+
+        ic->streams[0]->r_frame_rate = ap->frame_rate;
+
+        input_files[nb_input_files] = ic;
+
+        dump_format(ic, nb_input_files, v4l_device, 0);
+
+        nb_input_files++;
+
+    }
+
+    if (has_audio) {
+
+        AVInputFormat *fmt1;
+
+        fmt1 = av_find_input_format("audio_device");
+
+        if (av_open_input_file(&ic, "", fmt1, 0, ap) < 0) {
+
+            fprintf(stderr, "Could not find audio grab device\n");
+
+            exit(1);
+
+        }
+
+        input_files[nb_input_files] = ic;
+
+        dump_format(ic, nb_input_files, audio_device, 0);
+
+        nb_input_files++;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+12 -> 14 [IS_AST_PARENT]
+5 -> 12 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+5 -> 15 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+19 -> 21 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+4 -> 18 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+22 -> 23 [IS_AST_PARENT]
+4 -> 22 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 37 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+26 -> 30 [IS_AST_PARENT]
+4 -> 26 [IS_AST_PARENT]
+39 -> 40 [IS_AST_PARENT]
+39 -> 41 [IS_AST_PARENT]
+38 -> 39 [IS_AST_PARENT]
+4 -> 38 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+4 -> 42 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+47 -> 48 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+53 -> 54 [IS_AST_PARENT]
+50 -> 53 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+56 -> 58 [IS_AST_PARENT]
+55 -> 56 [IS_AST_PARENT]
+50 -> 55 [IS_AST_PARENT]
+47 -> 50 [IS_AST_PARENT]
+46 -> 47 [IS_AST_PARENT]
+4 -> 46 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+63 -> 65 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+61 -> 62 [IS_AST_PARENT]
+67 -> 68 [IS_AST_PARENT]
+67 -> 69 [IS_AST_PARENT]
+66 -> 67 [IS_AST_PARENT]
+61 -> 66 [IS_AST_PARENT]
+70 -> 71 [IS_AST_PARENT]
+70 -> 72 [IS_AST_PARENT]
+61 -> 70 [IS_AST_PARENT]
+75 -> 76 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+77 -> 79 [IS_AST_PARENT]
+75 -> 77 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+82 -> 84 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+80 -> 81 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+88 -> 89 [IS_AST_PARENT]
+88 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+void opt_input_file(const char *filename)
+
+{
+
+    AVFormatContext *ic;
+
+    AVFormatParameters params, *ap = &params;
+
+    int err, i, ret, rfps;
+
+
+
+    /* get default parameters from command line */
+
+    memset(ap, 0, sizeof(*ap));
+
+    ap->sample_rate = audio_sample_rate;
+
+    ap->channels = audio_channels;
+
+    ap->frame_rate = frame_rate;
+
+    ap->width = frame_width;
+
+    ap->height = frame_height;
+
+
+
+    /* open the input file with generic libav function */
+
+    err = av_open_input_file(&ic, filename, file_iformat, 0, ap);
+
+    if (err < 0) {
+
+        print_error(filename, err);
+
+        exit(1);
+
+    }
+
+    
+
+    /* If not enough info to get the stream parameters, we decode the
+
+       first frames to get it. (used in mpeg case for example) */
+
+    ret = av_find_stream_info(ic);
+
+    if (ret < 0) {
+
+        fprintf(stderr, "%s: could not find codec parameters\n", filename);
+
+        exit(1);
+
+    }
+
+
+
+    /* update the current parameters so that they match the one of the input stream */
+
+    for(i=0;i<ic->nb_streams;i++) {
+
+        AVCodecContext *enc = &ic->streams[i]->codec;
+
+        switch(enc->codec_type) {
+
+        case CODEC_TYPE_AUDIO:
+
+            //fprintf(stderr, "\nInput Audio channels: %d", enc->channels);
+
+            audio_channels = enc->channels;
+
+            audio_sample_rate = enc->sample_rate;
+
+            break;
+
+        case CODEC_TYPE_VIDEO:
+
+            frame_height = enc->height;
+
+            frame_width = enc->width;
+
+            rfps = ic->str
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

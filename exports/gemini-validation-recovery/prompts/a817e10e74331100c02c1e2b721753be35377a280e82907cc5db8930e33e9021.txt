@@ -1,0 +1,341 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void calculate_geometry(int64_t total_sectors, uint16_t* cyls,
+
+    uint8_t* heads, uint8_t* secs_per_cyl)
+
+{
+
+    uint32_t cyls_times_heads;
+
+
+
+    if (total_sectors > 65535 * 16 * 255)
+
+        total_sectors = 65535 * 16 * 255;
+
+
+
+    if (total_sectors > 65535 * 16 * 63) {
+
+        *secs_per_cyl = 255;
+
+        *heads = 16;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+    } else {
+
+        *secs_per_cyl = 17;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        *heads = (cyls_times_heads + 1023) / 1024;
+
+
+
+        if (*heads < 4)
+
+            *heads = 4;
+
+
+
+        if (cyls_times_heads >= (*heads * 1024) || *heads > 16) {
+
+            *secs_per_cyl = 31;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+
+
+        if (cyls_times_heads >= (*heads * 1024)) {
+
+            *secs_per_cyl = 63;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+    }
+
+
+
+    // Note: Rounding up deviates from the Virtual PC behaviour
+
+    // However, we need this to avoid truncating images in qemu-img convert
+
+    *cyls = (cyls_times_heads + *heads - 1) / *heads;
+
+}
+
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+    uint32_t cyls_times_heads;
+
+
+
+    if (total_sectors > 65535 * 16 * 255)
+
+        total_sectors = 65535 * 16 * 255;
+
+
+
+    if (total_sectors > 65535 * 16 * 63) {
+
+        *secs_per_cyl = 255;
+
+        *heads = 16;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+    } else {
+
+        *secs_per_cyl = 17;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        *heads = (cyls_times_heads + 1023) / 1024;
+
+
+
+        if (*heads < 4)
+
+            *heads = 4;
+
+
+
+        if (cyls_times_heads >= (*heads * 1024) || *heads > 16) {
+
+            *secs_per_cyl = 31;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+
+
+        if (cyls_times_heads >= (*heads * 1024)) {
+
+            *secs_per_cyl = 63;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+    }
+
+
+
+    // Note: Rounding up deviates from the Virtual PC behaviour
+
+    // However, we need this to avoid truncating...
+      
+25769803777 | BLOCK | <empty>
+25769803778 | BLOCK | 
+        {
+
+        *secs_per_cyl = 255;
+
+        *heads = 16;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+    }
+      
+25769803779 | BLOCK | 
+        {
+
+        *secs_per_cyl = 17;
+
+        cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        *heads = (cyls_times_heads + 1023) / 1024;
+
+
+
+        if (*heads < 4)
+
+            *heads = 4;
+
+
+
+        if (cyls_times_heads >= (*heads * 1024) || *heads > 16) {
+
+            *secs_per_cyl = 31;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+
+
+        if (cyls_times_heads >= (*heads * 1024)) {
+
+            *secs_per_cyl = 63;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+
+    }
+      
+25769803780 | BLOCK | <empty>
+25769803781 | BLOCK | 
+        {
+
+            *secs_per_cyl = 31;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+      
+25769803782 | BLOCK | 
+        {
+
+            *secs_per_cyl = 63;
+
+            *heads = 16;
+
+            cyls_times_heads = total_sectors / *secs_per_cyl;
+
+        }
+      
+30064771072 | CALL | total_sectors > 65535 * 16 * 255
+30064771073 | CALL | 65535 * 16 * 255
+30064771074 | CALL | 65535 * 16
+30064771075 | CALL | total_sectors = 65535 * 16 * 255
+30064771076 | CALL | 65535 * 16 * 255
+30064771077 | CALL | 65535 * 16
+30064771078 | CALL | total_sectors > 65535 * 16 * 63
+30064771079 | CALL | 65535 * 16 * 63
+30064771080 | CALL | 65535 * 16
+30064771081 | CALL | *secs_per_cyl = 255
+30064771082 | CALL | *secs_per_cyl
+30064771083 | CALL | *heads = 16
+30064771084 | CALL | *heads
+30064771085 | CALL | cyls_times_heads = total_sectors / *secs_per_cyl
+30064771086 | CALL | total_sectors / *secs_per_cyl
+30064771087 | CALL | *secs_per_cyl
+30064771088 | CALL | *secs_per_cyl = 17
+30064771089 | CALL | *secs_per_cyl
+30064771090 | CALL | cyls_times_heads = total_sectors / *secs_per_cyl
+30064771091 | CALL | total_sectors / *secs_per_cyl
+30064771092 | CALL | *secs_per_cyl
+30064771093 | CALL | *heads = (cyls_times_heads + 1023) / 1024
+30064771094 | CALL | *heads
+30064771095 | CALL | (cyls_times_heads + 1023) / 1024
+30064771096 | CALL | cyls_times_heads + 1023
+30064771097 | CALL | *heads < 4
+30064771098 | CALL | *heads
+30064771099 | CALL | *heads = 4
+30064771100 | CALL | *heads
+30064771101 | CALL | cyls_times_heads >= (*heads * 1024) || *heads > 16
+30064771102 | CALL | cyls_times_heads >= (*heads * 1024)
+30064771103 | CALL | *heads * 1024
+30064771104 | CALL | *heads
+EDGES:
+25769803777 -> 30064771075 [AST]
+25769803778 -> 30064771081 [AST]
+25769803778 -> 30064771083 [AST]
+25769803778 -> 30064771085 [AST]
+25769803779 -> 30064771088 [AST]
+25769803779 -> 30064771090 [AST]
+25769803779 -> 30064771093 [AST]
+25769803780 -> 30064771099 [AST]
+30064771072 -> 30064771073 [ARGUMENT]
+30064771072 -> 30064771073 [AST]
+30064771072 -> 30064771075 [CDG]
+30064771072 -> 30064771076 [CDG]
+30064771072 -> 30064771077 [CDG]
+30064771072 -> 30064771073 [POST_DOMINATE]
+30064771073 -> 30064771074 [ARGUMENT]
+30064771073 -> 30064771074 [AST]
+30064771073 -> 30064771072 [CFG]
+30064771073 -> 30064771072 [DOMINATE]
+30064771073 -> 30064771072 [REACHING_DEF]
+30064771074 -> 30064771073 [REACHING_DEF]
+30064771075 -> 30064771076 [ARGUMENT]
+30064771075 -> 30064771076 [AST]
+30064771075 -> 30064771076 [POST_DOMINATE]
+30064771076 -> 30064771077 [ARGUMENT]
+30064771076 -> 30064771077 [AST]
+30064771076 -> 30064771075 [CFG]
+30064771076 -> 30064771075 [DOMINATE]
+30064771076 -> 30064771075 [REACHING_DEF]
+30064771077 -> 30064771076 [REACHING_DEF]
+30064771078 -> 30064771079 [ARGUMENT]
+30064771078 -> 30064771079 [AST]
+30064771078 -> 30064771081 [CDG]
+30064771078 -> 30064771086 [CDG]
+30064771078 -> 30064771087 [CDG]
+30064771078 -> 30064771088 [CDG]
+30064771078 -> 30064771089 [CDG]
+30064771078 -> 30064771082 [CDG]
+30064771078 -> 30064771083 [CDG]
+30064771078 -> 30064771084 [CDG]
+30064771078 -> 30064771085 [CDG]
+30064771078 -> 30064771094 [CDG]
+30064771078 -> 30064771095 [CDG]
+30064771078 -> 30064771096 [CDG]
+30064771078 -> 30064771097 [CDG]
+30064771078 -> 30064771090 [CDG]
+30064771078 -> 30064771091 [CDG]
+30064771078 -> 30064771092 [CDG]
+30064771078 -> 30064771093 [CDG]
+30064771078 -> 30064771102 [CDG]
+30064771078 -> 30064771103 [CDG]
+30064771078 -> 30064771104 [CDG]
+30064771078 -> 30064771098 [CDG]
+30064771078 -> 30064771101 [CDG]
+30064771078 -> 30064771079 [POST_DOMINATE]
+30064771079 -> 30064771080 [ARGUMENT]
+30064771079 -> 30064771080 [AST]
+30064771079 -> 30064771078 [CFG]
+30064771079 -> 30064771078 [DOMINATE]
+30064771079 -> 30064771078 [REACHING_DEF]
+30064771080 -> 30064771079 [REACHING_DEF]
+30064771081 -> 30064771082 [ARGUMENT]
+30064771081 -> 30064771082 [AST]
+30064771082 -> 30064771087 [REACHING_DEF]
+30064771082 -> 30064771081 [REACHING_DEF]
+30064771083 -> 30064771084 [ARGUMENT]
+30064771083 -> 30064771084 [AST]
+30064771084 -> 30064771083 [REACHING_DEF]
+30064771085 -> 30064771086 [ARGUMENT]
+30064771085 -> 30064771086 [AST]
+30064771085 -> 30064771086 [POST_DOMINATE]
+30064771086 -> 30064771087 [ARGUMENT]
+30064771086 -> 3006477108
+
+### REFERENCE EXAMPLES
+Vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

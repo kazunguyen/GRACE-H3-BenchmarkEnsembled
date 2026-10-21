@@ -1,0 +1,123 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static void ssim_4x4x2_core(const uint8_t *main, int main_stride,
+
+                            const uint8_t *ref, int ref_stride,
+
+                            int sums[2][4])
+
+{
+
+    int x, y, z;
+
+
+
+    for (z = 0; z < 2; z++) {
+
+        uint32_t s1 = 0, s2 = 0, ss = 0, s12 = 0;
+
+
+
+        for (y = 0; y < 4; y++) {
+
+            for (x = 0; x < 4; x++) {
+
+                int a = main[x + y * main_stride];
+
+                int b = ref[x + y * ref_stride];
+
+
+
+                s1  += a;
+
+                s2  += b;
+
+                ss  += a*a;
+
+                ss  += b*b;
+
+                s12 += a*b;
+
+            }
+
+        }
+
+
+
+        sums[z][0] = s1;
+
+        sums[z][1] = s2;
+
+        sums[z][2] = ss;
+
+        sums[z][3] = s12;
+
+        main += 4;
+
+        ref += 4;
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | LEGACY_SERIALIZED_NODE_TEXT | File(<SOURCE_FILE>) DeclStmt Decl Decl Decl DeclStmt Decl Decl Decl Decl DeclStmt Decl DeclStmt Decl DeclStmt Decl DeclStmt Decl DeclStmt Decl
+EDGES (original Joern endpoint IDs):
+2 -> 3 [DECLARES]
+2 -> 4 [DECLARES]
+2 -> 5 [DECLARES]
+6 -> 7 [DECLARES]
+6 -> 8 [DECLARES]
+6 -> 9 [DECLARES]
+6 -> 10 [DECLARES]
+11 -> 12 [DECLARES]
+13 -> 14 [DECLARES]
+15 -> 16 [DECLARES]
+17 -> 18 [DECLARES]
+19 -> 20 [DECLARES]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static void FUNC(transquant_bypass4x4)(uint8_t *_dst, int16_t *coeffs,
+
+                                       ptrdiff_t stride)
+
+{
+
+    int x, y;
+
+    pixel *dst = (pixel *)_dst;
+
+
+
+    stride /= sizeof(pixel);
+
+
+
+    for (y = 0; y < 4; y++) {
+
+        for (x = 0; x < 4; x++) {
+
+            dst[x] += *coeffs;
+
+            coeffs++;
+
+        }
+
+        dst += stride;
+
+    }
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

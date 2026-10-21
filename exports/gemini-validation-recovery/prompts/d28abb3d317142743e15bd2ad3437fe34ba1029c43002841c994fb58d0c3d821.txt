@@ -1,0 +1,541 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+unsigned int SingleCPDO(const unsigned int opcode)
+
+{
+
+   FPA11 *fpa11 = GET_FPA11();
+
+   float32 rFm, rFn = 0;
+
+   unsigned int Fd, Fm, Fn, nRc = 1;
+
+
+
+   Fm = getFm(opcode);
+
+   if (CONSTANT_FM(opcode))
+
+   {
+
+     rFm = getSingleConstant(Fm);
+
+   }
+
+   else
+
+   {
+
+     switch (fpa11->fType[Fm])
+
+     {
+
+        case typeSingle:
+
+          rFm = fpa11->fpreg[Fm].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+     }
+
+   }
+
+
+
+   if (!MONADIC_INSTRUCTION(opcode))
+
+   {
+
+      Fn = getFn(opcode);
+
+      switch (fpa11->fType[Fn])
+
+      {
+
+        case typeSingle:
+
+          rFn = fpa11->fpreg[Fn].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+      }
+
+   }
+
+
+
+   Fd = getFd(opcode);
+
+   switch (opcode & MASK_ARITHMETIC_OPCODE)
+
+   {
+
+      /* dyadic opcodes */
+
+      case ADF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_add(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case MUF_CODE:
+
+      case FML_CODE:
+
+        fpa11->fpreg[Fd].fSingle = float32_mul(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case SUF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sub(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case RSF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sub(rFm,rFn, &fpa11->fp_status);
+
+      break;
+
+
+
+      case DVF_CODE:
+
+      case FDV_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_div(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case RDF_CODE:
+
+      case FRD_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_div(rFm,rFn, &fpa11->fp_status);
+
+      break;
+
+
+
+#if 0
+
+      case POW_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_pow(rFn,rFm);
+
+      break;
+
+
+
+      case RPW_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_pow(rFm,rFn);
+
+      break;
+
+#endif
+
+
+
+      case RMF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_rem(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+#if 0
+
+      case POL_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_pol(rFn,rFm);
+
+      break;
+
+#endif
+
+
+
+      /* monadic opcodes */
+
+      case MVF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = rFm;
+
+      break;
+
+
+
+      case MNF_CODE:
+
+         rFm ^= 0x80000000;
+
+         fpa11->fpreg[Fd].fSingle = rFm;
+
+      break;
+
+
+
+      case ABS_CODE:
+
+         rFm &= 0x7fffffff;
+
+         fpa11->fpreg[Fd].fSingle = rFm;
+
+      break;
+
+
+
+      case RND_CODE:
+
+      case URD_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_round_to_int(rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case SQT_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sqrt(rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+#if 0
+
+      case LOG_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_log(rFm);
+
+      break;
+
+
+
+      case LGN_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_ln(rFm);
+
+      break;
+
+
+
+      case EXP_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_exp(rFm);
+
+      break;
+
+
+
+      case SIN_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sin(rFm);
+
+      break;
+
+
+
+      case COS_CODE:
+
+         fpa11->fpreg[Fd].fSingl
+
+### GRAPH CONTEXT
+NODES (whole function CPG prefix; no sink selection):
+25769803776 | BLOCK | 
+        {
+
+   FPA11 *fpa11 = GET_FPA11();
+
+   float32 rFm, rFn = 0;
+
+   unsigned int Fd, Fm, Fn, nRc = 1;
+
+
+
+   Fm = getFm(opcode);
+
+   if (CONSTANT_FM(opcode))
+
+   {
+
+     rFm = getSingleConstant(Fm);
+
+   }
+
+   else
+
+   {
+
+     switch (fpa11->fType[Fm])
+
+     {
+
+        case typeSingle:
+
+          rFm = fpa11->fpreg[Fm].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+     }
+
+   }
+
+
+
+   if (!MONADIC_INSTRUCTION(opcode))
+
+   {
+
+      Fn = getFn(opcode);
+
+      switch (fpa11->fType[Fn])
+
+      {
+
+        case typeSingle:
+
+          rFn = fpa11->fpreg[Fn].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+      }
+
+   }
+
+
+
+   Fd = getFd(opcode);
+
+   switch (opcode & MASK_ARITHMETIC_OPCODE)
+
+   {
+
+      /* dyadic opcodes */
+
+      case ADF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_add(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case MUF_CODE:
+
+      case FML_CODE:
+
+        fpa11->fpreg[Fd].fSingle = float32_mul(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      cas...
+      
+25769803777 | BLOCK | { rFm = getSingleConstant(Fm); }
+25769803778 | BLOCK | 
+        {
+
+     switch (fpa11->fType[Fm])
+
+     {
+
+        case typeSingle:
+
+          rFm = fpa11->fpreg[Fm].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+     }
+
+   }
+      
+25769803779 | BLOCK | { case typeSingle: rFm = fpa11->fpreg[Fm].fSingle; break; default: return 0; }
+25769803780 | BLOCK | 
+        {
+
+      Fn = getFn(opcode);
+
+      switch (fpa11->fType[Fn])
+
+      {
+
+        case typeSingle:
+
+          rFn = fpa11->fpreg[Fn].fSingle;
+
+        break;
+
+
+
+        default: return 0;
+
+      }
+
+   }
+      
+25769803781 | BLOCK | { case typeSingle: rFn = fpa11->fpreg[Fn].fSingle; break; default: return 0; }
+25769803782 | BLOCK | 
+        {
+
+      /* dyadic opcodes */
+
+      case ADF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_add(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case MUF_CODE:
+
+      case FML_CODE:
+
+        fpa11->fpreg[Fd].fSingle = float32_mul(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case SUF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sub(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case RSF_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_sub(rFm,rFn, &fpa11->fp_status);
+
+      break;
+
+
+
+      case DVF_CODE:
+
+      case FDV_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_div(rFn,rFm, &fpa11->fp_status);
+
+      break;
+
+
+
+      case RDF_CODE:
+
+      case FRD_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_div(rFm,rFn, &fpa11->fp_status);
+
+      break;
+
+
+
+#if 0
+
+      case POW_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_pow(rFn,rFm);
+
+      break;
+
+
+
+      case RPW_CODE:
+
+         fpa11->fpreg[Fd].fSingle = float32_pow(rFm,rFn);
+
+      break;
+
+#endif...
+      
+25769803783 | BLOCK | { nRc = 0; }
+25769803784 | BLOCK | <empty>
+30064771072 | CALL | fpa11 = GET_FPA11()
+30064771073 | CALL | GET_FPA11()
+30064771074 | CALL | rFn = 0
+30064771075 | CALL | nRc = 1
+30064771076 | CALL | Fm = getFm(opcode)
+30064771077 | CALL | getFm(opcode)
+30064771078 | CALL | CONSTANT_FM(opcode)
+30064771079 | CALL | rFm = getSingleConstant(Fm)
+30064771080 | CALL | getSingleConstant(Fm)
+30064771081 | CALL | fpa11->fType[Fm]
+30064771082 | CALL | fpa11->fType
+30064771083 | CALL | rFm = fpa11->fpreg[Fm].fSingle
+30064771084 | CALL | fpa11->fpreg[Fm].fSingle
+30064771085 | CALL | fpa11->fpreg[Fm]
+30064771086 | CALL | fpa11->fpreg
+30064771087 | CALL | !MONADIC_INSTRUCTION(opcode)
+30064771088 | CALL | MONADIC_INSTRUCTION(opcode)
+30064771089 | CALL | Fn = getFn(opcode)
+30064771090 | CALL | getFn(opcode)
+30064771091 | CALL | fpa11->fType[Fn]
+30064771092 | CALL | fpa11->fType
+30064771093 | CALL | rFn = fpa11->fpreg[Fn].fSingle
+30064771094 | CALL | fpa11->fpreg[Fn].fSingle
+30064771095 | CALL | fpa11->fpreg[Fn]
+30064771096 | CALL | fpa11->fpreg
+30064771097 | CALL | Fd = getFd(opcode)
+30064771098 | CALL | getFd(opcode)
+30064771099 | CALL | opcode & MASK_ARITHMETIC_OPCODE
+30064771100 | CALL | fpa11->fpreg[Fd].fSingle = float32_add(rFn,rFm, &fpa11->fp_status)
+30064771101 | CALL | fpa11->fpreg[Fd].fSingle
+30064771102 | CALL | fpa11->fpreg[Fd]
+EDGES:
+25769803776 -> 30064771072 [AST]
+25769803776 -> 30064771074 [AST]
+25769803776 -> 30064771075 [AST]
+25769803776 -> 30064771076 [AST]
+25769803776 -> 30064771097 [AST]
+25769803777 -> 30064771079 [AST]
+25769803779 -> 30064771083 [AST
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

@@ -1,0 +1,359 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+static inline void RENAME(uyvytoyv12)(const uint8_t *src, uint8_t *ydst, uint8_t *udst, uint8_t *vdst,
+
+	long width, long height,
+
+	long lumStride, long chromStride, long srcStride)
+
+{
+
+	long y;
+
+	const long chromWidth= width>>1;
+
+	for(y=0; y<height; y+=2)
+
+	{
+
+#ifdef HAVE_MMX
+
+		asm volatile(
+
+			"xorl %%eax, %%eax		\n\t"
+
+			"pcmpeqw %%mm7, %%mm7		\n\t"
+
+			"psrlw $8, %%mm7		\n\t" // FF,00,FF,00...
+
+			ASMALIGN(4)
+
+			"1:				\n\t"
+
+			PREFETCH" 64(%0, %%eax, 4)	\n\t"
+
+			"movq (%0, %%eax, 4), %%mm0	\n\t" // UYVY UYVY(0)
+
+			"movq 8(%0, %%eax, 4), %%mm1	\n\t" // UYVY UYVY(4)
+
+			"movq %%mm0, %%mm2		\n\t" // UYVY UYVY(0)
+
+			"movq %%mm1, %%mm3		\n\t" // UYVY UYVY(4)
+
+			"pand %%mm7, %%mm0		\n\t" // U0V0 U0V0(0)
+
+			"pand %%mm7, %%mm1		\n\t" // U0V0 U0V0(4)
+
+			"psrlw $8, %%mm2		\n\t" // Y0Y0 Y0Y0(0)
+
+			"psrlw $8, %%mm3		\n\t" // Y0Y0 Y0Y0(4)
+
+			"packuswb %%mm1, %%mm0		\n\t" // UVUV UVUV(0)
+
+			"packuswb %%mm3, %%mm2		\n\t" // YYYY YYYY(0)
+
+
+
+			MOVNTQ" %%mm2, (%1, %%eax, 2)	\n\t"
+
+
+
+			"movq 16(%0, %%eax, 4), %%mm1	\n\t" // UYVY UYVY(8)
+
+			"movq 24(%0, %%eax, 4), %%mm2	\n\t" // UYVY UYVY(12)
+
+			"movq %%mm1, %%mm3		\n\t" // UYVY UYVY(8)
+
+			"movq %%mm2, %%mm4		\n\t" // UYVY UYVY(12)
+
+			"pand %%mm7, %%mm1		\n\t" // U0V0 U0V0(8)
+
+			"pand %%mm7, %%mm2		\n\t" // U0V0 U0V0(12)
+
+			"psrlw $8, %%mm3		\n\t" // Y0Y0 Y0Y0(8)
+
+			"psrlw $8, %%mm4		\n\t" // Y0Y0 Y0Y0(12)
+
+			"packuswb %%mm2, %%mm1		\n\t" // UVUV UVUV(8)
+
+			"packuswb %%mm4, %%mm3		\n\t" // YYYY YYYY(8)
+
+
+
+			MOVNTQ" %%mm3, 8(%1, %%eax, 2)	\n\t"
+
+
+
+			"movq %%mm0, %%mm2		\n\t" // UVUV UVUV(0)
+
+			"movq %%mm1, %%mm3		\n\t" // UVUV UVUV(8)
+
+			"psrlw $8, %%mm0		\n\t" // V0V0 V0V0(0)
+
+			"psrlw $8, %%mm1		\n\t" // V0V0 V0V0(8)
+
+			"pand %%mm7, %%mm2		\n\t" // U0U0 U0U0(0)
+
+			"pand %%mm7, %%mm3		\n\t" // U0U0 U0U0(8)
+
+			"packuswb %%mm1, %%mm0		\n\t" // VVVV VVVV(0)
+
+			"packuswb %%mm3, %%mm2		\n\t" // UUUU UUUU(0)
+
+
+
+			MOVNTQ" %%mm0, (%3, %%eax)	\n\t"
+
+			MOVNTQ" %%mm2, (%2, %%eax)	\n\t"
+
+
+
+			"addl $8, %%eax			\n\t"
+
+			"cmpl %4, %%eax			\n\t"
+
+			" jb 1b				\n\t"
+
+			::"r"(src), "r"(ydst), "r"(udst), "r"(vdst), "g" (chromWidth)
+
+			: "memory", "%eax"
+
+		);
+
+
+
+		ydst += lumStride;
+
+		src  += srcStride;
+
+
+
+		asm volatile(
+
+			"xorl %%eax, %%eax		\n\t"
+
+			ASMALIGN(4)
+
+			"1:				\n\t"
+
+			PREFETCH" 64(%0, %%eax, 4)	\n\t"
+
+			"movq (%0, %%eax, 4), %%mm0	\n\t" // YUYV YUYV(0)
+
+			"movq 8(%0, %%eax, 4), %%mm1	\n\t" // YUYV YUYV(4)
+
+			"movq 16(%0, %%eax, 4), %%mm2	\n\t" // YUYV YUYV(8)
+
+			"movq 24(%0, %%eax, 4), %%mm3	\n\t" // YUYV YUYV(12)
+
+			"psrlw $8, %%mm0		\n\t" // Y0Y0 Y0Y0(0)
+
+			"psrlw $8, %%mm1		\n\t" // Y0Y0 Y0Y0(4)
+
+			"psrlw $8, %%mm2		\n\t" // Y0Y0 Y0Y0(8)
+
+			"psrlw $8, %%mm3		\n\t" // Y0Y0 Y0Y0(12)
+
+			"packuswb %%mm1, %%mm0		\n\t" // YYYY YYYY(0)
+
+			"packuswb %%mm3, %%mm2		\n\t" // YYYY YYYY(8)
+
+
+
+			MOVNTQ" %%mm0, (%1, %%eax, 2)	\n\t"
+
+			MOVNTQ" %%mm2, 8(%1, %%eax, 2)	\n\t"
+
+
+
+			"addl $8, %%eax			\n\t"
+
+			"cmpl %4, %%eax			\n\t"
+
+			" jb 1b				\n\t"
+
+
+
+			::"r"(src), "r
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+10 -> 11 [IS_AST_PARENT]
+10 -> 12 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+15 -> 16 [IS_AST_PARENT]
+15 -> 17 [IS_AST_PARENT]
+13 -> 15 [IS_AST_PARENT]
+10 -> 13 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+4 -> 9 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+19 -> 20 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+24 -> 25 [IS_AST_PARENT]
+24 -> 26 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+18 -> 23 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+27 -> 29 [IS_AST_PARENT]
+18 -> 27 [IS_AST_PARENT]
+30 -> 31 [IS_AST_PARENT]
+30 -> 32 [IS_AST_PARENT]
+30 -> 33 [IS_AST_PARENT]
+30 -> 34 [IS_AST_PARENT]
+30 -> 35 [IS_AST_PARENT]
+30 -> 36 [IS_AST_PARENT]
+30 -> 37 [IS_AST_PARENT]
+30 -> 38 [IS_AST_PARENT]
+30 -> 39 [IS_AST_PARENT]
+30 -> 40 [IS_AST_PARENT]
+30 -> 41 [IS_AST_PARENT]
+30 -> 42 [IS_AST_PARENT]
+30 -> 43 [IS_AST_PARENT]
+30 -> 44 [IS_AST_PARENT]
+30 -> 45 [IS_AST_PARENT]
+30 -> 46 [IS_AST_PARENT]
+30 -> 47 [IS_AST_PARENT]
+30 -> 48 [IS_AST_PARENT]
+30 -> 49 [IS_AST_PARENT]
+30 -> 50 [IS_AST_PARENT]
+30 -> 51 [IS_AST_PARENT]
+30 -> 52 [IS_AST_PARENT]
+30 -> 53 [IS_AST_PARENT]
+30 -> 54 [IS_AST_PARENT]
+30 -> 55 [IS_AST_PARENT]
+30 -> 56 [IS_AST_PARENT]
+30 -> 57 [IS_AST_PARENT]
+30 -> 58 [IS_AST_PARENT]
+30 -> 59 [IS_AST_PARENT]
+30 -> 60 [IS_AST_PARENT]
+30 -> 61 [IS_AST_PARENT]
+30 -> 62 [IS_AST_PARENT]
+30 -> 63 [IS_AST_PARENT]
+30 -> 64 [IS_AST_PARENT]
+30 -> 65 [IS_AST_PARENT]
+30 -> 66 [IS_AST_PARENT]
+30 -> 67 [IS_AST_PARENT]
+30 -> 68 [IS_AST_PARENT]
+30 -> 69 [IS_AST_PARENT]
+30 -> 70 [IS_AST_PARENT]
+30 -> 71 [IS_AST_PARENT]
+30 -> 72 [IS_AST_PARENT]
+30 -> 73 [IS_AST_PARENT]
+30 -> 74 [IS_AST_PARENT]
+30 -> 75 [IS_AST_PARENT]
+30 -> 76 [IS_AST_PARENT]
+30 -> 77 [IS_AST_PARENT]
+30 -> 78 [IS_AST_PARENT]
+30 -> 79 [IS_AST_PARENT]
+30 -> 80 [IS_AST_PARENT]
+30 -> 81 [IS_AST_PARENT]
+30 -> 82 [IS_AST_PARENT]
+30 -> 83 [IS_AST_PARENT]
+30 -> 84 [IS_AST_PARENT]
+30 -> 85 [IS_AST_PARENT]
+30 -> 86 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+static inline void RENAME(uyvytoyv12)(const uint8_t *src, uint8_t *ydst, uint8_t *udst, uint8_t *vdst,
+
+	long width, long height,
+
+	long lumStride, long chromStride, long srcStride)
+
+{
+
+	long y;
+
+	const long chromWidth= width>>1;
+
+	for(y=0; y<height; y+=2)
+
+	{
+
+#ifdef HAVE_MMX
+
+		asm volatile(
+
+			"xorl %%eax, %%eax		\n\t"
+
+			"pcmpeqw %%mm7, %%mm7		\n\t"
+
+			"psrlw $8, %%mm7		\n\t" // FF,00,FF,00...
+
+			ASMALIGN16
+
+			"1:				\n\t"
+
+			PREFETCH" 64(%0, %%eax, 4)	\n\t"
+
+			"movq (%0, %%eax, 4), %%mm0	\n\t" // UYVY UYVY(0)
+
+			"movq 8(%0, %%eax, 4), %%mm1	\n\t" // UYVY UYVY(4)
+
+			"movq %%mm0, %%mm2		\n\t" // UYVY UYVY(0)
+
+			"movq %%mm1, %%mm3		\n\t" // UYVY UYVY(4)
+
+			"pand %%mm7, %%mm0		\n\t" // U0V0 U0V0(0)
+
+			"pand %%mm7, %%mm1		\n\t" // U0V0 U0V0(4)
+
+			"psrlw $8, %%mm2		\n\t" // Y0Y0 Y0Y0(0)
+
+			"psrlw $8, %%mm3		\n\t" // Y0Y0 Y0Y0(4)
+
+			"packuswb %%mm1, %%mm0		\n\t" // UVUV UVUV(0)
+
+			"packuswb %%mm3, %%mm2		\n\t" // YYYY YYYY(0)
+
+
+
+			MOVNTQ" %%mm2, (%1, %%eax, 2)	\n\t"
+
+
+
+			"movq 16(%0, %%eax, 4), %%mm1	\n\t" // UYVY UYVY(8)
+
+			"movq 24(%0, %%eax, 4), %%mm2	\n\t" // UYVY UYVY(12)
+
+			"movq %%mm1, %%mm3		\n\t" // UYVY UYVY(8)
+
+			"movq %%mm2, %%mm4		\n\t" // UYVY UYVY(12)
+
+			"pand %%mm7, %%mm1		\n\t" // U0V0 U0V0(8)
+
+			"pand %%mm7, %%mm2		\n\t" // U0V0 U0V0(12)
+
+			"psrlw $8, %%mm3		\n\t" // Y0Y0 Y0Y0(8)
+
+			"psrlw $8, %%mm4		\n\t" // Y0Y0 Y0Y0(12)
+
+			"packuswb %%mm2, %%mm1		\n\t" // UVUV UVUV(8)
+
+			"packuswb %%mm4, %%mm3		\n\t" // YYYY YYYY(8)
+
+
+
+			MOVNTQ" 
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.

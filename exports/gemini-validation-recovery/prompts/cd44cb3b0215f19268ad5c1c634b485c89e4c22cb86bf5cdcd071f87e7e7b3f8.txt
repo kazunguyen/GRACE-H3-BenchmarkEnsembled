@@ -1,0 +1,221 @@
+### TASK INSTRUCTION
+You are an expert C/C++ software security researcher.
+You are now an excellent programmer. You are conducting a function vulnerability detection task for C/C++ language. Determine whether the target function contains a software vulnerability. Use the target code, graph context, and labeled reference example as evidence.
+
+### TARGET CODE
+void ffv1_clear_slice_state(FFV1Context *f, FFV1Context *fs)
+
+{
+
+    int i, j;
+
+
+
+    for (i = 0; i < f->plane_count; i++) {
+
+        PlaneContext *p = &fs->plane[i];
+
+
+
+        p->interlace_bit_state[0] = 128;
+
+        p->interlace_bit_state[1] = 128;
+
+
+
+        if (fs->ac) {
+
+            if (f->initial_states[p->quant_table_index]) {
+
+                memcpy(p->state, f->initial_states[p->quant_table_index],
+
+                       CONTEXT_SIZE * p->context_count);
+
+            } else
+
+                memset(p->state, 128, CONTEXT_SIZE * p->context_count);
+
+        } else {
+
+            for (j = 0; j < p->context_count; j++) {
+
+                p->vlc_state[j].drift     = 0;
+
+                p->vlc_state[j].error_sum = 4;    //FFMAX((RANGE + 32)/64, 2);
+
+                p->vlc_state[j].bias      = 0;
+
+                p->vlc_state[j].count     = 1;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+### GRAPH CONTEXT
+LEGACY JOERN GRAPH PREFIX (node IDs and node-to-edge mapping were not retained by the source cache):
+AST 1 | IdentifierDeclType
+AST 2 | IdentifierDecl
+AST 3 | IdentifierDeclStatement
+AST 4 | CompoundStatement
+AST 5 | FunctionDef
+EDGES (original Joern endpoint IDs):
+6 -> 7 [IS_AST_PARENT]
+6 -> 8 [IS_AST_PARENT]
+5 -> 6 [IS_AST_PARENT]
+9 -> 10 [IS_AST_PARENT]
+9 -> 11 [IS_AST_PARENT]
+5 -> 9 [IS_AST_PARENT]
+4 -> 5 [IS_AST_PARENT]
+14 -> 15 [IS_AST_PARENT]
+14 -> 16 [IS_AST_PARENT]
+13 -> 14 [IS_AST_PARENT]
+12 -> 13 [IS_AST_PARENT]
+18 -> 19 [IS_AST_PARENT]
+20 -> 21 [IS_AST_PARENT]
+20 -> 22 [IS_AST_PARENT]
+18 -> 20 [IS_AST_PARENT]
+17 -> 18 [IS_AST_PARENT]
+12 -> 17 [IS_AST_PARENT]
+23 -> 24 [IS_AST_PARENT]
+23 -> 25 [IS_AST_PARENT]
+12 -> 23 [IS_AST_PARENT]
+28 -> 29 [IS_AST_PARENT]
+28 -> 30 [IS_AST_PARENT]
+31 -> 32 [IS_AST_PARENT]
+33 -> 34 [IS_AST_PARENT]
+36 -> 37 [IS_AST_PARENT]
+36 -> 38 [IS_AST_PARENT]
+35 -> 36 [IS_AST_PARENT]
+35 -> 39 [IS_AST_PARENT]
+33 -> 35 [IS_AST_PARENT]
+31 -> 33 [IS_AST_PARENT]
+28 -> 31 [IS_AST_PARENT]
+27 -> 28 [IS_AST_PARENT]
+26 -> 27 [IS_AST_PARENT]
+43 -> 44 [IS_AST_PARENT]
+43 -> 45 [IS_AST_PARENT]
+42 -> 43 [IS_AST_PARENT]
+42 -> 46 [IS_AST_PARENT]
+41 -> 42 [IS_AST_PARENT]
+41 -> 47 [IS_AST_PARENT]
+40 -> 41 [IS_AST_PARENT]
+26 -> 40 [IS_AST_PARENT]
+51 -> 52 [IS_AST_PARENT]
+51 -> 53 [IS_AST_PARENT]
+50 -> 51 [IS_AST_PARENT]
+50 -> 54 [IS_AST_PARENT]
+49 -> 50 [IS_AST_PARENT]
+49 -> 55 [IS_AST_PARENT]
+48 -> 49 [IS_AST_PARENT]
+26 -> 48 [IS_AST_PARENT]
+58 -> 59 [IS_AST_PARENT]
+58 -> 60 [IS_AST_PARENT]
+57 -> 58 [IS_AST_PARENT]
+56 -> 57 [IS_AST_PARENT]
+65 -> 66 [IS_AST_PARENT]
+65 -> 67 [IS_AST_PARENT]
+64 -> 65 [IS_AST_PARENT]
+68 -> 69 [IS_AST_PARENT]
+68 -> 70 [IS_AST_PARENT]
+64 -> 68 [IS_AST_PARENT]
+63 -> 64 [IS_AST_PARENT]
+62 -> 63 [IS_AST_PARENT]
+74 -> 75 [IS_AST_PARENT]
+73 -> 74 [IS_AST_PARENT]
+78 -> 79 [IS_AST_PARENT]
+78 -> 80 [IS_AST_PARENT]
+77 -> 78 [IS_AST_PARENT]
+76 -> 77 [IS_AST_PARENT]
+83 -> 84 [IS_AST_PARENT]
+83 -> 85 [IS_AST_PARENT]
+82 -> 83 [IS_AST_PARENT]
+86 -> 87 [IS_AST_PARENT]
+86 -> 88 [IS_AST_PARENT]
+82 -> 86 [IS_AST_PARENT]
+81 -> 82 [IS_AST_PARENT]
+76 -> 81 [IS_AST_PARENT]
+90 -> 91 [IS_AST_PARENT]
+92 -> 93 [IS_AST_PARENT]
+92 -> 94 [IS_AST_PARENT]
+90 -> 92 [IS_AST_PARENT]
+89 -> 90 [IS_AST_PARENT]
+
+### REFERENCE EXAMPLES
+Non-vulnerable example:
+av_cold int ff_ffv1_init_slice_state(FFV1Context *f, FFV1Context *fs)
+
+{
+
+    int j;
+
+
+
+    fs->plane_count  = f->plane_count;
+
+    fs->transparency = f->transparency;
+
+    for (j = 0; j < f->plane_count; j++) {
+
+        PlaneContext *const p = &fs->plane[j];
+
+
+
+        if (fs->ac) {
+
+            if (!p->state)
+
+                p->state = av_malloc_array(p->context_count, CONTEXT_SIZE *
+
+                                     sizeof(uint8_t));
+
+            if (!p->state)
+
+                return AVERROR(ENOMEM);
+
+        } else {
+
+            if (!p->vlc_state)
+
+                p->vlc_state = av_malloc_array(p->context_count, sizeof(VlcState));
+
+            if (!p->vlc_state)
+
+                return AVERROR(ENOMEM);
+
+        }
+
+    }
+
+
+
+    if (fs->ac > 1) {
+
+        //FIXME only redo if state_transition changed
+
+        for (j = 1; j < 256; j++) {
+
+            fs->c. one_state[      j] = f->state_transition[j];
+
+            fs->c.zero_state[256 - j] = 256 - fs->c.one_state[j];
+
+        }
+
+    }
+
+
+
+    return 0;
+
+}
+
+
+### OUTPUT CONTRACT
+Analyze the target function carefully. You may reason internally, but do not
+write an explanation in the response. The last non-empty line of your response
+must contain exactly one character: `1` if the target is Vulnerable, or `0` if
+the target is Non-vulnerable. Do not output any other label or score.
