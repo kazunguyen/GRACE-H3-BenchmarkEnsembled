@@ -12,6 +12,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
+import yaml
 from unittest.mock import patch
 
 _project_root = str(Path(__file__).resolve().parents[1])
@@ -20,16 +21,53 @@ if _project_root not in sys.path:
 
 from grace_h1 import inference
 from grace_h1.data import load_rows
+from grace_h1.graphs import GraphStore
 from grace_h1.io import (read_json, write_json, iter_jsonl, file_hash,
-                         fingerprint, row_identity, sha256)
+                         fingerprint, row_identity, sha256, write_jsonl)
 from grace_h1.parser import parse_prediction
-from grace_h1.pipeline import verify_frozen
+from grace_h1.pipeline import verify_frozen, INSTRUCTION
+from grace_h1.reference import raw_graph_context, fit_prompt, fit_contracted_prompt
 from grace_h3v2 import workflow
 from grace_h3v2.common import verify, versions
 
 MODEL = 'DeepSeek-V4-Flash'
 LIMIT = 8192
-DEFAULT_SESSION = 'devign_fpt_8192_rerun_20261021'
+DEFAULT_SESSION = 'devign_fpt_original_over8192_20261021'
+
+
+def _original_prompt(template, target, graph, demos, policy):
+    # Retain component caps (target/demo/graph); remove only the total-context cap.
+    cap = len(template) + len(INSTRUCTION) + len(target) + len(graph)
+    cap += sum(len(d['code']) + 100 for d in demos) + 1024
+    return fit_prompt(template, target, graph, demos, INSTRUCTION,
+                      dict(policy, context_limit=cap))[0]
+
+
+def _selection(root, prompts):
+    queries = {r['record_id']: r for r in load_rows(root, 'devign', 'test')}
+    train = {r['record_id']: r for r in load_rows(root, 'devign', 'train', labels=True)}
+    policy = yaml.safe_load((root / 'configs/reference_contract.yaml').read_text(encoding='utf-8'))['prompt_context_policy']['truncation_policy']
+    template = (root / 'configs/prompt_template.txt').read_text(encoding='utf-8')
+    graphs = GraphStore(root)
+    result = []
+    for i, p in enumerate(prompts, 1):
+        query = queries[p['record_id']]
+        graph = graphs.get(query['code_sha256'])  # cache only; never build graphs
+        if graph['feature_sha256'] != p['graph_feature_sha256']:
+            raise ValueError('Original prompt graph identity differs')
+        graph_text, _ = raw_graph_context(graph, policy)
+        demos = [train[x] for x in p['selected_demo_ids']]
+        fitted, _ = fit_contracted_prompt(template, query['code'], graph_text, demos,
+                                         INSTRUCTION, dict(policy, context_limit=LIMIT))
+        if fitted != p['prompt']:
+            raise ValueError('Reconstructed 8192-byte prompt differs from the saved prompt')
+        original = _original_prompt(template, query['code'], graph_text, demos, policy)
+        size = len(original.encode('utf-8'))
+        result.append({'record_id': p['record_id'], 'original_prompt_utf8_bytes': size,
+                       'original_prompt_sha256': sha256(original), 'rerun': size > LIMIT})
+        if i % 500 == 0 or i == len(prompts):
+            print(f'Original prompt length audit {i}/{len(prompts)}', flush=True)
+    return result
 
 
 def _folder(root, session):
@@ -107,6 +145,9 @@ def prepare(root, cfg, session=DEFAULT_SESSION):
         'parent_test_run': parent_rel,
         'parent_prepare_fingerprint': manifest['prepare_fingerprint'],
         'parent_prompts_sha256': file_hash(parent / 'prompts.jsonl'),
+        'parent_predictions_sha256': file_hash(parent / 'predictions.jsonl'),
+        'parent_raw_responses_sha256': file_hash(parent / 'raw_responses.jsonl'),
+        'selection_rule': 'original_prompt_utf8_bytes > 8192; component caps unchanged',
         'experiment': stage['experiment'], 'jobs': deepcopy(jobs),
         'context_limit_utf8_bytes': LIMIT, 'model': MODEL,
         'provider': 'FPT AI Factory', 'tool_sha256': file_hash(Path(__file__)),
@@ -116,10 +157,14 @@ def prepare(root, cfg, session=DEFAULT_SESSION):
         if read_json(selection)['identity'] != identity:
             raise ValueError('Session inputs changed; preserve it and choose a new session name')
         _check_prompts(root, folder / 'expert')
+        audit = list(iter_jsonl(folder / 'selection.jsonl'))
     else:
+        audit = _selection(root, prompts)
         expert = folder / 'expert'
         expert.mkdir(parents=True, exist_ok=True)
         locked = {}
+        write_jsonl(folder / 'selection.jsonl', audit)
+        locked[(folder / 'selection.jsonl').relative_to(root).as_posix()] = file_hash(folder / 'selection.jsonl')
         for name in ('prompts.jsonl', 'retrieval.jsonl', 'graph_feature_index.jsonl'):
             source, dest = parent / name, expert / name
             shutil.copy2(source, dest)
@@ -146,6 +191,8 @@ def prepare(root, cfg, session=DEFAULT_SESSION):
     return {'session': session, 'folder': str(folder),
             'expert_run': str(folder / 'expert'), 'queries': len(prompts),
             'unique_prompts': len({p['prompt_sha256'] for p in prompts}),
+            'selected_queries': sum(p['rerun'] for p in audit),
+            'preserved_parent_queries': sum(not p['rerun'] for p in audit),
             'max_prompt_bytes': max(len(p['prompt'].encode('utf-8')) for p in prompts),
             'context_limit_utf8_bytes': LIMIT, 'model': MODEL,
             'provider': 'FPT AI Factory', 'api_calls': 0, 'models_refitted': False}
@@ -182,6 +229,11 @@ def _bound_session(root, cfg, session, settings):
     folder = _folder(root, session)
     with _provider(settings):
         spec = inference.request_spec(root)
+    identity = read_json(folder / 'session.json')['identity']
+    parent = root / identity['parent_test_run']
+    old_summary = read_json(parent / 'inference_summary.json')
+    if old_summary['status'] != 'complete' or old_summary['request_spec'] != spec:
+        raise ValueError('Retained responses must be complete and use exactly the selected model/provider/spec')
     binding = folder / 'request_spec.json'
     if binding.exists() and read_json(binding) != spec:
         raise ValueError('Model, endpoint or inference parameters changed inside this session')
@@ -190,21 +242,64 @@ def _bound_session(root, cfg, session, settings):
     return folder
 
 
+@contextmanager
+def _selected_prompts(folder):
+    selected = {r['record_id'] for r in iter_jsonl(folder / 'selection.jsonl') if r['rerun']}
+    original_iter = inference.iter_jsonl
+    prompt_path = (folder / 'expert/prompts.jsonl').resolve()
+
+    def iterator(path):
+        rows = original_iter(path)
+        if Path(path).resolve() == prompt_path:
+            return (r for r in rows if r['record_id'] in selected)
+        return rows
+
+    with patch.object(inference, 'iter_jsonl', iterator):
+        yield selected
+
+
+def _merge_parent(root, folder, selected):
+    parent = root / read_json(folder / 'session.json')['identity']['parent_test_run']
+    expert = folder / 'expert'
+    prompts = list(iter_jsonl(expert / 'prompts.jsonl'))
+    for name in ('predictions.jsonl', 'raw_responses.jsonl'):
+        old = {r['record_id']: r for r in iter_jsonl(parent / name)}
+        new = {r['record_id']: r for r in iter_jsonl(expert / name)}
+        if set(new) != selected or set(old) != {p['record_id'] for p in prompts}:
+            raise ValueError('Prediction/raw cohort incomplete during merge')
+        merged = []
+        for p in prompts:
+            row = (new if p['record_id'] in selected else old)[p['record_id']]
+            if row['prompt_sha256'] != p['prompt_sha256'] or row['code_sha256'] != p['code_sha256']:
+                raise ValueError('Retained response prompt/code differs')
+            merged.append(row)  # preserve the original prediction/raw record verbatim
+        write_jsonl(expert / name, merged)
+
+
 def preflight(root, cfg, settings, session=DEFAULT_SESSION):
     root = Path(root).resolve()
     folder = _bound_session(root, cfg, session, settings)
     expert = folder / 'expert'
-    with _provider(settings), _private_cache(expert):
-        return inference.plan_inference(root, expert)
+    with _provider(settings), _private_cache(expert), _selected_prompts(folder) as selected:
+        plan = inference.plan_inference(root, expert)
+    plan['total_queries'] = plan['queries']
+    plan['queries'] = len(selected)
+    plan['preserved_parent_queries'] = plan['total_queries'] - len(selected)
+    write_json(expert / 'inference_plan.json', plan)
+    return plan
 
 
 def infer(root, cfg, settings, session=DEFAULT_SESSION, *, workers=4, allow_api=False):
     root = Path(root).resolve()
     folder = _bound_session(root, cfg, session, settings)
     expert = folder / 'expert'
-    with _provider(settings), _private_cache(expert):
+    with _provider(settings), _private_cache(expert), _selected_prompts(folder) as selected:
         report = inference.run_inference(root, expert, workers=workers, allow_api=allow_api)
     if report.get('status') in {'complete', 'partial_request_errors'}:
+        _merge_parent(root, folder, selected)
+        report['selected_queries'] = len(selected)
+        report['preserved_parent_queries'] = report['queries'] - len(selected)
+        report['predictions_sha256'] = file_hash(expert / 'predictions.jsonl')
         counts = Counter(str(p['prediction']) for p in iter_jsonl(expert / 'predictions.jsonl'))
         report['prediction_counts'] = dict(counts)
         report['context_limit_utf8_bytes'] = LIMIT

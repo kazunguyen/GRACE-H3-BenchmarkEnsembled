@@ -39,11 +39,19 @@ def prepared(tmp_path, monkeypatch):
     monkeypatch.setattr(rerun, 'load_rows', lambda *args: rows)
     monkeypatch.setattr(rerun, 'verify', lambda *args: None)
     monkeypatch.setattr(rerun, 'check_runtime', lambda *args: {})
+    monkeypatch.setattr(rerun, '_selection', lambda root, p: [
+        {'record_id': r['record_id'], 'original_prompt_utf8_bytes': 9000 if i in (1, 2) else 8192,
+         'rerun': i in (1, 2)} for i, r in enumerate(p)])
     (root / 'configs').mkdir()
     (root / 'configs/reference_contract.yaml').write_text(
         'inference_config:\n  temperature: 0\n  seed: 42\n  max_tokens: 256\n'
         '  retry_policy: "max_attempts=1; exponential_backoff=1s..1s"\n', encoding='utf-8')
     settings = {'model': rerun.MODEL, 'api_key': 'test-only', 'base_url': 'https://token-api.fpt.ai/v1'}
+    with rerun._provider(settings):
+        spec = inference.request_spec(root)
+    write_jsonl(parent / 'predictions.jsonl', [dict(p, prediction=0) for p in prompts])
+    write_jsonl(parent / 'raw_responses.jsonl', [dict(p, raw_response='0', request_spec=spec) for p in prompts])
+    write_json(parent / 'inference_summary.json', {'status': 'complete', 'request_spec': spec})
     return root, {}, settings, parent, stage
 
 
@@ -82,16 +90,23 @@ def test_fresh_cache_and_interrupted_resume(prepared, monkeypatch):
             HttpOptions=SimpleNamespace, GenerateContentConfig=SimpleNamespace)))
     old_path, old_import = inference.response_path, inference.import_prior_responses
     plan = rerun.preflight(root, cfg, settings, session='test')
-    assert (plan['queries'], plan['new_unique_requests'], plan['cached_queries']) == (4, 3, 0)
+    assert (plan['queries'], plan['new_unique_requests'], plan['cached_queries']) == (2, 2, 0)
+    assert plan['preserved_parent_queries'] == 2
     first = rerun.infer(root, cfg, settings, 'test', workers=1, allow_api=True)
     assert first['status'] == 'partial_request_errors'
-    assert first['new_unique_requests'] == 3
+    assert first['new_unique_requests'] == 2
     second = rerun.infer(root, cfg, settings, 'test', workers=1, allow_api=True)
     assert second['status'] == 'complete'
     assert second['new_unique_requests'] == 1
-    assert second['prediction_counts'] == {'1': 4}
-    assert second['near_constant_output']
-    assert len(calls) == 4
+    assert second['prediction_counts'] == {'0': 2, '1': 2}
+    assert not second['near_constant_output']
+    assert len(calls) == 3
+    merged = list(rerun.iter_jsonl(rerun._folder(root, 'test') / 'expert/predictions.jsonl'))
+    assert merged[0] == list(rerun.iter_jsonl(parent / 'predictions.jsonl'))[0]
+    assert merged[3] == list(rerun.iter_jsonl(parent / 'predictions.jsonl'))[3]
+    # Short row 3 shares the fitted prompt with selected row 2: still keep its old label.
+    assert merged[2]['prompt_sha256'] == merged[3]['prompt_sha256']
+    assert merged[2]['prediction'] == 1 and merged[3]['prediction'] == 0
     assert rerun.preflight(root, cfg, settings, 'test')['new_unique_requests'] == 0
     assert inference.response_path is old_path and inference.import_prior_responses is old_import
     assert original == {p.name: p.read_bytes() for p in parent.iterdir()}
@@ -103,7 +118,7 @@ def test_fresh_cache_and_interrupted_resume(prepared, monkeypatch):
 def test_resume_rejects_prompt_tampering_and_endpoint_switch(prepared):
     root, cfg, settings, _, _ = prepared
     rerun.preflight(root, cfg, settings, 'test')
-    with pytest.raises(ValueError, match='endpoint'):
+    with pytest.raises(ValueError, match='model/provider/spec|endpoint'):
         rerun.preflight(root, cfg, {**settings, 'base_url': 'https://other.fpt.ai/v1'}, 'test')
     p = rerun._folder(root, 'test') / 'expert/prompts.jsonl'
     p.write_text('changed', encoding='utf-8')
@@ -165,3 +180,16 @@ def test_runtime_mismatch_fails_before_api(prepared, monkeypatch):
     monkeypatch.setattr(rerun, 'versions', lambda: {'numpy': 'new'})
     with pytest.raises(RuntimeError, match='original training kernel before inference'):
         check_runtime(root, cfg)
+
+
+def test_original_prompt_measurement_keeps_component_caps():
+    template = ('Determine whether the target function contains a software vulnerability.\n'
+                'Use the target code, graph context, and labeled reference examples as evidence.'
+                '\n{target_code}\n{graph_context}\n{demonstrations}')
+    policy = {'target_code_max_chars': 3000, 'standard_demo_max_chars': 1500}
+    text = rerun._original_prompt(template, 't'*10000, 'g'*5000,
+                                  [{'label': 1, 'code': 'd'*10000}], policy)
+    assert 't'*3000 in text and 't'*3001 not in text
+    assert 'd'*1500 in text and 'd'*1501 not in text
+    assert 'g'*5000 in text
+    assert len(text.encode('utf-8')) > 8192
