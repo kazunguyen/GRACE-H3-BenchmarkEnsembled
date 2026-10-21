@@ -50,7 +50,11 @@ def checked_expert(root, run, expected_rows):
     if not summary_path.exists() or not predictions.exists():
         raise FileNotFoundError('Run expert inference locally before this CPU stage')
     summary = read_json(summary_path)
-    if summary['status'] != 'complete' or summary['request_spec'] != request_spec(root):
+    marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+    marker = read_json(marker_path) if marker_path.is_file() else None
+    mixed_allowed = (summary.get('mixed_model_recovery') and marker and marker.get('status') == 'active'
+                     and run in {item['run'] for item in marker['runs']})
+    if summary['status'] != 'complete' or (summary['request_spec'] != request_spec(root) and not mixed_allowed):
         raise ValueError('Expert requests incomplete or inference spec changed; resume locally')
     if file_hash(predictions) != summary['predictions_sha256']:
         raise ValueError('Expert prediction file changed')
@@ -100,7 +104,19 @@ def base_prepare(root, cfg, callback=None):
 def preflight(root, cfg, phase):
     stage = load_stage(root, cfg, 'base_selection' if phase == 'validation' else 'meta_selection')
     paths = sorted({j[phase + '_run'] for j in stage['jobs']})
-    return [{'run': rel, **plan_inference(root, root / rel)} for rel in paths]
+    reports = []
+    for rel in paths:
+        summary_path = root / rel / 'inference_summary.json'
+        marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+        marker = read_json(marker_path) if marker_path.is_file() else None
+        if marker and marker.get('status') == 'active' and rel in {item['run'] for item in marker['runs']}:
+            summary = read_json(summary_path)
+            verify_frozen(root, root / rel)
+            if summary.get('mixed_model_recovery') and summary['status'] == 'complete' and summary['predictions_sha256'] == file_hash(root / rel / 'predictions.jsonl'):
+                reports.append({'run': rel, 'status': 'complete', 'new_unique_requests': 0, 'mixed_model_recovery': True})
+                continue
+        reports.append({'run': rel, **plan_inference(root, root / rel)})
+    return reports
 
 
 def infer(root, cfg, phase, allow_api=False):
@@ -113,7 +129,11 @@ def infer(root, cfg, phase, allow_api=False):
         if previous.exists() and predictions.exists():
             old = read_json(previous)
             verify_frozen(root, root / rel)
-            if (old['status'] == 'complete' and old['request_spec'] == request_spec(root)
+            marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+            marker = read_json(marker_path) if marker_path.is_file() else None
+            mixed_allowed = (old.get('mixed_model_recovery') and marker and marker.get('status') == 'active'
+                             and rel in {item['run'] for item in marker['runs']})
+            if (old['status'] == 'complete' and (old['request_spec'] == request_spec(root) or mixed_allowed)
                     and old['predictions_sha256'] == file_hash(predictions)):
                 reports.append({'run': rel, 'status': 'complete', 'reused_completed_run': True,
                                 'api_attempts_this_run': 0, 'new_unique_requests': 0,
@@ -273,11 +293,17 @@ def evaluate(root, cfg):
                       'sd': float(np.std([r['arms'][arm]['metrics'][key] for r in subset], ddof=1))
                             if len(subset) > 1 else None}
                 for key in ('mcc', 'f1', 'precision', 'recall', 'specificity')}
+    marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+    recovery = read_json(marker_path) if marker_path.is_file() else None
     summary = {'schema': 'h3v2_benchmark_summary_v1', 'config': cfg, 'status': 'complete',
                'datasets': reports, 'per_dataset_selected_mean_sd': aggregate,
                'per_dataset_arm_mean_sd': arm_aggregate,
                'selection': 'MCC/F1 on development, winner frozen before test',
-               'limitations': 'Iterative benchmark, one seed by default, query bootstrap not project-adjusted.',
+               'limitations': ('Exploratory mixed-model recovery: validation combines Qwen/Vertex and DeepSeek/FPT '
+                               'on legacy 8192-byte prompts; test uses the current contract. Do not compare as a '
+                               'single-backbone benchmark.' if recovery and recovery.get('status') == 'active' else
+                               'Iterative benchmark, one seed by default, query bootstrap not project-adjusted.'),
+               'benchmark_comparable': not bool(recovery and recovery.get('status') == 'active'),
                'created_unix': time.time()}
     write_json(stage_file(root, cfg, 'benchmark_summary'), summary)
     return summary

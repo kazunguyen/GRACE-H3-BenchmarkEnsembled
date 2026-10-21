@@ -36,7 +36,17 @@ class PipelineConfig:
 def verify_frozen(root,run_dir):
     root=resolve_root(root);run_dir=Path(run_dir);frozen=read_json(run_dir/'freeze.json')
     for rel,expected in frozen['files'].items():
-        if file_hash(root/rel)!=expected: raise ValueError(f'Frozen input changed: {rel}')
+        if file_hash(root/rel)==expected:
+            continue
+        marker_path=root/'runs/h3v2/mixed_model_recovery.json'
+        marker=read_json(marker_path) if marker_path.is_file() else None
+        listed={item['run'] for item in marker['runs']} if marker and marker.get('status')=='active' else set()
+        if (rel=='configs/reference_contract.yaml' and marker and
+                run_dir.relative_to(root).as_posix() in listed and
+                expected==marker['legacy_contract_sha256'] and
+                file_hash(root/rel)==marker['current_contract_sha256']):
+            continue
+        raise ValueError(f'Frozen input changed: {rel}')
     return read_json(run_dir/'run_manifest.json')
 
 def prepare_run(root,config=None,head_manifest=None,checkpoint_callback=None,target_ids=None):

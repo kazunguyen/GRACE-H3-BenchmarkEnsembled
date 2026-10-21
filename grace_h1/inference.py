@@ -7,12 +7,14 @@ import yaml
 from .io import load_local_environment,resolve_root,read_json,write_json,write_jsonl,iter_jsonl,file_hash,fingerprint,sha256
 from .pipeline import verify_frozen
 from .parser import parse_prediction
+from .fpt_provider import load_fpt_settings, fpt_identity, fpt_sdk
 
 
 def request_spec(root):
     contract=yaml.safe_load((root/'configs'/'reference_contract.yaml').read_text(encoding='utf-8'))
-    return {'model':contract['backbone_llm']['model'],'provider':contract['backbone_llm']['provider'],
-            'inference':contract['inference_config']}
+    settings=load_fpt_settings()
+    identity=fpt_identity(settings) if settings is not None else contract['backbone_llm']
+    return {**identity,'inference':contract['inference_config']}
 
 def request_key(prompt_sha256,spec):
     return fingerprint({'prompt_sha256':prompt_sha256,'inference_fingerprint':fingerprint(spec)})
@@ -82,7 +84,12 @@ def run_inference(root,run_dir,*,allow_api=False,workers=4):
     if todo and not allow_api:
         return plan|{'status':'prepared_cache_only','action':'run again with allow_api=True to call Vertex for missing exact prompts'}
     clients=[];client_lock=threading.Lock();local=threading.local()
-    if todo:
+    settings=load_fpt_settings()
+    if todo and settings is not None:
+        genai,types=fpt_sdk(settings)
+        mode,project,location='vertexai',None,None
+        if not settings['api_key']: raise RuntimeError('Set FPT_API in the shared LabThayTho .env')
+    elif todo:
         project=os.environ.get('VERTEX_PROJECT') or os.environ.get('GOOGLE_CLOUD_PROJECT')
         location=os.environ.get('VERTEX_LOCATION') or os.environ.get('GOOGLE_CLOUD_LOCATION')
         if not project or not location: raise RuntimeError('Set VERTEX_PROJECT and VERTEX_LOCATION; use existing ADC credentials')

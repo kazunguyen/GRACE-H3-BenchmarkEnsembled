@@ -56,6 +56,13 @@ def experiment_dir(root, cfg):
             'data_manifest': file_hash(root / 'data/manifest.json'),
             'contract': file_hash(root / 'configs/reference_contract.yaml'),
             'template': file_hash(root / 'configs/prompt_template.txt')}
+    marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+    if marker_path.is_file():
+        marker = read_json(marker_path)
+        if marker.get('status') == 'active' and marker.get('config') == cfg:
+            if marker['current_contract_sha256'] != file_hash(root / 'configs/reference_contract.yaml'):
+                raise ValueError('Recovery contract changed')
+            return root / marker['stage_folder'], marker['stage_experiment']
     return root / 'runs/h3v2' / fingerprint(spec)[:20], spec
 
 
@@ -147,8 +154,18 @@ def freeze(root, folder, files, spec):
 
 def verify(root, folder):
     frozen = read_json(folder / 'freeze.json')
-    if frozen['spec']['source'] != sources(root):
-        raise ValueError('H3-v2 source changed; create a new experiment')
+    current_sources = sources(root)
+    if frozen['spec']['source'] != current_sources:
+        marker_path = root / 'runs/h3v2/mixed_model_recovery.json'
+        marker = read_json(marker_path) if marker_path.is_file() else None
+        allowed = {'grace_h1/inference.py', 'grace_h1/fpt_provider.py', 'grace_h1/pipeline.py',
+                   'grace_h3v2/recovery.py', 'grace_h3v2/common.py', 'grace_h3v2/workflow.py'}
+        changed = {name for name in set(frozen['spec']['source']) | set(current_sources)
+                   if frozen['spec']['source'].get(name) != current_sources.get(name)}
+        stage = read_json(root / marker['stage_folder'] / 'base_selection.json') if marker and marker.get('status') == 'active' else None
+        legacy_base = {job['base_folder'] for job in stage['jobs']} if stage else set()
+        if not marker or folder.relative_to(root).as_posix() not in legacy_base or not changed <= allowed:
+            raise ValueError('H3-v2 source changed; create a new experiment')
     for rel, expected in frozen['files'].items():
         p = (root / rel).resolve()
         inside(root, p)
